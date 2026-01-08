@@ -67,3 +67,73 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ===== iOS Safari date input sanity fixes ===== */
+
+/* Allow shrinking inside flex/grid parents and fill the line width */
+input[type="date"] {
+  min-width: 0;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Prevent truncation of the date text */
+input[type="date"]::-webkit-datetime-edit {
+  text-align: left; /* iOS default can clip/truncate */
+}
+
+/* Ensure the calendar indicator doesn't add unexpected spacing */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  padding: 0;
+  margin: 0;
+}
+
+/* Optional: make all inputs shrinkable by default (useful if your Input wraps native input) */
+input {
+  min-width: 0;
+  width: 100%;
+}
+
+
+/* Viewport height utilities that work across iOS variants */
+.vh-100 {
+  height: 100vh;
+  max-height: 100vh;
+}
+
+/* Use small viewport height when supported (accounts for browser chrome) */
+@supports (height: 100svh) {
+  .vh-100 {
+    height: 100svh;
+    max-height: 100svh;
+  }
+}
+
+/* Dynamic viewport height (best on iOS 16+ Safari) */
+@supports (height: 100dvh) {
+  .vh-100 {
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+}
+
+/* Full-width utility for tricky iOS inputs in flex/grid contexts */
+.min-w-0 {
+  min-width: 0;
+}
+
+/* iOS Safari date input sanity fixes */
+input[type="date"] {
+  min-width: 0;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type="date"]::-webkit-datetime-edit {
+  text-align: left;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  padding: 0;
+  margin: 0;
+}

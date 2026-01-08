@@ -1,13 +1,22 @@
+
 'use client';
 
 import * as React from 'react';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useForm } from 'react-hook-form';
+import { format } from 'date-fns';
+import dayjs, { Dayjs } from 'dayjs';
 
 import { PageHeader } from '@/components/page-header';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+
 import {
   Form,
   FormControl,
@@ -24,61 +33,90 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+
 import { useToast } from '@/hooks/use-toast';
 import { ContributionChart } from '@/app/contributions/contribution-chart';
 import { members, contributions as initialContributions } from '@/lib/data';
 
+// --- MUI X Date Pickers (Mobile-friendly) ---
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
+
+// --- MUI Theme (local dark mode) ---
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+
+// ------------------------------
+// Zod schema
+// ------------------------------
 const contributionSchema = z.object({
   memberId: z.string().min(1, 'Member is required'),
   amount: z.coerce.number().positive('Amount must be positive'),
   category: z.enum(['Tithes', 'Offering', 'Donation', 'Other']),
+  contributionType: z.enum(['Digital Transfer', 'Cash', 'Check', 'Other'], {
+    required_error: 'Contribution Type is required',
+  }),
   date: z.date({ required_error: 'Date is required' }),
 });
 
+type ContributionFormValues = z.infer<typeof contributionSchema>;
+
+// ------------------------------
+// Page Component
+// ------------------------------
 export default function ContributionsPage() {
   const { toast } = useToast();
   const [contributions, setContributions] = React.useState(initialContributions);
 
-  const form = useForm<z.infer<typeof contributionSchema>>({
+  const form = useForm<ContributionFormValues>({
     resolver: zodResolver(contributionSchema),
     defaultValues: {
+      memberId: '',
+      amount: 0,
       category: 'Tithes',
+      contributionType: 'Digital Transfer',
       date: new Date(),
     },
+    mode: 'onSubmit',
   });
 
-  function onSubmit(values: z.infer<typeof contributionSchema>) {
-    const memberName =
-      members.find((m) => m.id === values.memberId)?.firstName +
-      ' ' +
-      members.find((m) => m.id === values.memberId)?.lastName;
+  function onSubmit(values: ContributionFormValues) {
+    const member = members.find((m) => m.id === values.memberId);
+    const memberName = member ? `${member.firstName} ${member.lastName}` : 'Unknown Member';
 
     const newContribution = {
       id: `c${contributions.length + 1}`,
       memberName,
       ...values,
     };
+
     setContributions((prev) => [newContribution, ...prev]);
 
     toast({
       title: 'Contribution Added',
-      description: `Added ${values.amount} for ${memberName}.`,
+      description: `Added ${values.amount} (${values.contributionType}) for ${memberName}.`,
     });
+
     form.reset({
+      memberId: '',
+      amount: 0,
       category: 'Tithes',
+      contributionType: 'Digital Transfer',
       date: new Date(),
     });
   }
 
+  // Local dark theme just for this page (you can move this to app-wide Providers)
+  const darkTheme = createTheme({
+    palette: { mode: 'dark' },
+  });
+
   return (
-    <>
+    <ThemeProvider theme={darkTheme}>
       <PageHeader title="Contributions" />
+
       <div className="grid gap-8 lg:grid-cols-3">
+        {/* Left column: Form */}
         <div className="lg:col-span-1">
           <Card>
             <CardHeader>
@@ -86,10 +124,8 @@ export default function ContributionsPage() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-6"
-                >
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  {/* Member */}
                   <FormField
                     control={form.control}
                     name="memberId"
@@ -97,11 +133,11 @@ export default function ContributionsPage() {
                       <FormItem>
                         <FormLabel>Member</FormLabel>
                         <Select
+                          value={field.value ?? ''}
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="w-full">
                               <SelectValue placeholder="Select a member" />
                             </SelectTrigger>
                           </FormControl>
@@ -119,6 +155,8 @@ export default function ContributionsPage() {
                       </FormItem>
                     )}
                   />
+
+                  {/* Amount (controlled to avoid warnings) */}
                   <FormField
                     control={form.control}
                     name="amount"
@@ -126,12 +164,29 @@ export default function ContributionsPage() {
                       <FormItem>
                         <FormLabel>Amount</FormLabel>
                         <FormControl>
-                          <Input type="number" placeholder="0.00" {...field} />
+                          <Input
+                            type="number"
+                            inputMode="decimal"
+                            step="0.01"
+                            placeholder="0.00"
+                            className="w-full"
+                            value={
+                              typeof field.value === 'number' && Number.isFinite(field.value)
+                                ? String(field.value)
+                                : ''
+                            }
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              field.onChange(v === '' ? 0 : Number(v));
+                            }}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                  {/* Category */}
                   <FormField
                     control={form.control}
                     name="category"
@@ -139,11 +194,11 @@ export default function ContributionsPage() {
                       <FormItem>
                         <FormLabel>Category</FormLabel>
                         <Select
+                          value={field.value ?? ''}
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="w-full">
                               <SelectValue placeholder="Select a category" />
                             </SelectTrigger>
                           </FormControl>
@@ -158,44 +213,102 @@ export default function ContributionsPage() {
                       </FormItem>
                     )}
                   />
+
+                  {/* Contribution Type */}
                   <FormField
                     control={form.control}
-                    name="date"
+                    name="contributionType"
                     render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Date</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={'outline'}
-                                className={cn(
-                                  'w-full pl-3 text-left font-normal',
-                                  !field.value && 'text-muted-foreground'
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, 'PPP')
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+                      <FormItem>
+                        <FormLabel>Contribution Type</FormLabel>
+                        <Select
+                          value={field.value ?? ''}
+                          onValueChange={field.onChange}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select a contribution type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Digital Transfer">Digital Transfer</SelectItem>
+                            <SelectItem value="Cash">Cash</SelectItem>
+                            <SelectItem value="Check">Check</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                  {/* Date — MUI MobileDatePicker (dark theme, closes on select) */}
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={() => (
+                      <FormItem>
+                        <FormLabel>Date</FormLabel>
+                        <FormControl>
+                          <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            <Controller
+                              name="date"
+                              control={form.control}
+                              render={({ field: ctrl }) => (
+                                <MobileDatePicker
+                                  value={dayjs(ctrl.value)}
+                                  onChange={(next: Dayjs | null) => {
+                                    if (!next) return;
+                                    ctrl.onChange(next.toDate());
+                                  }}
+                                  closeOnSelect
+                                  reduceAnimations
+                                  // Compact weekday labels
+                                  dayOfWeekFormatter={(d) => d.format('dd').toUpperCase()}
+                                  // Make the input and dialog match your dark UI
+                                  slotProps={{
+                                    textField: {
+                                      fullWidth: true,
+                                      // Color & background tuned for dark Tailwind/shadcn
+                                      sx: {
+                                        '& .MuiInputBase-root': {
+                                          backgroundColor: 'transparent',
+                                          color: 'text.primary',
+                                          fontSize: '0.875rem',
+                                          borderRadius: '0.5rem', // to match shadcn radius
+                                        },
+                                        '& .MuiInputLabel-root': {
+                                          color: 'text.secondary',
+                                        },
+                                        '& .MuiOutlinedInput-notchedOutline': {
+                                          borderColor: 'rgba(255,255,255,0.2)',
+                                        },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                                          borderColor: 'rgba(255,255,255,0.35)',
+                                        },
+                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                          borderColor: 'primary.main',
+                                        },
+                                      },
+                                    },
+                                    mobilePaper: {
+                                      // Dialog/paper background and text for dark
+                                      sx: {
+                                        bgcolor: 'background.default',
+                                        color: 'text.primary',
+                                      },
+                                    },
+                                  }}
+                                />
+                              )}
+                            />
+                          </LocalizationProvider>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <Button type="submit" className="w-full">
                     Add Contribution
                   </Button>
@@ -204,6 +317,8 @@ export default function ContributionsPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Right column: Chart */}
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
@@ -215,6 +330,6 @@ export default function ContributionsPage() {
           </Card>
         </div>
       </div>
-    </>
+    </ThemeProvider>
   );
 }
