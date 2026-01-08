@@ -46,9 +46,21 @@ const StatusBadge = ({ status }: { status: Member['status'] }) => {
 export function MemberCard({ member }: { member: Member }) {
   return (
     <AlertDialog>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-xl">{`${member.firstName} ${member.lastName}`}</CardTitle>
+      <Card className="overflow-hidden">
+        <div className="relative aspect-[4/3] w-full">
+          <Image
+            src={member.photoUrl}
+            alt={`${member.firstName} ${member.lastName}`}
+            fill
+            className="object-cover"
+            data-ai-hint={member.imageHint}
+          />
+        </div>
+        <CardHeader className="flex-row items-start justify-between">
+          <div className="flex flex-col">
+            <CardTitle className="text-xl">{`${member.firstName} ${member.lastName}`}</CardTitle>
+            <StatusBadge status={member.status} />
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
@@ -77,19 +89,10 @@ export function MemberCard({ member }: { member: Member }) {
             </DropdownMenuContent>
           </DropdownMenu>
         </CardHeader>
-        <CardContent className="flex flex-col items-center gap-4">
-          <Image
-            src={member.photoUrl}
-            alt={`${member.firstName} ${member.lastName}`}
-            width={128}
-            height={128}
-            className="h-32 w-32 rounded-full object-cover"
-            data-ai-hint={member.imageHint}
-          />
-          <div className="flex flex-col items-center space-y-2">
-            <StatusBadge status={member.status} />
-            <p className="text-sm text-muted-foreground">{member.email}</p>
-            <p className="text-sm text-muted-foreground">{member.phone}</p>
+        <CardContent>
+          <div className="space-y-1 text-sm text-muted-foreground">
+            <p>{member.email}</p>
+            <p>{member.phone}</p>
           </div>
         </CardContent>
         <CardFooter></CardFooter>
