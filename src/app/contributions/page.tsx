@@ -30,7 +30,7 @@ import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { ContributionChart } from '@/components/contributions/contribution-chart';
+import { ContributionChart } from '@/app/contributions/contribution-chart';
 import { members, contributions as initialContributions } from '@/lib/data';
 
 const contributionSchema = z.object({
