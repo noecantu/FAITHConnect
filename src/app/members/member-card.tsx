@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { MemberFormSheet } from './member-form-sheet';
 import type { Member } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 const StatusBadge = ({ status }: { status: Member['status'] }) => {
   if (status === 'Active') {
@@ -42,10 +43,16 @@ const StatusBadge = ({ status }: { status: Member['status'] }) => {
     Prospect: 'default',
     Archived: 'outline',
   }[status];
+  
+  const className = cn(
+    'absolute top-2 right-2',
+    status === 'Archived' && 'bg-background/70'
+  );
+
   return (
     <Badge
       variant={variant as any}
-      className="absolute top-2 right-2"
+      className={className}
     >
       {status}
     </Badge>
