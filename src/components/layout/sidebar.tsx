@@ -5,12 +5,13 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { FaithConnectLogo } from '@/components/icons';
-import { Users, Calendar, DollarSign, Menu } from 'lucide-react';
+import { Users, Calendar, DollarSign, Menu, Plus } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { MemberFormSheet } from '@/app/members/member-form-sheet';
 
 const navItems = [
   { href: '/', label: 'Members', icon: Users },
@@ -66,15 +67,27 @@ function NavLinks() {
   return (
     <>
       {navItems.map((item) => (
-        <Link href={item.href} key={item.label}>
-          <Button
-            variant={pathname === item.href ? 'secondary' : 'ghost'}
-            className="w-full justify-start"
-          >
-            <item.icon className="mr-2 h-4 w-4" />
-            {item.label}
-          </Button>
-        </Link>
+        <div key={item.label}>
+          <Link href={item.href} >
+            <Button
+              variant={pathname === item.href ? 'secondary' : 'ghost'}
+              className="w-full justify-start"
+            >
+              <item.icon className="mr-2 h-4 w-4" />
+              {item.label}
+            </Button>
+          </Link>
+          {item.href === '/' && (
+             <div className="pl-4">
+                <MemberFormSheet>
+                   <Button variant="ghost" className="w-full justify-start text-sm font-normal">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Member
+                   </Button>
+                </MemberFormSheet>
+             </div>
+          )}
+        </div>
       ))}
     </>
   );
