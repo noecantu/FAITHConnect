@@ -46,7 +46,7 @@ const StatusBadge = ({ status }: { status: Member['status'] }) => {
   
   const className = cn(
     'absolute top-2 right-2',
-    status === 'Archived' && 'bg-background/70'
+    'bg-background/70'
   );
 
   return (
