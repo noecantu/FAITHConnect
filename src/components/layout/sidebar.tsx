@@ -49,7 +49,6 @@ export function NavMenu() {
                 <span>Add Member</span>
             </DropdownMenuItem>
          </MemberFormSheet>
-        <DropdownMenuSeparator />
         <Link href="/settings">
             <DropdownMenuItem
                 className={pathname === '/settings' ? 'bg-accent' : ''}
