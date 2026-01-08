@@ -40,12 +40,12 @@ const StatusBadge = ({ status }: { status: Member['status'] }) => {
     return null;
   }
   const variant = {
-    Prospect: 'default',
+    Prospect: 'outline',
     Archived: 'outline',
   }[status];
 
   const className = cn('absolute top-2 right-2', {
-    'bg-background/70': status === 'Archived' || status === 'Prospect',
+    'bg-background/50': status === 'Archived' || status === 'Prospect',
   });
 
   return (
