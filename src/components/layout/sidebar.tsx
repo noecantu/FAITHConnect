@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Users, Calendar, DollarSign, Menu, Plus } from 'lucide-react';
+import { Users, Calendar, DollarSign, Menu, Plus, Settings } from 'lucide-react';
 
 import {
   DropdownMenu,
@@ -49,6 +49,15 @@ export function NavMenu() {
                 <span>Add Member</span>
             </DropdownMenuItem>
          </MemberFormSheet>
+        <DropdownMenuSeparator />
+        <Link href="/settings">
+            <DropdownMenuItem
+                className={pathname === '/settings' ? 'bg-accent' : ''}
+            >
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+            </DropdownMenuItem>
+        </Link>
       </DropdownMenuContent>
     </DropdownMenu>
   );
