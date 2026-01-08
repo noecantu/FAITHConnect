@@ -35,12 +35,21 @@ import { MemberFormSheet } from './member-form-sheet';
 import type { Member } from '@/lib/types';
 
 const StatusBadge = ({ status }: { status: Member['status'] }) => {
+  if (status === 'Active') {
+    return null;
+  }
   const variant = {
-    Active: 'secondary',
     Prospect: 'default',
     Archived: 'outline',
   }[status];
-  return <Badge variant={variant as any}>{status}</Badge>;
+  return (
+    <Badge
+      variant={variant as any}
+      className="absolute top-2 right-2"
+    >
+      {status}
+    </Badge>
+  );
 };
 
 export function MemberCard({ member }: { member: Member }) {
@@ -55,11 +64,11 @@ export function MemberCard({ member }: { member: Member }) {
             className="object-cover"
             data-ai-hint={member.imageHint}
           />
+          <StatusBadge status={member.status} />
         </div>
         <CardHeader className="flex-row items-start justify-between">
           <div className="flex flex-col">
             <CardTitle className="text-xl">{`${member.firstName} ${member.lastName}`}</CardTitle>
-            <StatusBadge status={member.status} />
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
