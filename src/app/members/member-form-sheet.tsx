@@ -24,14 +24,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetFooter,
-  SheetDescription,
-} from '@/components/ui/sheet';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import type { Member } from '@/lib/types';
@@ -87,36 +87,36 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   }
 
   const trigger = children ? (
-    <SheetTrigger asChild>{children}</SheetTrigger>
+    <DialogTrigger asChild>{children}</DialogTrigger>
   ) : (
-    <SheetTrigger asChild>
+    <DialogTrigger asChild>
       <Button>
         <PlusCircle className="mr-2 h-4 w-4" />
         Add Member
       </Button>
-    </SheetTrigger>
+    </DialogTrigger>
   );
 
   return (
-    <Sheet>
+    <Dialog>
       {trigger}
-      <SheetContent className="flex flex-col">
-        <SheetHeader>
-          <SheetTitle>
+      <DialogContent className="max-h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>
             {isEditMode ? 'Edit Member' : 'Add New Member'}
-          </SheetTitle>
-          <SheetDescription>
+          </DialogTitle>
+          <DialogDescription>
             {isEditMode
               ? `Update the profile for ${member?.firstName} ${member?.lastName}.`
               : 'Add a new member to the directory. Required fields are marked with *'}
-          </SheetDescription>
-        </SheetHeader>
-        <ScrollArea className="flex-1">
+          </DialogDescription>
+        </DialogHeader>
+        <ScrollArea className="flex-1 -mx-6">
           <Form {...form}>
             <form
               id="member-form"
               onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-6 px-1 py-4"
+              className="space-y-6 px-6"
             >
               <FormField
                 control={form.control}
@@ -236,12 +236,12 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
             </form>
           </Form>
         </ScrollArea>
-        <SheetFooter>
+        <DialogFooter>
           <Button type="submit" form="member-form" onClick={form.handleSubmit(onSubmit)}>
             {isEditMode ? 'Save Changes' : 'Add Member'}
           </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
