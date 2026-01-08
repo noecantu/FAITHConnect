@@ -43,17 +43,13 @@ const StatusBadge = ({ status }: { status: Member['status'] }) => {
     Prospect: 'default',
     Archived: 'outline',
   }[status];
-  
-  const className = cn(
-    'absolute top-2 right-2',
-    'bg-background/70'
-  );
+
+  const className = cn('absolute top-2 right-2', {
+    'bg-background/70': status === 'Archived' || status === 'Prospect',
+  });
 
   return (
-    <Badge
-      variant={variant as any}
-      className={className}
-    >
+    <Badge variant={variant as any} className={className}>
       {status}
     </Badge>
   );
