@@ -25,7 +25,7 @@ const StatusBadge = ({ status }: { status: Member['status'] }) => {
   }[status];
 
   const className = cn('absolute top-2 right-2', {
-    'bg-background/50': status === 'Archived',
+    'bg-background/80': status === 'Prospect' || status === 'Archived',
   });
 
   return (
@@ -49,7 +49,7 @@ export function MemberCard({ member }: { member: Member }) {
           />
           <StatusBadge status={member.status} />
         </div>
-        <CardHeader className="flex-row items-start justify-between">
+        <CardHeader className="flex-row items-start justify-between pb-2">
           <div className="flex flex-col">
             <CardTitle className="text-xl">{`${member.firstName} ${member.lastName}`}</CardTitle>
           </div>
