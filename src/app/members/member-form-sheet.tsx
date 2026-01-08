@@ -107,13 +107,14 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           </SheetTitle>
           <SheetDescription>
             {isEditMode
-              ? `Update the profile for ${member.firstName} ${member.lastName}.`
+              ? `Update the profile for ${member?.firstName} ${member?.lastName}.`
               : 'Add a new member to the directory. Required fields are marked with *'}
           </SheetDescription>
         </SheetHeader>
         <ScrollArea className="flex-1">
           <Form {...form}>
             <form
+              id="member-form"
               onSubmit={form.handleSubmit(onSubmit)}
               className="space-y-6 px-1 py-4"
             >
