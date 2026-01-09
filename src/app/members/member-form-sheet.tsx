@@ -4,7 +4,8 @@
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode, useRef } from "react";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -37,7 +38,9 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
+  DialogClose
 } from "@/components/ui/dialog";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 import { useToast } from "@/hooks/use-toast";
 import type { Member } from "@/lib/types";
@@ -47,6 +50,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "@/lib/firebase";
 
 import { addMember, updateMember } from "@/lib/members";
+import { Camera, Upload } from "lucide-react";
 
 const memberSchema = z.object({
   firstName: z.string().min(1, "First Name is required"),
@@ -75,6 +79,12 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   const isEditMode = !!member;
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isTakingPhoto, setIsTakingPhoto] = useState(false);
+  const [hasCameraPermission, setHasCameraPermission] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(memberSchema),
@@ -89,6 +99,25 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
       photoFile: null,
     },
   });
+
+  const photoFile = form.watch("photoFile");
+
+  useEffect(() => {
+    if (photoFile) {
+      setPreviewUrl(URL.createObjectURL(photoFile));
+    } else if (member?.photoUrl) {
+      setPreviewUrl(member.photoUrl);
+    } else {
+      setPreviewUrl(null);
+    }
+
+    return () => {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    }
+  }, [photoFile, member, isOpen]);
+
 
   useEffect(() => {
     if (isOpen) {
@@ -119,6 +148,59 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
       }
     }
   }, [isOpen, isEditMode, member, form]);
+
+  useEffect(() => {
+    if(isTakingPhoto) {
+      const getCameraPermission = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({video: true});
+          setHasCameraPermission(true);
+
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          setHasCameraPermission(false);
+          toast({
+            variant: 'destructive',
+            title: 'Camera Access Denied',
+            description: 'Please enable camera permissions in your browser settings to use this app.',
+          });
+          setIsTakingPhoto(false);
+        }
+      };
+
+      getCameraPermission();
+
+      return () => {
+        if(videoRef.current && videoRef.current.srcObject){
+          const stream = videoRef.current.srcObject as MediaStream;
+          stream.getTracks().forEach(track => track.stop());
+        }
+      }
+    }
+  }, [isTakingPhoto, toast]);
+
+  const handleCapturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext('2d');
+      if (context) {
+        context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
+            form.setValue('photoFile', file);
+            setIsTakingPhoto(false);
+          }
+        }, 'image/jpeg');
+      }
+    }
+  };
 
   async function onSubmit(data: MemberFormValues) {
     if (!churchId) {
@@ -185,18 +267,19 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
 
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
             {isEditMode ? "Edit Member" : "Add Member"}
           </DialogTitle>
         </DialogHeader>
 
+        <div className="flex-grow overflow-y-auto pr-6 pl-2 -ml-2">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Member Information</CardTitle>
+                <CardTitle>Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <FormField
@@ -295,7 +378,6 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                   name="status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Status</FormLabel>
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
@@ -322,17 +404,39 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
               <CardHeader>
                 <CardTitle>Photo</CardTitle>
               </CardHeader>
-              <CardContent>
-                <FormField
+              <CardContent className="space-y-4">
+                <div className="w-40 h-40 mx-auto rounded-lg overflow-hidden bg-muted flex items-center justify-center relative">
+                   {previewUrl ? (
+                    <Image
+                      src={previewUrl}
+                      alt="Member photo preview"
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="text-sm text-muted-foreground">No Photo</span>
+                  )}
+                </div>
+                <div className="flex gap-2 justify-center">
+                  <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                    <Upload className="mr-2 h-4 w-4"/>
+                    Upload
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setIsTakingPhoto(true)}>
+                    <Camera className="mr-2 h-4 w-4"/>
+                    Take Photo
+                  </Button>
+                </div>
+                 <FormField
                   control={form.control}
                   name="photoFile"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Photo</FormLabel>
+                    <FormItem className="hidden">
                       <FormControl>
                         <Input
                           type="file"
                           accept="image/*"
+                          ref={fileInputRef}
                           onChange={(e) =>
                             field.onChange(e.target.files?.[0] ?? null)
                           }
@@ -344,15 +448,47 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                 />
               </CardContent>
             </Card>
-
-            <DialogFooter>
-              <Button type="submit">
-                {isEditMode ? "Save Changes" : "Add Member"}
-              </Button>
-            </DialogFooter>
           </form>
         </Form>
+        </div>
+
+        <DialogFooter>
+          <Button type="submit" onClick={form.handleSubmit(onSubmit)}>
+            {isEditMode ? "Save Changes" : "Add Member"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
+
+      <Dialog open={isTakingPhoto} onOpenChange={setIsTakingPhoto}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Take Photo</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+             <div className="bg-muted rounded-md overflow-hidden">
+                <video ref={videoRef} className="w-full aspect-video" autoPlay muted playsInline />
+                <canvas ref={canvasRef} className="hidden" />
+             </div>
+             {!hasCameraPermission && (
+                <Alert variant="destructive">
+                  <AlertTitle>Camera Access Required</AlertTitle>
+                  <AlertDescription>
+                    Please allow camera access to use this feature.
+                  </AlertDescription>
+                </Alert>
+             )}
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={handleCapturePhoto} disabled={!hasCameraPermission}>
+              <Camera className="mr-2 h-4 w-4" />
+              Capture
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
