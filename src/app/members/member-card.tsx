@@ -28,7 +28,7 @@ const StatusBadge = ({ status }: { status: Member['status'] }) => {
     'absolute top-2 right-2',
     {
       'bg-background/50': status === 'Archived',
-      'bg-green-500/50 text-green-800': status === 'Prospect', // 40% opacity
+      'bg-green-500/50 text-green-800': status === 'Prospect',
     }
   );
 
@@ -50,7 +50,6 @@ export function MemberCard({ member }: { member: Member }) {
               alt={`${member.firstName} ${member.lastName}`}
               fill
               className="object-cover"
-              data-ai-hint={member.imageHint}
             />
           ) : (
             <span className="text-sm font-medium">No Image Added</span>

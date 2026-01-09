@@ -10,7 +10,6 @@ export const members: Member[] = [
     status: 'Active',
     birthday: '1990-05-15',
     photoUrl: 'https://picsum.photos/seed/m1/200/200',
-    imageHint: 'man portrait',
     notes: 'Long-time member, volunteers in the youth group.',
   },
   {
@@ -22,7 +21,6 @@ export const members: Member[] = [
     status: 'Active',
     birthday: '1985-08-22',
     photoUrl: 'https://picsum.photos/seed/m2/200/200',
-    imageHint: 'woman portrait',
     notes: 'Leads the choir. Allergic to peanuts.',
   },
   {
@@ -34,7 +32,6 @@ export const members: Member[] = [
     status: 'Prospect',
     birthday: '2001-01-30',
     photoUrl: 'https://picsum.photos/seed/m3/200/200',
-    imageHint: 'young man',
     notes: 'New to the area, attended the last three services.',
   },
   {
@@ -46,7 +43,6 @@ export const members: Member[] = [
     status: 'Active',
     birthday: '1978-11-11',
     photoUrl: 'https://picsum.photos/seed/m4/200/200',
-    imageHint: 'woman smiling',
     notes: '',
   },
   {
@@ -58,7 +54,6 @@ export const members: Member[] = [
     status: 'Archived',
     birthday: '1965-03-03',
     photoUrl: 'https://picsum.photos/seed/m5/200/200',
-    imageHint: 'older man',
     notes: 'Moved to another state in 2022.',
   },
 ];

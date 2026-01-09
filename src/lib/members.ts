@@ -57,7 +57,6 @@ import {
           status: raw.status,
           notes: raw.notes ?? "",
           photoUrl: raw.photoUrl ?? "",
-          imageHint: raw.imageHint ?? "",
         };
       });
   

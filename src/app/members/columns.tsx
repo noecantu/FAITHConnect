@@ -51,7 +51,6 @@ export const columns: ColumnDef<Member>[] = [
             width={40}
             height={40}
             className="rounded-full object-cover"
-            data-ai-hint={member.imageHint}
           />
           <div className="font-medium">{`${member.firstName} ${member.lastName}`}</div>
         </div>

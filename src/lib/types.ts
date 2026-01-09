@@ -10,7 +10,6 @@ export type Member = {
   birthday?: string;
   notes?: string;
   status: 'Active' | 'Prospect' | 'Archived';
-  imageHint: string;
 };
 
 export type Event = {
