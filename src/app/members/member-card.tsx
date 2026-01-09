@@ -20,13 +20,17 @@ const StatusBadge = ({ status }: { status: Member['status'] }) => {
     return null;
   }
   const variant = {
-    Prospect: 'default',
+    Prospect: 'outline',
     Archived: 'outline',
   }[status];
 
-  const className = cn('absolute top-2 right-2', {
-    'bg-background/80': status === 'Prospect' || status === 'Archived',
-  });
+  const className = cn(
+    'absolute top-2 right-2',
+    {
+      'bg-background/50': status === 'Archived',
+      'bg-green-500/50 text-green-800': status === 'Prospect', // 40% opacity
+    }
+  );
 
   return (
     <Badge variant={variant as any} className={className}>
@@ -41,9 +45,10 @@ export function MemberCard({ member }: { member: Member }) {
       <Card className="overflow-hidden cursor-pointer">
         <div className="relative aspect-[4/3] w-full">
           <Image
-            src={member.photoUrl}
+            src={member.photoUrl || '/placeholder.png'}
             alt={`${member.firstName} ${member.lastName}`}
             fill
+            sizes="(max-width: 640px) 100vw, 300px"
             className="object-cover"
             data-ai-hint={member.imageHint}
           />

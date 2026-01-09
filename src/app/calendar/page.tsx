@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -80,7 +79,50 @@ function groupEventsByDay(events: EventType[]) {
 }
 
 // ------------------------------
-// GridCalendar Component
+// List View Component
+// ------------------------------
+function ListView({ events }: { events: EventType[] }) {
+  const grouped = React.useMemo(() => {
+    const map = new Map<string, EventType[]>();
+    for (const e of events) {
+      const key = format(e.date, 'yyyy-MM-dd');
+      const arr = map.get(key) ?? [];
+      arr.push(e);
+      map.set(key, arr);
+    }
+    return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [events]);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>All Events</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {grouped.map(([day, evts]) => (
+          <div key={day}>
+            <h3 className="font-semibold mb-2">{format(new Date(day), 'PPP')}</h3>
+            <ul className="space-y-2">
+              {evts.map((e) => (
+                <li key={e.id} className="border rounded-md p-3">
+                  <div className="font-medium">{e.title}</div>
+                  {e.description && (
+                    <div className="text-sm text-muted-foreground">
+                      {e.description}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ------------------------------
+// GridCalendar Component (unchanged)
 // ------------------------------
 interface GridCalendarProps {
   month: Date;
@@ -89,8 +131,9 @@ interface GridCalendarProps {
   onPrevMonth: () => void;
   onNextMonth: () => void;
   events: EventType[];
-  weekStartsOn?: 0 | 1; // 0: Sunday, 1: Monday
+  weekStartsOn?: 0 | 1;
 }
+
 function GridCalendar({
   month,
   selectedDate,
@@ -119,38 +162,26 @@ function GridCalendar({
 
   return (
     <Card className="min-w-0">
-      {/* Header: month & navigation */}
       <CardHeader className="space-y-2 sm:space-y-3">
         <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="shrink-0"
-            onClick={onPrevMonth}
-            aria-label="Previous month"
-          >
+          <Button variant="ghost" size="icon" onClick={onPrevMonth}>
             <ChevronLeft className="h-5 w-5" />
           </Button>
 
           <div className="text-center min-w-0">
-            <CardTitle className="text-lg sm:text-xl">{format(month, 'MMMM yyyy')}</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">
+              {format(month, 'MMMM yyyy')}
+            </CardTitle>
             <CardDescription className="text-xs sm:text-sm">
               Tap a day to view or add events
             </CardDescription>
           </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="shrink-0"
-            onClick={onNextMonth}
-            aria-label="Next month"
-          >
+          <Button variant="ghost" size="icon" onClick={onNextMonth}>
             <ChevronRight className="h-5 w-5" />
           </Button>
         </div>
 
-        {/* Weekday labels */}
         <div className="grid grid-cols-7 gap-2 px-1 text-center text-xs font-medium text-muted-foreground sm:text-sm">
           {weekDayLabels.map((label) => (
             <div key={label} className="py-1">
@@ -160,15 +191,8 @@ function GridCalendar({
         </div>
       </CardHeader>
 
-      {/* Grid */}
       <CardContent className="px-2 sm:px-3">
-        <div
-          className="
-            grid grid-cols-7 gap-2
-            [grid-auto-rows:minmax(56px,1fr)]
-            sm:[grid-auto-rows:minmax(84px,1fr)]
-          "
-        >
+        <div className="grid grid-cols-7 gap-2 [grid-auto-rows:minmax(56px,1fr)] sm:[grid-auto-rows:minmax(84px,1fr)]">
           {days.map((day) => {
             const isOutside = !isSameMonth(day, month);
             const isSelected = !!selectedDate && isSameDay(day, selectedDate);
@@ -182,21 +206,16 @@ function GridCalendar({
                 key={day.toISOString()}
                 type="button"
                 onClick={() => onSelect(day)}
-                aria-label={`${format(day, 'PPP')}${count ? `, ${count} event(s)` : ''}`}
                 className={[
                   'group relative rounded-md border p-1 sm:p-2',
                   'flex flex-col items-stretch justify-between',
-                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                  'transition-colors',
                   isOutside ? 'bg-muted/30 text-muted-foreground' : 'bg-card',
                   isSelected
                     ? 'ring-2 ring-primary/70'
                     : 'hover:bg-accent hover:text-accent-foreground',
-                  // Keep "today" highlight subtle
                   today ? 'outline outline-2 outline-primary/50' : '',
                 ].join(' ')}
               >
-                {/* Day number */}
                 <div className="flex items-start justify-between">
                   <span
                     className={[
@@ -208,16 +227,13 @@ function GridCalendar({
                   </span>
                 </div>
 
-                {/* Event count pill — bottom-right */}
                 {count > 0 && (
                   <span
                     className={[
-                      'pointer-events-none absolute bottom-1 right-1',
-                      'rounded-full px-2 py-0.5 text-[10px] sm:text-xs',
+                      'pointer-events-none absolute bottom-1 right-1 rounded-full px-2 py-0.5 text-[10px] sm:text-xs',
                       isSelected
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted text-muted-foreground',
-                      'shadow-sm',
                     ].join(' ')}
                   >
                     {count > 99 ? '99+' : count}
@@ -241,6 +257,15 @@ export default function CalendarPage() {
   const [events, setEvents] = React.useState<EventType[]>(initialEvents);
   const [isFormOpen, setIsFormOpen] = React.useState(false);
   const { toast } = useToast();
+
+  // Load user preference from Settings
+  const [view, setView] = React.useState<'calendar' | 'list'>('calendar');
+  React.useEffect(() => {
+    const saved = localStorage.getItem('calendarView');
+    if (saved === 'calendar' || saved === 'list') {
+      setView(saved);
+    }
+  }, []);
 
   const selectedDayEvents = React.useMemo(() => {
     return events.filter((event) => dateKey(event.date) === dateKey(selected));
@@ -297,7 +322,6 @@ export default function CalendarPage() {
   return (
     <>
       <PageHeader title="Calendar of Events">
-        {/* Add Event dialog — full-screen on mobile, centered on desktop */}
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -305,15 +329,15 @@ export default function CalendarPage() {
               Add Event
             </Button>
           </DialogTrigger>
+
           <DialogContent
-            className={`
+            className="
               flex flex-col bg-background p-0
-              /* Mobile full-screen override to avoid top/bottom clipping */
               !left-0 !top-0 !-translate-x-0 !-translate-y-0
               w-[100vw] h-[100dvh] max-h-[100dvh]
               sm:!left-1/2 sm:!top-1/2 sm:!-translate-x-1/2 sm:!-translate-y-1/2
               sm:w-[min(640px,calc(100vw-2rem))] sm:max-h-[85vh]
-            `}
+            "
             onOpenAutoFocus={(e) => e.preventDefault()}
             style={{
               paddingTop: 'env(safe-area-inset-top)',
@@ -327,67 +351,45 @@ export default function CalendarPage() {
               </DialogDescription>
             </DialogHeader>
 
-            {/* Single scrollable body */}
-            <div
-              className="
-                grow overflow-y-auto px-4 sm:px-6
-                [webkit-overflow-scrolling:touch] min-w-0
-                pb-[calc(var(--footer-h,3.5rem)+env(safe-area-inset-bottom)+0.75rem)]
-              "
-            >
+            <div className="grow overflow-y-auto px-4 sm:px-6 pb-[calc(var(--footer-h,3.5rem)+env(safe-area-inset-bottom)+0.75rem)]">
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4 w-full min-w-0"
-                >
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
                   <FormField
                     control={form.control}
                     name="title"
                     render={({ field }) => (
-                      <FormItem className="w-full min-w-0">
+                      <FormItem>
                         <FormLabel>Event Title *</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="e.g., Sunday Service"
-                            className="block w-full min-w-0"
-                            {...field}
-                          />
+                          <Input placeholder="e.g., Sunday Service" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="description"
                     render={({ field }) => (
-                      <FormItem className="w-full min-w-0">
+                      <FormItem>
                         <FormLabel>Description</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Event details..."
-                            className="block w-full min-w-0 resize-none"
-                            {...field}
-                          />
+                          <Textarea placeholder="Event details..." {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="date"
                     render={({ field }) => (
-                      <FormItem className="w-full min-w-0">
+                      <FormItem>
                         <FormLabel>Date</FormLabel>
                         <FormControl>
-                          {/* Read-only display; user picks date via calendar */}
-                          <Input
-                            type="text"
-                            value={format(field.value, 'PPP')}
-                            readOnly
-                            className="block w-full min-w-0"
-                          />
+                          <Input type="text" value={format(field.value, 'PPP')} readOnly />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -401,11 +403,7 @@ export default function CalendarPage() {
               className="shrink-0 px-4 py-3 sm:px-6"
               style={{ ['--footer-h' as any]: '3.5rem' }}
             >
-              <Button
-                type="submit"
-                onClick={form.handleSubmit(onSubmit)}
-                className="w-full sm:w-auto"
-              >
+              <Button type="submit" onClick={form.handleSubmit(onSubmit)} className="w-full sm:w-auto">
                 Add Event
               </Button>
             </DialogFooter>
@@ -413,64 +411,69 @@ export default function CalendarPage() {
         </Dialog>
       </PageHeader>
 
-      {/* Responsive layout: calendar + events */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <div className="md:col-span-1 lg:col-span-2 min-w-0">
-          <GridCalendar
-            month={month}
-            selectedDate={selected}
-            onSelect={(d) => handleSelectDate(d)}
-            onPrevMonth={handlePrevMonth}
-            onNextMonth={handleNextMonth}
-            events={events}
-            weekStartsOn={0} // Change to 1 for Monday start
-          />
+      {/* VIEW SWITCHING */}
+      {view === 'calendar' ? (
+        <>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="md:col-span-1 lg:col-span-2 min-w-0">
+              <GridCalendar
+                month={month}
+                selectedDate={selected}
+                onSelect={handleSelectDate}
+                onPrevMonth={handlePrevMonth}
+                onNextMonth={handleNextMonth}
+                events={events}
+                weekStartsOn={0}
+              />
 
-          {/* Month navigation positioned below for easy reach on mobile */}
-          <div className="mt-3 flex items-center justify-between">
-            <Button variant="outline" onClick={handlePrevMonth}>
-              <ChevronLeft className="mr-2 h-4 w-4" />
-              Previous
-            </Button>
-            <Button variant="outline" onClick={handleNextMonth}>
-              Next
-              <ChevronRight className="ml-2 h-4 w-4" />
-            </Button>
+              <div className="mt-3 flex items-center justify-between">
+                <Button variant="outline" onClick={handlePrevMonth}>
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  Previous
+                </Button>
+                <Button variant="outline" onClick={handleNextMonth}>
+                  Next
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="min-w-0">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Events for {format(selected, 'PPP')}</CardTitle>
+                  <CardDescription>
+                    Tap a day to view or add events.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {selectedDayEvents.length > 0 ? (
+                    <ul className="space-y-4">
+                      {selectedDayEvents.map((event) => (
+                        <li key={event.id} className="rounded-md border p-3">
+                          <p className="font-semibold">{event.title}</p>
+                          {event.description && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {event.description}
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-2">
+                            {format(event.date, 'PPP')}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-muted-foreground">No events for this day.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
-
-        <div className="min-w-0">
-          <Card className="min-w-0">
-            <CardHeader>
-              <CardTitle>Events for {format(selected, 'PPP')}</CardTitle>
-              <CardDescription>
-                Tap a day to view or add events. Use the “Add Event” button to create more.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {selectedDayEvents.length > 0 ? (
-                <ul className="space-y-4">
-                  {selectedDayEvents.map((event) => (
-                    <li key={event.id} className="rounded-md border p-3">
-                      <p className="font-semibold">{event.title}</p>
-                      {event.description && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {event.description}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {format(event.date, 'PPP')}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-muted-foreground">No events for this day.</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+        </>
+      ) : (
+        <ListView events={events} />
+      )}
     </>
   );
 }
