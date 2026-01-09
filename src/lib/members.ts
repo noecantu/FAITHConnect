@@ -13,26 +13,18 @@ import {
   import type { Member } from "@/lib/types";
   
   export async function addMember(churchId: string, data: any) {
-    const ref = collection(db, "churches", churchId, "members");
-  
-    return await addDoc(ref, {
+    const colRef = collection(db, "churches", churchId, "members");
+    await addDoc(colRef, {
       ...data,
-      birthday: data.birthday ? new Date(data.birthday) : null,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
   }
   
-  export async function updateMember(
-    churchId: string,
-    memberId: string,
-    data: any
-  ) {
+  export async function updateMember(churchId: string, memberId: string, data: any) {
     const ref = doc(db, "churches", churchId, "members", memberId);
-  
-    return await updateDoc(ref, {
+    await updateDoc(ref, {
       ...data,
-      birthday: data.birthday ? new Date(data.birthday) : null,
       updatedAt: serverTimestamp(),
     });
   }

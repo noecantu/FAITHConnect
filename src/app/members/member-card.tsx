@@ -43,15 +43,18 @@ export function MemberCard({ member }: { member: Member }) {
   return (
     <MemberFormSheet member={member}>
       <Card className="overflow-hidden cursor-pointer">
-        <div className="relative aspect-[4/3] w-full">
-          <Image
-            src={member.photoUrl || '/placeholder.png'}
-            alt={`${member.firstName} ${member.lastName}`}
-            fill
-            sizes="(max-width: 640px) 100vw, 300px"
-            className="object-cover"
-            data-ai-hint={member.imageHint}
-          />
+        <div className="relative aspect-[4/3] w-full flex items-center justify-center bg-muted text-muted-foreground">
+          {member.photoUrl ? (
+            <Image
+              src={member.photoUrl}
+              alt={`${member.firstName} ${member.lastName}`}
+              fill
+              className="object-cover"
+              data-ai-hint={member.imageHint}
+            />
+          ) : (
+            <span className="text-sm font-medium">No Image Added</span>
+          )}
           <StatusBadge status={member.status} />
         </div>
         <CardHeader className="flex-row items-start justify-between pb-2">
