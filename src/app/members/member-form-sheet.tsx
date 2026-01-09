@@ -13,6 +13,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription
 } from "@/components/ui/card";
 import {
   Form,
@@ -497,6 +498,18 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                     </FormItem>
                   )}
                 />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Relationships</CardTitle>
+                <CardDescription>Manage member relationships.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center text-muted-foreground p-4 border-2 border-dashed rounded-lg">
+                  Relationship management UI coming soon.
+                </div>
               </CardContent>
             </Card>
 
