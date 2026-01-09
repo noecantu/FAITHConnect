@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as z from "zod";
@@ -48,10 +49,10 @@ import { storage } from "@/lib/firebase";
 import { addMember, updateMember } from "@/lib/members";
 
 const memberSchema = z.object({
-  firstName: z.string().min(1),
-  lastName: z.string().min(1),
+  firstName: z.string().min(1, "First Name is required"),
+  lastName: z.string().min(1, "Last Name is required"),
   email: z.string().email().optional().or(z.literal("")),
-  phone: z.string().optional().or(z.literal("")),
+  phone: z.string().min(1, "Phone is required"),
   birthday: z.string().optional(),
   notes: z.string().optional(),
   status: z.enum(["Active", "Prospect", "Archived"]),
@@ -203,7 +204,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Name</FormLabel>
+                      <FormLabel>First Name <span className="text-destructive">*</span></FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -217,7 +218,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Last Name</FormLabel>
+                      <FormLabel>Last Name <span className="text-destructive">*</span></FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -245,7 +246,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone</FormLabel>
+                      <FormLabel>Phone <span className="text-destructive">*</span></FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
