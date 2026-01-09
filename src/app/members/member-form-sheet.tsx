@@ -239,7 +239,6 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
             sm:max-w-2xl
             sm:max-h-[90vh]
           `}
-          onOpenAutoFocus={(e) => e.preventDefault()}
           style={{
             paddingTop: 'env(safe-area-inset-top)',
             paddingBottom: 'env(safe-area-inset-bottom)',
