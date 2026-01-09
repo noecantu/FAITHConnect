@@ -50,6 +50,21 @@ import {
 import { events as initialEvents } from '@/lib/data';
 import type { Event as EventType } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs, { Dayjs } from 'dayjs';
+import { Controller } from 'react-hook-form';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { db } from "@/lib/firebase"; // adjust path if needed
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+} from "firebase/firestore";
+import { useEffect, useState } from 'react';
+import { useChurchId } from '@/hooks/useChurchId';
 
 // ------------------------------
 // Schema & Types
@@ -60,6 +75,23 @@ const eventSchema = z.object({
   description: z.string().optional(),
 });
 type EventFormValues = z.infer<typeof eventSchema>;
+
+const muiTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    background: {
+      default: '#0a0a0a', // matches shadcn dark background
+      paper: '#0f0f0f',    // dialog/picker background
+    },
+    text: {
+      primary: '#ffffff',
+      secondary: 'rgba(255,255,255,0.7)',
+    },
+    primary: {
+      main: '#4f46e5', // your primary color (adjust if needed)
+    },
+  },
+});
 
 // ------------------------------
 // Utilities
@@ -81,7 +113,15 @@ function groupEventsByDay(events: EventType[]) {
 // ------------------------------
 // List View Component
 // ------------------------------
-function ListView({ events }: { events: EventType[] }) {
+function ListView({
+  events,
+  onEdit,
+  onDeleteRequest,
+}: {
+  events: EventType[];
+  onEdit: (event: EventType) => void;
+  onDeleteRequest: (id: string) => void;
+}) {
   const grouped = React.useMemo(() => {
     const map = new Map<string, EventType[]>();
     for (const e of events) {
@@ -98,19 +138,46 @@ function ListView({ events }: { events: EventType[] }) {
       <CardHeader>
         <CardTitle>All Events</CardTitle>
       </CardHeader>
+
       <CardContent className="space-y-6">
         {grouped.map(([day, evts]) => (
           <div key={day}>
-            <h3 className="font-semibold mb-2">{format(new Date(day), 'PPP')}</h3>
+            <h3 className="font-semibold mb-2">
+              {format(new Date(day), 'PPP')}
+            </h3>
+
             <ul className="space-y-2">
               {evts.map((e) => (
-                <li key={e.id} className="border rounded-md p-3">
-                  <div className="font-medium">{e.title}</div>
-                  {e.description && (
-                    <div className="text-sm text-muted-foreground">
-                      {e.description}
-                    </div>
-                  )}
+                <li
+                  key={e.id}
+                  className="border rounded-md p-3 flex items-start justify-between"
+                >
+                  <div>
+                    <div className="font-medium">{e.title}</div>
+                    {e.description && (
+                      <div className="text-sm text-muted-foreground">
+                        {e.description}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onEdit(e)}
+                    >
+                      Edit
+                    </Button>
+
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => onDeleteRequest(e.id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -122,7 +189,7 @@ function ListView({ events }: { events: EventType[] }) {
 }
 
 // ------------------------------
-// GridCalendar Component (unchanged)
+// GridCalendar Component
 // ------------------------------
 interface GridCalendarProps {
   month: Date;
@@ -249,15 +316,83 @@ function GridCalendar({
 }
 
 // ------------------------------
+// Confirm Delete Dialog
+// ------------------------------
+function ConfirmDeleteDialog({
+  open,
+  onOpenChange,
+  onConfirm,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Delete Event</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete this event? This action cannot be
+            undone.
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogFooter className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={onConfirm}>
+            Delete
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ------------------------------
 // Page Component
 // ------------------------------
 export default function CalendarPage() {
   const [month, setMonth] = React.useState<Date>(startOfMonth(new Date()));
   const [selected, setSelected] = React.useState<Date>(new Date());
-  const [events, setEvents] = React.useState<EventType[]>(initialEvents);
+  const [events, setEvents] = React.useState<EventType[]>([]);
   const [isFormOpen, setIsFormOpen] = React.useState(false);
+  const [editEvent, setEditEvent] = React.useState<EventType | null>(null);
+  const isEditing = editEvent !== null;
   const { toast } = useToast();
+  const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
+  const churchId = useChurchId();
+  const [deleteId, setDeleteId] = React.useState<string | null>(null);
+  const isDeleteOpen = deleteId !== null;
 
+  useEffect(() => {
+    if (!churchId) return;
+  
+    const q = query(
+      collection(db, "churches", churchId, "events"),
+      orderBy("date", "asc")
+    );
+  
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map((doc) => {
+        const raw = doc.data();
+  
+        return {
+          id: doc.id,
+          title: raw.title,
+          description: raw.description,
+          date: raw.date?.toDate?.() ?? new Date(),
+        };
+      });
+  
+      setEvents(data);
+    });
+  
+    return () => unsubscribe();
+  }, [churchId]);
+  
   // Load user preference from Settings
   const [view, setView] = React.useState<'calendar' | 'list'>('calendar');
   React.useEffect(() => {
@@ -265,6 +400,11 @@ export default function CalendarPage() {
     if (saved === 'calendar' || saved === 'list') {
       setView(saved);
     }
+  }, []);
+
+  const [hydrated, setHydrated] = React.useState(false);
+  React.useEffect(() => {
+    setHydrated(true);
   }, []);
 
   const selectedDayEvents = React.useMemo(() => {
@@ -290,6 +430,7 @@ export default function CalendarPage() {
       setMonth(startOfMonth(d));
     }
   }
+
   function handlePrevMonth() {
     const m = subMonths(month, 1);
     setMonth(m);
@@ -297,6 +438,7 @@ export default function CalendarPage() {
       setSelected(startOfMonth(m));
     }
   }
+
   function handleNextMonth() {
     const m = addMonths(month, 1);
     setMonth(m);
@@ -305,32 +447,103 @@ export default function CalendarPage() {
     }
   }
 
-  function onSubmit(data: EventFormValues) {
-    const newEvent: EventType = {
-      id: `e${events.length + 1}`,
-      ...data,
-    };
-    setEvents((prev) => [...prev, newEvent]);
-    toast({
-      title: 'Event Added',
-      description: `"${data.title}" has been added to ${format(data.date, 'PPP')}.`,
-    });
-    setIsFormOpen(false);
-    form.reset({ title: '', description: '', date: selected });
+  function handleDeleteRequest(id: string) {
+    setDeleteId(id);
   }
+
+  function handleDelete(id: string) {
+    setEvents((prev) => prev.filter((e) => e.id !== id));
+    toast({
+      title: 'Event Deleted',
+      description: 'The event has been removed.',
+    });
+  }
+
+  function handleEdit(event: EventType) {
+    setEditEvent(event);
+
+    form.reset({
+      title: event.title,
+      description: event.description ?? '',
+      date: event.date,
+    });
+
+    setSelected(event.date);
+    setIsFormOpen(true);
+  }
+
+  function onSubmit(data: EventFormValues) {
+    if (isEditing && editEvent) {
+      // UPDATE
+      setEvents((prev) =>
+        prev.map((e) =>
+          e.id === editEvent.id ? { ...e, ...data } : e
+        )
+      );
+
+      toast({
+        title: 'Event Updated',
+        description: `"${data.title}" has been updated.`,
+      });
+    } else {
+      // CREATE
+      const newEvent: EventType = {
+        id: `e${events.length + 1}`,
+        ...data,
+      };
+
+      setEvents((prev) => [...prev, newEvent]);
+
+      toast({
+        title: 'Event Added',
+        description: `"${data.title}" has been added to ${format(
+          data.date,
+          'PPP'
+        )}.`,
+      });
+    }
+
+    setIsFormOpen(false);
+    setEditEvent(null);
+
+    form.reset({
+      title: '',
+      description: '',
+      date: selected,
+    });
+  }
+
+  if (!hydrated) return null;
 
   return (
     <>
+      {/* Delete confirmation */}
+      <ConfirmDeleteDialog
+        open={isDeleteOpen}
+        onOpenChange={(open) => {
+          if (!open) setDeleteId(null);
+        }}
+        onConfirm={() => {
+          if (deleteId) {
+            handleDelete(deleteId);
+            setDeleteId(null);
+          }
+        }}
+      />
+
       <PageHeader title="Calendar of Events">
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen} modal={false}>
           <DialogTrigger asChild>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
-              Add Event
+              {isEditing ? 'Edit Event' : 'Add Event'}
             </Button>
           </DialogTrigger>
 
           <DialogContent
+            className="flex flex-col bg-background p-0 ..."
+          >
+          {/* <DialogContent
             className="
               flex flex-col bg-background p-0
               !left-0 !top-0 !-translate-x-0 !-translate-y-0
@@ -343,17 +556,24 @@ export default function CalendarPage() {
               paddingTop: 'env(safe-area-inset-top)',
               paddingBottom: 'env(safe-area-inset-bottom)',
             }}
-          >
+          > */}
             <DialogHeader className="shrink-0 px-4 py-4 sm:px-6">
-              <DialogTitle>Add New Event</DialogTitle>
+              <DialogTitle>
+                {isEditing ? 'Edit Event' : 'Add New Event'}
+              </DialogTitle>
               <DialogDescription>
-                Add a new event for {format(selected, 'PPP')}.
+                {isEditing
+                  ? 'Update the details of this event.'
+                  : `Add a new event for ${format(selected, 'PPP')}.`}
               </DialogDescription>
             </DialogHeader>
 
             <div className="grow overflow-y-auto px-4 sm:px-6 pb-[calc(var(--footer-h,3.5rem)+env(safe-area-inset-bottom)+0.75rem)]">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4 w-full"
+                >
                   <FormField
                     control={form.control}
                     name="title"
@@ -385,11 +605,61 @@ export default function CalendarPage() {
                   <FormField
                     control={form.control}
                     name="date"
-                    render={({ field }) => (
+                    render={() => (
                       <FormItem>
                         <FormLabel>Date</FormLabel>
                         <FormControl>
-                          <Input type="text" value={format(field.value, 'PPP')} readOnly />
+                          <ThemeProvider theme={muiTheme}>
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                              <Controller
+                                name="date"
+                                control={form.control}
+                                render={({ field: ctrl }) => (
+                                  <MobileDatePicker
+                                    value={dayjs(ctrl.value)}
+                                    onChange={(next: Dayjs | null) => {
+                                      if (!next) return;
+                                      ctrl.onChange(next.toDate());
+                                    }}
+                                    closeOnSelect
+                                    reduceAnimations
+                                    dayOfWeekFormatter={(d) => d.format('dd').toUpperCase()}
+                                    slotProps={{
+                                      textField: {
+                                        fullWidth: true,
+                                        sx: {
+                                          '& .MuiInputBase-root': {
+                                            backgroundColor: 'transparent',
+                                            color: 'text.primary',
+                                            fontSize: '0.875rem',
+                                            borderRadius: '0.5rem',
+                                          },
+                                          '& .MuiInputLabel-root': {
+                                            color: 'text.secondary',
+                                          },
+                                          '& .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: 'rgba(255,255,255,0.2)',
+                                          },
+                                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: 'rgba(255,255,255,0.35)',
+                                          },
+                                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: 'primary.main',
+                                          },
+                                        },
+                                      },
+                                      mobilePaper: {
+                                        sx: {
+                                          bgcolor: 'background.default',
+                                          color: 'text.primary',
+                                        },
+                                      },
+                                    }}
+                                  />
+                                )}
+                              />
+                            </LocalizationProvider>
+                          </ThemeProvider>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -403,8 +673,12 @@ export default function CalendarPage() {
               className="shrink-0 px-4 py-3 sm:px-6"
               style={{ ['--footer-h' as any]: '3.5rem' }}
             >
-              <Button type="submit" onClick={form.handleSubmit(onSubmit)} className="w-full sm:w-auto">
-                Add Event
+              <Button
+                type="submit"
+                onClick={form.handleSubmit(onSubmit)}
+                className="w-full sm:w-auto"
+              >
+                {isEditing ? 'Save Changes' : 'Add Event'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -464,7 +738,9 @@ export default function CalendarPage() {
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-muted-foreground">No events for this day.</p>
+                    <p className="text-muted-foreground">
+                      No events for this day.
+                    </p>
                   )}
                 </CardContent>
               </Card>
@@ -472,7 +748,11 @@ export default function CalendarPage() {
           </div>
         </>
       ) : (
-        <ListView events={events} />
+        <ListView
+          events={events}
+          onEdit={handleEdit}
+          onDeleteRequest={handleDeleteRequest}
+        />
       )}
     </>
   );

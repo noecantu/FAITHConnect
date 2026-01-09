@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as z from 'zod';
@@ -33,10 +32,13 @@ import {
   DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog';
-// Using a plain div for scroll avoids nested scrollbar issues.
 import { useToast } from '@/hooks/use-toast';
 import type { Member } from '@/lib/types';
 import { PlusCircle } from 'lucide-react';
+import { db } from "@/lib/firebase";
+import { doc, addDoc, updateDoc, deleteDoc, collection, query, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { useChurchId } from "@/hooks/useChurchId";
+import { useEffect } from "react";
 
 const memberSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -55,16 +57,83 @@ interface MemberFormSheetProps {
   children?: ReactNode;
 }
 
+export async function addMember(churchId: string, data: MemberFormValues) {
+  const ref = collection(db, "churches", churchId, "members");
+
+  return await addDoc(ref, {
+    firstName: data.firstName,
+    lastName: data.lastName,
+    email: data.email,
+    phone: data.phone,
+    birthday: data.birthday ? new Date(data.birthday) : null,
+    status: data.status,
+    notes: data.notes ?? "",
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+}
+export async function updateMember(
+  churchId: string,
+  memberId: string,
+  data: MemberFormValues
+) {
+  const ref = doc(db, "churches", churchId, "members", memberId);
+
+  return await updateDoc(ref, {
+    firstName: data.firstName,
+    lastName: data.lastName,
+    email: data.email,
+    phone: data.phone,
+    birthday: data.birthday ? new Date(data.birthday) : null,
+    status: data.status,
+    notes: data.notes ?? "",
+    updatedAt: serverTimestamp(),
+  });
+}
+export async function deleteMember(churchId: string, memberId: string) {
+  const ref = doc(db, "churches", churchId, "members", memberId);
+  return await deleteDoc(ref);
+}
+export function listenToMembers(churchId: string, callback: (members: Member[]) => void) {
+  const q = query(
+    collection(db, "churches", churchId, "members"),
+    orderBy("lastName", "asc")
+  );
+
+  return onSnapshot(q, (snapshot) => {
+    const members = snapshot.docs.map((doc) => {
+      const raw = doc.data();
+    
+      return {
+        id: doc.id,
+        firstName: raw.firstName,
+        lastName: raw.lastName,
+        email: raw.email,
+        phone: raw.phone,
+        birthday: raw.birthday?.toDate?.() ?? null,
+        status: raw.status,
+        notes: raw.notes ?? "",
+    
+        // Add defaults so the object matches the Member type
+        photoUrl: raw.photoUrl ?? "",
+        imageHint: raw.imageHint ?? "",
+      };
+    });
+
+    callback(members);
+  });
+}
 export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   const { toast } = useToast();
   const isEditMode = !!member;
+  const churchId = useChurchId();
 
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(memberSchema),
     defaultValues: isEditMode
       ? {
           ...member,
-          birthday: member.birthday ? member.birthday.split('T')[0] : '',
+          birthday: member.birthday ? new Date(member.birthday).toISOString().split('T')[0] : '',
         }
       : {
           firstName: '',
@@ -72,17 +141,69 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           email: '',
           phone: '',
           birthday: '',
-          status: 'Prospect',
+          status: 'Active',
           notes: '',
         },
   });
+  
+  useEffect(() => {
+    if (isEditMode && member) {
+      form.reset({
+        firstName: member.firstName,
+        lastName: member.lastName,
+        email: member.email,
+        phone: member.phone,
+        birthday: member.birthday
+          ? member.birthday.toString().split("T")[0]
+          : '',
+        status: member.status,
+        notes: member.notes ?? '',
+      });
+    } else {
+      form.reset({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        birthday: '',
+        status: 'Prospect',
+        notes: '',
+      });
+    }
+  }, [isEditMode, member, form]);
+  
+  async function onSubmit(data: MemberFormValues) {
 
-  function onSubmit(data: MemberFormValues) {
-    console.log(data);
-    toast({
-      title: isEditMode ? 'Member Updated' : 'Member Added',
-      description: `Profile for ${data.firstName} ${data.lastName} has been saved.`,
-    });
+    console.log("SUBMIT DATA", data);
+
+    try {
+      if (!churchId) return;
+  
+      if (isEditMode && member) {
+        // Update existing member
+        await updateMember(churchId, member.id, data);
+  
+        toast({
+          title: "Member Updated",
+          description: `Profile for ${data.firstName} ${data.lastName} has been updated.`,
+        });
+      } else {
+        // Add new member
+        await addMember(churchId, data);
+  
+        toast({
+          title: "Member Added",
+          description: `Profile for ${data.firstName} ${data.lastName} has been created.`,
+        });
+      }
+    } catch (error) {
+      console.error("Error saving member:", error);
+      toast({
+        title: "Error",
+        description: "Something went wrong while saving the member.",
+        variant: "destructive",
+      });
+    }
   }
 
   const trigger = children ? (
@@ -97,32 +218,33 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   );
 
   return (
-    <Dialog>
-      {trigger}
+          <Dialog>
+              {trigger}
 
-      {/* On mobile: force full-screen and neutralize the default center transform. 
-          On desktop: revert to centered with a readable max width & height. */}
-      <DialogContent
-        className={`
-          flex flex-col
-          p-0 bg-background
+              {/* On mobile: force full-screen and neutralize the default center transform. 
+                  On desktop: revert to centered with a readable max width & height. */}
+              <DialogContent
+          className={`
+            pointer-events-auto
+            flex flex-col
+            p-0 bg-background
 
-          /* Mobile full-screen (sm and below) */
-          !left-0 !top-0 !-translate-x-0 !-translate-y-0
-          w-[100vw] h-[100dvh] max-h-[100dvh]
+            /* Mobile full-screen (sm and below) */
+            !left-0 !top-0 !-translate-x-0 !-translate-y-0
+            w-[100vw] h-[100dvh] max-h-[100dvh]
 
-          /* Safe-area padding so the header/footer don't get cut by notch/home bar */
-          sm:!left-1/2 sm:!top-1/2 sm:!-translate-x-1/2 sm:!-translate-y-1/2
-          sm:w-[calc(100vw-2rem)]
-          sm:max-w-2xl
-          sm:max-h-[90vh]
-        `}
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        style={{
-          paddingTop: 'env(safe-area-inset-top)',
-          paddingBottom: 'env(safe-area-inset-bottom)',
-        }}
-      >
+            /* Safe-area padding so the header/footer don't get cut by notch/home bar */
+            sm:!left-1/2 sm:!top-1/2 sm:!-translate-x-1/2 sm:!-translate-y-1/2
+            sm:w-[calc(100vw-2rem)]
+            sm:max-w-2xl
+            sm:max-h-[90vh]
+          `}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          style={{
+            paddingTop: 'env(safe-area-inset-top)',
+            paddingBottom: 'env(safe-area-inset-bottom)',
+          }}
+        >
         {/* Header (fixed) */}
         <DialogHeader className="shrink-0 px-4 py-4 sm:px-6">
           <DialogTitle>
@@ -289,7 +411,6 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           <Button
             type="submit"
             form="member-form"
-            onClick={form.handleSubmit(onSubmit)}
             className="w-full sm:w-auto"
           >
             {isEditMode ? 'Save Changes' : 'Add Member'}

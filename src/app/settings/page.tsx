@@ -11,7 +11,7 @@ export default function SettingsPage() {
       <PageHeader title="Settings" />
       <div className="grid gap-6">
 
-        {/* Profile */}
+        {/* Member Cards */}
         <Card>…</Card>
 
         {/* Appearance */}
@@ -28,9 +28,12 @@ export default function SettingsPage() {
 
           <CardContent>
             <RadioGroup
-              defaultValue="calendar"
+              defaultValue={typeof window !== "undefined"
+                ? localStorage.getItem("calendarView") || "calendar"
+                : "calendar"
+              }
               onValueChange={(value) => {
-                console.log("Selected:", value);
+                localStorage.setItem("calendarView", value);
               }}
               className="flex items-center space-x-6"
             >
