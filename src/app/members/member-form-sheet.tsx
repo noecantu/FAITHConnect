@@ -1,9 +1,10 @@
+
 'use client';
 
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { ReactNode } from 'react';
+import { type ReactNode, useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -38,7 +39,6 @@ import { PlusCircle } from 'lucide-react';
 import { db } from "@/lib/firebase";
 import { doc, addDoc, updateDoc, deleteDoc, collection, query, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { useChurchId } from "@/hooks/useChurchId";
-import { useEffect } from "react";
 
 const memberSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -127,75 +127,75 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   const { toast } = useToast();
   const isEditMode = !!member;
   const churchId = useChurchId();
+  const [isOpen, setIsOpen] = useState(false);
 
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(memberSchema),
-    defaultValues: isEditMode
-      ? {
-          ...member,
-          birthday: member.birthday ? new Date(member.birthday).toISOString().split('T')[0] : '',
-        }
-      : {
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      birthday: '',
+      status: 'Prospect',
+      notes: '',
+    },
+  });
+  
+  useEffect(() => {
+    // Reset form when dialog opens for "Add" or when "member" prop changes for "Edit"
+    if (isOpen) {
+      if (isEditMode && member) {
+        form.reset({
+          firstName: member.firstName,
+          lastName: member.lastName,
+          email: member.email,
+          phone: member.phone,
+          birthday: member.birthday
+            ? new Date(member.birthday).toISOString().split('T')[0]
+            : '',
+          status: member.status,
+          notes: member.notes ?? '',
+        });
+      } else {
+        form.reset({
           firstName: '',
           lastName: '',
           email: '',
           phone: '',
           birthday: '',
-          status: 'Active',
+          status: 'Prospect',
           notes: '',
-        },
-  });
-  
-  useEffect(() => {
-    if (isEditMode && member) {
-      form.reset({
-        firstName: member.firstName,
-        lastName: member.lastName,
-        email: member.email,
-        phone: member.phone,
-        birthday: member.birthday
-          ? member.birthday.toString().split("T")[0]
-          : '',
-        status: member.status,
-        notes: member.notes ?? '',
-      });
-    } else {
-      form.reset({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        birthday: '',
-        status: 'Prospect',
-        notes: '',
-      });
+        });
+      }
     }
-  }, [isEditMode, member, form]);
+  }, [isOpen, isEditMode, member, form]);
   
   async function onSubmit(data: MemberFormValues) {
-
-    console.log("SUBMIT DATA", data);
+    if (!churchId) {
+      toast({
+        title: "Error",
+        description: "Church ID is missing. Cannot save member.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
-      if (!churchId) return;
-  
       if (isEditMode && member) {
-        // Update existing member
         await updateMember(churchId, member.id, data);
-  
         toast({
           title: "Member Updated",
           description: `Profile for ${data.firstName} ${data.lastName} has been updated.`,
         });
       } else {
-        // Add new member
         await addMember(churchId, data);
-  
         toast({
           title: "Member Added",
           description: `Profile for ${data.firstName} ${data.lastName} has been created.`,
         });
       }
+      setIsOpen(false); // Close dialog on success
     } catch (error) {
       console.error("Error saving member:", error);
       toast({
@@ -218,7 +218,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   );
 
   return (
-          <Dialog>
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
               {trigger}
 
               {/* On mobile: force full-screen and neutralize the default center transform. 
@@ -412,8 +412,9 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
             type="submit"
             form="member-form"
             className="w-full sm:w-auto"
+            disabled={form.formState.isSubmitting}
           >
-            {isEditMode ? 'Save Changes' : 'Add Member'}
+            {form.formState.isSubmitting ? "Saving..." : (isEditMode ? 'Save Changes' : 'Add Member')}
           </Button>
         </DialogFooter>
       </DialogContent>
