@@ -6,55 +6,21 @@ import {
   addMonths,
   subMonths,
   startOfMonth,
-  endOfMonth,
-  startOfWeek,
-  endOfWeek,
-  addDays,
   isSameMonth,
-  isSameDay,
 } from 'date-fns';
-import { PlusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
 import { PageHeader } from '@/components/page-header';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardDescription,
-} from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
 
 import type { Event as EventType } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs, { Dayjs } from 'dayjs';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { createTheme } from '@mui/material/styles';
 
 import { db } from '@/lib/firebase';
 import {
@@ -62,9 +28,20 @@ import {
   query,
   orderBy,
   onSnapshot,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp,
 } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useChurchId } from '@/hooks/useChurchId';
+
+import { dateKey } from '@/lib/calendar/utils';
+import { GridCalendar } from '@/components/calendar/GridCalendar';
+import { ListView } from '@/components/calendar/ListView';
+import { ConfirmDeleteDialog } from '@/components/calendar/ConfirmDeleteDialog';
+import { EventFormDialog } from '@/components/calendar/EventFormDialog';
 
 // ------------------------------
 // Schema & Types
@@ -94,265 +71,6 @@ const muiTheme = createTheme({
 });
 
 // ------------------------------
-// Utilities
-// ------------------------------
-function dateKey(d: Date) {
-  return format(d, 'yyyy-MM-dd');
-}
-
-function groupEventsByDay(events: EventType[]) {
-  const map = new Map<string, EventType[]>();
-  for (const e of events) {
-    const key = dateKey(e.date);
-    const arr = map.get(key) ?? [];
-    arr.push(e);
-    map.set(key, arr);
-  }
-  return map;
-}
-
-// ------------------------------
-// List View Component
-// ------------------------------
-function ListView({
-  events,
-  onEdit,
-  onDeleteRequest,
-}: {
-  events: EventType[];
-  onEdit: (event: EventType) => void;
-  onDeleteRequest: (id: string) => void;
-}) {
-  const grouped = React.useMemo(() => {
-    const map = new Map<string, EventType[]>();
-    for (const e of events) {
-      const key = format(e.date, 'yyyy-MM-dd');
-      const arr = map.get(key) ?? [];
-      arr.push(e);
-      map.set(key, arr);
-    }
-    return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [events]);
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>All Events</CardTitle>
-      </CardHeader>
-
-      <CardContent className="space-y-6">
-        {grouped.map(([day, evts]) => (
-          <div key={day}>
-            <h3 className="font-semibold mb-2">
-              {format(new Date(day), 'PPP')}
-            </h3>
-
-            <ul className="space-y-2">
-              {evts.map((e) => (
-                <li
-                  key={e.id}
-                  className="border rounded-md p-3 flex items-start justify-between"
-                >
-                  <div>
-                    <div className="font-medium">{e.title}</div>
-                    {e.description && (
-                      <div className="text-sm text-muted-foreground">
-                        {e.description}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onEdit(e)}
-                    >
-                      Edit
-                    </Button>
-
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => onDeleteRequest(e.id)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
-  );
-}
-
-// ------------------------------
-// GridCalendar Component
-// ------------------------------
-interface GridCalendarProps {
-  month: Date;
-  selectedDate?: Date;
-  onSelect: (d: Date) => void;
-  onPrevMonth: () => void;
-  onNextMonth: () => void;
-  events: EventType[];
-  weekStartsOn?: 0 | 1;
-}
-
-function GridCalendar({
-  month,
-  selectedDate,
-  onSelect,
-  onPrevMonth,
-  onNextMonth,
-  events,
-  weekStartsOn = 0,
-}: GridCalendarProps) {
-  const eventsByDay = React.useMemo(() => groupEventsByDay(events), [events]);
-
-  const monthStart = startOfMonth(month);
-  const monthEnd = endOfMonth(month);
-  const gridStart = startOfWeek(monthStart, { weekStartsOn });
-  const gridEnd = endOfWeek(monthEnd, { weekStartsOn });
-
-  const days: Date[] = [];
-  for (let d = gridStart; d <= gridEnd; d = addDays(d, 1)) {
-    days.push(d);
-  }
-
-  const weekDayLabels =
-    weekStartsOn === 1
-      ? ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
-      : ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-
-  return (
-    <Card className="min-w-0">
-      <CardHeader className="space-y-2 sm:space-y-3">
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" size="icon" onClick={onPrevMonth}>
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-
-          <div className="text-center min-w-0">
-            <CardTitle className="text-lg sm:text-xl">
-              {format(month, 'MMMM yyyy')}
-            </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
-              Tap a day to view or add events
-            </CardDescription>
-          </div>
-
-          <Button variant="ghost" size="icon" onClick={onNextMonth}>
-            <ChevronRight className="h-5 w-5" />
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-7 gap-2 px-1 text-center text-xs font-medium text-muted-foreground sm:text-sm">
-          {weekDayLabels.map((label) => (
-            <div key={label} className="py-1">
-              {label}
-            </div>
-          ))}
-        </div>
-      </CardHeader>
-
-      <CardContent className="px-2 sm:px-3">
-        <div className="grid grid-cols-7 gap-2 [grid-auto-rows:minmax(56px,1fr)] sm:[grid-auto-rows:minmax(84px,1fr)]">
-          {days.map((day) => {
-            const isOutside = !isSameMonth(day, month);
-            const isSelected = !!selectedDate && isSameDay(day, selectedDate);
-            const today = isSameDay(day, new Date());
-
-            const dayEvents = eventsByDay.get(dateKey(day)) ?? [];
-            const count = dayEvents.length;
-
-            return (
-              <button
-                key={day.toISOString()}
-                type="button"
-                onClick={() => onSelect(day)}
-                className={[
-                  'group relative rounded-md border p-1 sm:p-2',
-                  'flex flex-col items-stretch justify-between',
-                  isOutside ? 'bg-muted/30 text-muted-foreground' : 'bg-card',
-                  isSelected
-                    ? 'ring-2 ring-primary/70'
-                    : 'hover:bg-accent hover:text-accent-foreground',
-                  today ? 'outline outline-2 outline-primary/50' : '',
-                ].join(' ')}
-              >
-                <div className="flex items-start justify-between">
-                  <span
-                    className={[
-                      'text-xs sm:text-sm font-medium',
-                      today ? 'text-primary' : '',
-                    ].join(' ')}
-                  >
-                    {format(day, 'd')}
-                  </span>
-                </div>
-
-                {count > 0 && (
-                  <span
-                    className={[
-                      'pointer-events-none absolute bottom-1 right-1 rounded-full px-2 py-0.5 text-[10px] sm:text-xs',
-                      isSelected
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground',
-                    ].join(' ')}
-                  >
-                    {count > 99 ? '99+' : count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ------------------------------
-// Confirm Delete Dialog
-// ------------------------------
-function ConfirmDeleteDialog({
-  open,
-  onOpenChange,
-  onConfirm,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
-}) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Delete Event</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete this event? This action cannot be
-            undone.
-          </DialogDescription>
-        </DialogHeader>
-
-        <DialogFooter className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button variant="destructive" onClick={onConfirm}>
-            Delete
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// ------------------------------
 // Page Component
 // ------------------------------
 export default function CalendarPage() {
@@ -363,11 +81,11 @@ export default function CalendarPage() {
   const [editEvent, setEditEvent] = React.useState<EventType | null>(null);
   const isEditing = editEvent !== null;
   const { toast } = useToast();
-  const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
   const churchId = useChurchId();
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
   const isDeleteOpen = deleteId !== null;
 
+  // Firestore listener
   useEffect(() => {
     if (!churchId) return;
 
@@ -377,11 +95,11 @@ export default function CalendarPage() {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data: EventType[] = snapshot.docs.map((doc) => {
-        const raw = doc.data();
+      const data: EventType[] = snapshot.docs.map((docSnap) => {
+        const raw = docSnap.data();
 
         return {
-          id: doc.id,
+          id: docSnap.id,
           title: raw.title,
           description: raw.description,
           date: raw.date?.toDate?.() ?? new Date(),
@@ -394,7 +112,7 @@ export default function CalendarPage() {
     return () => unsubscribe();
   }, [churchId]);
 
-  // Load user preference from Settings
+  // View preference (calendar vs list)
   const [view, setView] = React.useState<'calendar' | 'list'>('calendar');
   React.useEffect(() => {
     const saved = localStorage.getItem('calendarView');
@@ -402,7 +120,11 @@ export default function CalendarPage() {
       setView(saved);
     }
   }, []);
+  React.useEffect(() => {
+    localStorage.setItem('calendarView', view);
+  }, [view]);
 
+  // Hydration guard
   const [hydrated, setHydrated] = React.useState(false);
   React.useEffect(() => {
     setHydrated(true);
@@ -454,12 +176,30 @@ export default function CalendarPage() {
     setDeleteId(id);
   }
 
-  function handleDelete(id: string) {
-    setEvents((prev) => prev.filter((e) => e.id !== id));
-    toast({
-      title: 'Event Deleted',
-      description: 'The event has been removed.',
-    });
+  async function handleDelete(id: string) {
+    if (!churchId) {
+      toast({
+        title: 'No church selected',
+        description: 'Please select a church before deleting events.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      await deleteDoc(doc(db, 'churches', churchId, 'events', id));
+      toast({
+        title: 'Event Deleted',
+        description: 'The event has been removed.',
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Error deleting event',
+        description: 'Please try again.',
+        variant: 'destructive',
+      });
+    }
   }
 
   function handleEdit(event: EventType) {
@@ -475,43 +215,67 @@ export default function CalendarPage() {
     setIsFormOpen(true);
   }
 
-  function onSubmit(data: EventFormValues) {
-    if (isEditing && editEvent) {
-      // UPDATE in local state
-      setEvents((prev) =>
-        prev.map((e) => (e.id === editEvent.id ? { ...e, ...data } : e))
-      );
-
+  async function onSubmit(data: EventFormValues) {
+    if (!churchId) {
       toast({
-        title: 'Event Updated',
-        description: `"${data.title}" has been updated.`,
+        title: 'No church selected',
+        description: 'Please select a church before saving events.',
+        variant: 'destructive',
       });
-    } else {
-      // CREATE in local state (id is temporary until wired to Firestore writes)
-      const newEvent: EventType = {
-        id: `e${events.length + 1}`,
-        ...data,
-      };
-
-      setEvents((prev) => [...prev, newEvent]);
-
-      toast({
-        title: 'Event Added',
-        description: `"${data.title}" has been added to ${format(
-          data.date,
-          'PPP'
-        )}.`,
-      });
+      return;
     }
 
-    setIsFormOpen(false);
-    setEditEvent(null);
+    try {
+      if (isEditing && editEvent) {
+        // UPDATE in Firestore
+        const ref = doc(db, 'churches', churchId, 'events', editEvent.id);
+        await updateDoc(ref, {
+          title: data.title,
+          description: data.description ?? '',
+          date: data.date,
+          updatedAt: serverTimestamp(),
+        });
 
-    form.reset({
-      title: '',
-      description: '',
-      date: selected,
-    });
+        toast({
+          title: 'Event Updated',
+          description: `"${data.title}" has been updated.`,
+        });
+      } else {
+        // CREATE in Firestore
+        const colRef = collection(db, 'churches', churchId, 'events');
+        await addDoc(colRef, {
+          title: data.title,
+          description: data.description ?? '',
+          date: data.date,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+
+        toast({
+          title: 'Event Added',
+          description: `"${data.title}" has been added to ${format(
+            data.date,
+            'PPP'
+          )}.`,
+        });
+      }
+
+      setIsFormOpen(false);
+      setEditEvent(null);
+
+      form.reset({
+        title: '',
+        description: '',
+        date: selected,
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Error saving event',
+        description: 'Please try again.',
+        variant: 'destructive',
+      });
+    }
   }
 
   if (!hydrated) return null;
@@ -524,160 +288,58 @@ export default function CalendarPage() {
         onOpenChange={(open) => {
           if (!open) setDeleteId(null);
         }}
-        onConfirm={() => {
+        onConfirm={async () => {
           if (deleteId) {
-            handleDelete(deleteId);
+            await handleDelete(deleteId);
             setDeleteId(null);
           }
         }}
       />
 
       <PageHeader title="Calendar of Events">
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen} modal={false}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              {isEditing ? 'Edit Event' : 'Add Event'}
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={view === 'calendar' ? 'default' : 'outline'}
+            onClick={() => setView('calendar')}
+          >
+            Calendar
+          </Button>
+          <Button
+            variant={view === 'list' ? 'default' : 'outline'}
+            onClick={() => setView('list')}
+          >
+            List
+          </Button>
 
-          <DialogContent className="flex flex-col bg-background p-0 ...">
-            <DialogHeader className="shrink-0 px-4 py-4 sm:px-6">
-              <DialogTitle>
-                {isEditing ? 'Edit Event' : 'Add New Event'}
-              </DialogTitle>
-              <DialogDescription>
-                {isEditing
-                  ? 'Update the details of this event.'
-                  : `Add a new event for ${format(selected, 'PPP')}.`}
-              </DialogDescription>
-            </DialogHeader>
+          <Button
+            onClick={() => {
+              setEditEvent(null);
+              form.reset({
+                title: '',
+                description: '',
+                date: selected,
+              });
+              setIsFormOpen(true);
+            }}
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Event
+          </Button>
+        </div>
 
-            <div className="grow overflow-y-auto px-4 sm:px-6 pb-[calc(var(--footer-h,3.5rem)+env(safe-area-inset-bottom)+0.75rem)]">
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4 w-full"
-                >
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Event Title *</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="e.g., Sunday Service"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Event details..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="date"
-                    render={() => (
-                      <FormItem>
-                        <FormLabel>Date</FormLabel>
-                        <FormControl>
-                          <ThemeProvider theme={muiTheme}>
-                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                              <Controller
-                                name="date"
-                                control={form.control}
-                                render={({ field: ctrl }) => (
-                                  <MobileDatePicker
-                                    value={dayjs(ctrl.value)}
-                                    onChange={(next: Dayjs | null) => {
-                                      if (!next) return;
-                                      ctrl.onChange(next.toDate());
-                                    }}
-                                    closeOnSelect
-                                    reduceAnimations
-                                    dayOfWeekFormatter={(d) =>
-                                      d.format('dd').toUpperCase()
-                                    }
-                                    slotProps={{
-                                      textField: {
-                                        fullWidth: true,
-                                        sx: {
-                                          '& .MuiInputBase-root': {
-                                            backgroundColor: 'transparent',
-                                            color: 'text.primary',
-                                            fontSize: '0.875rem',
-                                            borderRadius: '0.5rem',
-                                          },
-                                          '& .MuiInputLabel-root': {
-                                            color: 'text.secondary',
-                                          },
-                                          '& .MuiOutlinedInput-notchedOutline':
-                                            {
-                                              borderColor:
-                                                'rgba(255,255,255,0.2)',
-                                            },
-                                          '&:hover .MuiOutlinedInput-notchedOutline':
-                                            {
-                                              borderColor:
-                                                'rgba(255,255,255,0.35)',
-                                            },
-                                          '&.Mui-focused .MuiOutlinedInput-notchedOutline':
-                                            {
-                                              borderColor: 'primary.main',
-                                            },
-                                        },
-                                      },
-                                      mobilePaper: {
-                                        sx: {
-                                          bgcolor: 'background.default',
-                                          color: 'text.primary',
-                                        },
-                                      },
-                                    }}
-                                  />
-                                )}
-                              />
-                            </LocalizationProvider>
-                          </ThemeProvider>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </form>
-              </Form>
-            </div>
-
-            <DialogFooter
-              className="shrink-0 px-4 py-3 sm:px-6"
-              style={{ ['--footer-h' as any]: '3.5rem' }}
-            >
-              <Button
-                type="submit"
-                onClick={form.handleSubmit(onSubmit)}
-                className="w-full sm:w-auto"
-              >
-                {isEditing ? 'Save Changes' : 'Add Event'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <EventFormDialog
+          open={isFormOpen}
+          isEditing={isEditing}
+          event={editEvent}
+          selectedDate={selected}
+          form={form}
+          onSubmit={onSubmit}
+          onOpenChange={(open) => {
+            setIsFormOpen(open);
+            if (!open) setEditEvent(null);
+          }}
+          muiTheme={muiTheme}
+        />
       </PageHeader>
 
       {/* VIEW SWITCHING */}
@@ -697,12 +359,10 @@ export default function CalendarPage() {
 
               <div className="mt-3 flex items-center justify-between">
                 <Button variant="outline" onClick={handlePrevMonth}>
-                  <ChevronLeft className="mr-2 h-4 w-4" />
                   Previous
                 </Button>
                 <Button variant="outline" onClick={handleNextMonth}>
                   Next
-                  <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </div>

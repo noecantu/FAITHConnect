@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -35,15 +34,23 @@ import {
 
 import { useToast } from '@/hooks/use-toast';
 import { ContributionChart } from '@/app/contributions/contribution-chart';
-import { members, contributions as initialContributions } from '@/lib/data';
+import { members } from '@/lib/data';
 
-// --- MUI X Date Pickers (Mobile-friendly) ---
+// MUI date pickers
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 
-// --- MUI Theme (local dark mode) ---
+// MUI theme
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+
+import { useChurchId } from '@/hooks/useChurchId';
+import {
+  listenToContributions,
+  addContribution,
+} from '@/lib/contributions';
+
+import type { Contribution } from '@/lib/types';
 
 // ------------------------------
 // Zod schema
@@ -65,7 +72,8 @@ type ContributionFormValues = z.infer<typeof contributionSchema>;
 // ------------------------------
 export default function ContributionsPage() {
   const { toast } = useToast();
-  const [contributions, setContributions] = React.useState(initialContributions);
+  const churchId = useChurchId();
+  const [contributions, setContributions] = React.useState<Contribution[]>([]);
 
   const form = useForm<ContributionFormValues>({
     resolver: zodResolver(contributionSchema),
@@ -79,33 +87,64 @@ export default function ContributionsPage() {
     mode: 'onSubmit',
   });
 
-  function onSubmit(values: ContributionFormValues) {
+  // Firestore listener
+  React.useEffect(() => {
+    if (!churchId) return;
+
+    const unsubscribe = listenToContributions(churchId, (data) => {
+      setContributions(data);
+    });
+
+    return () => unsubscribe();
+  }, [churchId]);
+
+  async function onSubmit(values: ContributionFormValues) {
+    if (!churchId) {
+      toast({
+        title: 'No church selected',
+        description: 'Please select a church before adding contributions.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const member = members.find((m) => m.id === values.memberId);
-    const memberName = member ? `${member.firstName} ${member.lastName}` : 'Unknown Member';
+    const memberName = member
+      ? `${member.firstName} ${member.lastName}`
+      : 'Unknown Member';
 
-    const newContribution = {
-      id: `c${contributions.length + 1}`,
-      memberName,
-      ...values,
-    };
+    try {
+      await addContribution(churchId, {
+        memberId: values.memberId,
+        memberName,
+        amount: values.amount,
+        category: values.category,
+        contributionType: values.contributionType,
+        date: values.date,
+      });
 
-    setContributions((prev) => [newContribution, ...prev]);
+      toast({
+        title: 'Contribution Added',
+        description: `Added ${values.amount} (${values.contributionType}) for ${memberName}.`,
+      });
 
-    toast({
-      title: 'Contribution Added',
-      description: `Added ${values.amount} (${values.contributionType}) for ${memberName}.`,
-    });
-
-    form.reset({
-      memberId: '',
-      amount: 0,
-      category: 'Tithes',
-      contributionType: 'Digital Transfer',
-      date: new Date(),
-    });
+      form.reset({
+        memberId: '',
+        amount: 0,
+        category: 'Tithes',
+        contributionType: 'Digital Transfer',
+        date: new Date(),
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Error adding contribution',
+        description: 'Please try again.',
+        variant: 'destructive',
+      });
+    }
   }
 
-  // Local dark theme just for this page (you can move this to app-wide Providers)
   const darkTheme = createTheme({
     palette: { mode: 'dark' },
   });
@@ -155,7 +194,7 @@ export default function ContributionsPage() {
                     )}
                   />
 
-                  {/* Amount (controlled to avoid warnings) */}
+                  {/* Amount */}
                   <FormField
                     control={form.control}
                     name="amount"
@@ -170,7 +209,8 @@ export default function ContributionsPage() {
                             placeholder="0.00"
                             className="w-full"
                             value={
-                              typeof field.value === 'number' && Number.isFinite(field.value)
+                              typeof field.value === 'number' &&
+                              Number.isFinite(field.value)
                                 ? String(field.value)
                                 : ''
                             }
@@ -241,7 +281,7 @@ export default function ContributionsPage() {
                     )}
                   />
 
-                  {/* Date — MUI MobileDatePicker (dark theme, closes on select) */}
+                  {/* Date */}
                   <FormField
                     control={form.control}
                     name="date"
@@ -262,19 +302,18 @@ export default function ContributionsPage() {
                                   }}
                                   closeOnSelect
                                   reduceAnimations
-                                  // Compact weekday labels
-                                  dayOfWeekFormatter={(d) => d.format('dd').toUpperCase()}
-                                  // Make the input and dialog match your dark UI
+                                  dayOfWeekFormatter={(d) =>
+                                    d.format('dd').toUpperCase()
+                                  }
                                   slotProps={{
                                     textField: {
                                       fullWidth: true,
-                                      // Color & background tuned for dark Tailwind/shadcn
                                       sx: {
                                         '& .MuiInputBase-root': {
                                           backgroundColor: 'transparent',
                                           color: 'text.primary',
                                           fontSize: '0.875rem',
-                                          borderRadius: '0.5rem', // to match shadcn radius
+                                          borderRadius: '0.5rem',
                                         },
                                         '& .MuiInputLabel-root': {
                                           color: 'text.secondary',
@@ -282,16 +321,18 @@ export default function ContributionsPage() {
                                         '& .MuiOutlinedInput-notchedOutline': {
                                           borderColor: 'rgba(255,255,255,0.2)',
                                         },
-                                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                                          borderColor: 'rgba(255,255,255,0.35)',
-                                        },
-                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                          borderColor: 'primary.main',
-                                        },
+                                        '&:hover .MuiOutlinedInput-notchedOutline':
+                                          {
+                                            borderColor:
+                                              'rgba(255,255,255,0.35)',
+                                          },
+                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline':
+                                          {
+                                            borderColor: 'primary.main',
+                                          },
                                       },
                                     },
                                     mobilePaper: {
-                                      // Dialog/paper background and text for dark
                                       sx: {
                                         bgcolor: 'background.default',
                                         color: 'text.primary',

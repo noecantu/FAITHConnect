@@ -1,4 +1,4 @@
-import type { ImagePlaceholder } from './placeholder-images';
+import { Timestamp } from 'firebase/firestore';
 
 export type Member = {
   id: string;
@@ -26,6 +26,19 @@ export type Contribution = {
   memberName: string;
   amount: number;
   category: 'Tithes' | 'Offering' | 'Donation' | 'Other';
+  contributionType: "Digital Transfer" | "Cash" | "Check" | "Other";
   date: Date;
   notes?: string;
+};
+
+export type ContributionRecord = {
+  memberId: string;
+  memberName: string;
+  amount: number;
+  category: "Tithes" | "Offering" | "Donation" | "Other";
+  contributionType: "Digital Transfer" | "Cash" | "Check" | "Other";
+  date: Timestamp;
+  notes?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 };
