@@ -44,7 +44,7 @@ import {
     );
   
     return onSnapshot(q, (snapshot) => {
-      const members = snapshot.docs.map((doc) => {
+      const members: Member[] = snapshot.docs.map((doc) => {
         const raw = doc.data();
   
         return {
@@ -52,11 +52,11 @@ import {
           firstName: raw.firstName,
           lastName: raw.lastName,
           email: raw.email,
-          phone: raw.phone,
+          phoneNumber: raw.phoneNumber,
           birthday: raw.birthday?.toDate?.() ?? null,
           status: raw.status,
           notes: raw.notes ?? "",
-          photoUrl: raw.photoUrl ?? "",
+          profilePhotoUrl: raw.profilePhotoUrl ?? "",
         };
       });
   

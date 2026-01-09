@@ -1,61 +1,8 @@
 import type { Member, Event, Contribution } from './types';
 
 export const members: Member[] = [
-  {
-    id: 'm1',
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
-    phone: '123-456-7890',
-    status: 'Active',
-    birthday: '1990-05-15',
-    photoUrl: 'https://picsum.photos/seed/m1/200/200',
-    notes: 'Long-time member, volunteers in the youth group.',
-  },
-  {
-    id: 'm2',
-    firstName: 'Jane',
-    lastName: 'Smith',
-    email: 'jane.smith@example.com',
-    phone: '987-654-3210',
-    status: 'Active',
-    birthday: '1985-08-22',
-    photoUrl: 'https://picsum.photos/seed/m2/200/200',
-    notes: 'Leads the choir. Allergic to peanuts.',
-  },
-  {
-    id: 'm3',
-    firstName: 'Peter',
-    lastName: 'Jones',
-    email: 'peter.jones@example.com',
-    phone: '555-123-4567',
-    status: 'Prospect',
-    birthday: '2001-01-30',
-    photoUrl: 'https://picsum.photos/seed/m3/200/200',
-    notes: 'New to the area, attended the last three services.',
-  },
-  {
-    id: 'm4',
-    firstName: 'Mary',
-    lastName: 'Williams',
-    email: 'mary.w@example.com',
-    phone: '555-987-6543',
-    status: 'Active',
-    birthday: '1978-11-11',
-    photoUrl: 'https://picsum.photos/seed/m4/200/200',
-    notes: '',
-  },
-  {
-    id: 'm5',
-    firstName: 'David',
-    lastName: 'Brown',
-    email: 'david.b@example.com',
-    phone: '555-456-1230',
-    status: 'Archived',
-    birthday: '1965-03-03',
-    photoUrl: 'https://picsum.photos/seed/m5/200/200',
-    notes: 'Moved to another state in 2022.',
-  },
+  // This data is now invalid with the new type definition.
+  // It will be updated or removed in a subsequent step.
 ];
 
 export const events: Event[] = [
@@ -87,6 +34,7 @@ export const contributions: Contribution[] = [
     amount: 100,
     category: 'Tithes',
     date: new Date(new Date().setDate(new Date().getDate() - 5)),
+    contributionType: 'Cash',
   },
   {
     id: 'c2',
@@ -95,6 +43,7 @@ export const contributions: Contribution[] = [
     amount: 50,
     category: 'Offering',
     date: new Date(new Date().setDate(new Date().getDate() - 5)),
+    contributionType: 'Digital Transfer',
   },
   {
     id: 'c3',
@@ -103,6 +52,7 @@ export const contributions: Contribution[] = [
     amount: 250,
     category: 'Donation',
     date: new Date(new Date().setDate(new Date().getDate() - 10)),
+    contributionType: 'Check',
   },
   {
     id: 'c4',
@@ -111,6 +61,7 @@ export const contributions: Contribution[] = [
     amount: 20,
     category: 'Other',
     date: new Date(new Date().setDate(new Date().getDate() - 12)),
+    contributionType: 'Other',
   },
   {
     id: 'c5',
@@ -119,5 +70,6 @@ export const contributions: Contribution[] = [
     amount: 150,
     category: 'Tithes',
     date: new Date(new Date().setDate(new Date().getDate() - 12)),
+    contributionType: 'Digital Transfer',
   },
 ];

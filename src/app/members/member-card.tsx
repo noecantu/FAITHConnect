@@ -16,19 +16,17 @@ import type { Member } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 const StatusBadge = ({ status }: { status: Member['status'] }) => {
-  if (status === 'Active') {
+  if (status === 'current') {
     return null;
   }
   const variant = {
-    Prospect: 'outline',
-    Archived: 'outline',
+    archived: 'outline',
   }[status];
 
   const className = cn(
     'absolute top-2 right-2',
     {
-      'bg-background/50': status === 'Archived',
-      'bg-green-500/50 text-green-800': status === 'Prospect',
+      'bg-background/50': status === 'archived',
     }
   );
 
@@ -44,9 +42,9 @@ export function MemberCard({ member }: { member: Member }) {
     <MemberFormSheet member={member}>
       <Card className="overflow-hidden cursor-pointer">
         <div className="relative aspect-[4/3] w-full flex items-center justify-center bg-muted text-muted-foreground">
-          {member.photoUrl ? (
+          {member.profilePhotoUrl ? (
             <Image
-              src={member.photoUrl}
+              src={member.profilePhotoUrl}
               alt={`${member.firstName} ${member.lastName}`}
               fill
               className="object-cover"
@@ -71,11 +69,11 @@ export function MemberCard({ member }: { member: Member }) {
               {member.email}
             </a>
             <a
-              href={`tel:${member.phone}`}
+              href={`tel:${member.phoneNumber}`}
               className="block hover:underline"
               onClick={(e) => e.stopPropagation()}
             >
-              {member.phone}
+              {member.phoneNumber}
             </a>
           </div>
         </CardContent>

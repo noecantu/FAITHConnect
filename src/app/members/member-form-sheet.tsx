@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as z from "zod";
@@ -56,10 +55,10 @@ const memberSchema = z.object({
   firstName: z.string().min(1, "First Name is required"),
   lastName: z.string().min(1, "Last Name is required"),
   email: z.string().email().optional().or(z.literal("")),
-  phone: z.string().min(1, "Phone is required"),
+  phoneNumber: z.string().min(1, "Phone is required"),
   birthday: z.string().optional(),
   notes: z.string().optional(),
-  status: z.enum(["Active", "Prospect", "Archived"]),
+  status: z.enum(["current", "archived"]),
   photoFile: z
     .any()
     .optional()
@@ -92,9 +91,9 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
       firstName: "",
       lastName: "",
       email: "",
-      phone: "",
+      phoneNumber: "",
       birthday: "",
-      status: "Prospect",
+      status: "current",
       notes: "",
       photoFile: null,
     },
@@ -105,8 +104,8 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   useEffect(() => {
     if (photoFile) {
       setPreviewUrl(URL.createObjectURL(photoFile));
-    } else if (member?.photoUrl) {
-      setPreviewUrl(member.photoUrl);
+    } else if (member?.profilePhotoUrl) {
+      setPreviewUrl(member.profilePhotoUrl);
     } else {
       setPreviewUrl(null);
     }
@@ -126,7 +125,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           firstName: member.firstName,
           lastName: member.lastName,
           email: member.email,
-          phone: member.phone,
+          phoneNumber: member.phoneNumber,
           birthday: member.birthday
             ? new Date(member.birthday).toISOString().split("T")[0]
             : "",
@@ -139,9 +138,9 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           firstName: "",
           lastName: "",
           email: "",
-          phone: "",
+          phoneNumber: "",
           birthday: "",
-          status: "Prospect",
+          status: "current",
           notes: "",
           photoFile: null,
         });
@@ -213,7 +212,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
     }
 
     try {
-      let photoUrl = member?.photoUrl ?? "";
+      let profilePhotoUrl = member?.profilePhotoUrl ?? "";
 
       if (data.photoFile) {
         const storageId = isEditMode && member ? member.id : crypto.randomUUID();
@@ -224,18 +223,18 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
         );
 
         await uploadBytes(fileRef, data.photoFile);
-        photoUrl = await getDownloadURL(fileRef);
+        profilePhotoUrl = await getDownloadURL(fileRef);
       }
 
       const payload = {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
-        phone: data.phone,
+        phoneNumber: data.phoneNumber,
         birthday: data.birthday ? new Date(data.birthday) : null,
         notes: data.notes,
         status: data.status,
-        photoUrl,
+        profilePhotoUrl,
       };
 
       if (isEditMode && member) {
@@ -326,7 +325,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
 
                 <FormField
                   control={form.control}
-                  name="phone"
+                  name="phoneNumber"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Phone <span className="text-destructive">*</span></FormLabel>
@@ -388,9 +387,8 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Active">Active</SelectItem>
-                          <SelectItem value="Prospect">Prospect</SelectItem>
-                          <SelectItem value="Archived">Archived</SelectItem>
+                          <SelectItem value="current">Current</SelectItem>
+                          <SelectItem value="archived">Archived</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

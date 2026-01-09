@@ -30,9 +30,8 @@ import {
 
 const StatusBadge = ({ status }: { status: Member['status'] }) => {
   const variant = {
-    Active: 'secondary',
-    Prospect: 'default',
-    Archived: 'outline',
+    current: 'secondary',
+    archived: 'outline',
   }[status];
   return <Badge variant={variant as any}>{status}</Badge>;
 };
@@ -46,7 +45,7 @@ export const columns: ColumnDef<Member>[] = [
       return (
         <div className="flex items-center gap-3">
           <Image
-            src={member.photoUrl}
+            src={member.profilePhotoUrl}
             alt={`${member.firstName} ${member.lastName}`}
             width={40}
             height={40}
@@ -67,7 +66,7 @@ export const columns: ColumnDef<Member>[] = [
     header: 'Email',
   },
   {
-    accessorKey: 'phone',
+    accessorKey: 'phoneNumber',
     header: 'Phone Number',
   },
   {
