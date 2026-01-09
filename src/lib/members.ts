@@ -8,23 +8,34 @@ import {
     orderBy,
     query,
     serverTimestamp,
+    Timestamp,
   } from "firebase/firestore";
   import { db } from "@/lib/firebase";
   import type { Member } from "@/lib/types";
   
-  export async function addMember(churchId: string, data: any) {
+  export async function addMember(churchId: string, data: Partial<Omit<Member, 'id'>>) {
     const colRef = collection(db, "churches", churchId, "members");
+
+    const payload: any = { ...data };
+    if (data.birthday) payload.birthday = Timestamp.fromDate(new Date(data.birthday));
+    if (data.anniversary) payload.anniversary = Timestamp.fromDate(new Date(data.anniversary));
+
     await addDoc(colRef, {
-      ...data,
+      ...payload,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
   }
   
-  export async function updateMember(churchId: string, memberId: string, data: any) {
+  export async function updateMember(churchId: string, memberId: string, data: Partial<Omit<Member, 'id'>>) {
     const ref = doc(db, "churches", churchId, "members", memberId);
+    
+    const payload: any = { ...data };
+    if (data.birthday) payload.birthday = Timestamp.fromDate(new Date(data.birthday));
+    if (data.anniversary) payload.anniversary = Timestamp.fromDate(new Date(data.anniversary));
+
     await updateDoc(ref, {
-      ...data,
+      ...payload,
       updatedAt: serverTimestamp(),
     });
   }
@@ -53,10 +64,14 @@ import {
           lastName: raw.lastName,
           email: raw.email,
           phoneNumber: raw.phoneNumber,
-          birthday: raw.birthday?.toDate?.() ?? null,
-          status: raw.status,
-          notes: raw.notes ?? "",
           profilePhotoUrl: raw.profilePhotoUrl ?? "",
+          status: raw.status,
+          address: raw.address,
+          birthday: raw.birthday?.toDate?.()?.toISOString().split('T')[0] ?? undefined,
+          familyId: raw.familyId,
+          notes: raw.notes ?? "",
+          relationships: raw.relationships,
+          anniversary: raw.anniversary?.toDate?.()?.toISOString().split('T')[0] ?? undefined,
         };
       });
   

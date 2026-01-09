@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as z from "zod";
@@ -57,6 +58,13 @@ const memberSchema = z.object({
   email: z.string().email().optional().or(z.literal("")),
   phoneNumber: z.string().min(1, "Phone is required"),
   birthday: z.string().optional(),
+  anniversary: z.string().optional(),
+  address: z.object({
+    street: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    zip: z.string().optional(),
+  }).optional(),
   notes: z.string().optional(),
   status: z.enum(["current", "archived"]),
   photoFile: z
@@ -93,6 +101,13 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
       email: "",
       phoneNumber: "",
       birthday: "",
+      anniversary: "",
+      address: {
+        street: "",
+        city: "",
+        state: "",
+        zip: "",
+      },
       status: "current",
       notes: "",
       photoFile: null,
@@ -129,6 +144,15 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           birthday: member.birthday
             ? new Date(member.birthday).toISOString().split("T")[0]
             : "",
+          anniversary: member.anniversary
+            ? new Date(member.anniversary).toISOString().split("T")[0]
+            : "",
+          address: {
+            street: member.address?.street ?? "",
+            city: member.address?.city ?? "",
+            state: member.address?.state ?? "",
+            zip: member.address?.zip ?? "",
+          },
           status: member.status,
           notes: member.notes ?? "",
           photoFile: null,
@@ -140,6 +164,13 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           email: "",
           phoneNumber: "",
           birthday: "",
+          anniversary: "",
+          address: {
+            street: "",
+            city: "",
+            state: "",
+            zip: "",
+          },
           status: "current",
           notes: "",
           photoFile: null,
@@ -226,12 +257,14 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
         profilePhotoUrl = await getDownloadURL(fileRef);
       }
 
-      const payload = {
+      const payload: Partial<Member> = {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         phoneNumber: data.phoneNumber,
-        birthday: data.birthday ? new Date(data.birthday) : null,
+        birthday: data.birthday,
+        anniversary: data.anniversary,
+        address: data.address,
         notes: data.notes,
         status: data.status,
         profilePhotoUrl,
@@ -350,6 +383,75 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="anniversary"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Anniversary</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="address.street"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Street</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="123 Main St" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="address.city"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-1">
+                        <FormLabel>City</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="address.state"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>State</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="address.zip"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Zip</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <FormField
                   control={form.control}
