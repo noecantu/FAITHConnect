@@ -27,4 +27,5 @@ export type Contribution = {
   amount: number;
   category: 'Tithes' | 'Offering' | 'Donation' | 'Other';
   date: Date;
+  notes?: string;
 };

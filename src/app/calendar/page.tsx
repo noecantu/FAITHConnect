@@ -15,7 +15,7 @@ import {
 } from 'date-fns';
 import { PlusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import * as z from 'zod';
 
 import { PageHeader } from '@/components/page-header';
@@ -47,22 +47,22 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-import { events as initialEvents } from '@/lib/data';
 import type { Event as EventType } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
-import { Controller } from 'react-hook-form';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { db } from "@/lib/firebase"; // adjust path if needed
+
+import { db } from '@/lib/firebase';
 import {
   collection,
   query,
   orderBy,
   onSnapshot,
-} from "firebase/firestore";
+} from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { useChurchId } from '@/hooks/useChurchId';
 
@@ -80,15 +80,15 @@ const muiTheme = createTheme({
   palette: {
     mode: 'dark',
     background: {
-      default: '#0a0a0a', // matches shadcn dark background
-      paper: '#0f0f0f',    // dialog/picker background
+      default: '#0a0a0a',
+      paper: '#0f0f0f',
     },
     text: {
       primary: '#ffffff',
       secondary: 'rgba(255,255,255,0.7)',
     },
     primary: {
-      main: '#4f46e5', // your primary color (adjust if needed)
+      main: '#4f46e5',
     },
   },
 });
@@ -99,6 +99,7 @@ const muiTheme = createTheme({
 function dateKey(d: Date) {
   return format(d, 'yyyy-MM-dd');
 }
+
 function groupEventsByDay(events: EventType[]) {
   const map = new Map<string, EventType[]>();
   for (const e of events) {
@@ -369,16 +370,16 @@ export default function CalendarPage() {
 
   useEffect(() => {
     if (!churchId) return;
-  
+
     const q = query(
-      collection(db, "churches", churchId, "events"),
-      orderBy("date", "asc")
+      collection(db, 'churches', churchId, 'events'),
+      orderBy('date', 'asc')
     );
-  
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((doc) => {
+      const data: EventType[] = snapshot.docs.map((doc) => {
         const raw = doc.data();
-  
+
         return {
           id: doc.id,
           title: raw.title,
@@ -386,13 +387,13 @@ export default function CalendarPage() {
           date: raw.date?.toDate?.() ?? new Date(),
         };
       });
-  
+
       setEvents(data);
     });
-  
+
     return () => unsubscribe();
   }, [churchId]);
-  
+
   // Load user preference from Settings
   const [view, setView] = React.useState<'calendar' | 'list'>('calendar');
   React.useEffect(() => {
@@ -408,7 +409,9 @@ export default function CalendarPage() {
   }, []);
 
   const selectedDayEvents = React.useMemo(() => {
-    return events.filter((event) => dateKey(event.date) === dateKey(selected));
+    return events.filter(
+      (event) => dateKey(event.date) === dateKey(selected)
+    );
   }, [selected, events]);
 
   const form = useForm<EventFormValues>({
@@ -474,11 +477,9 @@ export default function CalendarPage() {
 
   function onSubmit(data: EventFormValues) {
     if (isEditing && editEvent) {
-      // UPDATE
+      // UPDATE in local state
       setEvents((prev) =>
-        prev.map((e) =>
-          e.id === editEvent.id ? { ...e, ...data } : e
-        )
+        prev.map((e) => (e.id === editEvent.id ? { ...e, ...data } : e))
       );
 
       toast({
@@ -486,7 +487,7 @@ export default function CalendarPage() {
         description: `"${data.title}" has been updated.`,
       });
     } else {
-      // CREATE
+      // CREATE in local state (id is temporary until wired to Firestore writes)
       const newEvent: EventType = {
         id: `e${events.length + 1}`,
         ...data,
@@ -540,23 +541,7 @@ export default function CalendarPage() {
             </Button>
           </DialogTrigger>
 
-          <DialogContent
-            className="flex flex-col bg-background p-0 ..."
-          >
-          {/* <DialogContent
-            className="
-              flex flex-col bg-background p-0
-              !left-0 !top-0 !-translate-x-0 !-translate-y-0
-              w-[100vw] h-[100dvh] max-h-[100dvh]
-              sm:!left-1/2 sm:!top-1/2 sm:!-translate-x-1/2 sm:!-translate-y-1/2
-              sm:w-[min(640px,calc(100vw-2rem))] sm:max-h-[85vh]
-            "
-            onOpenAutoFocus={(e) => e.preventDefault()}
-            style={{
-              paddingTop: 'env(safe-area-inset-top)',
-              paddingBottom: 'env(safe-area-inset-bottom)',
-            }}
-          > */}
+          <DialogContent className="flex flex-col bg-background p-0 ...">
             <DialogHeader className="shrink-0 px-4 py-4 sm:px-6">
               <DialogTitle>
                 {isEditing ? 'Edit Event' : 'Add New Event'}
@@ -581,7 +566,10 @@ export default function CalendarPage() {
                       <FormItem>
                         <FormLabel>Event Title *</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Sunday Service" {...field} />
+                          <Input
+                            placeholder="e.g., Sunday Service"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -623,7 +611,9 @@ export default function CalendarPage() {
                                     }}
                                     closeOnSelect
                                     reduceAnimations
-                                    dayOfWeekFormatter={(d) => d.format('dd').toUpperCase()}
+                                    dayOfWeekFormatter={(d) =>
+                                      d.format('dd').toUpperCase()
+                                    }
                                     slotProps={{
                                       textField: {
                                         fullWidth: true,
@@ -637,15 +627,20 @@ export default function CalendarPage() {
                                           '& .MuiInputLabel-root': {
                                             color: 'text.secondary',
                                           },
-                                          '& .MuiOutlinedInput-notchedOutline': {
-                                            borderColor: 'rgba(255,255,255,0.2)',
-                                          },
-                                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                                            borderColor: 'rgba(255,255,255,0.35)',
-                                          },
-                                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                            borderColor: 'primary.main',
-                                          },
+                                          '& .MuiOutlinedInput-notchedOutline':
+                                            {
+                                              borderColor:
+                                                'rgba(255,255,255,0.2)',
+                                            },
+                                          '&:hover .MuiOutlinedInput-notchedOutline':
+                                            {
+                                              borderColor:
+                                                'rgba(255,255,255,0.35)',
+                                            },
+                                          '&.Mui-focused .MuiOutlinedInput-notchedOutline':
+                                            {
+                                              borderColor: 'primary.main',
+                                            },
                                         },
                                       },
                                       mobilePaper: {
