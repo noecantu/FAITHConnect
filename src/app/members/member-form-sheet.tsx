@@ -2,7 +2,7 @@
 'use client';
 
 import * as z from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect, type ReactNode, useRef } from "react";
 import Image from "next/image";
@@ -37,9 +37,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
-  DialogClose
+  DialogClose,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
@@ -50,8 +50,13 @@ import { useChurchId } from "@/hooks/useChurchId";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "@/lib/firebase";
 
-import { addMember, updateMember } from "@/lib/members";
-import { Camera, Upload } from "lucide-react";
+import { addMember, updateMember, listenToMembers } from "@/lib/members";
+import { Camera, Upload, Trash2 } from "lucide-react";
+
+const relationshipSchema = z.object({
+  relatedMemberId: z.string().min(1, "Member is required"),
+  type: z.string().min(1, "Relationship type is required"),
+});
 
 const memberSchema = z.object({
   firstName: z.string().min(1, "First Name is required"),
@@ -68,6 +73,7 @@ const memberSchema = z.object({
   }).optional(),
   notes: z.string().optional(),
   status: z.enum(["current", "archived"]),
+  relationships: z.array(relationshipSchema).optional(),
   photoFile: z
     .any()
     .optional()
@@ -90,6 +96,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   const [isTakingPhoto, setIsTakingPhoto] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [allMembers, setAllMembers] = useState<Member[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -111,11 +118,26 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
       },
       status: "current",
       notes: "",
+      relationships: [],
       photoFile: null,
     },
   });
 
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "relationships",
+  });
+
   const photoFile = form.watch("photoFile");
+
+  useEffect(() => {
+    if (!churchId) return;
+    const unsubscribe = listenToMembers(churchId, (members) => {
+      setAllMembers(members);
+    });
+    return () => unsubscribe();
+  }, [churchId]);
+
 
   useEffect(() => {
     if (photoFile) {
@@ -137,6 +159,13 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   useEffect(() => {
     if (isOpen) {
       if (isEditMode && member) {
+        const memberRelationships = member.relationships?.map(r => ({
+            // This assumes a simple structure. You may need to adapt this
+            // if your 'relationships' data is structured differently.
+            // For example, finding the other member's ID.
+            relatedMemberId: r.memberIds.find(id => id !== member.id) || '',
+            type: r.type,
+        })) || [];
         form.reset({
           firstName: member.firstName,
           lastName: member.lastName,
@@ -156,6 +185,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           },
           status: member.status,
           notes: member.notes ?? "",
+          relationships: memberRelationships,
           photoFile: null,
         });
       } else {
@@ -174,6 +204,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           },
           status: "current",
           notes: "",
+          relationships: [],
           photoFile: null,
         });
       }
@@ -243,15 +274,15 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
       return;
     }
 
+    const currentMemberId = isEditMode && member ? member.id : crypto.randomUUID();
+
     try {
       let profilePhotoUrl = member?.profilePhotoUrl ?? "";
 
       if (data.photoFile) {
-        const storageId = isEditMode && member ? member.id : crypto.randomUUID();
-
         const fileRef = ref(
           storage,
-          `churches/${churchId}/members/${storageId}.jpg`
+          `churches/${churchId}/members/${currentMemberId}.jpg`
         );
 
         await uploadBytes(fileRef, data.photoFile);
@@ -269,6 +300,10 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
         notes: data.notes,
         status: data.status,
         profilePhotoUrl,
+        relationships: data.relationships?.map(r => ({
+            memberIds: [currentMemberId, r.relatedMemberId],
+            type: r.type,
+        }))
       };
 
       if (isEditMode && member) {
@@ -278,7 +313,10 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           description: `${data.firstName} ${data.lastName} has been updated.`,
         });
       } else {
-        await addMember(churchId, payload);
+        // When creating a new member, we need to assign an ID to use in relationships.
+        // We are using the `currentMemberId` generated above.
+        const newMemberPayload = { ...payload, id: currentMemberId };
+        await addMember(churchId, newMemberPayload);
         toast({
           title: "Member Added",
           description: `${data.firstName} ${data.lastName} has been created.`,
@@ -295,6 +333,13 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
       });
     }
   }
+
+  const relationshipOptions = [
+    "Spouse", "Parent", "Child", "Sibling", "Guardian", "Ward"
+  ];
+  
+  const availableMembers = allMembers.filter(m => !isEditMode || m.id !== member?.id);
+
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -385,20 +430,6 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="anniversary"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Anniversary</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
                 <FormField
                   control={form.control}
                   name="address.street"
@@ -506,10 +537,84 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                 <CardTitle>Relationships</CardTitle>
                 <CardDescription>Manage member relationships.</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="text-center text-muted-foreground p-4 border-2 border-dashed rounded-lg">
-                  Relationship management UI coming soon.
-                </div>
+              <CardContent className="space-y-4">
+                {fields.map((field, index) => (
+                    <div key={field.id} className="flex items-end gap-2 p-3 border rounded-md">
+                        <div className="grid grid-cols-2 gap-4 flex-grow">
+                        <FormField
+                            control={form.control}
+                            name={`relationships.${index}.relatedMemberId`}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Member</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select a member" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {availableMembers.map((m) => (
+                                                <SelectItem key={m.id} value={m.id}>
+                                                    {m.firstName} {m.lastName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name={`relationships.${index}.type`}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Relationship</FormLabel>
+                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select a type" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {relationshipOptions.map((type) => (
+                                                <SelectItem key={type} value={type}>
+                                                    {type}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        </div>
+                        <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+                ))}
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => append({ relatedMemberId: "", type: "" })}
+                >
+                    Add Relationship
+                </Button>
+                <FormField
+                  control={form.control}
+                  name="anniversary"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Anniversary</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
 

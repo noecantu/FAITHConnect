@@ -9,22 +9,30 @@ import {
     query,
     serverTimestamp,
     Timestamp,
+    writeBatch,
   } from "firebase/firestore";
   import { db } from "@/lib/firebase";
-  import type { Member } from "@/lib/types";
+  import type { Member, Relationship } from "@/lib/types";
   
-  export async function addMember(churchId: string, data: Partial<Omit<Member, 'id'>>) {
-    const colRef = collection(db, "churches", churchId, "members");
+  export async function addMember(churchId: string, data: Partial<Omit<Member, 'id'>> & { id: string }) {
+    const batch = writeBatch(db);
+    const memberRef = doc(db, "churches", churchId, "members", data.id);
 
     const payload: any = { ...data };
     if (data.birthday) payload.birthday = Timestamp.fromDate(new Date(data.birthday));
     if (data.anniversary) payload.anniversary = Timestamp.fromDate(new Date(data.anniversary));
+    
+    // Set created and updated timestamps
+    payload.createdAt = serverTimestamp();
+    payload.updatedAt = serverTimestamp();
 
-    await addDoc(colRef, {
-      ...payload,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+    batch.set(memberRef, payload);
+
+    // If there are relationships, we may need to update other members too
+    // For simplicity, this example just saves relationships on the current member
+    // A more robust solution would update both members in a transaction/batch
+
+    await batch.commit();
   }
   
   export async function updateMember(churchId: string, memberId: string, data: Partial<Omit<Member, 'id'>>) {
