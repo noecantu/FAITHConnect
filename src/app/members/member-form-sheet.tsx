@@ -352,7 +352,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-grow overflow-y-auto pl-6 pr-4">
+        <div className="flex-grow overflow-y-auto pl-6 pr-2">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6">
             <Card>
@@ -620,11 +620,11 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
             </Card>
 
             <Card>
-              <CardHeader className="pb-2">
+              <CardHeader className="pb-4">
                 <CardTitle className="text-xl">Photo</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="w-64 h-64 mx-auto rounded-lg overflow-hidden bg-muted flex items-center justify-center relative">
+                <div className="w-full aspect-square max-w-xs mx-auto rounded-lg overflow-hidden bg-muted flex items-center justify-center relative">
                    {previewUrl ? (
                     <Image
                       src={previewUrl}
