@@ -80,13 +80,40 @@ const memberSchema = z.object({
     .transform((file) => (file instanceof File ? file : null)),
 });
 
-type MemberFormValues = z.infer<typeof memberSchema>;
-
 interface MemberFormSheetProps {
   member?: Member;
   children?: ReactNode;
 }
 
+// -----------------------------------------
+// 2. MemberFormValues type (place it here)
+// -----------------------------------------
+export type MemberFormValues = {
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phoneNumber: string;
+  birthday?: string;
+  anniversary?: string;
+  status: "Active" | "Prospect" | "Archived";
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+  };
+  notes?: string;
+  photoFile: File | null;
+  relationships?: {
+    relatedMemberId: string;
+    type: string;
+    anniversary?: string;
+  }[];
+};
+
+// -----------------------------------------
+// 3. Component definition
+// -----------------------------------------
 export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   const { toast } = useToast();
   const churchId = useChurchId();
@@ -354,7 +381,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
 
         <div className="flex-grow overflow-y-auto pl-6 pr-2">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6 pr-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-xl">Member Information</CardTitle>
@@ -539,28 +566,33 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                 <CardDescription>Manage member relationships.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {fields.map((field, index) => {
-                  const relatedMember = allMembers.find(m => m.id === field.relatedMemberId);
-                  return (
-                    <div key={field.id} className="flex items-center justify-between gap-2 p-3 border rounded-md">
-                        <div className="flex-grow text-sm">
-                          <span className="font-semibold">{relatedMember ? `${relatedMember.firstName} ${relatedMember.lastName}` : 'Unknown Member'}</span>
-                          <span className="text-muted-foreground"> ({field.type})</span>
+                {fields.length > 0 && (
+                  <div className="space-y-2">
+                    {fields.map((field, index) => {
+                      const relatedMember = allMembers.find(m => m.id === field.relatedMemberId);
+                      return (
+                        <div key={field.id} className="flex items-center justify-between gap-2 p-3 border rounded-md bg-muted/50">
+                            <div className="flex-grow text-sm">
+                              <span className="font-semibold">{relatedMember ? `${relatedMember.firstName} ${relatedMember.lastName}` : 'Unknown Member'}</span>
+                              <span className="text-muted-foreground"> ({field.type})</span>
+                            </div>
+                            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
                         </div>
-                        <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                  </div>
+                )}
+                
                 <div className="flex items-end gap-2">
                     <div className="grid grid-cols-2 gap-4 flex-grow">
                       <FormItem>
                           <FormLabel>Member</FormLabel>
-                          <Select onValueChange={(val) => form.setValue(`relationships.${fields.length}.relatedMemberId` as any, val)}>
+                          <Select onValueChange={(val) => form.setValue(`__temp_rel_member` as any, val)}>
                               <FormControl>
                                   <SelectTrigger>
-                                      <SelectValue placeholder="Select a member" />
+                                      <SelectValue placeholder="Select Member" />
                                   </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -574,10 +606,10 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                       </FormItem>
                       <FormItem>
                           <FormLabel>Relationship</FormLabel>
-                            <Select onValueChange={(val) => form.setValue(`relationships.${fields.length}.type` as any, val)}>
+                            <Select onValueChange={(val) => form.setValue(`__temp_rel_type` as any, val)}>
                               <FormControl>
                                   <SelectTrigger>
-                                      <SelectValue placeholder="Select a type" />
+                                      <SelectValue placeholder="Select Type" />
                                   </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -594,17 +626,19 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                         type="button"
                         variant="outline"
                         onClick={() => {
-                            const newRel = form.getValues(`relationships.${fields.length}` as any);
-                            if (newRel?.relatedMemberId && newRel?.type) {
-                                append(newRel);
+                            const newRel = form.getValues(['__temp_rel_member', '__temp_rel_type'] as any);
+                            if (newRel && newRel[0] && newRel[1]) {
+                                append({ relatedMemberId: newRel[0], type: newRel[1] });
+                                // Consider resetting the temp fields here if needed
                             } else {
                                 toast({ title: "Please select a member and relationship type.", variant: "destructive" });
                             }
                         }}
                     >
-                        Add Relationship
+                        Add
                     </Button>
                 </div>
+                
                 <FormField
                   control={form.control}
                   name="anniversary"
@@ -657,7 +691,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                         <Input
                           type="file"
                           accept="image/*"
-                          ref={fileInputRef}
+                          ref={fileInputrRef}
                           onChange={(e) =>
                             field.onChange(e.target.files?.[0] ?? null)
                           }
@@ -669,15 +703,14 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                 />
               </CardContent>
             </Card>
+            <div className="sticky bottom-0 bg-background py-4">
+              <Button type="submit" className="w-full">
+                {isEditMode ? "Save Changes" : "Add Member"}
+              </Button>
+            </div>
           </form>
         </Form>
         </div>
-
-        <DialogFooter className="shrink-0 px-6 py-4 border-t">
-          <Button type="submit" onClick={form.handleSubmit(onSubmit)}>
-            {isEditMode ? "Save Changes" : "Add Member"}
-          </Button>
-        </DialogFooter>
       </DialogContent>
 
       <Dialog open={isTakingPhoto} onOpenChange={setIsTakingPhoto}>
@@ -714,5 +747,3 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
     </Dialog>
   );
 }
-
-    
