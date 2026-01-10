@@ -35,6 +35,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -392,6 +393,9 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           <DialogTitle>
             {isEditMode ? "Edit Member" : "Add Member"}
           </DialogTitle>
+          <DialogDescription>
+            Fill in the form below to {isEditMode ? "update the member's details" : "add a new member to the directory"}.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex-grow overflow-y-auto pl-6 pr-2">
@@ -682,6 +686,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                       alt="Member photo preview"
                       fill
                       className="object-cover"
+                      sizes="(max-width: 640px) 90vw, 384px"
                     />
                   ) : (
                     <span className="text-sm text-muted-foreground">No Photo</span>
@@ -734,6 +739,9 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Take Photo</DialogTitle>
+            <DialogDescription>
+                Use your device's camera to take a new photo.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
              <div className="bg-muted rounded-md overflow-hidden">
