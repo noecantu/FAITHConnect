@@ -34,7 +34,6 @@ import {
 
 import { useToast } from '@/hooks/use-toast';
 import { ContributionChart } from '@/app/contributions/contribution-chart';
-import { members } from '@/lib/data';
 
 // MUI date pickers
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -51,8 +50,9 @@ import {
   listenToContributions,
   addContribution,
 } from '@/lib/contributions';
+import { listenToMembers } from '@/lib/members';
 
-import type { Contribution } from '@/lib/types';
+import type { Contribution, Member } from '@/lib/types';
 
 // ------------------------------
 // Zod schema
@@ -73,12 +73,18 @@ type ContributionFormValues = z.infer<typeof contributionSchema>;
 // Page Component
 // ------------------------------
 export default function ContributionsPage() {
+  const [isClient, setIsClient] = React.useState(false);
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
   const churchId = useChurchId();
   const [contributions, setContributions] = React.useState<Contribution[]>([]);
+  const [members, setMembers] = React.useState<Member[]>([]);
   const [roles, setRoles] = React.useState<string[]>([]);
   const [canAdd, setCanAdd] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const form = useForm<ContributionFormValues>({
     resolver: zodResolver(contributionSchema),
@@ -116,14 +122,17 @@ export default function ContributionsPage() {
     setCanAdd(hasPermission);
   }, [churchId, roles]);
 
-  // Firestore listener
+  // Listen to contributions
   React.useEffect(() => {
     if (!churchId) return;
+    const unsubscribe = listenToContributions(churchId, setContributions);
+    return () => unsubscribe();
+  }, [churchId]);
 
-    const unsubscribe = listenToContributions(churchId, (data) => {
-      setContributions(data);
-    });
-
+  // Listen to members
+  React.useEffect(() => {
+    if (!churchId) return;
+    const unsubscribe = listenToMembers(churchId, setMembers);
     return () => unsubscribe();
   }, [churchId]);
 
@@ -179,6 +188,11 @@ export default function ContributionsPage() {
   });
 
   const formDisabled = authLoading || !canAdd;
+
+  if (!isClient) {
+    // Render a placeholder or null on the server and initial client render
+    return null;
+  }
 
   return (
     <ThemeProvider theme={darkTheme}>
