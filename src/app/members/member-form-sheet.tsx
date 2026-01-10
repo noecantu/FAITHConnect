@@ -352,9 +352,9 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-grow overflow-y-auto pl-6 pr-4">
+        <div className="flex-grow overflow-y-auto px-6">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6 pr-2">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6">
             <Card>
               <CardHeader>
                 <CardTitle className="text-xl">Information</CardTitle>
@@ -572,7 +572,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Relationship</FormLabel>
-                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                     <Select onValue-change={field.onChange} defaultValue={field.value}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select a type" />
