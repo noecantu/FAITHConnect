@@ -42,6 +42,17 @@ import {
   DialogClose,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription as AlertDialogDescriptionComponent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 import { useToast } from "@/hooks/use-toast";
@@ -51,7 +62,7 @@ import { useChurchId } from "@/hooks/useChurchId";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "@/lib/firebase";
 
-import { addMember, updateMember, listenToMembers } from "@/lib/members";
+import { addMember, updateMember, listenToMembers, deleteMember } from "@/lib/members";
 import { Camera, Upload, Trash2 } from "lucide-react";
 
 const relationshipSchema = z.object({
@@ -128,6 +139,8 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
 
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(memberSchema),
@@ -292,6 +305,33 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
     }
   };
 
+  const handleDeleteMember = async () => {
+    if (!isEditMode || !member || !churchId) {
+      toast({
+        title: "Error",
+        description: "Cannot delete member.",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      await deleteMember(churchId, member.id);
+      toast({
+        title: "Member Deleted",
+        description: `${member.firstName} ${member.lastName} has been removed.`,
+      });
+      setIsDeleteDialogOpen(false);
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the member.",
+        variant: "destructive",
+      });
+    }
+  };
+
   async function onSubmit(data: MemberFormValues) {
     if (!churchId) {
       toast({
@@ -308,7 +348,6 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
       let profilePhotoUrl = member?.profilePhotoUrl ?? "";
 
       if (data.photoFile) {
-        console.log("Attempting to upload file:", data.photoFile);
         try {
             const fileRef = ref(
               storage,
@@ -317,7 +356,6 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
     
             await uploadBytes(fileRef, data.photoFile);
             profilePhotoUrl = await getDownloadURL(fileRef);
-            console.log("File uploaded successfully. URL:", profilePhotoUrl);
         } catch (uploadError) {
             console.error("Error uploading file:", uploadError);
             toast({
@@ -325,8 +363,6 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                 description: "Failed to upload photo. Please try again.",
                 variant: "destructive",
             });
-            // Stop submission if upload fails? Or continue without photo?
-            // For now, let's stop to be safe.
             return;
         }
       }
@@ -355,10 +391,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           description: `${data.firstName} ${data.lastName} has been updated.`,
         });
       } else {
-        // When creating a new member, we need to assign an ID to use in relationships.
-        // We are using the `currentMemberId` generated above.
         const newMemberPayload = { ...payload, id: currentMemberId };
-        console.log('New Member Payload:', newMemberPayload);
         await addMember(churchId, newMemberPayload);
         toast({
           title: "Member Added",
@@ -727,13 +760,42 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
         </Form>
         </div>
 
-        <DialogFooter className="shrink-0 px-6 pt-4 pb-6">
-          <Button type="submit" form="member-form" className="w-full">
+        <DialogFooter className="shrink-0 px-6 pt-4 pb-6 flex items-center justify-end space-x-2">
+          {isEditMode && (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => setIsDeleteDialogOpen(true)}
+            >
+              Delete Member
+            </Button>
+          )}
+          <Button type="submit" form="member-form">
             {isEditMode ? "Save Changes" : "Add Member"}
           </Button>
         </DialogFooter>
 
       </DialogContent>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescriptionComponent>
+              This action cannot be undone. This will permanently delete the member profile for {member?.firstName} {member?.lastName}.
+            </AlertDialogDescriptionComponent>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteMember}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={isTakingPhoto} onOpenChange={setIsTakingPhoto}>
         <DialogContent>
