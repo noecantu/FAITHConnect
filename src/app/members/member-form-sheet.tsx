@@ -373,7 +373,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
       <DialogTrigger asChild>{children}</DialogTrigger>
 
       <DialogContent className="max-h-[90vh] flex flex-col p-0">
-        <DialogHeader className="shrink-0 px-6 pt-6 pb-4">
+        <DialogHeader className="shrink-0 px-6 pt-6">
           <DialogTitle>
             {isEditMode ? "Edit Member" : "Add Member"}
           </DialogTitle>
@@ -656,11 +656,11 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
             </Card>
 
             <Card>
-              <CardHeader className="pb-4">
+              <CardHeader className="pb-2">
                 <CardTitle className="text-xl">Photo</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="w-full aspect-square max-w-sm mx-auto rounded-lg overflow-hidden bg-muted flex items-center justify-center relative">
+                <div className="w-full aspect-square max-w-xs mx-auto rounded-lg overflow-hidden bg-muted flex items-center justify-center relative">
                    {previewUrl ? (
                     <Image
                       src={previewUrl}
@@ -691,7 +691,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                         <Input
                           type="file"
                           accept="image/*"
-                          ref={fileInputrRef}
+                          ref={fileInputRef}
                           onChange={(e) =>
                             field.onChange(e.target.files?.[0] ?? null)
                           }
@@ -703,14 +703,16 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                 />
               </CardContent>
             </Card>
-            <div className="sticky bottom-0 bg-background py-4">
-              <Button type="submit" className="w-full">
-                {isEditMode ? "Save Changes" : "Add Member"}
-              </Button>
-            </div>
           </form>
         </Form>
         </div>
+
+        <DialogFooter className="shrink-0 px-6 pt-4 pb-6">
+          <Button type="button" onClick={form.handleSubmit(onSubmit)} className="w-full">
+            {isEditMode ? "Save Changes" : "Add Member"}
+          </Button>
+        </DialogFooter>
+
       </DialogContent>
 
       <Dialog open={isTakingPhoto} onOpenChange={setIsTakingPhoto}>
