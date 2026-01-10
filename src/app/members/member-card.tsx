@@ -50,6 +50,7 @@ export function MemberCard({ member }: { member: Member }) {
               alt={`${member.firstName} ${member.lastName}`}
               fill
               className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           ) : (
             <span className="text-sm font-medium">No Image Added</span>

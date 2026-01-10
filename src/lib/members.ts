@@ -13,6 +13,7 @@ import {
   } from "firebase/firestore";
   import { db } from "@/lib/firebase";
   import type { Member, Relationship } from "@/lib/types";
+import { removeUndefineds } from "@/lib/utils";
   
   export async function addMember(churchId: string, data: Partial<Omit<Member, 'id'>> & { id: string }) {
     const batch = writeBatch(db);
@@ -26,7 +27,9 @@ import {
     payload.createdAt = serverTimestamp();
     payload.updatedAt = serverTimestamp();
 
-    batch.set(memberRef, payload);
+    delete payload.id;
+
+    batch.set(memberRef, removeUndefineds(payload));
 
     // If there are relationships, we may need to update other members too
     // For simplicity, this example just saves relationships on the current member
@@ -43,7 +46,7 @@ import {
     if (data.anniversary) payload.anniversary = Timestamp.fromDate(new Date(data.anniversary));
 
     await updateDoc(ref, {
-      ...payload,
+      ...removeUndefineds(payload),
       updatedAt: serverTimestamp(),
     });
   }

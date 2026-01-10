@@ -307,13 +307,27 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
       let profilePhotoUrl = member?.profilePhotoUrl ?? "";
 
       if (data.photoFile) {
-        const fileRef = ref(
-          storage,
-          `churches/${churchId}/members/${currentMemberId}.jpg`
-        );
-
-        await uploadBytes(fileRef, data.photoFile);
-        profilePhotoUrl = await getDownloadURL(fileRef);
+        console.log("Attempting to upload file:", data.photoFile);
+        try {
+            const fileRef = ref(
+              storage,
+              `churches/${churchId}/members/${currentMemberId}.jpg`
+            );
+    
+            await uploadBytes(fileRef, data.photoFile);
+            profilePhotoUrl = await getDownloadURL(fileRef);
+            console.log("File uploaded successfully. URL:", profilePhotoUrl);
+        } catch (uploadError) {
+            console.error("Error uploading file:", uploadError);
+            toast({
+                title: "Upload Error",
+                description: "Failed to upload photo. Please try again.",
+                variant: "destructive",
+            });
+            // Stop submission if upload fails? Or continue without photo?
+            // For now, let's stop to be safe.
+            return;
+        }
       }
 
       const payload: Partial<Member> = {
@@ -343,6 +357,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
         // When creating a new member, we need to assign an ID to use in relationships.
         // We are using the `currentMemberId` generated above.
         const newMemberPayload = { ...payload, id: currentMemberId };
+        console.log('New Member Payload:', newMemberPayload);
         await addMember(churchId, newMemberPayload);
         toast({
           title: "Member Added",
@@ -352,7 +367,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
 
       setIsOpen(false);
     } catch (error) {
-      console.error(error);
+      console.error("Error in onSubmit:", error);
       toast({
         title: "Error",
         description: "Something went wrong while saving the member.",
