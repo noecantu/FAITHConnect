@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Users, Calendar, DollarSign, Menu, Plus, Settings } from 'lucide-react';
+import { Users, Calendar, DollarSign, Menu, Plus, Settings, LogOut } from 'lucide-react';
+import { useState } from 'react';
 
 import {
   DropdownMenu,
@@ -12,6 +13,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import { Button } from '@/components/ui/button';
 import { MemberFormSheet } from '@/app/members/member-form-sheet';
@@ -24,6 +36,13 @@ const navItems = [
 
 export function NavMenu() {
   const pathname = usePathname();
+  const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false);
+
+  const handleLogout = () => {
+    // Replace with your actual logout logic (e.g., Firebase auth)
+    console.log("Logging out...");
+    setIsLogoutAlertOpen(false);
+  };
 
   return (
     <>
@@ -68,8 +87,30 @@ export function NavMenu() {
               <span>Settings</span>
             </DropdownMenuItem>
           </Link>
+          <DropdownMenuSeparator />
+           <DropdownMenuItem onClick={() => setIsLogoutAlertOpen(true)}>
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Log Out</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <AlertDialog open={isLogoutAlertOpen} onOpenChange={setIsLogoutAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You will be returned to the login screen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLogout}>
+              Log Out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
