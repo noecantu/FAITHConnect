@@ -381,7 +381,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
 
         <div className="flex-grow overflow-y-auto pl-6 pr-2">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6 pr-4">
+          <form id="member-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6">
             <Card>
               <CardHeader>
                 <CardTitle className="text-xl">Member Information</CardTitle>
@@ -660,7 +660,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                 <CardTitle className="text-xl">Photo</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="w-full aspect-square max-w-xs mx-auto rounded-lg overflow-hidden bg-muted flex items-center justify-center relative">
+                <div className="w-full aspect-square max-w-sm mx-auto rounded-lg overflow-hidden bg-muted flex items-center justify-center relative">
                    {previewUrl ? (
                     <Image
                       src={previewUrl}
@@ -708,7 +708,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
         </div>
 
         <DialogFooter className="shrink-0 px-6 pt-4 pb-6">
-          <Button type="button" onClick={form.handleSubmit(onSubmit)} className="w-full">
+          <Button type="submit" form="member-form" className="w-full">
             {isEditMode ? "Save Changes" : "Add Member"}
           </Button>
         </DialogFooter>
@@ -749,3 +749,5 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
     </Dialog>
   );
 }
+
+    
