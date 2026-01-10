@@ -352,12 +352,12 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-grow overflow-y-auto pl-6 pr-5">
+        <div className="flex-grow overflow-y-auto pl-6 pr-4">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6">
             <Card>
               <CardHeader>
-                <CardTitle>Information</CardTitle>
+                <CardTitle className="text-xl">Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <FormField
@@ -503,7 +503,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
             
             <Card>
               <CardHeader>
-                <CardTitle>Status</CardTitle>
+                <CardTitle className="text-xl">Status</CardTitle>
               </CardHeader>
               <CardContent>
                 <FormField
@@ -534,7 +534,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
 
             <Card>
               <CardHeader>
-                <CardTitle>Relationships</CardTitle>
+                <CardTitle className="text-xl">Relationships</CardTitle>
                 <CardDescription>Manage member relationships.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -619,11 +619,11 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
             </Card>
 
             <Card>
-              <CardHeader className="pb-4">
-                <CardTitle>Photo</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xl">Photo</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="w-48 h-48 mx-auto rounded-lg overflow-hidden bg-muted flex items-center justify-center relative">
+                <div className="w-52 h-52 mx-auto rounded-lg overflow-hidden bg-muted flex items-center justify-center relative">
                    {previewUrl ? (
                     <Image
                       src={previewUrl}
