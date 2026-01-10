@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
 export function useAuth() {
@@ -12,8 +14,8 @@ export function useAuth() {
       setLoading(false);
     });
 
-    return unsubscribe;
+    return () => unsubscribe();
   }, []);
 
-  return { user, loading };
+  return { user, loading, isAuthenticated: !!user };
 }

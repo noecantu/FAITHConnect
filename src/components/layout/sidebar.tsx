@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Users, Calendar, DollarSign, Menu, Plus, Settings, LogOut } from 'lucide-react';
 import { useState } from 'react';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 import {
   DropdownMenu,
@@ -27,6 +29,7 @@ import {
 
 import { Button } from '@/components/ui/button';
 import { MemberFormSheet } from '@/app/members/member-form-sheet';
+import { useToast } from '@/hooks/use-toast';
 
 const navItems = [
   { href: '/', label: 'Members', icon: Users },
@@ -37,11 +40,18 @@ const navItems = [
 export function NavMenu() {
   const pathname = usePathname();
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false);
+  const { toast } = useToast();
 
-  const handleLogout = () => {
-    // Replace with your actual logout logic (e.g., Firebase auth)
-    console.log("Logging out...");
-    setIsLogoutAlertOpen(false);
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setIsLogoutAlertOpen(false);
+      // No need to redirect here, the AuthGuard will handle it
+      toast({ title: "Logged Out", description: "You have been successfully logged out." });
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({ title: "Logout Failed", description: "Could not log you out. Please try again.", variant: "destructive" });
+    }
   };
 
   return (

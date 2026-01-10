@@ -3,6 +3,7 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/layout/header';
+import { AuthGuard } from '@/components/auth/auth-guard';
 
 export const metadata: Metadata = {
   title: 'FAITH Connect',
@@ -29,10 +30,12 @@ export default function RootLayout({
         />
       </head>
       <body className={cn('min-h-screen bg-background font-body antialiased')}>
-        <div className="relative flex min-h-screen flex-col">
-          <Header />
-          <main className="flex-1 p-4 sm:p-6 md:p-8">{children}</main>
-        </div>
+        <AuthGuard>
+          <div className="relative flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1 p-4 sm:p-6 md:p-8">{children}</main>
+          </div>
+        </AuthGuard>
         <Toaster />
       </body>
     </html>
