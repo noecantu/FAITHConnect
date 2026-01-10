@@ -539,70 +539,72 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                 <CardDescription>Manage member relationships.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {fields.map((field, index) => (
-                    <div key={field.id} className="flex items-end gap-2 p-3 border rounded-md">
-                        <div className="grid grid-cols-2 gap-4 flex-grow">
-                        <FormField
-                            control={form.control}
-                            name={`relationships.${index}.relatedMemberId`}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Member</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select a member" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {availableMembers.map((m) => (
-                                                <SelectItem key={m.id} value={m.id}>
-                                                    {m.firstName} {m.lastName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name={`relationships.${index}.type`}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Relationship</FormLabel>
-                                     <Select onValue-change={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select a type" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {relationshipOptions.map((type) => (
-                                                <SelectItem key={type} value={type}>
-                                                    {type}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                {fields.map((field, index) => {
+                  const relatedMember = allMembers.find(m => m.id === field.relatedMemberId);
+                  return (
+                    <div key={field.id} className="flex items-center justify-between gap-2 p-3 border rounded-md">
+                        <div className="flex-grow text-sm">
+                          <span className="font-semibold">{relatedMember ? `${relatedMember.firstName} ${relatedMember.lastName}` : 'Unknown Member'}</span>
+                          <span className="text-muted-foreground"> ({field.type})</span>
                         </div>
                         <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
                             <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>
-                ))}
-                <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => append({ relatedMemberId: "", type: "" })}
-                >
-                    Add Relationship
-                </Button>
+                  );
+                })}
+                <div className="flex items-end gap-2">
+                    <div className="grid grid-cols-2 gap-4 flex-grow">
+                      <FormItem>
+                          <FormLabel>Member</FormLabel>
+                          <Select onValueChange={(val) => form.setValue(`relationships.${fields.length}.relatedMemberId` as any, val)}>
+                              <FormControl>
+                                  <SelectTrigger>
+                                      <SelectValue placeholder="Select a member" />
+                                  </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                  {availableMembers.map((m) => (
+                                      <SelectItem key={m.id} value={m.id}>
+                                          {m.firstName} {m.lastName}
+                                      </SelectItem>
+                                  ))}
+                              </SelectContent>
+                          </Select>
+                      </FormItem>
+                      <FormItem>
+                          <FormLabel>Relationship</FormLabel>
+                            <Select onValueChange={(val) => form.setValue(`relationships.${fields.length}.type` as any, val)}>
+                              <FormControl>
+                                  <SelectTrigger>
+                                      <SelectValue placeholder="Select a type" />
+                                  </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                  {relationshipOptions.map((type) => (
+                                      <SelectItem key={type} value={type}>
+                                          {type}
+                                      </SelectItem>
+                                  ))}
+                              </SelectContent>
+                          </Select>
+                      </FormItem>
+                    </div>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                            const newRel = form.getValues(`relationships.${fields.length}` as any);
+                            if (newRel?.relatedMemberId && newRel?.type) {
+                                append(newRel);
+                            } else {
+                                toast({ title: "Please select a member and relationship type.", variant: "destructive" });
+                            }
+                        }}
+                    >
+                        Add Relationship
+                    </Button>
+                </div>
                 <FormField
                   control={form.control}
                   name="anniversary"
@@ -624,7 +626,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                 <CardTitle className="text-xl">Photo</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="w-full aspect-square max-w-xs mx-auto rounded-lg overflow-hidden bg-muted flex items-center justify-center relative">
+                <div className="w-full aspect-square max-w-sm mx-auto rounded-lg overflow-hidden bg-muted flex items-center justify-center relative">
                    {previewUrl ? (
                     <Image
                       src={previewUrl}
@@ -691,6 +693,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
              {!hasCameraPermission && (
                 <Alert variant="destructive">
                   <AlertTitle>Camera Access Required</AlertTitle>
+
                   <AlertDescription>
                     Please allow camera access to use this feature.
                   </AlertDescription>
@@ -711,3 +714,5 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
     </Dialog>
   );
 }
+
+    
