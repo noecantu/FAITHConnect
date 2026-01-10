@@ -72,7 +72,7 @@ const memberSchema = z.object({
     zip: z.string().optional(),
   }).optional(),
   notes: z.string().optional(),
-  status: z.enum(["current", "archived"]),
+  status: z.enum(["Active", "Prospect", "Archived"]),
   relationships: z.array(relationshipSchema).optional(),
   photoFile: z
     .any()
@@ -116,7 +116,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
         state: "",
         zip: "",
       },
-      status: "current",
+      status: "Active",
       notes: "",
       relationships: [],
       photoFile: null,
@@ -202,7 +202,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
             state: "",
             zip: "",
           },
-          status: "current",
+          status: "Active",
           notes: "",
           relationships: [],
           photoFile: null,
@@ -354,7 +354,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
 
         <div className="flex-grow overflow-y-auto pl-6 pr-4">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6 pr-2">
             <Card>
               <CardHeader>
                 <CardTitle className="text-xl">Information</CardTitle>
@@ -521,8 +521,9 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="current">Current</SelectItem>
-                          <SelectItem value="archived">Archived</SelectItem>
+                          <SelectItem value="Active">Active</SelectItem>
+                          <SelectItem value="Prospect">Prospect</SelectItem>
+                          <SelectItem value="Archived">Archived</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -619,11 +620,11 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
             </Card>
 
             <Card>
-              <CardHeader className="pb-2">
+              <CardHeader className="pb-4">
                 <CardTitle className="text-xl">Photo</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="w-52 h-52 mx-auto rounded-lg overflow-hidden bg-muted flex items-center justify-center relative">
+                <div className="w-56 h-56 mx-auto rounded-lg overflow-hidden bg-muted flex items-center justify-center relative">
                    {previewUrl ? (
                     <Image
                       src={previewUrl}
@@ -710,5 +711,3 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
     </Dialog>
   );
 }
-
-    

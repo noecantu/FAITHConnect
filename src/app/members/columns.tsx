@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
@@ -30,8 +31,9 @@ import {
 
 const StatusBadge = ({ status }: { status: Member['status'] }) => {
   const variant = {
-    current: 'secondary',
-    archived: 'outline',
+    Active: 'secondary',
+    Prospect: 'default',
+    Archived: 'outline',
   }[status];
   return <Badge variant={variant as any}>{status}</Badge>;
 };

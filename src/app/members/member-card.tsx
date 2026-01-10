@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -16,17 +17,18 @@ import type { Member } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 const StatusBadge = ({ status }: { status: Member['status'] }) => {
-  if (status === 'current') {
+  if (status === 'Active') {
     return null;
   }
   const variant = {
-    archived: 'outline',
+    Prospect: 'default',
+    Archived: 'outline',
   }[status];
 
   const className = cn(
     'absolute top-2 right-2',
     {
-      'bg-background/50': status === 'archived',
+      'bg-background/50': status === 'Archived',
     }
   );
 

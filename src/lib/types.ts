@@ -1,3 +1,4 @@
+
 import { Timestamp } from 'firebase/firestore';
 
 export type Address = {
@@ -26,7 +27,7 @@ export type Member = {
   email: string;
   phoneNumber: string;
   profilePhotoUrl: string;
-  status: 'current' | 'archived';
+  status: 'Active' | 'Prospect' | 'Archived';
   address?: Address;
   birthday?: string;
   familyId?: string;
