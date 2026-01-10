@@ -345,16 +345,16 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
 
-      <DialogContent className="max-h-[90vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="shrink-0 px-6 pt-6 pb-4">
           <DialogTitle>
             {isEditMode ? "Edit Member" : "Add Member"}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-grow overflow-y-auto -mx-6 px-6">
+        <div className="flex-grow overflow-y-auto pl-6 pr-4">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6">
             <Card>
               <CardHeader>
                 <CardTitle>Information</CardTitle>
@@ -670,7 +670,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
         </Form>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0 px-6 py-4 border-t">
           <Button type="submit" onClick={form.handleSubmit(onSubmit)}>
             {isEditMode ? "Save Changes" : "Add Member"}
           </Button>
