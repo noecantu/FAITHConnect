@@ -40,7 +40,7 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-muted">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <CardTitle>Church Member Hub</CardTitle>
+          <CardTitle>FAITH Connect</CardTitle>
           <CardDescription>Log in to your account</CardDescription>
         </CardHeader>
         <CardContent>
