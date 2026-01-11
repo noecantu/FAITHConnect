@@ -398,8 +398,6 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           description: `${data.firstName} ${data.lastName} has been created.`,
         });
       }
-
-      setIsOpen(false);
     } catch (error) {
       console.error("Error in onSubmit:", error);
       toast({
@@ -407,6 +405,8 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
         description: "Something went wrong while saving the member.",
         variant: "destructive",
       });
+    } finally {
+      setIsOpen(false);
     }
   }
 
