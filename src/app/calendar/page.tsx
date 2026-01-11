@@ -115,14 +115,34 @@ export default function CalendarPage() {
   // View preference (calendar vs list)
   const [view, setView] = React.useState<'calendar' | 'list'>('calendar');
   React.useEffect(() => {
-    const saved = localStorage.getItem('calendarView');
-    if (saved === 'calendar' || saved === 'list') {
-      setView(saved);
-    }
+    const checkStorage = () => {
+      const saved = localStorage.getItem('calendarView');
+      if (saved === 'calendar' || saved === 'list') {
+        setView(saved);
+      }
+    };
+
+    checkStorage(); // Initial check
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'calendarView' && (e.newValue === 'calendar' || e.newValue === 'list')) {
+        setView(e.newValue);
+      }
+    };
+
+    const handleFocus = () => {
+      checkStorage();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('focus', handleFocus);
+
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
-  React.useEffect(() => {
-    localStorage.setItem('calendarView', view);
-  }, [view]);
 
   // Hydration guard
   const [hydrated, setHydrated] = React.useState(false);
@@ -298,19 +318,6 @@ export default function CalendarPage() {
 
       <PageHeader title="Calendar of Events">
         <div className="flex items-center gap-2">
-          <Button
-            variant={view === 'calendar' ? 'default' : 'outline'}
-            onClick={() => setView('calendar')}
-          >
-            Calendar
-          </Button>
-          <Button
-            variant={view === 'list' ? 'default' : 'outline'}
-            onClick={() => setView('list')}
-          >
-            List
-          </Button>
-
           <Button
             onClick={() => {
               setEditEvent(null);

@@ -1,11 +1,28 @@
 'use client';
 
+import * as React from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
 export default function SettingsPage() {
+  const [calendarView, setCalendarView] = React.useState('calendar');
+
+  React.useEffect(() => {
+    const savedView = localStorage.getItem("calendarView");
+    if (savedView === 'calendar' || savedView === 'list') {
+      setCalendarView(savedView);
+    }
+  }, []);
+
+  const handleValueChange = (value: string) => {
+    if (value === 'calendar' || value === 'list') {
+      setCalendarView(value);
+      localStorage.setItem("calendarView", value);
+    }
+  };
+
   return (
     <>
       <PageHeader title="Settings" />
@@ -28,13 +45,8 @@ export default function SettingsPage() {
 
           <CardContent>
             <RadioGroup
-              defaultValue={typeof window !== "undefined"
-                ? localStorage.getItem("calendarView") || "calendar"
-                : "calendar"
-              }
-              onValueChange={(value) => {
-                localStorage.setItem("calendarView", value);
-              }}
+              value={calendarView}
+              onValueChange={handleValueChange}
               className="flex items-center space-x-6"
             >
               <div className="flex items-center space-x-2">
