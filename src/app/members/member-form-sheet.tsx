@@ -625,8 +625,8 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                       return (
                         <div key={field.id} className="flex items-center justify-between gap-2 p-3 border rounded-md bg-muted/50">
                             <div className="flex-grow text-sm">
-                              <span className="font-semibold">{relatedMember ? `${relatedMember.firstName} ${relatedMember.lastName}` : 'Unknown Member'}</span>
-                              <span className="text-muted-foreground"> ({field.type})</span>
+                              <span className="font-semibold">{field.type}</span>
+                              <span className="text-muted-foreground"> of {relatedMember ? `${relatedMember.firstName} ${relatedMember.lastName}` : 'Unknown Member'}</span>
                             </div>
                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
@@ -834,5 +834,3 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
     </Dialog>
   );
 }
-
-    
