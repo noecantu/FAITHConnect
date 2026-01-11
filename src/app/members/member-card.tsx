@@ -2,6 +2,15 @@
 'use client';
 
 import Image from 'next/image';
+import {
+  isWithinInterval,
+  addDays,
+  parseISO,
+  setYear,
+  getYear,
+  isBefore,
+  startOfToday,
+} from 'date-fns';
 
 import {
   Card,
@@ -24,17 +33,16 @@ const StatusBadge = ({ status }: { status: Member['status'] }) => {
   if (status === 'Active') {
     return null;
   }
+
   const variant = {
     Prospect: 'default',
-    Archived: 'outline',
+    Archived: 'default',
   }[status];
 
-  const className = cn(
-    'absolute top-2 right-2',
-    {
-      'bg-background/50': status === 'Archived',
-    }
-  );
+  const className = cn({
+    'bg-yellow-500/60 text-white': status === 'Prospect',
+    'bg-neutral-500/60 text-white': status === 'Archived',
+  });
 
   return (
     <Badge variant={variant as any} className={className}>
@@ -42,6 +50,45 @@ const StatusBadge = ({ status }: { status: Member['status'] }) => {
     </Badge>
   );
 };
+
+const UpcomingEventBadge = ({ dateString, label }: { dateString?: string; label: string }) => {
+  if (!dateString) return null;
+
+  const isDateWithinAWeek = () => {
+    const today = startOfToday();
+    try {
+      const eventDate = parseISO(dateString);
+      let thisYearEvent = setYear(eventDate, getYear(today));
+
+      if (isBefore(thisYearEvent, today)) {
+        thisYearEvent = setYear(eventDate, getYear(today) + 1);
+      }
+
+      const sevenDaysFromNow = addDays(today, 7);
+      return isWithinInterval(thisYearEvent, { start: today, end: sevenDaysFromNow });
+    } catch (error) {
+      console.error("Invalid date string for upcoming event badge:", dateString);
+      return false;
+    }
+  };
+  
+  if (!isDateWithinAWeek()) return null;
+
+  const isBirthday = label === 'Birthday';
+
+  return (
+    <Badge
+      variant={isBirthday ? 'default' : 'destructive'}
+      className={cn(
+        'animate-pulse',
+        isBirthday && 'border-transparent bg-blue-600 text-white hover:bg-blue-600/80'
+      )}
+    >
+      Upcoming {label}
+    </Badge>
+  );
+};
+
 
 export function MemberCard({ member }: { member: Member }) {
   const churchId = useChurchId();
@@ -64,13 +111,22 @@ export function MemberCard({ member }: { member: Member }) {
               src={member.profilePhotoUrl}
               alt={`${member.firstName} ${member.lastName}`}
               fill
-              className="object-cover"
+              className={cn(
+                'object-cover',
+                member.status === 'Archived' && 'grayscale'
+              )}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           ) : (
             <span className="text-sm font-medium">No Image Added</span>
           )}
-          <StatusBadge status={member.status} />
+          <div className="absolute top-2 right-2">
+            <StatusBadge status={member.status} />
+          </div>
+          <div className="absolute bottom-2 left-2 flex flex-col items-start gap-1">
+            <UpcomingEventBadge dateString={member.birthday} label="Birthday" />
+            <UpcomingEventBadge dateString={member.anniversary} label="Anniversary" />
+          </div>
         </div>
         <CardHeader className="flex-row items-start justify-between pb-2">
           <div className="flex flex-col">
