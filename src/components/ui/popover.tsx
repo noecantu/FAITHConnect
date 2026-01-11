@@ -21,7 +21,7 @@ const PopoverContent = React.forwardRef<
       onPointerDownOutside={(e) => {
         const originalEvent = e.detail.originalEvent;
         const target = originalEvent.target as HTMLElement;
-        if (target.closest('[data-radix-popper-content-wrapper]') || target.closest('.MuiPopper-root')) {
+        if (target.closest('[data-radix-select-content]')) {
           e.preventDefault();
         }
       }}
