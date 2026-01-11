@@ -52,46 +52,27 @@ import {
           </DialogHeader>
   
           <div className="grow overflow-y-auto px-4 sm:px-6 pb-[calc(var(--footer-h,3.5rem)+env(safe-area-inset-bottom)+0.75rem)]">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Event Title *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Sunday Service" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-  
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Event details..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-  
-                <FormField
-                  control={form.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Date</FormLabel>
-                      <FormControl>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
+
+              {/* DATE FIRST */}
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel>Date</FormLabel>
+
+                    <FormControl>
+                      <div className="w-full">
                         <ThemeProvider theme={muiTheme}>
                           <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <MobileDatePicker
+                              slotProps={{
+                                textField: {
+                                  fullWidth: true,
+                                },
+                              }}
                               value={dayjs(field.value)}
                               onChange={(next) => {
                                 if (!next) return;
@@ -102,15 +83,47 @@ import {
                             />
                           </LocalizationProvider>
                         </ThemeProvider>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </form>
-            </Form>
-          </div>
-  
+                      </div>
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* TITLE */}
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Event Title *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Sunday Service" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* DESCRIPTION */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Event details..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+            </form>
+          </Form>
+        </div>  
           <DialogFooter
             className="shrink-0 px-4 py-3 sm:px-6"
             style={{ ["--footer-h" as any]: "3.5rem" }}

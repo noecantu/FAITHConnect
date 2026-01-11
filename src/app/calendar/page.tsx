@@ -8,6 +8,7 @@ import {
   startOfMonth,
   isSameMonth,
 } from 'date-fns';
+import { PlusCircle, Pencil, Trash2 } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -328,6 +329,7 @@ export default function CalendarPage() {
               setIsFormOpen(true);
             }}
           >
+            <PlusCircle className="mr-2 h-4 w-4" />
             Add Event
           </Button>
         </div>
@@ -384,16 +386,26 @@ export default function CalendarPage() {
                   {selectedDayEvents.length > 0 ? (
                     <ul className="space-y-4">
                       {selectedDayEvents.map((event) => (
-                        <li key={event.id} className="rounded-md border p-3">
-                          <p className="font-semibold">{event.title}</p>
-                          {event.description && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {event.description}
+                        <li key={event.id} className="flex items-center justify-between rounded-md border p-3">
+                          <div className="flex-grow">
+                            <p className="font-semibold">{event.title}</p>
+                            {event.description && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {event.description}
+                              </p>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-2">
+                              {format(event.date, 'PPP')}
                             </p>
-                          )}
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {format(event.date, 'PPP')}
-                          </p>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2 ml-4">
+                            <Button variant="ghost" size="icon" onClick={() => handleEdit(event)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteRequest(event.id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
                         </li>
                       ))}
                     </ul>
