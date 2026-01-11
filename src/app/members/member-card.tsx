@@ -11,10 +11,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 import { MemberFormSheet } from './member-form-sheet';
 import type { Member } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { listenToMembers } from '@/lib/members';
+import { useChurchId } from '@/hooks/useChurchId';
+import { useState, useEffect } from 'react';
 
 const StatusBadge = ({ status }: { status: Member['status'] }) => {
   if (status === 'Active') {
@@ -40,9 +44,20 @@ const StatusBadge = ({ status }: { status: Member['status'] }) => {
 };
 
 export function MemberCard({ member }: { member: Member }) {
+  const churchId = useChurchId();
+  const [allMembers, setAllMembers] = useState<Member[]>([]);
+
+  useEffect(() => {
+    if (!churchId) return;
+    const unsubscribe = listenToMembers(churchId, (members) => {
+      setAllMembers(members);
+    });
+    return () => unsubscribe();
+  }, [churchId]);
+
   return (
     <MemberFormSheet member={member}>
-      <Card className="overflow-hidden cursor-pointer">
+      <Card className="overflow-hidden cursor-pointer flex flex-col h-full">
         <div className="relative aspect-[4/3] w-full flex items-center justify-center bg-muted text-muted-foreground">
           {member.profilePhotoUrl ? (
             <Image
@@ -62,7 +77,7 @@ export function MemberCard({ member }: { member: Member }) {
             <CardTitle className="text-xl">{`${member.firstName} ${member.lastName}`}</CardTitle>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-grow">
           <div className="space-y-1 text-sm text-muted-foreground">
             <a
               href={`mailto:${member.email}`}
@@ -80,7 +95,23 @@ export function MemberCard({ member }: { member: Member }) {
             </a>
           </div>
         </CardContent>
-        <CardFooter></CardFooter>
+        {member.relationships && member.relationships.length > 0 && (
+          <CardFooter className="flex-col items-start pt-0">
+            <Separator className="mb-4 w-full" />
+            <div className="space-y-2 text-sm w-full">
+              {member.relationships.map((rel) => {
+                const relatedMemberId = rel.memberIds.find(id => id !== member.id);
+                const relatedMember = allMembers.find(m => m.id === relatedMemberId);
+                return (
+                  <div key={relatedMemberId}>
+                    <span className="font-medium text-foreground">{rel.type}</span>
+                    <span className="text-muted-foreground"> of {relatedMember ? `${relatedMember.firstName} ${relatedMember.lastName}` : '...'}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </MemberFormSheet>
   );
