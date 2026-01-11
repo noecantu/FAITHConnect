@@ -62,9 +62,7 @@ const SheetContent = React.forwardRef<
     <SheetPrimitive.Content
       ref={ref}
       onPointerDownOutside={(e) => {
-        const originalEvent = e.detail.originalEvent;
-        const target = originalEvent.target as HTMLElement;
-        if (target.closest('[data-radix-select-content]')) {
+        if (e.target instanceof HTMLElement && e.target.closest('[data-radix-popper-content-wrapper]')) {
           e.preventDefault();
         }
       }}
