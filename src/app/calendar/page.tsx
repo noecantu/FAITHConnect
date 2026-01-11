@@ -8,7 +8,6 @@ import {
   startOfMonth,
   isSameMonth,
 } from 'date-fns';
-import { PlusCircle } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -329,7 +328,6 @@ export default function CalendarPage() {
               setIsFormOpen(true);
             }}
           >
-            <PlusCircle className="mr-2 h-4 w-4" />
             Add Event
           </Button>
         </div>
