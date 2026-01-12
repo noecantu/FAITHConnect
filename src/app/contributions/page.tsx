@@ -34,6 +34,10 @@ import {
 
 import { useToast } from '@/hooks/use-toast';
 import { ContributionChart } from '@/app/contributions/contribution-chart';
+import { ContributionSummary } from '@/app/contributions/contribution-summary';
+import { ContributionsTable } from '@/app/contributions/contributions-table';
+import { getColumns } from '@/app/contributions/columns';
+import { EditContributionDialog } from '@/app/contributions/edit-contribution-dialog';
 
 // MUI date pickers
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -49,10 +53,21 @@ import { db } from '@/lib/firebase';
 import {
   listenToContributions,
   addContribution,
+  deleteContribution,
 } from '@/lib/contributions';
 import { listenToMembers } from '@/lib/members';
 
 import type { Contribution, Member } from '@/lib/types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 // ------------------------------
 // Zod schema
@@ -81,6 +96,8 @@ export default function ContributionsPage() {
   const [members, setMembers] = React.useState<Member[]>([]);
   const [roles, setRoles] = React.useState<string[]>([]);
   const [canAdd, setCanAdd] = React.useState(false);
+  const [editingContribution, setEditingContribution] = React.useState<Contribution | null>(null);
+  const [deletingContribution, setDeletingContribution] = React.useState<Contribution | null>(null);
 
   React.useEffect(() => {
     setIsClient(true);
@@ -183,6 +200,31 @@ export default function ContributionsPage() {
     }
   }
 
+  const handleDelete = async () => {
+    if (!churchId || !deletingContribution) return;
+
+    try {
+      await deleteContribution(churchId, deletingContribution.id);
+      toast({
+        title: 'Contribution Deleted',
+        description: 'The contribution has been successfully deleted.',
+      });
+      setDeletingContribution(null);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Error deleting contribution',
+        description: (error as Error).message || 'Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const columns = React.useMemo(
+    () => getColumns(setEditingContribution, setDeletingContribution),
+    []
+  );
+
   const darkTheme = createTheme({
     palette: { mode: 'dark' },
   });
@@ -196,7 +238,8 @@ export default function ContributionsPage() {
 
   return (
     <ThemeProvider theme={darkTheme}>
-      <PageHeader title="Contributions" />
+      <PageHeader title="Contributions" className="mb-2" />
+      <ContributionSummary contributions={contributions} />
 
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Left column: Form */}
@@ -397,7 +440,7 @@ export default function ContributionsPage() {
                       )}
                     />
 
-                    <Button type="submit" className="w-full">
+                    <Button type="submit" className="w-full mt-6">
                       Add Contribution
                     </Button>
                   </fieldset>
@@ -419,6 +462,46 @@ export default function ContributionsPage() {
           </Card>
         </div>
       </div>
+
+      {/* Full-width table */}
+      <div className="mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>All Contributions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ContributionsTable columns={columns} data={contributions} />
+          </CardContent>
+        </Card>
+      </div>
+
+      <EditContributionDialog
+        isOpen={!!editingContribution}
+        onClose={() => setEditingContribution(null)}
+        contribution={editingContribution}
+        members={members}
+      />
+
+      <AlertDialog
+        open={!!deletingContribution}
+        onOpenChange={() => setDeletingContribution(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              contribution record for {deletingContribution?.memberName}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ThemeProvider>
   );
 }

@@ -5,40 +5,83 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MemberRolesDialog } from '@/components/MemberRolesDialog';
 import * as React from 'react';
 
 export default function SettingsPage() {
   const [calendarView, setCalendarView] = React.useState('calendar');
+  const [fiscalYear, setFiscalYear] = React.useState(new Date().getFullYear().toString());
 
   React.useEffect(() => {
     const savedView = localStorage.getItem("calendarView");
     if (savedView === 'calendar' || savedView === 'list') {
       setCalendarView(savedView);
     }
+    const savedYear = localStorage.getItem("fiscalYear");
+    if (savedYear) {
+      setFiscalYear(savedYear);
+    }
   }, []);
 
-  const handleValueChange = (value: string) => {
+  const handleCalendarViewChange = (value: string) => {
     if (value === 'calendar' || value === 'list') {
       setCalendarView(value);
       localStorage.setItem("calendarView", value);
     }
   };
 
+  const handleFiscalYearChange = (value: string) => {
+    setFiscalYear(value);
+    localStorage.setItem("fiscalYear", value);
+  };
+
+  const generateYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let i = currentYear; i >= currentYear - 10; i--) {
+      years.push(i.toString());
+    }
+    return years;
+  };
+
   return (
     <>
       <PageHeader title="Settings" />
       <div className="grid gap-6">
-        
-        {/* Calendar of Events */}
+
         <Card>
           <CardHeader>
-            <CardTitle>Calendar of Events View</CardTitle>
+            <CardTitle>Financial Year</CardTitle>
+            <CardDescription>
+              Select the year for which to display financial totals.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Select value={fiscalYear} onValueChange={handleFiscalYearChange}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select a year" />
+              </SelectTrigger>
+              <SelectContent>
+                {generateYearOptions().map(year => (
+                  <SelectItem key={year} value={year}>{year}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Calendar View</CardTitle>
+            <CardDescription>
+              Choose the default view for the Calendar of Events.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <RadioGroup
               value={calendarView}
-              onValueChange={handleValueChange}
+              onValueChange={handleCalendarViewChange}
               className="flex items-center space-x-6"
             >
               <div className="flex items-center space-x-2">
@@ -53,7 +96,6 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Role Assignment */}
         <Card>
           <CardHeader>
             <CardTitle>Member Roles</CardTitle>
