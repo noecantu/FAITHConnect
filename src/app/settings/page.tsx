@@ -29,20 +29,7 @@ export default function SettingsPage() {
     <>
       <PageHeader title="Settings" />
       <div className="grid gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Member Roles</CardTitle>
-            <CardDescription>
-              Manage member permissions and roles for your organization.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <MemberRolesDialog>
-              <Button>Manage Roles</Button>
-            </MemberRolesDialog>
-          </CardContent>
-        </Card>
-
+        
         {/* Calendar of Events */}
         <Card>
           <CardHeader>
@@ -65,6 +52,22 @@ export default function SettingsPage() {
             </RadioGroup>
           </CardContent>
         </Card>
+
+        {/* Role Assignment */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Member Roles</CardTitle>
+            <CardDescription>
+              Manage member permissions and roles for your organization.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <MemberRolesDialog>
+              <Button>Manage Roles</Button>
+            </MemberRolesDialog>
+          </CardContent>
+        </Card>
+
       </div>
     </>
   );
