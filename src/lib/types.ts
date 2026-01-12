@@ -35,6 +35,7 @@ export type Member = {
   notes?: string;
   relationships?: Relationship[];
   anniversary?: string;
+  roles?: string[];
 };
 
 export type Event = {
@@ -66,3 +67,10 @@ export type ContributionRecord = {
   createdAt: Timestamp;
   updatedAt: Timestamp;
 };
+
+export interface User {
+  id: string;
+  displayName?: string;
+  email: string;
+  roles: string[];
+}

@@ -262,6 +262,7 @@ export function listenToMembers(
         notes: raw.notes ?? "",
         relationships: raw.relationships,
         anniversary: raw.anniversary?.toDate?.()?.toISOString().split('T')[0] ?? undefined,
+        roles: raw.roles,
       };
     });
     
