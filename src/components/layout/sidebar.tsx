@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Users, Calendar, DollarSign, Menu, Plus, Settings, LogOut } from 'lucide-react';
+import { Users, Calendar, DollarSign, Menu, Settings, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { Button } from '@/components/ui/button';
-import { MemberFormSheet } from '@/app/members/member-form-sheet';
 import { useToast } from '@/hooks/use-toast';
 
 const navItems = [
@@ -56,11 +55,6 @@ export function NavMenu() {
 
   return (
     <>
-      {/* The dialog must live OUTSIDE the dropdown */}
-      <MemberFormSheet>
-        <div id="add-member-trigger" className="hidden" />
-      </MemberFormSheet>
-
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
@@ -80,16 +74,6 @@ export function NavMenu() {
           ))}
 
           <DropdownMenuSeparator />
-
-          {/* FIX: This item now triggers the hidden dialog trigger */}
-          <DropdownMenuItem
-            onClick={() => {
-              document.getElementById('add-member-trigger')?.click();
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            <span>Add Member</span>
-          </DropdownMenuItem>
 
           <Link href="/settings">
             <DropdownMenuItem className={pathname === '/settings' ? 'bg-accent' : ''}>

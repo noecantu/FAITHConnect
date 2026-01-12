@@ -4,7 +4,7 @@
 import * as z from "zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect, type ReactNode, useRef } from "react";
+import { useState, useEffect, type ReactNode, useRef, useMemo } from "react";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
@@ -419,7 +419,15 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
     "Spouse", "Parent", "Child", "Sibling", "Guardian", "Ward"
   ];
   
-  const availableMembers = allMembers.filter(m => !isEditMode || m.id !== member?.id);
+  const availableMembers = useMemo(() => {
+    return allMembers
+      .filter(m => !isEditMode || m.id !== member?.id)
+      .sort((a, b) => {
+         const nameA = `${a.lastName}, ${a.firstName}`.toLowerCase();
+         const nameB = `${b.lastName}, ${b.firstName}`.toLowerCase();
+         return nameA.localeCompare(nameB);
+      });
+  }, [allMembers, isEditMode, member]);
 
 
   return (
@@ -645,7 +653,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                         <div key={field.id} className="flex items-center justify-between gap-2 p-3 border rounded-md bg-muted/50">
                             <div className="flex-grow text-sm">
                               <span className="font-semibold">{field.type}</span>
-                              <span className="text-muted-foreground"> of {relatedMember ? `${relatedMember.firstName} ${relatedMember.lastName}` : 'Unknown Member'}</span>
+                              <span className="text-muted-foreground"> of {relatedMember ? `${relatedMember.lastName}, ${relatedMember.firstName}` : 'Unknown Member'}</span>
                             </div>
                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
@@ -669,7 +677,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                               <SelectContent>
                                   {availableMembers.map((m) => (
                                       <SelectItem key={m.id} value={m.id}>
-                                          {m.firstName} {m.lastName}
+                                          {m.lastName}, {m.firstName}
                                       </SelectItem>
                                   ))}
                               </SelectContent>

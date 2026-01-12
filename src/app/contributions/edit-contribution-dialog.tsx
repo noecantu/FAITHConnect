@@ -51,6 +51,7 @@ import type { Contribution, Member } from '@/lib/types';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 const contributionSchema = z.object({
   memberId: z.string().min(1, 'Member is required'),
@@ -87,6 +88,12 @@ export function EditContributionDialog({
       category: 'Tithes',
       contributionType: 'Digital Transfer',
       date: new Date(),
+    },
+  });
+
+  const darkTheme = createTheme({
+    palette: {
+      mode: 'dark',
     },
   });
 
@@ -143,10 +150,22 @@ export function EditContributionDialog({
     }
   }
 
+  // Sort members by Last Name, First Name
+  const sortedMembers = React.useMemo(() => {
+    return [...members].sort((a, b) => {
+      const nameA = `${a.lastName}, ${a.firstName}`.toLowerCase();
+      const nameB = `${b.lastName}, ${b.firstName}`.toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+  }, [members]);
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent>
+        <DialogContent 
+          className="max-h-[80vh] overflow-y-auto w-[90vw] sm:w-[500px]"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Edit Contribution</DialogTitle>
             <DialogDescription>
@@ -155,6 +174,57 @@ export function EditContributionDialog({
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+               {/* Date - Moved to top to match Add Dialog */}
+               <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date</FormLabel>
+                    <FormControl>
+                      <div className="w-full">
+                        <ThemeProvider theme={darkTheme}>
+                          <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            <MobileDatePicker
+                              slotProps={{
+                                textField: {
+                                  fullWidth: true,
+                                  sx: {
+                                    '& .MuiInputBase-root': {
+                                      backgroundColor: 'transparent',
+                                      color: 'text.primary',
+                                      fontSize: '0.875rem',
+                                      borderRadius: '0.5rem',
+                                      border: '1px solid hsl(var(--input))',
+                                    },
+                                    '& .MuiInputBase-root:hover': {
+                                      borderColor: 'hsl(var(--input))',
+                                    },
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                      border: 'none',
+                                    },
+                                    '& .MuiInputBase-input': {
+                                      padding: '0.5rem 0.75rem',
+                                      height: 'auto',
+                                    }
+                                  },
+                                },
+                              }}
+                              value={dayjs(field.value)}
+                              onChange={(next) => {
+                                if (!next) return;
+                                field.onChange(next.toDate());
+                              }}
+                            />
+                          </LocalizationProvider>
+                        </ThemeProvider>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="memberId"
@@ -168,11 +238,11 @@ export function EditContributionDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {members
+                        {sortedMembers
                           .filter((m) => m.status === 'Active')
                           .map((member) => (
                             <SelectItem key={member.id} value={member.id}>
-                              {member.firstName} {member.lastName}
+                              {member.lastName}, {member.firstName}
                             </SelectItem>
                           ))}
                       </SelectContent>
@@ -194,40 +264,74 @@ export function EditContributionDialog({
                   </FormItem>
                 )}
               />
+
+              {/* Category */}
               <FormField
                 control={form.control}
-                name="date"
-                render={() => (
+                name="category"
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date</FormLabel>
-                    <FormControl>
-                      <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <Controller
-                          name="date"
-                          control={form.control}
-                          render={({ field: ctrl }) => (
-                            <MobileDatePicker
-                              value={dayjs(ctrl.value)}
-                              onChange={(next: Dayjs | null) => {
-                                if (!next) return;
-                                ctrl.onChange(next.toDate());
-                              }}
-                            />
-                          )}
-                        />
-                      </LocalizationProvider>
-                    </FormControl>
+                    <FormLabel>Category</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Tithes">Tithes</SelectItem>
+                        <SelectItem value="Offering">Offering</SelectItem>
+                        <SelectItem value="Donation">Donation</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <DialogFooter className="pt-4">
+
+              {/* Contribution Type */}
+              <FormField
+                control={form.control}
+                name="contributionType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contribution Type</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a contribution type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Digital Transfer">Digital Transfer</SelectItem>
+                        <SelectItem value="Cash">Cash</SelectItem>
+                        <SelectItem value="Check">Check</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+             
+              <DialogFooter className="pt-4 gap-4 sm:gap-2">
                 <Button
                   type="button"
                   variant="destructive"
                   onClick={() => setIsDeleteAlertOpen(true)}
+                  className="sm:mr-auto"
                 >
                   Delete
+                </Button>
+                <Button type="button" variant="outline" onClick={onClose}>
+                  Cancel
                 </Button>
                 <Button type="submit">Save Changes</Button>
               </DialogFooter>
