@@ -81,7 +81,7 @@ export function NavMenu() {
               <span>Settings</span>
             </DropdownMenuItem>
           </Link>
-          <DropdownMenuSeparator />
+          
            <DropdownMenuItem onClick={() => setIsLogoutAlertOpen(true)}>
             <LogOut className="mr-2 h-4 w-4" />
             <span>Log Out</span>
