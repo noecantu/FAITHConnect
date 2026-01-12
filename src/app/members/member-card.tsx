@@ -10,6 +10,7 @@ import {
   getYear,
   isBefore,
   startOfToday,
+  format,
 } from 'date-fns';
 
 import {
@@ -33,19 +34,13 @@ const StatusBadge = ({ status }: { status: Member['status'] }) => {
   if (status === 'Active') {
     return null;
   }
-
   const variant = {
     Prospect: 'default',
-    Archived: 'default',
+    Archived: 'outline',
   }[status];
 
-  const className = cn({
-    'bg-yellow-500/60 text-white': status === 'Prospect',
-    'bg-neutral-500/60 text-white': status === 'Archived',
-  });
-
   return (
-    <Badge variant={variant as any} className={className}>
+    <Badge variant={variant as any}>
       {status}
     </Badge>
   );
@@ -149,6 +144,11 @@ export function MemberCard({ member }: { member: Member }) {
             >
               {member.phoneNumber}
             </a>
+            {member.baptismDate && (
+              <p>
+                Baptized: {format(new Date(member.baptismDate), 'MM-dd-yyyy')}
+              </p>
+            )}
           </div>
         </CardContent>
         {member.relationships && member.relationships.length > 0 && (

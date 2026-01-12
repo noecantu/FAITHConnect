@@ -76,6 +76,7 @@ const memberSchema = z.object({
   email: z.string().email().optional().or(z.literal("")),
   phoneNumber: z.string().min(1, "Phone is required"),
   birthday: z.string().optional(),
+  baptismDate: z.string().optional(),
   anniversary: z.string().optional(),
   address: z.object({
     street: z.string().optional(),
@@ -106,6 +107,7 @@ export type MemberFormValues = {
   email?: string;
   phoneNumber: string;
   birthday?: string;
+  baptismDate?: string;
   anniversary?: string;
   status: "Active" | "Prospect" | "Archived";
   address?: {
@@ -150,6 +152,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
       email: "",
       phoneNumber: "",
       birthday: "",
+      baptismDate: "",
       anniversary: "",
       address: {
         street: "",
@@ -201,9 +204,6 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
     if (isOpen) {
       if (isEditMode && member) {
         const memberRelationships = member.relationships?.map(r => ({
-            // This assumes a simple structure. You may need to adapt this
-            // if your 'relationships' data is structured differently.
-            // For example, finding the other member's ID.
             relatedMemberId: r.memberIds.find(id => id !== member.id) || '',
             type: r.type,
         })) || [];
@@ -214,6 +214,9 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           phoneNumber: member.phoneNumber,
           birthday: member.birthday
             ? new Date(member.birthday).toISOString().split("T")[0]
+            : "",
+          baptismDate: member.baptismDate
+            ? new Date(member.baptismDate).toISOString().split("T")[0]
             : "",
           anniversary: member.anniversary
             ? new Date(member.anniversary).toISOString().split("T")[0]
@@ -236,6 +239,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           email: "",
           phoneNumber: "",
           birthday: "",
+          baptismDate: "",
           anniversary: "",
           address: {
             street: "",
@@ -373,6 +377,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
         email: data.email,
         phoneNumber: data.phoneNumber,
         birthday: data.birthday,
+        baptismDate: data.baptismDate,
         anniversary: data.anniversary,
         address: data.address,
         notes: data.notes,
@@ -501,6 +506,20 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Birthday</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="baptismDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Baptism Date</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>

@@ -74,6 +74,7 @@ export async function addMember(churchId: string, data: Partial<Omit<Member, 'id
     const payload: any = { ...data };
     
     if (data.birthday) payload.birthday = Timestamp.fromDate(new Date(data.birthday));
+    if (data.baptismDate) payload.baptismDate = Timestamp.fromDate(new Date(data.baptismDate));
     if (data.anniversary) payload.anniversary = Timestamp.fromDate(new Date(data.anniversary));
     
     payload.createdAt = serverTimestamp();
@@ -103,6 +104,7 @@ export async function updateMember(churchId: string, memberId: string, data: Par
     if (!newRels) {
         const payload: any = { ...data };
         if (data.birthday) payload.birthday = Timestamp.fromDate(new Date(data.birthday));
+        if (data.baptismDate) payload.baptismDate = Timestamp.fromDate(new Date(data.baptismDate));
         if (data.anniversary) payload.anniversary = Timestamp.fromDate(new Date(data.anniversary));
         payload.updatedAt = serverTimestamp();
         transaction.update(memberRef, removeUndefineds(payload));
@@ -187,6 +189,7 @@ export async function updateMember(churchId: string, memberId: string, data: Par
     // 5. Update the main member
     const payload: any = { ...data };
     if (data.birthday) payload.birthday = Timestamp.fromDate(new Date(data.birthday));
+    if (data.baptismDate) payload.baptismDate = Timestamp.fromDate(new Date(data.baptismDate));
     if (data.anniversary) payload.anniversary = Timestamp.fromDate(new Date(data.anniversary));
     payload.updatedAt = serverTimestamp();
     
@@ -254,13 +257,14 @@ export function listenToMembers(
         status: raw.status,
         address: raw.address,
         birthday: raw.birthday?.toDate?.()?.toISOString().split('T')[0] ?? undefined,
+        baptismDate: raw.baptismDate?.toDate?.()?.toISOString().split('T')[0] ?? undefined,
         familyId: raw.familyId,
         notes: raw.notes ?? "",
         relationships: raw.relationships,
         anniversary: raw.anniversary?.toDate?.()?.toISOString().split('T')[0] ?? undefined,
       };
     });
-
+    
     callback(members);
   });
 }

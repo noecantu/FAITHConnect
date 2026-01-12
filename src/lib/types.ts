@@ -30,6 +30,7 @@ export type Member = {
   status: 'Active' | 'Prospect' | 'Archived';
   address?: Address;
   birthday?: string;
+  baptismDate?: string;
   familyId?: string;
   notes?: string;
   relationships?: Relationship[];
