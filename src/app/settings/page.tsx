@@ -8,12 +8,19 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MemberRolesDialog } from '@/components/MemberRolesDialog';
 import * as React from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SettingsPage() {
   const [calendarView, setCalendarView] = React.useState('calendar');
   const [fiscalYear, setFiscalYear] = React.useState(new Date().getFullYear().toString());
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   React.useEffect(() => {
+    // Load from local storage first (for immediate feedback)
     const savedView = localStorage.getItem("calendarView");
     if (savedView === 'calendar' || savedView === 'list') {
       setCalendarView(savedView);
@@ -22,18 +29,75 @@ export default function SettingsPage() {
     if (savedYear) {
       setFiscalYear(savedYear);
     }
-  }, []);
 
-  const handleCalendarViewChange = (value: string) => {
+    // Then try to load from Firestore if user is logged in
+    const fetchUserSettings = async () => {
+      if (user) {
+        try {
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            if (data.settings?.calendarView) {
+              setCalendarView(data.settings.calendarView);
+              localStorage.setItem("calendarView", data.settings.calendarView);
+            }
+            if (data.settings?.fiscalYear) {
+              setFiscalYear(data.settings.fiscalYear);
+              localStorage.setItem("fiscalYear", data.settings.fiscalYear);
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching user settings:", error);
+        }
+      }
+    };
+
+    fetchUserSettings();
+  }, [user]);
+
+  const handleCalendarViewChange = async (value: string) => {
     if (value === 'calendar' || value === 'list') {
       setCalendarView(value);
       localStorage.setItem("calendarView", value);
+
+      if (user) {
+        try {
+          const userDocRef = doc(db, 'users', user.uid);
+          await updateDoc(userDocRef, {
+            'settings.calendarView': value
+          });
+        } catch (error) {
+          console.error("Error saving calendar view:", error);
+          toast({
+            title: "Error",
+            description: "Failed to save settings to your account.",
+            variant: "destructive",
+          });
+        }
+      }
     }
   };
 
-  const handleFiscalYearChange = (value: string) => {
+  const handleFiscalYearChange = async (value: string) => {
     setFiscalYear(value);
     localStorage.setItem("fiscalYear", value);
+
+    if (user) {
+      try {
+        const userDocRef = doc(db, 'users', user.uid);
+        await updateDoc(userDocRef, {
+          'settings.fiscalYear': value
+        });
+      } catch (error) {
+        console.error("Error saving fiscal year:", error);
+         toast({
+            title: "Error",
+            description: "Failed to save settings to your account.",
+            variant: "destructive",
+          });
+      }
+    }
   };
 
   const generateYearOptions = () => {

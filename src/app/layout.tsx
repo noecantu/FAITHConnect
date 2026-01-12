@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthGuard } from '@/components/auth/auth-guard';
 import { ConditionalLayout } from './conditional-layout';
+import { SettingsProvider } from '@/components/settings-provider';
 
 export const metadata: Metadata = {
   title: 'FAITH Connect',
@@ -31,7 +32,9 @@ export default function RootLayout({
       </head>
       <body className={cn('min-h-screen bg-background font-body antialiased')}>
         <AuthGuard>
-          <ConditionalLayout>{children}</ConditionalLayout>
+          <SettingsProvider>
+            <ConditionalLayout>{children}</ConditionalLayout>
+          </SettingsProvider>
         </AuthGuard>
         <Toaster />
       </body>

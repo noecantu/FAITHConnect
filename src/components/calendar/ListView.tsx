@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import type { Event } from "@/lib/types";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Pencil, Trash2 } from "lucide-react";
 
 export function ListView({
   events,
@@ -52,7 +53,7 @@ export function ListView({
 
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" onClick={() => onEdit(e)}>
-                      Edit
+                      <Pencil className="h-4 w-4" />
                     </Button>
 
                     <Button
@@ -60,7 +61,7 @@ export function ListView({
                       size="sm"
                       onClick={() => onDeleteRequest(e.id)}
                     >
-                      Delete
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </li>

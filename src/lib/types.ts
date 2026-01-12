@@ -73,4 +73,8 @@ export interface User {
   displayName?: string;
   email: string;
   roles: string[];
+  settings?: {
+    calendarView?: 'calendar' | 'list';
+    fiscalYear?: string;
+  };
 }
