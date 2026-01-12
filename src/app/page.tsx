@@ -5,6 +5,7 @@ import { listenToMembers } from "@/lib/members";
 import { Member } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
 import { MemberCard } from "@/app/members/member-card";
+import { MemberStatusBreakdown } from "@/app/members/member-status-breakdown";
 import { useChurchId } from "@/hooks/useChurchId";
 
 export default function MembersPage() {
@@ -26,7 +27,8 @@ export default function MembersPage() {
 
   return (
     <>
-      <PageHeader title="Members" />
+      <PageHeader title="Members" className="mb-2" />
+      <MemberStatusBreakdown members={members} />
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {members.map((member) => (
