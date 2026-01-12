@@ -2,8 +2,6 @@
 
 import * as React from 'react';
 import { doc, getDoc } from 'firebase/firestore';
-import { Plus } from 'lucide-react';
-
 import { PageHeader } from '@/components/page-header';
 import {
   Card,
@@ -12,7 +10,6 @@ import {
   CardContent,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-
 import { useToast } from '@/hooks/use-toast';
 import { ContributionChart } from '@/app/contributions/contribution-chart';
 import { ContributionSummary } from '@/app/contributions/contribution-summary';
@@ -20,10 +17,7 @@ import { ContributionsTable } from '@/app/contributions/contributions-table';
 import { getColumns } from '@/app/contributions/columns';
 import { EditContributionDialog } from '@/app/contributions/edit-contribution-dialog';
 import { AddContributionDialog } from '@/app/contributions/add-contribution-dialog';
-
-// MUI theme
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-
 import { useAuth } from '@/hooks/useAuth';
 import { useChurchId } from '@/hooks/useChurchId';
 import { db } from '@/lib/firebase';
@@ -32,7 +26,6 @@ import {
   deleteContribution,
 } from '@/lib/contributions';
 import { listenToMembers } from '@/lib/members';
-
 import type { Contribution, Member } from '@/lib/types';
 import {
   AlertDialog,
@@ -142,7 +135,7 @@ export default function ContributionsPage() {
       <PageHeader title="Contributions" className="mb-2">
         {canAdd && (
           <Button onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Add Contribution
+            Add Contribution
           </Button>
         )}
       </PageHeader>
