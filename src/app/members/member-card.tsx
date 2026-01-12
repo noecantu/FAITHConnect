@@ -145,7 +145,7 @@ export function MemberCard({ member }: { member: Member }) {
               {member.phoneNumber}
             </a>
             {member.baptismDate && (
-              <p>
+              <p className="text-foreground">
                 Baptized: {format(new Date(member.baptismDate), 'MM-dd-yyyy')}
               </p>
             )}
