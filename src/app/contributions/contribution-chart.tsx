@@ -22,7 +22,7 @@ export function ContributionChart({ data }: ContributionChartProps) {
       name: category,
       total: data
         .filter((c) => c.category === category)
-        .reduce((acc, curr) => acc + curr.amount, 0),
+        .reduce((acc, curr) => acc + Number(curr.amount), 0),
     }));
     return summary;
   }, [data]);
@@ -46,10 +46,11 @@ export function ContributionChart({ data }: ContributionChartProps) {
             tickFormatter={(value) => `$${value}`}
           />
           <Tooltip
-             contentStyle={{
-                background: "hsl(var(--background))",
-                borderColor: "hsl(var(--border))",
-             }}
+            contentStyle={{
+              background: "hsl(var(--background))",
+              borderColor: "hsl(var(--border))",
+            }}
+            formatter={(value: number) => [`$${value}`, "Total"]}
           />
           <Bar dataKey="total" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
         </BarChart>

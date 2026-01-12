@@ -244,7 +244,7 @@ export default function ContributionsPage() {
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Left column: Form */}
         <div className="lg:col-span-1">
-          <Card>
+          <Card className="h-full">
             <CardHeader>
               <CardTitle>Add Contribution</CardTitle>
             </CardHeader>
@@ -452,11 +452,11 @@ export default function ContributionsPage() {
 
         {/* Right column: Chart */}
         <div className="lg:col-span-2">
-          <Card>
+          <Card className="h-full flex flex-col">
             <CardHeader>
               <CardTitle>Contribution Overview</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1">
               <ContributionChart data={contributions} />
             </CardContent>
           </Card>
