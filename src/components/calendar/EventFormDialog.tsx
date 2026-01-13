@@ -40,9 +40,9 @@ import {
     muiTheme: any;
   }) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
-        <DialogContent className="flex flex-col bg-background p-0">
-          <DialogHeader className="shrink-0 px-4 py-4 sm:px-6">
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="overflow-y-auto max-h-[90vh]">
+          <DialogHeader>
             <DialogTitle>{isEditing ? "Edit Event" : "Add New Event"}</DialogTitle>
             <DialogDescription>
               {isEditing
@@ -51,9 +51,8 @@ import {
             </DialogDescription>
           </DialogHeader>
   
-          <div className="grow overflow-y-auto px-4 sm:px-6 pb-[calc(var(--footer-h,3.5rem)+env(safe-area-inset-bottom)+0.75rem)]">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
               {/* DATE FIRST */}
               <FormField
@@ -114,24 +113,23 @@ import {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Event details..." {...field} />
+                      <Textarea placeholder="Event details..." {...field} value={field.value ?? ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
+            
+              <DialogFooter className="border-t pt-4">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" onClick={form.handleSubmit(onSubmit)}>
+                  {isEditing ? "Save Changes" : "Add Event"}
+                </Button>
+              </DialogFooter>
             </form>
           </Form>
-        </div>  
-          <DialogFooter
-            className="shrink-0 px-4 py-3 sm:px-6"
-            style={{ ["--footer-h" as any]: "3.5rem" }}
-          >
-            <Button type="submit" onClick={form.handleSubmit(onSubmit)} className="w-full sm:w-auto">
-              {isEditing ? "Save Changes" : "Add Event"}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     );

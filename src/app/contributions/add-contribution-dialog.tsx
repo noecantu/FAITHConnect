@@ -137,7 +137,7 @@ export function AddContributionDialog({
   }, [members]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onClose} modal={false}>
       <DialogContent 
         className="max-h-[80vh] overflow-y-auto w-[90vw] sm:w-[500px]"
         onOpenAutoFocus={(e) => e.preventDefault()}
@@ -314,7 +314,7 @@ export function AddContributionDialog({
               )}
             />
 
-            <DialogFooter className="pt-4">
+            <DialogFooter className="border-t pt-4">
               <Button type="submit">Add Contribution</Button>
             </DialogFooter>
           </form>

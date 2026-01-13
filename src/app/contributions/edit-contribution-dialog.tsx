@@ -321,7 +321,7 @@ export function EditContributionDialog({
                 )}
               />
              
-              <DialogFooter className="pt-4 gap-4 sm:gap-2">
+              <DialogFooter className="border-t pt-4 gap-4 sm:gap-2">
                 <Button
                   type="button"
                   variant="destructive"

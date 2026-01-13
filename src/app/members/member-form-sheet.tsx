@@ -136,7 +136,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const titleRef = useRef<HTMLHeadingElement>(null);
+
 
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(memberSchema),
@@ -428,29 +428,19 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
 
-      <DialogContent 
-        className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0" 
-        onOpenAutoFocus={(e) => {
-          e.preventDefault();
-          titleRef.current?.focus({ preventScroll: true });
-        }}
-      >
+      <DialogContent className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader className="shrink-0 px-6 pt-6">
-          <DialogTitle ref={titleRef} tabIndex={-1} className="focus:outline-none">
+          <DialogTitle>
             {isEditMode ? "Edit Member" : "Add Member"}
           </DialogTitle>
           <DialogDescription>
-            {isEditMode ? "Update the member's details" : "Add a new member to the directory"}.
+            Fill in the form below to {isEditMode ? "update the member's details" : "add a new member to the directory"}.
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex-grow overflow-y-auto">
           <Form {...form}>
-            <form
-              id="member-form"
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-6 pl-6 pr-4 py-4"
-            >
+            <form id="member-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 px-6 py-4">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-xl">Member Information</CardTitle>
@@ -791,23 +781,25 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           </Form>
         </div>
 
-        <DialogFooter className="flex flex-col-reverse gap-2 px-6 pb-6 pt-4 sm:flex-row sm:items-center">
+        <DialogFooter className="shrink-0 border-t px-6 pt-4 pb-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:space-x-2">
           {isEditMode ? (
             <>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => setIsDeleteDialogOpen(true)}
-              >
-                Delete
-              </Button>
-
-                <Button type="submit" form="member-form">
-                  Save
+              <div className="sm:mr-auto">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => setIsDeleteDialogOpen(true)}
+                  className="w-full sm:w-auto"
+                >
+                  Delete
                 </Button>
+              </div>
+              <Button type="submit" form="member-form">
+                Save
+              </Button>
             </>
           ) : (
-            <div className="flex w-full justify-end sm:justify-start">
+            <div className="flex w-full justify-end">
               <Button type="submit" form="member-form">
                 Add Member
               </Button>
