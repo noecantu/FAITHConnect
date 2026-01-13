@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db, createSecondaryUser } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,11 +15,13 @@ import {
 } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useChurchId } from '@/hooks/useChurchId';
 import { listenToMembers } from '@/lib/members';
 import type { Member } from '@/lib/types';
+import { Key } from 'lucide-react';
 
 const ROLE_MAP: Record<string, string> = {
   "Admin": "Administrator",
@@ -36,6 +38,12 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = React.useState(true);
   const [editingMember, setEditingMember] = React.useState<Member | null>(null);
   const [selectedRoles, setSelectedRoles] = React.useState<string[]>([]);
+  
+  // Login creation state
+  const [loginEmail, setLoginEmail] = React.useState("");
+  const [loginPassword, setLoginPassword] = React.useState("");
+  const [isCreatingLogin, setIsCreatingLogin] = React.useState(false);
+
   const { toast } = useToast();
   const churchId = useChurchId();
 
@@ -54,6 +62,8 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
   const handleEditClick = (member: Member) => {
     setEditingMember(member);
     setSelectedRoles(member.roles || []);
+    setLoginEmail(member.email || "");
+    setLoginPassword("");
   };
 
   const handleRoleChange = (role: string, checked: boolean) => {
@@ -68,6 +78,64 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
           : prev.filter(r => r !== role);
         return newRoles.filter(r => r !== 'Admin'); // Should be redundant but safe
       });
+    }
+  };
+
+  const handleCreateLogin = async () => {
+    if (!churchId || !loginEmail || !loginPassword || !editingMember) {
+      toast({
+        title: "Error",
+        description: "Please enter an email and password.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (loginPassword.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCreatingLogin(true);
+    try {
+      // 1. Create user in Firebase Auth (secondary app)
+      const newUser = await createSecondaryUser(loginEmail, loginPassword);
+      
+      // 2. Create user document in 'users' collection with basic info and churchId
+      const userDocRef = doc(db, 'users', newUser.uid);
+      await setDoc(userDocRef, {
+        email: loginEmail,
+        displayName: `${editingMember.firstName} ${editingMember.lastName}`,
+        churchId: churchId,
+        roles: [], // Roles are managed in the member document
+        createdAt: serverTimestamp(),
+      });
+
+      // 3. Update the member document if the email was different/missing
+      if (editingMember.email !== loginEmail) {
+          const memberDocRef = doc(db, 'churches', churchId, 'members', editingMember.id);
+          await updateDoc(memberDocRef, { email: loginEmail });
+          // Update local state is handled by listener
+      }
+
+      toast({
+        title: "Success",
+        description: `Login created for ${loginEmail}.`,
+      });
+      setLoginPassword(""); // Clear password after success
+    } catch (error: any) {
+      console.error("Error creating login:", error);
+      toast({
+        title: "Error Creating Login",
+        description: error.message || "Failed to create user account.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingLogin(false);
     }
   };
 
@@ -135,31 +203,77 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
 
         {/* Nested Dialog for editing roles */}
         <Dialog open={!!editingMember} onOpenChange={(open) => !open && setEditingMember(null)}>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Edit Roles for {editingMember?.firstName} {editingMember?.lastName}</DialogTitle>
+              <DialogTitle>Access & Roles: {editingMember?.firstName} {editingMember?.lastName}</DialogTitle>
               <DialogDescription>
-                Select the roles to assign to this member. Administrator includes all permissions.
+                Create a login for this member and assign their permissions.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-              {ALL_ROLES.map(role => (
-                <div key={role} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`role-${role}`}
-                    checked={selectedRoles.includes(role)}
-                    onCheckedChange={(checked) => handleRoleChange(role, !!checked)}
-                    disabled={role !== 'Admin' && selectedRoles.includes('Admin')}
-                  />
-                  <Label 
-                    htmlFor={`role-${role}`}
-                    className={role !== 'Admin' && selectedRoles.includes('Admin') ? 'text-muted-foreground' : ''}
-                  >
-                    {getRoleDisplayName(role)}
-                  </Label>
+            
+            <div className="space-y-6 py-4">
+              {/* Login Creation Section */}
+              <div className="space-y-4 p-4 border rounded-md bg-muted/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Key className="h-4 w-4 text-muted-foreground" />
+                  <h4 className="text-sm font-medium">Create/Update Login</h4>
                 </div>
-              ))}
+                
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="login-email">Email (Username)</Label>
+                    <Input 
+                      id="login-email"
+                      value={loginEmail} 
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      placeholder="member@example.com"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="login-password">New Password</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        id="login-password"
+                        type="password" 
+                        value={loginPassword} 
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        placeholder="Min. 6 characters"
+                      />
+                      <Button 
+                        type="button" 
+                        onClick={handleCreateLogin}
+                        disabled={isCreatingLogin || !loginEmail || !loginPassword}
+                        size="sm"
+                      >
+                        {isCreatingLogin ? "Creating..." : "Create"}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Roles Section */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium">Roles & Permissions</h4>
+                {ALL_ROLES.map(role => (
+                  <div key={role} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`role-${role}`}
+                      checked={selectedRoles.includes(role)}
+                      onCheckedChange={(checked) => handleRoleChange(role, !!checked)}
+                      disabled={role !== 'Admin' && selectedRoles.includes('Admin')}
+                    />
+                    <Label 
+                      htmlFor={`role-${role}`}
+                      className={role !== 'Admin' && selectedRoles.includes('Admin') ? 'text-muted-foreground' : ''}
+                    >
+                      {getRoleDisplayName(role)}
+                    </Label>
+                  </div>
+                ))}
+              </div>
             </div>
+
             <DialogFooter>
               <Button variant="outline" onClick={() => setEditingMember(null)}>Cancel</Button>
               <Button onClick={handleUpdateRoles}>Update Roles</Button>

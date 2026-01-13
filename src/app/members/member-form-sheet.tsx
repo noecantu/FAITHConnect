@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label"; // Imported Label
 import {
   Select,
   SelectContent,
@@ -59,14 +58,12 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import type { Member } from "@/lib/types";
 import { useChurchId } from "@/hooks/useChurchId";
-import { useUserRoles } from "@/hooks/useUserRoles";
 
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage, db, createSecondaryUser } from "@/lib/firebase";
-import { doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { storage } from "@/lib/firebase";
 
 import { addMember, updateMember, listenToMembers, deleteMember } from "@/lib/members";
-import { Camera, Upload, Trash2, Key } from "lucide-react";
+import { Camera, Upload, Trash2 } from "lucide-react";
 
 const relationshipSchema = z.object({
   relatedMemberId: z.string().min(1, "Member is required"),
@@ -128,7 +125,6 @@ export type MemberFormValues = {
 export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   const { toast } = useToast();
   const churchId = useChurchId();
-  const { isAdmin } = useUserRoles(churchId);
   const isEditMode = !!member;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -140,12 +136,6 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  
-  // Login creation state
-  const [isCreateLoginOpen, setIsCreateLoginOpen] = useState(false);
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
-  const [isCreatingLogin, setIsCreatingLogin] = useState(false);
 
 
   const form = useForm<MemberFormValues>({
@@ -177,7 +167,6 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   });
 
   const photoFile = form.watch("photoFile");
-  const formEmail = form.watch("email");
 
   useEffect(() => {
     if (!churchId) return;
@@ -207,10 +196,6 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
 
   useEffect(() => {
     if (isOpen) {
-      setLoginPassword(""); // Reset password field
-      // Reset login email when dialog opens
-      setLoginEmail(member?.email || ""); 
-      
       if (isEditMode && member) {
         const memberRelationships = member.relationships?.map(r => ({
             relatedMemberId: r.memberIds.find(id => id !== member.id) || '',
@@ -264,13 +249,6 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
       }
     }
   }, [isOpen, isEditMode, member, form]);
-
-  // Sync login email with form email if user changes it in the popup
-  useEffect(() => {
-    if (isCreateLoginOpen) {
-        setLoginEmail(form.getValues("email") || "");
-    }
-  }, [isCreateLoginOpen, form]);
 
   useEffect(() => {
     if(isTakingPhoto) {
@@ -349,66 +327,6 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
         description: "Failed to delete the member.",
         variant: "destructive",
       });
-    }
-  };
-
-  const handleCreateLogin = async () => {
-    if (!churchId || !loginEmail || !loginPassword) {
-      toast({
-        title: "Error",
-        description: "Please enter an email and password.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (loginPassword.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters long.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsCreatingLogin(true);
-    try {
-      // 1. Create user in Firebase Auth (secondary app)
-      const newUser = await createSecondaryUser(loginEmail, loginPassword);
-      
-      // 2. Create user document in 'users' collection with basic info and churchId
-      const userDocRef = doc(db, 'users', newUser.uid);
-      await setDoc(userDocRef, {
-        email: loginEmail,
-        displayName: `${form.getValues('firstName')} ${form.getValues('lastName')}`,
-        churchId: churchId,
-        roles: [], // Roles are managed in the member document
-        createdAt: serverTimestamp(),
-      });
-
-      // 3. Update the member document if the email was different/missing
-      if (member && member.email !== loginEmail) {
-          const memberDocRef = doc(db, 'churches', churchId, 'members', member.id);
-          await updateDoc(memberDocRef, { email: loginEmail });
-          // Update the form state as well
-          form.setValue("email", loginEmail);
-      }
-
-      toast({
-        title: "Success",
-        description: `Login created for ${loginEmail}.`,
-      });
-      setLoginPassword(""); // Clear password after success
-      setIsCreateLoginOpen(false);
-    } catch (error: any) {
-      console.error("Error creating login:", error);
-      toast({
-        title: "Error Creating Login",
-        description: error.message || "Failed to create user account.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsCreatingLogin(false);
     }
   };
 
@@ -864,18 +782,6 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
         </div>
 
         <DialogFooter className="shrink-0 px-6 pt-4 pb-6 flex items-center justify-end space-x-2">
-          {isAdmin && isEditMode && (
-            <Button
-              type="button"
-              variant="secondary"
-              className="mr-auto"
-              onClick={() => setIsCreateLoginOpen(true)}
-            >
-              <Key className="mr-2 h-4 w-4" />
-              Create Login
-            </Button>
-          )}
-          
           {isEditMode && (
             <Button
               type="button"
@@ -942,55 +848,6 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
             <Button onClick={handleCapturePhoto} disabled={!hasCameraPermission}>
               <Camera className="mr-2 h-4 w-4" />
               Capture
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isCreateLoginOpen} onOpenChange={setIsCreateLoginOpen}>
-        <DialogContent className="sm:max-w-md" onOpenAutoFocus={(e) => e.preventDefault()}>
-          <DialogHeader>
-            <DialogTitle>Create Member Login</DialogTitle>
-            <DialogDescription>
-              Set up a username and password for {member?.firstName} {member?.lastName}.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Email (Username)</Label>
-              <Input
-                placeholder="member@example.com"
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                This will be updated in the member's profile if changed.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label>Password</Label>
-              <Input
-                type="password"
-                placeholder="Enter password (min. 6 characters)"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter className="sm:justify-end">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setIsCreateLoginOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={handleCreateLogin}
-              disabled={isCreatingLogin || !loginEmail || !loginPassword}
-            >
-              {isCreatingLogin ? "Creating..." : "Create Account"}
             </Button>
           </DialogFooter>
         </DialogContent>
