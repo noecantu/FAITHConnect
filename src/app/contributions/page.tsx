@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+
 import { PageHeader } from '@/components/page-header';
 import {
   Card,
@@ -10,6 +10,7 @@ import {
   CardContent,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+
 import { useToast } from '@/hooks/use-toast';
 import { ContributionChart } from '@/app/contributions/contribution-chart';
 import { ContributionSummary } from '@/app/contributions/contribution-summary';
@@ -17,15 +18,18 @@ import { ContributionsTable } from '@/app/contributions/contributions-table';
 import { getColumns } from '@/app/contributions/columns';
 import { EditContributionDialog } from '@/app/contributions/edit-contribution-dialog';
 import { AddContributionDialog } from '@/app/contributions/add-contribution-dialog';
+
+// MUI theme
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { useAuth } from '@/hooks/useAuth';
+
 import { useChurchId } from '@/hooks/useChurchId';
-import { db } from '@/lib/firebase';
 import {
   listenToContributions,
   deleteContribution,
 } from '@/lib/contributions';
 import { listenToMembers } from '@/lib/members';
+import { useUserRoles } from '@/hooks/useUserRoles';
+
 import type { Contribution, Member } from '@/lib/types';
 import {
   AlertDialog,
@@ -44,43 +48,18 @@ import {
 export default function ContributionsPage() {
   const [isClient, setIsClient] = React.useState(false);
   const { toast } = useToast();
-  const { user, loading: authLoading } = useAuth();
   const churchId = useChurchId();
   const [contributions, setContributions] = React.useState<Contribution[]>([]);
   const [members, setMembers] = React.useState<Member[]>([]);
-  const [roles, setRoles] = React.useState<string[]>([]);
-  const [canAdd, setCanAdd] = React.useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
   const [editingContribution, setEditingContribution] = React.useState<Contribution | null>(null);
   const [deletingContribution, setDeletingContribution] = React.useState<Contribution | null>(null);
+  
+  const { isFinance } = useUserRoles(churchId);
 
   React.useEffect(() => {
     setIsClient(true);
   }, []);
-
-  // Get user roles
-  React.useEffect(() => {
-    const fetchUserRoles = async () => {
-      if (user) {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          setRoles(userDoc.data().roles || []);
-        } else {
-          setRoles([]);
-        }
-      } else {
-        setRoles([]);
-      }
-    };
-    fetchUserRoles();
-  }, [user]);
-
-  // Determine if user can add contributions
-  React.useEffect(() => {
-    const hasPermission = !!(churchId && roles && (roles.includes('Admin') || roles.includes('Finance')));
-    setCanAdd(hasPermission);
-  }, [churchId, roles]);
 
   // Listen to contributions
   React.useEffect(() => {
@@ -133,7 +112,7 @@ export default function ContributionsPage() {
   return (
     <ThemeProvider theme={darkTheme}>
       <PageHeader title="Contributions" className="mb-2">
-        {canAdd && (
+        {isFinance && (
           <Button onClick={() => setIsAddDialogOpen(true)}>
             Add Contribution
           </Button>

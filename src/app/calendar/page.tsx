@@ -36,6 +36,7 @@ import {
 } from 'firebase/firestore';
 import { useEffect } from 'react';
 import { useChurchId } from '@/hooks/useChurchId';
+import { useUserRoles } from '@/hooks/useUserRoles';
 
 import { dateKey } from '@/lib/calendar/utils';
 import { GridCalendar } from '@/components/calendar/GridCalendar';
@@ -82,6 +83,7 @@ export default function CalendarPage() {
   const isEditing = editEvent !== null;
   const { toast } = useToast();
   const churchId = useChurchId();
+  const { isEventManager } = useUserRoles(churchId);
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
   const isDeleteOpen = deleteId !== null;
 
@@ -193,6 +195,14 @@ export default function CalendarPage() {
   }
 
   function handleDeleteRequest(id: string) {
+    if (!isEventManager) {
+      toast({
+        title: 'Permission Denied',
+        description: 'You do not have permission to delete events.',
+        variant: 'destructive',
+      });
+      return;
+    }
     setDeleteId(id);
   }
 
@@ -223,6 +233,15 @@ export default function CalendarPage() {
   }
 
   function handleEdit(event: EventType) {
+    if (!isEventManager) {
+      toast({
+        title: 'Permission Denied',
+        description: 'You do not have permission to edit events.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setEditEvent(event);
 
     form.reset({
@@ -240,6 +259,15 @@ export default function CalendarPage() {
       toast({
         title: 'No church selected',
         description: 'Please select a church before saving events.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!isEventManager) {
+      toast({
+        title: 'Permission Denied',
+        description: 'You do not have permission to manage events.',
         variant: 'destructive',
       });
       return;
@@ -318,19 +346,21 @@ export default function CalendarPage() {
 
       <PageHeader title="Calendar of Events">
         <div className="flex items-center gap-2">
-          <Button
-            onClick={() => {
-              setEditEvent(null);
-              form.reset({
-                title: '',
-                description: '',
-                date: selected,
-              });
-              setIsFormOpen(true);
-            }}
-          >
-            Add Event
-          </Button>
+          {isEventManager && (
+            <Button
+              onClick={() => {
+                setEditEvent(null);
+                form.reset({
+                  title: '',
+                  description: '',
+                  date: selected,
+                });
+                setIsFormOpen(true);
+              }}
+            >
+              Add Event
+            </Button>
+          )}
         </div>
 
         <EventFormDialog
@@ -398,12 +428,16 @@ export default function CalendarPage() {
                             </p>
                           </div>
                           <div className="flex shrink-0 items-center gap-2 ml-4">
-                            <Button variant="ghost" size="icon" onClick={() => handleEdit(event)}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteRequest(event.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                            {isEventManager && (
+                              <>
+                                <Button variant="ghost" size="icon" onClick={() => handleEdit(event)}>
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => handleDeleteRequest(event.id)}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </>
+                            )}
                           </div>
                         </li>
                       ))}

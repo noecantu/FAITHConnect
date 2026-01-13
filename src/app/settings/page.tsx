@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MemberRolesDialog } from '@/components/MemberRolesDialog';
 import * as React from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useChurchId } from '@/hooks/useChurchId';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -17,6 +19,8 @@ export default function SettingsPage() {
   const [calendarView, setCalendarView] = React.useState('calendar');
   const [fiscalYear, setFiscalYear] = React.useState(new Date().getFullYear().toString());
   const { user } = useAuth();
+  const churchId = useChurchId();
+  const { isAdmin } = useUserRoles(churchId);
   const { toast } = useToast();
 
   React.useEffect(() => {
@@ -114,27 +118,7 @@ export default function SettingsPage() {
       <PageHeader title="Settings" />
       <div className="grid gap-6">
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Financial Year</CardTitle>
-            <CardDescription>
-              Select the year for which to display financial totals.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Select value={fiscalYear} onValueChange={handleFiscalYearChange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select a year" />
-              </SelectTrigger>
-              <SelectContent>
-                {generateYearOptions().map(year => (
-                  <SelectItem key={year} value={year}>{year}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
-
+        {/* 1. Calendar View */}
         <Card>
           <CardHeader>
             <CardTitle>Calendar View</CardTitle>
@@ -160,19 +144,44 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
+        {/* 2. Financial Year */}
         <Card>
           <CardHeader>
-            <CardTitle>Member Roles</CardTitle>
+            <CardTitle>Financial Year</CardTitle>
             <CardDescription>
-              Manage member permissions and roles for your organization.
+              Select the year for which to display financial totals.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <MemberRolesDialog>
-              <Button>Manage Roles</Button>
-            </MemberRolesDialog>
+            <Select value={fiscalYear} onValueChange={handleFiscalYearChange}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select a year" />
+              </SelectTrigger>
+              <SelectContent>
+                {generateYearOptions().map(year => (
+                  <SelectItem key={year} value={year}>{year}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </CardContent>
         </Card>
+
+        {/* 3. Member Roles (Admin Only) */}
+        {isAdmin && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Member Roles</CardTitle>
+              <CardDescription>
+                Manage member permissions and roles for your organization.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <MemberRolesDialog>
+                <Button>Manage Roles</Button>
+              </MemberRolesDialog>
+            </CardContent>
+          </Card>
+        )}
 
       </div>
     </>

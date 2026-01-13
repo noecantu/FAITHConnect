@@ -9,15 +9,12 @@ import { MemberStatusBreakdown } from "@/app/members/member-status-breakdown";
 import { useChurchId } from "@/hooks/useChurchId";
 import { Button } from "@/components/ui/button";
 import { MemberFormSheet } from "@/app/members/member-form-sheet";
-import { useAuth } from "@/hooks/useAuth";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { useUserRoles } from "@/hooks/useUserRoles";
 
 export default function MembersPage() {
   const churchId = useChurchId();
-  const { user } = useAuth();
   const [members, setMembers] = useState<Member[]>([]);
-  const [canAdd, setCanAdd] = useState(false);
+  const { isMemberManager } = useUserRoles(churchId);
 
   useEffect(() => {
     if (!churchId) return;
@@ -32,37 +29,10 @@ export default function MembersPage() {
     return () => unsubscribe();
   }, [churchId]);
 
-  useEffect(() => {
-    const checkPermission = async () => {
-      if (user && churchId) {
-        // In a real app with custom claims, we'd check the token.
-        // Here we'll fetch the user doc as we've done elsewhere.
-        try {
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDoc = await getDoc(userDocRef);
-            if (userDoc.exists()) {
-                const roles = userDoc.data().roles || [];
-                if (roles.includes('Admin') || roles.includes('MemberManager')) {
-                    setCanAdd(true);
-                } else {
-                    setCanAdd(false);
-                }
-            }
-        } catch (error) {
-            console.error("Error fetching user roles:", error);
-            setCanAdd(false);
-        }
-      } else {
-        setCanAdd(false);
-      }
-    };
-    checkPermission();
-  }, [user, churchId]);
-
   return (
     <>
       <PageHeader title="Members" className="mb-2">
-        {canAdd && (
+        {isMemberManager && (
           <MemberFormSheet>
             <Button>
               Add Member

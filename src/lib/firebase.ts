@@ -1,8 +1,8 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApp, getApps, deleteApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { getAuth } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -20,7 +20,37 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const auth = getAuth(app);
+
+/**
+ * Creates a new user in Firebase Authentication without logging out the current user.
+ * This is done by initializing a secondary Firebase App instance.
+ */
+export async function createSecondaryUser(email: string, password: string) {
+  const secondaryAppName = "secondaryApp";
+  let secondaryApp;
+
+  // check if app already exists
+  const existingApp = getApps().find(app => app.name === secondaryAppName);
+  if (existingApp) {
+      secondaryApp = existingApp;
+  } else {
+      secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
+  }
+
+  const secondaryAuth = getAuth(secondaryApp);
+
+  try {
+    const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+    // Important: Sign out immediately so this secondary auth instance doesn't interfere
+    // although simply deleting the app instance usually handles it.
+    await secondaryAuth.signOut();
+    return userCredential.user;
+  } finally {
+    // Clean up the secondary app instance
+    await deleteApp(secondaryApp);
+  }
+}
