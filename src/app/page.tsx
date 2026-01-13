@@ -8,7 +8,6 @@ import { MemberCard } from "@/app/members/member-card";
 import { MemberStatusBreakdown } from "@/app/members/member-status-breakdown";
 import { useChurchId } from "@/hooks/useChurchId";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { MemberFormSheet } from "@/app/members/member-form-sheet";
 import { useUserRoles } from "@/hooks/useUserRoles";
 
@@ -44,7 +43,7 @@ export default function MembersPage() {
         {isMemberManager && (
           <MemberFormSheet>
             <Button>
-              <Plus className="mr-2 h-4 w-4" /> Add Member
+              Add Member
             </Button>
           </MemberFormSheet>
         )}
