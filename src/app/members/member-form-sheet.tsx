@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -136,6 +137,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const titleRef = useRef<HTMLHeadingElement>(null);
 
 
   const form = useForm<MemberFormValues>({
@@ -428,9 +430,15 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
 
-      <DialogContent className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
-        <DialogHeader className="shrink-0 px-6 pt-6">
-          <DialogTitle>
+      <DialogContent 
+        className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0"
+        onOpenAutoFocus={(e) => {
+          e.preventDefault();
+          titleRef.current?.focus({ preventScroll: true });
+        }}
+      >
+        <DialogHeader className="shrink-0 p-6">
+          <DialogTitle ref={titleRef} tabIndex={-1} className="focus:outline-none">
             {isEditMode ? "Edit Member" : "Add Member"}
           </DialogTitle>
           <DialogDescription>
@@ -481,7 +489,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value ?? ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -495,7 +503,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                       <FormItem>
                         <FormLabel>Phone <span className="text-destructive">*</span></FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value ?? ''}/>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -509,7 +517,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                       <FormItem>
                         <FormLabel>Birthday</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <Input type="date" {...field} value={field.value ?? ''}/>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -523,7 +531,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                       <FormItem>
                         <FormLabel>Baptism Date</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <Input type="date" {...field} value={field.value ?? ''}/>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -537,7 +545,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                       <FormItem>
                         <FormLabel>Street</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="123 Main St" />
+                          <Input {...field} placeholder="123 Main St" value={field.value ?? ''}/>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -551,7 +559,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                         <FormItem className="md:col-span-1">
                           <FormLabel>City</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} value={field.value ?? ''}/>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -564,7 +572,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                         <FormItem>
                           <FormLabel>State</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} value={field.value ?? ''}/>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -577,7 +585,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                         <FormItem>
                           <FormLabel>Zip</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} value={field.value ?? ''}/>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -592,7 +600,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                       <FormItem>
                         <FormLabel>Notes</FormLabel>
                         <FormControl>
-                          <Textarea {...field} />
+                          <Textarea {...field} value={field.value ?? ''}/>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -719,7 +727,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                       <FormItem>
                         <FormLabel>Anniversary</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <Input type="date" {...field} value={field.value ?? ''}/>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -781,22 +789,25 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           </Form>
         </div>
 
-        <DialogFooter className="shrink-0 border-t px-6 pt-4 pb-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:space-x-2">
+        <DialogFooter className="shrink-0 border-t px-6 pt-4 pb-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-2">
           {isEditMode ? (
             <>
-              <div className="sm:mr-auto">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <Button
                   type="button"
                   variant="destructive"
-                  onClick={() => setIsDeleteDialogOpen(true)}
                   className="w-full sm:w-auto"
                 >
                   Delete
                 </Button>
+
+                <Button
+                  type="submit"
+                  className="w-full sm:w-auto"
+                >
+                  Save
+                </Button>
               </div>
-              <Button type="submit" form="member-form">
-                Save
-              </Button>
             </>
           ) : (
             <div className="flex w-full justify-end">
