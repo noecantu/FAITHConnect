@@ -26,7 +26,7 @@ export type Member = {
   lastName: string;
   email?: string;
   phoneNumber: string;
-  profilePhotoUrl: string;
+  profilePhotoUrl?: string;
   status: 'Active' | 'Prospect' | 'Archived';
   address?: Address;
   birthday?: string;
