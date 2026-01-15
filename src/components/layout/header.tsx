@@ -9,9 +9,9 @@ export default function Header() {
         <Image
           src="/FaithConnectLogoWhite.png"
           alt="Faith Connect Logo"
-          width={128}
-          height={128}
-          className="h-24 w-32"
+          width={130}
+          height={130}
+          className="h-28 w-34"
         />
         {/* <span className="font-semibold">FAITH Connect</span> */}
       </Link>
