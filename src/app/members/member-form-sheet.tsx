@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as z from "zod";
@@ -25,7 +24,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -138,7 +136,6 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const titleRef = useRef<HTMLHeadingElement>(null);
-
 
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(memberSchema),
@@ -431,24 +428,28 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
       <DialogTrigger asChild>{children}</DialogTrigger>
 
       <DialogContent 
-        className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0"
+        className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0" 
         onOpenAutoFocus={(e) => {
           e.preventDefault();
           titleRef.current?.focus({ preventScroll: true });
         }}
       >
-        <DialogHeader className="shrink-0 p-6">
+        <DialogHeader className="shrink-0 px-6 pt-6">
           <DialogTitle ref={titleRef} tabIndex={-1} className="focus:outline-none">
             {isEditMode ? "Edit Member" : "Add Member"}
           </DialogTitle>
           <DialogDescription>
-            Fill in the form below to {isEditMode ? "update the member's details" : "add a new member to the directory"}.
+            {isEditMode ? "Update the member's details" : "Add a new member to the directory"}.
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex-grow overflow-y-auto">
           <Form {...form}>
-            <form id="member-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 px-6 py-4">
+            <form
+              id="member-form"
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-6 pl-6 pr-4 py-4"
+            >
               <Card>
                 <CardHeader>
                   <CardTitle className="text-xl">Member Information</CardTitle>
@@ -489,7 +490,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input {...field} value={field.value ?? ''} />
+                          <Input {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -503,7 +504,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                       <FormItem>
                         <FormLabel>Phone <span className="text-destructive">*</span></FormLabel>
                         <FormControl>
-                          <Input {...field} value={field.value ?? ''}/>
+                          <Input {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -517,7 +518,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                       <FormItem>
                         <FormLabel>Birthday</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} value={field.value ?? ''}/>
+                          <Input type="date" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -531,7 +532,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                       <FormItem>
                         <FormLabel>Baptism Date</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} value={field.value ?? ''}/>
+                          <Input type="date" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -545,7 +546,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                       <FormItem>
                         <FormLabel>Street</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="123 Main St" value={field.value ?? ''}/>
+                          <Input {...field} placeholder="123 Main St" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -559,7 +560,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                         <FormItem className="md:col-span-1">
                           <FormLabel>City</FormLabel>
                           <FormControl>
-                            <Input {...field} value={field.value ?? ''}/>
+                            <Input {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -572,7 +573,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                         <FormItem>
                           <FormLabel>State</FormLabel>
                           <FormControl>
-                            <Input {...field} value={field.value ?? ''}/>
+                            <Input {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -585,7 +586,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                         <FormItem>
                           <FormLabel>Zip</FormLabel>
                           <FormControl>
-                            <Input {...field} value={field.value ?? ''}/>
+                            <Input {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -600,7 +601,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                       <FormItem>
                         <FormLabel>Notes</FormLabel>
                         <FormControl>
-                          <Textarea {...field} value={field.value ?? ''}/>
+                          <Textarea {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -727,7 +728,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
                       <FormItem>
                         <FormLabel>Anniversary</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} value={field.value ?? ''}/>
+                          <Input type="date" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -789,28 +790,23 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           </Form>
         </div>
 
-        <DialogFooter className="shrink-0 border-t px-6 pt-4 pb-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-2">
+        <DialogFooter className="flex flex-col-reverse gap-2 px-6 pb-6 pt-4 sm:flex-row sm:items-center">
           {isEditMode ? (
             <>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  className="w-full sm:w-auto"
-                >
-                  Delete
-                </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => setIsDeleteDialogOpen(true)}
+              >
+                Delete
+              </Button>
 
-                <Button
-                  type="submit"
-                  className="w-full sm:w-auto"
-                >
+                <Button type="submit" form="member-form">
                   Save
                 </Button>
-              </div>
             </>
           ) : (
-            <div className="flex w-full justify-end">
+            <div className="flex w-full justify-end sm:justify-start">
               <Button type="submit" form="member-form">
                 Add Member
               </Button>
