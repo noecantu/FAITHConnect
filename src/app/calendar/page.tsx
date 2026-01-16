@@ -395,30 +395,32 @@ export default function CalendarPage() {
         title="Calendar of Events"
         subtitle="Select a date to view or add events."
       >
-        <div className="flex items-center gap-2">
-            <Select
-                value={String(month.getMonth())}
-                onValueChange={(value) => setMonth(setMonthDate(month, Number(value)))}
-            >
-                <SelectTrigger className="w-[140px]">
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    {months.map(m => <SelectItem key={m.value} value={String(m.value)}>{m.label}</SelectItem>)}
-                </SelectContent>
-            </Select>
-            <Select
-                value={String(month.getFullYear())}
-                onValueChange={(value) => setMonth(setYearDate(month, Number(value)))}
-            >
-                <SelectTrigger className="w-[100px]">
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
-                </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={handleToday}>Today</Button>
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+            <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
+                <Select
+                    value={String(month.getMonth())}
+                    onValueChange={(value) => setMonth(setMonthDate(month, Number(value)))}
+                >
+                    <SelectTrigger>
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {months.map(m => <SelectItem key={m.value} value={String(m.value)}>{m.label}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+                <Select
+                    value={String(month.getFullYear())}
+                    onValueChange={(value) => setMonth(setYearDate(month, Number(value)))}
+                >
+                    <SelectTrigger>
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+            <Button variant="outline" onClick={handleToday} className="w-full sm:w-auto">Today</Button>
         </div>
       </PageHeader>
 
