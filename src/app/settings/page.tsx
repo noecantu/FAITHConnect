@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MemberRolesDialog } from '@/components/member/MemberRolesDialog';
+import { ReportDialog } from '@/components/report/ReportDialog';
 import * as React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useChurchId } from '@/hooks/useChurchId';
@@ -14,6 +15,10 @@ import { useUserRoles } from '@/hooks/useUserRoles';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { listenToMembers } from '@/lib/members';
+import { listenToContributions } from '@/lib/contributions';
+import { generateMembersPDF, generateMembersExcel, generateContributionsPDF, generateContributionsExcel } from '@/lib/reports';
+import type { Member, Contribution } from '@/lib/types';
 
 export default function SettingsPage() {
   const [calendarView, setCalendarView] = React.useState('calendar');
@@ -22,6 +27,22 @@ export default function SettingsPage() {
   const churchId = useChurchId();
   const { isAdmin } = useUserRoles(churchId);
   const { toast } = useToast();
+
+  const [members, setMembers] = React.useState<Member[]>([]);
+  const [contributions, setContributions] = React.useState<Contribution[]>([]);
+  const [reportType, setReportType] = React.useState<'members' | 'contributions' | null>(null);
+
+  // Data Listeners for Reports
+  React.useEffect(() => {
+    if (isAdmin && churchId) {
+      const unsubMembers = listenToMembers(churchId, setMembers);
+      const unsubContributions = listenToContributions(churchId, setContributions);
+      return () => {
+        unsubMembers();
+        unsubContributions();
+      };
+    }
+  }, [isAdmin, churchId]);
 
   React.useEffect(() => {
     // Load from local storage first (for immediate feedback)
@@ -192,14 +213,30 @@ export default function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col sm:flex-row gap-2">
-                <Button variant="outline" className="w-full sm:w-auto">Export Members</Button>
-                <Button variant="outline" className="w-full sm:w-auto">Export Contributions</Button>
+                <Button variant="outline" className="w-full sm:w-auto" onClick={() => setReportType('members')}>Export Members</Button>
+                <Button variant="outline" className="w-full sm:w-auto" onClick={() => setReportType('contributions')}>Export Contributions</Button>
               </CardContent>
             </Card>
           </>
         )}
 
       </div>
+      
+      <ReportDialog
+        open={!!reportType}
+        onOpenChange={() => setReportType(null)}
+        title={reportType === 'members' ? 'Members' : 'Contributions'}
+        onPDF={() => {
+            if (reportType === 'members') generateMembersPDF(members);
+            if (reportType === 'contributions') generateContributionsPDF(contributions);
+            setReportType(null);
+        }}
+        onExcel={() => {
+            if (reportType === 'members') generateMembersExcel(members);
+            if (reportType === 'contributions') generateContributionsExcel(contributions);
+            setReportType(null);
+        }}
+      />
     </>
   );
 }
