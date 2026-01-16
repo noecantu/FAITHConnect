@@ -165,22 +165,38 @@ export default function SettingsPage() {
             </Select>
           </CardContent>
         </Card>
-
-        {/* 3. Member Roles (Admin Only) */}
+        
         {isAdmin && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Member Roles</CardTitle>
-              <CardDescription>
-                Manage member permissions and roles for your organization.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <MemberRolesDialog>
-                <Button>Manage Roles</Button>
-              </MemberRolesDialog>
-            </CardContent>
-          </Card>
+          <>
+            {/* 3. Member Roles (Admin Only) */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Member Roles</CardTitle>
+                <CardDescription>
+                  Manage member permissions and roles for your organization.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <MemberRolesDialog>
+                  <Button className="w-full sm:w-auto">Manage Roles</Button>
+                </MemberRolesDialog>
+              </CardContent>
+            </Card>
+
+            {/* 4. Reports (Admin Only) */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Reports</CardTitle>
+                <CardDescription>
+                  Export data to PDF or Excel format.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col sm:flex-row gap-2">
+                <Button variant="outline" className="w-full sm:w-auto">Export Members</Button>
+                <Button variant="outline" className="w-full sm:w-auto">Export Contributions</Button>
+              </CardContent>
+            </Card>
+          </>
         )}
 
       </div>
