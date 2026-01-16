@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { format } from 'date-fns';
-import { Pencil, Trash2, Plus } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -98,7 +98,6 @@ export function DayEventsDialog({
         <DialogFooter className="p-6 pt-4 shrink-0 flex flex-row justify-end border-t">
           {canManage && (
             <Button onClick={() => onAdd(date)} className="w-full sm:w-auto">
-              <Plus className="mr-2 h-4 w-4" />
               Add Event
             </Button>
           )}
