@@ -69,7 +69,7 @@ export function GridCalendar({
             const isCurrentMonth = isSameMonth(day, month);
 
             const dayClass = [
-              'relative flex flex-col items-center justify-start p-1 sm:p-2 border-r border-b aspect-square',
+              'relative flex flex-col items-start justify-start p-1 sm:p-2 border-r border-b aspect-square overflow-hidden',
               isCurrentMonth ? '' : 'text-muted-foreground opacity-50',
               !isCurrentMonth && isPast(day) && !isToday(day) ? 'bg-muted/30' : '',
               isToday(day) ? 'bg-primary/10' : '',
@@ -82,13 +82,27 @@ export function GridCalendar({
                 className={dayClass}
                 onClick={() => onSelect(day)}
               >
-                <span className="text-sm font-medium">{format(day, 'd')}</span>
+                <span className="text-sm font-medium self-end">{format(day, 'd')}</span>
+                
+                {/* On small screens, show event count */}
                 {count > 0 && (
-                  <span
-                    className="absolute bottom-1 right-1 text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center text-[10px] bg-primary text-primary-foreground"
-                  >
+                  <div className="md:hidden absolute bottom-1 right-1 text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center text-[10px] bg-primary text-primary-foreground">
                     {count}
-                  </span>
+                  </div>
+                )}
+
+                {/* On larger screens, show event titles */}
+                {count > 0 && (
+                    <div className="hidden md:flex flex-col items-start w-full mt-1 space-y-1">
+                        {dayEvents.slice(0, 2).map(event => (
+                            <div key={event.id} className="text-xs bg-primary/20 text-default rounded-sm px-1 truncate w-full text-left">
+                                {event.title}
+                            </div>
+                        ))}
+                        {count > 2 && (
+                            <div className="text-xs text-muted-foreground">+ {count - 2} more</div>
+                        )}
+                    </div>
                 )}
               </button>
             );
