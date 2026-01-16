@@ -1,133 +1,93 @@
-import * as React from "react";
+'use client';
+
 import {
   format,
-  startOfMonth,
-  endOfMonth,
   startOfWeek,
-  endOfWeek,
   addDays,
   isSameMonth,
   isSameDay,
-} from "date-fns";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import type { Event } from "@/lib/types";
-import { dateKey, groupEventsByDay } from "@/lib/calendar/utils";
+  isPast,
+  isToday,
+} from 'date-fns';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import type { Event } from '@/lib/types';
+import { dateKey } from '@/lib/calendar/utils';
 
 interface GridCalendarProps {
   month: Date;
-  selectedDate?: Date;
-  onSelect: (d: Date) => void;
+  onSelect: (date: Date) => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
   events: Event[];
-  weekStartsOn?: 0 | 1;
 }
 
 export function GridCalendar({
   month,
-  selectedDate,
   onSelect,
   onPrevMonth,
   onNextMonth,
   events,
-  weekStartsOn = 0,
 }: GridCalendarProps) {
-  const eventsByDay = React.useMemo(() => groupEventsByDay(events), [events]);
+  const eventsByDay = events.reduce((acc, event) => {
+    const key = dateKey(event.date);
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(event);
+    return acc;
+  }, {} as Record<string, Event[]>);
 
-  const monthStart = startOfMonth(month);
-  const monthEnd = endOfMonth(month);
-  const gridStart = startOfWeek(monthStart, { weekStartsOn });
-  const gridEnd = endOfWeek(monthEnd, { weekStartsOn });
+  const start = startOfWeek(month, { weekStartsOn: 0 });
 
-  const days: Date[] = [];
-  for (let d = gridStart; d <= gridEnd; d = addDays(d, 1)) {
-    days.push(d);
-  }
-
-  const weekDayLabels =
-    weekStartsOn === 1
-      ? ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
-      : ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+  const days = Array.from({ length: 42 }).map((_, i) => addDays(start, i));
 
   return (
-    <Card className="min-w-0">
-      <CardHeader className="space-y-2 sm:space-y-3">
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" size="icon" onClick={onPrevMonth}>
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-
-          <div className="text-center min-w-0">
-            <CardTitle className="text-lg sm:text-xl">
-              {format(month, "MMMM yyyy")}
-            </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
-              Tap a day to view or add events
-            </CardDescription>
-          </div>
-
-          <Button variant="ghost" size="icon" onClick={onNextMonth}>
-            <ChevronRight className="h-5 w-5" />
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-7 gap-2 px-1 text-center text-xs font-medium text-muted-foreground sm:text-sm">
-          {weekDayLabels.map((label) => (
-            <div key={label} className="py-1">
-              {label}
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <Button variant="ghost" size="icon" onClick={onPrevMonth}>
+            <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <CardTitle className="text-center text-lg sm:text-xl">
+            {format(month, 'MMMM yyyy')}
+        </CardTitle>
+        <Button variant="ghost" size="icon" onClick={onNextMonth}>
+            <ChevronRight className="h-4 w-4" />
+        </Button>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-7 text-center text-sm font-semibold text-muted-foreground">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+            <div key={day} className="py-2">
+              {day}
             </div>
           ))}
         </div>
-      </CardHeader>
-
-      <CardContent className="px-2 sm:px-3">
-        <div className="grid grid-cols-7 gap-2 [grid-auto-rows:minmax(56px,1fr)] sm:[grid-auto-rows:minmax(84px,1fr)]">
+        <div className="grid grid-cols-7 border-t border-l">
           {days.map((day) => {
-            const isOutside = !isSameMonth(day, month);
-            const isSelected = !!selectedDate && isSameDay(day, selectedDate);
-            const today = isSameDay(day, new Date());
-
-            const dayEvents = eventsByDay.get(dateKey(day)) ?? [];
+            const dayEvents = eventsByDay[dateKey(day)] || [];
             const count = dayEvents.length;
+            const isCurrentMonth = isSameMonth(day, month);
+
+            const dayClass = [
+              'relative flex flex-col items-center justify-start p-1 sm:p-2 border-r border-b aspect-square',
+              isCurrentMonth ? '' : 'text-muted-foreground opacity-50',
+              !isCurrentMonth && isPast(day) && !isToday(day) ? 'bg-muted/30' : '',
+              isToday(day) ? 'bg-primary/10' : '',
+              'hover:bg-muted',
+            ].join(' ');
 
             return (
               <button
-                key={day.toISOString()}
-                type="button"
+                key={day.toString()}
+                className={dayClass}
                 onClick={() => onSelect(day)}
-                className={[
-                  "group relative rounded-md border p-1 sm:p-2",
-                  "flex flex-col items-stretch justify-between",
-                  isOutside ? "bg-muted/30 text-muted-foreground" : "bg-card",
-                  isSelected
-                    ? "ring-2 ring-primary/70"
-                    : "hover:bg-accent hover:text-accent-foreground",
-                  today ? "outline outline-2 outline-primary/50" : "",
-                ].join(" ")}
               >
-                <div className="flex items-start justify-between">
-                  <span
-                    className={[
-                      "text-xs sm:text-sm font-medium",
-                      today ? "text-primary" : "",
-                    ].join(" ")}
-                  >
-                    {format(day, "d")}
-                  </span>
-                </div>
-
+                <span className="text-sm font-medium">{format(day, 'd')}</span>
                 {count > 0 && (
                   <span
-                    className={[
-                      "pointer-events-none absolute bottom-1 right-1 rounded-full px-2 py-0.5 text-[10px] sm:text-xs",
-                      isSelected
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground",
-                    ].join(" ")}
+                    className="absolute bottom-1 right-1 text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center text-[10px] bg-primary text-primary-foreground"
                   >
-                    {count > 99 ? "99+" : count}
+                    {count}
                   </span>
                 )}
               </button>
