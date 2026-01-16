@@ -82,7 +82,7 @@ export function GridCalendar({
                 className={dayClass}
                 onClick={() => onSelect(day)}
               >
-                <span className="text-sm font-medium self-end">{format(day, 'd')}</span>
+                <span className="text-sm font-medium">{format(day, 'd')}</span>
                 
                 {/* On small screens, show event count */}
                 {count > 0 && (
@@ -95,7 +95,7 @@ export function GridCalendar({
                 {count > 0 && (
                     <div className="hidden md:flex flex-col items-start w-full mt-1 space-y-1">
                         {dayEvents.slice(0, 2).map(event => (
-                            <div key={event.id} className="text-xs bg-primary/20 text-default rounded-sm px-1 truncate w-full text-left">
+                            <div key={event.id} className="text-xs bg-primary/20 text-white rounded-sm px-1 truncate w-full text-left">
                                 {event.title}
                             </div>
                         ))}
