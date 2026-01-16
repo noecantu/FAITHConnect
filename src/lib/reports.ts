@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 // Member Reports
 // ---------------------------------
 export function generateMembersPDF(members: Member[]) {
+  const datePrefix = format(new Date(), "yyyy-MM-dd");
   const doc = new jsPDF();
   const tableColumn = ["Name", "Email", "Phone Number", "Status"];
   const tableRows: any[] = [];
@@ -28,10 +29,11 @@ export function generateMembersPDF(members: Member[]) {
     startY: 20,
   });
   doc.text("Member Directory Report", 14, 15);
-  doc.save("member_report.pdf");
+  doc.save(`${datePrefix}_Member Directory Report.pdf`);
 }
 
 export function generateMembersExcel(members: Member[]) {
+  const datePrefix = format(new Date(), "yyyy-MM-dd");
   const worksheet = XLSX.utils.json_to_sheet(members.map(m => ({
     "First Name": m.firstName,
     "Last Name": m.lastName,
@@ -41,38 +43,38 @@ export function generateMembersExcel(members: Member[]) {
   })));
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Members");
-  XLSX.writeFile(workbook, "member_report.xlsx");
+  XLSX.writeFile(workbook, `${datePrefix} Member Directory Report.xlsx`);
 }
 
 // ---------------------------------
 // Contribution Reports
 // ---------------------------------
 export function generateContributionsPDF(contributions: Contribution[]) {
+  const datePrefix = format(new Date(), "yyyy-MM-dd");
   const doc = new jsPDF();
+
   const tableColumn = ["Member Name", "Date", "Amount", "Category", "Type"];
   const tableRows: any[] = [];
 
   contributions.forEach(c => {
-    const contributionData = [
+    tableRows.push([
       c.memberName,
       format(new Date(c.date), 'MM/dd/yyyy'),
       `$${c.amount.toFixed(2)}`,
       c.category,
       c.contributionType,
-    ];
-    tableRows.push(contributionData);
+    ]);
   });
 
-  autoTable(doc, {
-    head: [tableColumn],
-    body: tableRows,
-    startY: 20,
-  });
+  autoTable(doc, { head: [tableColumn], body: tableRows, startY: 20 });
   doc.text("Contributions Report", 14, 15);
-  doc.save("contribution_report.pdf");
+
+  doc.save(`${datePrefix} Contributions Report.pdf`);
 }
 
 export function generateContributionsExcel(contributions: Contribution[]) {
+  const datePrefix = format(new Date(), "yyyy-MM-dd");
+
   const worksheet = XLSX.utils.json_to_sheet(contributions.map(c => ({
     "Member Name": c.memberName,
     "Date": format(new Date(c.date), 'MM/dd/yyyy'),
@@ -80,7 +82,9 @@ export function generateContributionsExcel(contributions: Contribution[]) {
     "Category": c.category,
     "Type": c.contributionType,
   })));
+
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Contributions");
-  XLSX.writeFile(workbook, "contribution_report.xlsx");
+
+  XLSX.writeFile(workbook, `${datePrefix} Contribution Report.xlsx`);
 }
