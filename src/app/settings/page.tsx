@@ -279,7 +279,7 @@ export default function SettingsPage() {
         )}
 
       </div>
-      
+
       <ReportDialog
         open={!!reportType}
         onOpenChange={() => setReportType(null)}

@@ -41,6 +41,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useEffect, useMemo, useState } from 'react';
 
 // ------------------------------
 // Page Component
@@ -54,9 +55,23 @@ export default function ContributionsPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
   const [editingContribution, setEditingContribution] = React.useState<Contribution | null>(null);
   const [deletingContribution, setDeletingContribution] = React.useState<Contribution | null>(null);
-  
   const { isFinance } = useUserRoles(churchId);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
+  useEffect(() => {
+    const savedYear = localStorage.getItem("fiscalYear");
+    if (savedYear) {
+      setSelectedYear(parseInt(savedYear, 10));
+    }
+  }, []);
+
+  const filteredContributions = useMemo(() => {
+    return contributions.filter(c => {
+      const year = new Date(c.date).getFullYear();
+      return year === selectedYear;
+    });
+  }, [contributions, selectedYear]);
+  
   React.useEffect(() => {
     setIsClient(true);
   }, []);
@@ -118,7 +133,7 @@ export default function ContributionsPage() {
           </Button>
         )}
       </PageHeader>
-      <ContributionSummary contributions={contributions} />
+      <ContributionSummary contributions={filteredContributions} />
 
       <div className="grid gap-8">
         {/* Full-width Chart */}
@@ -127,7 +142,7 @@ export default function ContributionsPage() {
             <CardTitle>Contribution Overview</CardTitle>
           </CardHeader>
           <CardContent className="flex-1">
-            <ContributionChart data={contributions} />
+          <ContributionChart data={filteredContributions} />
           </CardContent>
         </Card>
       </div>
@@ -139,7 +154,7 @@ export default function ContributionsPage() {
             <CardTitle>All Contributions</CardTitle>
           </CardHeader>
           <CardContent>
-            <ContributionsTable columns={columns} data={contributions} />
+          <ContributionsTable columns={columns} data={filteredContributions} />
           </CardContent>
         </Card>
       </div>
