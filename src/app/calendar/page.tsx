@@ -8,13 +8,11 @@ import {
   startOfMonth,
   isSameMonth,
 } from 'date-fns';
-import { Pencil, Trash2 } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
 import { PageHeader } from '@/components/page-header';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 import type { Event as EventType } from '@/lib/types';
@@ -43,6 +41,7 @@ import { GridCalendar } from '@/components/calendar/GridCalendar';
 import { ListView } from '@/components/calendar/ListView';
 import { ConfirmDeleteDialog } from '@/components/calendar/ConfirmDeleteDialog';
 import { EventFormDialog } from '@/components/calendar/EventFormDialog';
+import { DayEventsDialog } from '@/components/calendar/DayEventsDialog';
 
 // ------------------------------
 // Schema & Types
@@ -76,7 +75,6 @@ const muiTheme = createTheme({
 // ------------------------------
 export default function CalendarPage() {
   const [month, setMonth] = React.useState<Date>(startOfMonth(new Date()));
-  const [selected, setSelected] = React.useState<Date>(new Date());
   const [events, setEvents] = React.useState<EventType[]>([]);
   const [isFormOpen, setIsFormOpen] = React.useState(false);
   const [editEvent, setEditEvent] = React.useState<EventType | null>(null);
@@ -86,6 +84,10 @@ export default function CalendarPage() {
   const { isEventManager } = useUserRoles(churchId);
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
   const isDeleteOpen = deleteId !== null;
+
+  // New state for the DayEventsDialog
+  const [selectedDate, setSelectedDate] = React.useState<Date | null>(null);
+  const [isDayEventsDialogOpen, setIsDayEventsDialogOpen] = React.useState(false);
 
   // Firestore listener
   useEffect(() => {
@@ -153,45 +155,35 @@ export default function CalendarPage() {
   }, []);
 
   const selectedDayEvents = React.useMemo(() => {
+    if (!selectedDate) return [];
     return events.filter(
-      (event) => dateKey(event.date) === dateKey(selected)
+      (event) => dateKey(event.date) === dateKey(selectedDate)
     );
-  }, [selected, events]);
+  }, [selectedDate, events]);
 
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
       title: '',
       description: '',
-      date: selected,
+      date: new Date(),
     },
   });
 
-  React.useEffect(() => {
-    form.setValue('date', selected);
-  }, [selected, form]);
-
   function handleSelectDate(d: Date) {
-    setSelected(d);
+    setSelectedDate(d);
+    setIsDayEventsDialogOpen(true);
     if (!isSameMonth(d, month)) {
       setMonth(startOfMonth(d));
     }
   }
 
   function handlePrevMonth() {
-    const m = subMonths(month, 1);
-    setMonth(m);
-    if (!isSameMonth(selected, m)) {
-      setSelected(startOfMonth(m));
-    }
+    setMonth(prev => subMonths(prev, 1));
   }
 
   function handleNextMonth() {
-    const m = addMonths(month, 1);
-    setMonth(m);
-    if (!isSameMonth(selected, m)) {
-      setSelected(startOfMonth(m));
-    }
+    setMonth(prev => addMonths(prev, 1));
   }
 
   function handleDeleteRequest(id: string) {
@@ -243,14 +235,31 @@ export default function CalendarPage() {
     }
 
     setEditEvent(event);
-
     form.reset({
       title: event.title,
       description: event.description ?? '',
       date: event.date,
     });
-
-    setSelected(event.date);
+    setIsDayEventsDialogOpen(false); // Close day view to open edit form
+    setIsFormOpen(true);
+  }
+  
+  function handleAdd(date: Date) {
+    if (!isEventManager) {
+        toast({
+          title: 'Permission Denied',
+          description: 'You do not have permission to add events.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    setEditEvent(null);
+    form.reset({
+      title: '',
+      description: '',
+      date: date,
+    });
+    setIsDayEventsDialogOpen(false); // Close day view to open add form
     setIsFormOpen(true);
   }
 
@@ -275,7 +284,6 @@ export default function CalendarPage() {
 
     try {
       if (isEditing && editEvent) {
-        // UPDATE in Firestore
         const ref = doc(db, 'churches', churchId, 'events', editEvent.id);
         await updateDoc(ref, {
           title: data.title,
@@ -283,13 +291,11 @@ export default function CalendarPage() {
           date: data.date,
           updatedAt: serverTimestamp(),
         });
-
         toast({
           title: 'Event Updated',
           description: `"${data.title}" has been updated.`,
         });
       } else {
-        // CREATE in Firestore
         const colRef = collection(db, 'churches', churchId, 'events');
         await addDoc(colRef, {
           title: data.title,
@@ -298,7 +304,6 @@ export default function CalendarPage() {
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
-
         toast({
           title: 'Event Added',
           description: `"${data.title}" has been added to ${format(
@@ -310,12 +315,6 @@ export default function CalendarPage() {
 
       setIsFormOpen(false);
       setEditEvent(null);
-
-      form.reset({
-        title: '',
-        description: '',
-        date: selected,
-      });
     } catch (error) {
       console.error(error);
       toast({
@@ -330,7 +329,6 @@ export default function CalendarPage() {
 
   return (
     <>
-      {/* Delete confirmation */}
       <ConfirmDeleteDialog
         open={isDeleteOpen}
         onOpenChange={(open) => {
@@ -344,113 +342,55 @@ export default function CalendarPage() {
         }}
       />
 
+      <EventFormDialog
+        open={isFormOpen}
+        isEditing={isEditing}
+        event={editEvent}
+        selectedDate={selectedDate || new Date()}
+        form={form}
+        onSubmit={onSubmit}
+        onOpenChange={(open) => {
+          setIsFormOpen(open);
+          if (!open) setEditEvent(null);
+        }}
+        muiTheme={muiTheme}
+      />
+      
+      {selectedDate && (
+        <DayEventsDialog 
+            open={isDayEventsDialogOpen}
+            onOpenChange={setIsDayEventsDialogOpen}
+            date={selectedDate}
+            events={selectedDayEvents}
+            onAdd={handleAdd}
+            onEdit={handleEdit}
+            onDelete={handleDeleteRequest}
+            canManage={isEventManager}
+        />
+      )}
+
       <PageHeader title="Calendar of Events">
-        <div className="flex items-center gap-2">
-          {isEventManager && (
+        {isEventManager && (
+          <div className="flex items-center gap-2">
             <Button
-              onClick={() => {
-                setEditEvent(null);
-                form.reset({
-                  title: '',
-                  description: '',
-                  date: selected,
-                });
-                setIsFormOpen(true);
-              }}
+              onClick={() => handleAdd(new Date())}
             >
               Add Event
             </Button>
-          )}
-        </div>
-
-        <EventFormDialog
-          open={isFormOpen}
-          isEditing={isEditing}
-          event={editEvent}
-          selectedDate={selected}
-          form={form}
-          onSubmit={onSubmit}
-          onOpenChange={(open) => {
-            setIsFormOpen(open);
-            if (!open) setEditEvent(null);
-          }}
-          muiTheme={muiTheme}
-        />
+          </div>
+        )}
       </PageHeader>
 
       {/* VIEW SWITCHING */}
       {view === 'calendar' ? (
         <>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div className="md:col-span-1 lg:col-span-2 min-w-0">
-              <GridCalendar
+            <GridCalendar
                 month={month}
-                selectedDate={selected}
                 onSelect={handleSelectDate}
                 onPrevMonth={handlePrevMonth}
                 onNextMonth={handleNextMonth}
                 events={events}
-                weekStartsOn={0}
-              />
-
-              <div className="mt-3 flex items-center justify-between">
-                <Button variant="outline" onClick={handlePrevMonth}>
-                  Previous
-                </Button>
-                <Button variant="outline" onClick={handleNextMonth}>
-                  Next
-                </Button>
-              </div>
-            </div>
-
-            <div className="min-w-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Events for {format(selected, 'PPP')}</CardTitle>
-                  <CardDescription>
-                    Tap a day to view or add events.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {selectedDayEvents.length > 0 ? (
-                    <ul className="space-y-4">
-                      {selectedDayEvents.map((event) => (
-                        <li key={event.id} className="flex items-center justify-between rounded-md border p-3">
-                          <div className="flex-grow">
-                            <p className="font-semibold">{event.title}</p>
-                            {event.description && (
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {event.description}
-                              </p>
-                            )}
-                            <p className="text-xs text-muted-foreground mt-2">
-                              {format(event.date, 'PPP')}
-                            </p>
-                          </div>
-                          <div className="flex shrink-0 items-center gap-2 ml-4">
-                            {isEventManager && (
-                              <>
-                                <Button variant="ghost" size="icon" onClick={() => handleEdit(event)}>
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="icon" onClick={() => handleDeleteRequest(event.id)}>
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-muted-foreground">
-                      No events for this day.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+            />
         </>
       ) : (
         <ListView
