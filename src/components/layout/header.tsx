@@ -6,12 +6,10 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 flex h-16 items-center border-b bg-background px-4 md:px-6">
       <Link href="/" className="flex items-center gap-2 font-semibold">
-        <Image
-          src="/FaithConnectLogoWhite.png"
+        <img
+          src="/FAITH_CONNECT_LOGO.svg"
           alt="Faith Connect Logo"
-          width={130}
-          height={130}
-          className="h-28 w-34"
+          className="h-28 w-28"
         />
         {/* <span className="font-semibold">FAITH Connect</span> */}
       </Link>
