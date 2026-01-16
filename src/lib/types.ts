@@ -75,6 +75,7 @@ export interface User {
   roles: string[];
   settings?: {
     calendarView?: 'calendar' | 'list';
+    cardView?: 'show' | 'hide';
     fiscalYear?: string;
   };
 }

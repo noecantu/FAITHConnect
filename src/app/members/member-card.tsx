@@ -89,6 +89,14 @@ export function MemberCard({ member }: { member: Member }) {
   const churchId = useChurchId();
   const [allMembers, setAllMembers] = useState<Member[]>([]);
 
+  const [cardView, setCardView] = useState<'show' | 'hide'>('show');
+  useEffect(() => {
+    const saved = localStorage.getItem("cardView");
+    if (saved === 'show' || saved === 'hide') {
+      setCardView(saved);
+    }
+  }, []);
+
   useEffect(() => {
     if (!churchId) return;
     const unsubscribe = listenToMembers(churchId, (members) => {
@@ -100,29 +108,31 @@ export function MemberCard({ member }: { member: Member }) {
   return (
     <MemberFormSheet member={member}>
       <Card className="overflow-hidden cursor-pointer flex flex-col h-full">
-        <div className="relative aspect-[4/3] w-full flex items-center justify-center bg-muted text-muted-foreground">
-          {member.profilePhotoUrl ? (
-            <Image
-              src={member.profilePhotoUrl}
-              alt={`${member.firstName} ${member.lastName}`}
-              fill
-              className={cn(
-                'object-cover',
-                member.status === 'Archived' && 'grayscale'
-              )}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-          ) : (
-            <span className="text-sm font-medium">No Image Added</span>
-          )}
-          <div className="absolute top-2 right-2">
-            <StatusBadge status={member.status} />
+        {cardView === 'show' && (
+          <div className="relative aspect-[4/3] w-full flex items-center justify-center bg-muted text-muted-foreground">
+            {member.profilePhotoUrl ? (
+              <Image
+                src={member.profilePhotoUrl}
+                alt={`${member.firstName} ${member.lastName}`}
+                fill
+                className={cn(
+                  'object-cover',
+                  member.status === 'Archived' && 'grayscale'
+                )}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              />
+            ) : (
+              <span className="text-sm font-medium">No Image Added</span>
+            )}
+            <div className="absolute top-2 right-2">
+              <StatusBadge status={member.status} />
+            </div>
+            <div className="absolute bottom-2 left-2 flex flex-col items-start gap-1">
+              <UpcomingEventBadge dateString={member.birthday} label="Birthday" />
+              <UpcomingEventBadge dateString={member.anniversary} label="Anniversary" />
+            </div>
           </div>
-          <div className="absolute bottom-2 left-2 flex flex-col items-start gap-1">
-            <UpcomingEventBadge dateString={member.birthday} label="Birthday" />
-            <UpcomingEventBadge dateString={member.anniversary} label="Anniversary" />
-          </div>
-        </div>
+        )}
         <CardHeader className="flex-row items-start justify-between pb-2">
           <div className="flex flex-col">
             <CardTitle className="text-xl">{`${member.firstName} ${member.lastName}`}</CardTitle>

@@ -27,6 +27,7 @@ export default function SettingsPage() {
   const churchId = useChurchId();
   const { isAdmin } = useUserRoles(churchId);
   const { toast } = useToast();
+  const [cardView, setCardView] = React.useState('member-card');
 
   const [members, setMembers] = React.useState<Member[]>([]);
   const [contributions, setContributions] = React.useState<Contribution[]>([]);
@@ -54,7 +55,11 @@ export default function SettingsPage() {
     if (savedYear) {
       setFiscalYear(savedYear);
     }
-
+    const savedCardView = localStorage.getItem("cardView");
+    if (savedCardView === 'show' || savedCardView === 'hide') {
+      setCardView(savedCardView);
+    }
+    
     // Then try to load from Firestore if user is logged in
     const fetchUserSettings = async () => {
       if (user) {
@@ -71,6 +76,10 @@ export default function SettingsPage() {
               setFiscalYear(data.settings.fiscalYear);
               localStorage.setItem("fiscalYear", data.settings.fiscalYear);
             }
+            if (data.settings?.cardView) {
+              setCardView(data.settings.cardView);
+              localStorage.setItem("cardView", data.settings.cardView);
+            }            
           }
         } catch (error) {
           console.error("Error fetching user settings:", error);
@@ -94,6 +103,29 @@ export default function SettingsPage() {
           });
         } catch (error) {
           console.error("Error saving calendar view:", error);
+          toast({
+            title: "Error",
+            description: "Failed to save settings to your account.",
+            variant: "destructive",
+          });
+        }
+      }
+    }
+  };
+
+  const handleCardViewChange = async (value: string) => {
+    if (value === 'show' || value === 'hide') {
+      setCardView(value);
+      localStorage.setItem("cardView", value);
+
+      if (user) {
+        try {
+          const userDocRef = doc(db, 'users', user.uid);
+          await updateDoc(userDocRef, {
+            'settings.cardView': value
+          });
+        } catch (error) {
+          console.error("Error saving member card view:", error);
           toast({
             title: "Error",
             description: "Failed to save settings to your account.",
@@ -139,7 +171,7 @@ export default function SettingsPage() {
       <PageHeader title="Settings" />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        {/* 1. Calendar View */}
+        {/* Calendar View */}
         <Card>
           <CardHeader>
             <CardTitle>Calendar View</CardTitle>
@@ -165,7 +197,7 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* 2. Financial Year */}
+        {/* Financial Year */}
         <Card>
           <CardHeader>
             <CardTitle>Financial Year</CardTitle>
@@ -187,14 +219,40 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
         
+        {/* Member Dashboard View */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Member Card View</CardTitle>
+            <CardDescription>
+              Choose the default view for the Member Dashboard Cards.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RadioGroup
+              value={cardView}
+              onValueChange={handleCardViewChange}
+              className="flex items-center space-x-6"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="show" id="show-view" />
+                <Label htmlFor="show-view">Show Photo</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="hide" id="hide-view" />
+                <Label htmlFor="hide-view">Hide Photo</Label>
+              </div>
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
         {isAdmin && (
           <>
-            {/* 3. Member Roles (Admin Only) */}
+            {/* Member Roles (Admin Only) */}
             <Card>
               <CardHeader>
-                <CardTitle>Member Roles</CardTitle>
+                <CardTitle>Members</CardTitle>
                 <CardDescription>
-                  Manage member permissions and roles for your organization.
+                  Manage member settings and roles for your organization.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -204,7 +262,7 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            {/* 4. Reports (Admin Only) */}
+            {/* Reports (Admin Only) */}
             <Card>
               <CardHeader>
                 <CardTitle>Reports</CardTitle>
