@@ -7,6 +7,9 @@ import {
   subMonths,
   startOfMonth,
   isSameMonth,
+  setMonth as setMonthDate,
+  setYear as setYearDate,
+  startOfToday,
 } from 'date-fns';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -14,6 +17,13 @@ import * as z from 'zod';
 
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  } from "@/components/ui/select";
 
 import type { Event as EventType } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -185,6 +195,10 @@ export default function CalendarPage() {
   function handleNextMonth() {
     setMonth(prev => addMonths(prev, 1));
   }
+  
+  function handleToday() {
+    setMonth(startOfToday());
+  }
 
   function handleDeleteRequest(id: string) {
     if (!isEventManager) {
@@ -324,6 +338,14 @@ export default function CalendarPage() {
       });
     }
   }
+  
+  const months = Array.from({ length: 12 }, (_, i) => ({
+    value: i,
+    label: format(new Date(0, i), 'MMMM'),
+  }));
+  
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
 
   if (!hydrated) return null;
 
@@ -369,16 +391,35 @@ export default function CalendarPage() {
         />
       )}
 
-      <PageHeader title="Calendar of Events">
-        {isEventManager && (
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => handleAdd(new Date())}
+      <PageHeader 
+        title="Calendar of Events"
+        subtitle="Select a date to view or add events."
+      >
+        <div className="flex items-center gap-2">
+            <Select
+                value={String(month.getMonth())}
+                onValueChange={(value) => setMonth(setMonthDate(month, Number(value)))}
             >
-              Add Event
-            </Button>
-          </div>
-        )}
+                <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    {months.map(m => <SelectItem key={m.value} value={String(m.value)}>{m.label}</SelectItem>)}
+                </SelectContent>
+            </Select>
+            <Select
+                value={String(month.getFullYear())}
+                onValueChange={(value) => setMonth(setYearDate(month, Number(value)))}
+            >
+                <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+                </SelectContent>
+            </Select>
+            <Button variant="outline" onClick={handleToday}>Today</Button>
+        </div>
       </PageHeader>
 
       {/* VIEW SWITCHING */}
