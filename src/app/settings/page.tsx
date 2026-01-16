@@ -206,16 +206,19 @@ export default function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Select value={fiscalYear} onValueChange={handleFiscalYearChange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select a year" />
-              </SelectTrigger>
-              <SelectContent>
-                {generateYearOptions().map(year => (
-                  <SelectItem key={year} value={year}>{year}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <Select value={fiscalYear} onValueChange={handleFiscalYearChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select a year" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Show All</SelectItem>
+              {generateYearOptions().map(year => (
+                <SelectItem key={year} value={year}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           </CardContent>
         </Card>
         

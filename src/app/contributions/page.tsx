@@ -56,21 +56,27 @@ export default function ContributionsPage() {
   const [editingContribution, setEditingContribution] = React.useState<Contribution | null>(null);
   const [deletingContribution, setDeletingContribution] = React.useState<Contribution | null>(null);
   const { isFinance } = useUserRoles(churchId);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState<number | "all">(new Date().getFullYear());
 
   useEffect(() => {
     const savedYear = localStorage.getItem("fiscalYear");
-    if (savedYear) {
+    if (!savedYear) return;
+
+    if (savedYear === "all") {
+      setSelectedYear("all");
+    } else {
       setSelectedYear(parseInt(savedYear, 10));
     }
   }, []);
 
   const filteredContributions = useMemo(() => {
+    if (selectedYear === "all") return contributions;
+  
     return contributions.filter(c => {
       const year = new Date(c.date).getFullYear();
       return year === selectedYear;
     });
-  }, [contributions, selectedYear]);
+  }, [contributions, selectedYear]);  
   
   React.useEffect(() => {
     setIsClient(true);
