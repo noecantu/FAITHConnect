@@ -39,10 +39,18 @@ export default function LoginPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-muted">
       <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
+        
+        <CardHeader className="text-center space-y-2">
+          <img
+            src="/F-Flame_Vector.svg"
+            alt="Faith Connect Logo"
+            className="mx-auto h-20 w-20"
+          />
+
           <CardTitle>FAITH Connect</CardTitle>
           <CardDescription>Log in to your account</CardDescription>
         </CardHeader>
+
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
