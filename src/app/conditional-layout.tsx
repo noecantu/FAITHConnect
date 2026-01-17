@@ -26,22 +26,40 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
   // Data Listeners for Reports, always active if admin
   React.useEffect(() => {
     if (isAdmin && churchId) {
+      // Fetch ALL data without pre-filtering
       const unsubMembers = listenToMembers(churchId, setMembers);
-      const unsubContributions = listenToContributions(churchId, (data) => {
-        if (fiscalYear === 'all') {
-            setContributions(data);
-        } else {
-            const filtered = data.filter(c => new Date(c.date).getFullYear().toString() === fiscalYear);
-            setContributions(filtered);
-        }
-      });
+      const unsubContributions = listenToContributions(churchId, setContributions);
       
       return () => {
         unsubMembers();
         unsubContributions();
       };
     }
-  }, [isAdmin, churchId, fiscalYear]);
+  }, [isAdmin, churchId]);
+
+  const handleExport = (format: 'pdf' | 'excel', memberId: string) => {
+    if (reportType === 'members') {
+      // Member reports are not filtered
+      if (format === 'pdf') generateMembersPDF(members);
+      if (format === 'excel') generateMembersExcel(members);
+    } 
+    else if (reportType === 'contributions') {
+      // 1. Filter by fiscal year first
+      const yearFilteredContributions = fiscalYear === 'all'
+        ? contributions
+        : contributions.filter(c => new Date(c.date).getFullYear().toString() === fiscalYear);
+      
+      // 2. Then, filter by selected member
+      const finalContributions = memberId === 'all'
+        ? yearFilteredContributions
+        : yearFilteredContributions.filter(c => c.memberId === memberId);
+
+      // 3. Generate the report with the final filtered list
+      if (format === 'pdf') generateContributionsPDF(finalContributions);
+      if (format === 'excel') generateContributionsExcel(finalContributions);
+    }
+    setReportType(null); // Close dialog after export
+  };
 
   if (pathname === '/login') {
     return <>{children}</>;
@@ -59,16 +77,9 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
         open={!!reportType}
         onOpenChange={() => setReportType(null)}
         title={reportType === 'members' ? 'Members' : 'Contributions'}
-        onPDF={() => {
-            if (reportType === 'members') generateMembersPDF(members);
-            if (reportType === 'contributions') generateContributionsPDF(contributions);
-            setReportType(null);
-        }}
-        onExcel={() => {
-            if (reportType === 'members') generateMembersExcel(members);
-            if (reportType === 'contributions') generateContributionsExcel(contributions);
-            setReportType(null);
-        }}
+        members={members}
+        onPDF={(memberId) => handleExport('pdf', memberId)}
+        onExcel={(memberId) => handleExport('excel', memberId)}
       />
     </>
   );

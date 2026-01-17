@@ -85,11 +85,11 @@ export function NavMenu({ setReportType }: { setReportType: (type: 'members' | '
                 <span>Reports</span>
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
-                <DropdownMenuItem onClick={() => setReportType('members')}>
-                  Member Report
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setReportType('contributions')}>
                   Contribution Report
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setReportType('members')}>
+                  Member Report
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
