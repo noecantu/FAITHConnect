@@ -60,7 +60,7 @@ export function NavMenu({ setReportType }: { setReportType: (type: 'members' | '
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
             <Menu />
