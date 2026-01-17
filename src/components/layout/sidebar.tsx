@@ -40,7 +40,7 @@ const navItems = [
   { href: '/contributions', label: 'Contributions', icon: DollarSign },
 ];
 
-export function NavMenu({ setReportType }: { setReportType: (type: 'members' | 'contributions') => void }) {
+export function NavMenu() {
   const pathname = usePathname();
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false);
   const { toast } = useToast();
@@ -79,20 +79,12 @@ export function NavMenu({ setReportType }: { setReportType: (type: 'members' | '
           ))}
 
           {isAdmin && (
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
+            <Link href="/reports">
+              <DropdownMenuItem className={pathname === '/reports' ? 'bg-accent' : ''}>
                 <FileText className="mr-2 h-4 w-4" />
                 <span>Reports</span>
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem onClick={() => setReportType('contributions')}>
-                  Contribution Report
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setReportType('members')}>
-                  Member Report
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
+              </DropdownMenuItem>
+            </Link>
           )}
 
           <DropdownMenuSeparator />
