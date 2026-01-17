@@ -11,7 +11,7 @@ import { listenToContributions } from '@/lib/contributions';
 import { generateMembersPDF, generateMembersExcel, generateContributionsPDF, generateContributionsExcel } from '@/lib/reports';
 import type { Member, Contribution } from '@/lib/types';
 import * as React from 'react';
-import { useSettings } from '@/components/settings-provider';
+import { useSettings } from '@/hooks/use-settings';
 
 export function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
