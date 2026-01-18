@@ -5,22 +5,38 @@ import type { Member, Contribution } from '@/lib/types';
 import { format } from 'date-fns';
 
 // ---------------------------------
+// Field label map (for dynamic fields)
+// ---------------------------------
+const fieldLabelMap: Record<string, string> = {
+  email: "Email",
+  phoneNumber: "Phone Number",
+  birthday: "Birthday",
+  baptismDate: "Baptism Date",
+  anniversary: "Anniversary",
+  address: "Address",
+  notes: "Notes",
+  roles: "Roles",
+};
+
+// ---------------------------------
 // Member Reports
 // ---------------------------------
-export function generateMembersPDF(members: Member[]) {
+export function generateMembersPDF(
+  members: Member[],
+  selectedFields: string[]
+) {
   const datePrefix = format(new Date(), "yyyy-MM-dd");
   const doc = new jsPDF();
-  const tableColumn = ["Name", "Email", "Phone Number", "Status"];
+
+  const tableColumn = ["Name", ...selectedFields.map(f => fieldLabelMap[f])];
   const tableRows: any[] = [];
 
   members.forEach(member => {
-    const memberData = [
+    const row = [
       `${member.firstName} ${member.lastName}`,
-      member.email || 'N/A',
-      member.phoneNumber,
-      member.status,
+      ...selectedFields.map(f => member[f as keyof Member] ?? "—")
     ];
-    tableRows.push(memberData);
+    tableRows.push(row);
   });
 
   autoTable(doc, {
@@ -28,26 +44,38 @@ export function generateMembersPDF(members: Member[]) {
     body: tableRows,
     startY: 20,
   });
+
   doc.text("Member Directory Report", 14, 15);
   doc.save(`${datePrefix}_Member Directory Report.pdf`);
 }
 
-export function generateMembersExcel(members: Member[]) {
+export function generateMembersExcel(
+  members: Member[],
+  selectedFields: string[]
+) {
   const datePrefix = format(new Date(), "yyyy-MM-dd");
-  const worksheet = XLSX.utils.json_to_sheet(members.map(m => ({
-    "First Name": m.firstName,
-    "Last Name": m.lastName,
-    "Email": m.email,
-    "Phone Number": m.phoneNumber,
-    "Status": m.status,
-  })));
+
+  const worksheet = XLSX.utils.json_to_sheet(
+    members.map(m => {
+      const row: any = {
+        Name: `${m.firstName} ${m.lastName}`,
+      };
+
+      selectedFields.forEach(f => {
+        row[fieldLabelMap[f]] = m[f as keyof Member] ?? "";
+      });
+
+      return row;
+    })
+  );
+
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Members");
   XLSX.writeFile(workbook, `${datePrefix} Member Directory Report.xlsx`);
 }
 
 // ---------------------------------
-// Contribution Reports
+// Contribution Reports (UNCHANGED)
 // ---------------------------------
 export function generateContributionsPDF(contributions: Contribution[]) {
   const datePrefix = format(new Date(), "yyyy-MM-dd");

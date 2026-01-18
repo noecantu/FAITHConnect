@@ -11,26 +11,37 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { useMembers } from '@/hooks/use-members';
 import { useContributions } from '@/hooks/use-contributions';
 
-import { generateMembersPDF, generateMembersExcel, generateContributionsPDF, generateContributionsExcel } from '@/lib/reports';
+import {
+  generateMembersPDF,
+  generateMembersExcel,
+  generateContributionsPDF,
+  generateContributionsExcel
+} from '@/lib/reports';
 
 export default function ReportsPage() {
   const { members } = useMembers();
   const { contributions } = useContributions();
 
-  // Report type
-  const [reportType, setReportType] = useState<'members' | 'contributions'>(
-    'members'
-  );
+  const [reportType, setReportType] =
+    useState<'members' | 'contributions'>('members');
 
-  // Member selection
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
-
-  // Year selection
   const [selectedFY, setSelectedFY] = useState<string[]>([]);
 
-  // ---------------------------------------
-  // AVAILABLE YEARS (dynamic from data)
-  // ---------------------------------------
+  // Fields to export for Member List (plain strings)
+  const memberFieldOptions = [
+    { label: "Email", value: "email" },
+    { label: "Phone Number", value: "phoneNumber" },
+    { label: "Birthday", value: "birthday" },
+    { label: "Baptism Date", value: "baptismDate" },
+    { label: "Anniversary", value: "anniversary" },
+    { label: "Address", value: "address" },
+    { label: "Notes", value: "notes" },
+    { label: "Roles", value: "roles" },
+  ];
+
+  const [selectedFields, setSelectedFields] = useState<string[]>([]);
+
   const availableYears = useMemo(() => {
     const years = new Set<string>();
     contributions.forEach((c) => {
@@ -39,28 +50,20 @@ export default function ReportsPage() {
     return Array.from(years).sort((a, b) => Number(b) - Number(a));
   }, [contributions]);
 
-  // ---------------------------------------
-  // FILTERED MEMBERS
-  // ---------------------------------------
   const filteredMembers = useMemo(() => {
     if (selectedMembers.length === 0) return members;
     return members.filter((m) => selectedMembers.includes(m.id));
   }, [members, selectedMembers]);
 
-  // ---------------------------------------
-  // FILTERED CONTRIBUTIONS
-  // ---------------------------------------
   const filteredContributions = useMemo(() => {
     let list = contributions;
 
-    // Filter by year
     if (selectedFY.length > 0) {
       list = list.filter((c) =>
         selectedFY.includes(new Date(c.date).getFullYear().toString())
       );
-    }    
+    }
 
-    // Filter by selected members
     if (selectedMembers.length > 0) {
       list = list.filter((c) => selectedMembers.includes(c.memberId));
     }
@@ -68,12 +71,9 @@ export default function ReportsPage() {
     return list;
   }, [contributions, selectedFY, selectedMembers]);
 
-  // ---------------------------------------
-  // EXPORT HANDLERS
-  // ---------------------------------------
   const handleExportPDF = () => {
     if (reportType === 'members') {
-      generateMembersPDF(filteredMembers);
+      generateMembersPDF(filteredMembers, selectedFields);
     } else {
       generateContributionsPDF(filteredContributions);
     }
@@ -81,7 +81,7 @@ export default function ReportsPage() {
 
   const handleExportExcel = () => {
     if (reportType === 'members') {
-      generateMembersExcel(filteredMembers);
+      generateMembersExcel(filteredMembers, selectedFields);
     } else {
       generateContributionsExcel(filteredContributions);
     }
@@ -89,7 +89,6 @@ export default function ReportsPage() {
 
   return (
     <div className="flex gap-6 p-6">
-      {/* LEFT PANEL */}
       <Card className="w-80 h-fit">
         <CardHeader>
           <CardTitle>Filters</CardTitle>
@@ -178,6 +177,37 @@ export default function ReportsPage() {
             />
           </div>
 
+          {/* Member Fields Selection */}
+          {reportType === "members" && (
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <Label>Fields to Export</Label>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    setSelectedFields(
+                      selectedFields.length === memberFieldOptions.length
+                        ? []
+                        : memberFieldOptions.map((f) => f.value)
+                    )
+                  }
+                >
+                  {selectedFields.length === memberFieldOptions.length
+                    ? "Clear All"
+                    : "Select All"}
+                </Button>
+              </div>
+
+              <MultiSelect
+                options={memberFieldOptions}
+                value={selectedFields}
+                onChange={setSelectedFields}
+                placeholder="All Fields"
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -198,7 +228,8 @@ export default function ReportsPage() {
               </>
             )}
           </div>
-          {/* Preview Table */}
+
+          {/* Preview Table (still simple for now) */}
           <div className="border rounded-md overflow-hidden">
             {reportType === 'members' ? (
               <table className="w-full text-sm">
@@ -211,7 +242,9 @@ export default function ReportsPage() {
                 <tbody>
                   {filteredMembers.map((m) => (
                     <tr key={m.id} className="border-t">
-                      <td className="p-2">{m.firstName} {m.lastName}</td>
+                      <td className="p-2">
+                        {m.firstName} {m.lastName}
+                      </td>
                       <td className="p-2">{m.email || '—'}</td>
                     </tr>
                   ))}
@@ -232,7 +265,9 @@ export default function ReportsPage() {
                     return (
                       <tr key={c.id} className="border-t">
                         <td className="p-2">
-                          {member ? `${member.firstName} ${member.lastName}` : 'Unknown'}
+                          {member
+                            ? `${member.firstName} ${member.lastName}`
+                            : 'Unknown'}
                         </td>
                         <td className="p-2">${c.amount.toFixed(2)}</td>
                         <td className="p-2">
