@@ -14,6 +14,9 @@ import { useUserRoles } from '@/hooks/useUserRoles';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { listenToContributions } from '@/lib/contributions';
+import { useEffect, useMemo, useState } from 'react';
+import { Contribution } from '@/lib/types';
 
 export default function SettingsPage() {
   const [calendarView, setCalendarView] = React.useState('calendar');
@@ -24,6 +27,14 @@ export default function SettingsPage() {
   const churchId = useChurchId();
   const { isAdmin } = useUserRoles(churchId);
   const { toast } = useToast();
+
+  const [contributions, setContributions] = useState<Contribution[]>([]);
+
+  useEffect(() => {
+    if (!churchId) return;
+    const unsubscribe = listenToContributions(churchId, setContributions);
+    return () => unsubscribe();
+  }, [churchId]);
 
   // Load settings from localStorage + Firestore
   React.useEffect(() => {
@@ -138,6 +149,17 @@ export default function SettingsPage() {
     return Array.from({ length: 11 }, (_, i) => (currentYear - i).toString());
   };
 
+  const availableYears = useMemo(() => {
+    const years = new Set<number>();
+  
+    contributions.forEach(c => {
+      const year = new Date(c.date).getFullYear();
+      years.add(year);
+    });
+  
+    return Array.from(years).sort((a, b) => b - a); // newest first
+  }, [contributions]);
+  
   return (
     <>
       <PageHeader title="Settings" />
@@ -175,16 +197,21 @@ export default function SettingsPage() {
             <CardDescription>Select the year for which to display financial totals.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Select value={fiscalYear} onValueChange={handleFiscalYearChange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select a year" />
-              </SelectTrigger>
-              <SelectContent>
-                {generateYearOptions().map(year => (
-                  <SelectItem key={year} value={year}>{year}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <Select value={fiscalYear} onValueChange={handleFiscalYearChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select a year" />
+            </SelectTrigger>
+
+            <SelectContent className="max-h-60 overflow-y-auto">
+              <SelectItem value="all">All Years</SelectItem>
+
+              {availableYears.map(year => (
+                <SelectItem key={year} value={String(year)}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           </CardContent>
         </Card>
 
