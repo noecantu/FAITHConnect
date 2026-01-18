@@ -10,10 +10,12 @@ import { useChurchId } from "@/hooks/useChurchId";
 import { Button } from "@/components/ui/button";
 import { MemberFormSheet } from "@/app/members/member-form-sheet";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { Input } from "@/components/ui/input";
 
 export default function MembersPage() {
   const churchId = useChurchId();
   const [members, setMembers] = useState<Member[]>([]);
+  const [search, setSearch] = useState("");
   const { isMemberManager } = useUserRoles(churchId);
 
   useEffect(() => {
@@ -29,32 +31,57 @@ export default function MembersPage() {
     return () => unsubscribe();
   }, [churchId]);
 
+  const filteredMembers = useMemo(() => {
+    const term = search.toLowerCase();
+
+    return members.filter((m) => {
+      const name = `${m.firstName} ${m.lastName}`.toLowerCase();
+      const email = m.email?.toLowerCase() ?? "";
+      const phone = m.phoneNumber ?? "";
+      return (
+        name.includes(term) ||
+        email.includes(term) ||
+        phone.includes(term)
+      );
+    });
+  }, [members, search]);
+
   const sortedMembers = useMemo(() => {
-    return [...members].sort((a, b) => {
+    return [...filteredMembers].sort((a, b) => {
       const nameA = `${a.lastName}, ${a.firstName}`.toLowerCase();
       const nameB = `${b.lastName}, ${b.firstName}`.toLowerCase();
       return nameA.localeCompare(nameB);
     });
-  }, [members]);
+  }, [filteredMembers]);
 
   return (
     <>
       <PageHeader title="Members" className="mb-2">
         {isMemberManager && (
           <MemberFormSheet>
-            <Button>
-              Add Member
-            </Button>
+            <Button>Add Member</Button>
           </MemberFormSheet>
         )}
       </PageHeader>
+  
+      {/* MEMBER STATUS COUNTS */}
       <MemberStatusBreakdown members={members} />
-
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+  
+      {/* SEARCH BAR BELOW COUNTS */}
+      <div className="w-full max-w-md mb-6">
+        <Input
+          placeholder="Search members..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+  
+      {/* MASONRY LAYOUT */}
+      <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
         {sortedMembers.map((member) => (
           <MemberCard key={member.id} member={member} />
         ))}
       </div>
     </>
-  );
+  );  
 }

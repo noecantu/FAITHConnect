@@ -39,7 +39,6 @@ const StatusBadge = ({ status }: { status: Member['status'] }) => {
     }
   
     if (status === 'Archived') {
-      // Slight gray background, subtle, clean
       return (
         <Badge
           className="bg-muted text-foreground/70 border border-border"
@@ -124,9 +123,9 @@ export function MemberCard({ member }: { member: Member }) {
 
   return (
     <MemberFormSheet member={member}>
-      <Card className="overflow-hidden cursor-pointer flex flex-col h-full">
+      <Card className="overflow-hidden cursor-pointer flex flex-col break-inside-avoid">
 
-        {/* PHOTO SECTION — ONLY WHEN SHOWING PHOTOS */}
+        {/* PHOTO SECTION */}
         {showPhoto && (
           <div className="relative aspect-[4/3] w-full flex items-center justify-center bg-muted text-muted-foreground">
             {member.profilePhotoUrl ? (
@@ -155,7 +154,7 @@ export function MemberCard({ member }: { member: Member }) {
             </div>
           </div>
         )}
-
+        
         {/* HEADER — STATUS BADGE MOVES HERE WHEN PHOTOS ARE HIDDEN */}
         <CardHeader className="flex-row items-start justify-between pb-2">
           <CardTitle className="text-xl">
@@ -166,7 +165,7 @@ export function MemberCard({ member }: { member: Member }) {
         </CardHeader>
 
         {/* CONTENT — BADGES MOVE HERE WHEN PHOTOS ARE HIDDEN */}
-        <CardContent className="flex-grow">
+        <CardContent>
           <div className="space-y-1 text-sm text-muted-foreground">
             <a
               href={`mailto:${member.email}`}
