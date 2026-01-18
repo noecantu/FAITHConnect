@@ -98,7 +98,13 @@ const UpcomingEventBadge = ({
   );
 };
 
-export function MemberCard({ member }: { member: Member }) {
+export function MemberCard({
+  member,
+  onSearch,
+}: {
+  member: Member;
+  onSearch: (name: string) => void;
+}) {
   const churchId = useChurchId();
   const [allMembers, setAllMembers] = useState<Member[]>([]);
 
@@ -219,9 +225,19 @@ export function MemberCard({ member }: { member: Member }) {
                     <span className="text-muted-foreground">
                       {' '}
                       of{' '}
-                      {relatedMember
-                        ? `${relatedMember.firstName} ${relatedMember.lastName}`
-                        : '...'}
+                      {relatedMember ? (
+                        <button
+                          className="text-blue-600 hover:underline p-0 bg-transparent border-none"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSearch(`${relatedMember.firstName} ${relatedMember.lastName}`);
+                          }}
+                        >
+                          {relatedMember.firstName} {relatedMember.lastName}
+                        </button>
+                      ) : (
+                        '...'
+                      )}
                     </span>
                   </div>
                 );

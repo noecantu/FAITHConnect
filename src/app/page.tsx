@@ -12,18 +12,16 @@ import { MemberFormSheet } from "@/app/members/member-form-sheet";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { Input } from "@/components/ui/input";
 
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
-
 export default function MembersPage() {
   const churchId = useChurchId();
   const [members, setMembers] = useState<Member[]>([]);
   const [search, setSearch] = useState("");
   const { isMemberManager } = useUserRoles(churchId);
+
+  // Relationship search feeds into the same search bar
+  function handleSearchFromRelationship(name: string) {
+    setSearch(name);
+  }
 
   useEffect(() => {
     if (!churchId) return;
@@ -65,12 +63,10 @@ export default function MembersPage() {
         )}
       </PageHeader>
 
-      {/* Breakdown directly under header, tighter spacing */}
       <div>
         <MemberStatusBreakdown members={members} />
       </div>
 
-      {/* SEARCH BAR — full width, tighter spacing, closer to cards */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="w-full flex items-center gap-02">
           <Input
@@ -82,7 +78,7 @@ export default function MembersPage() {
 
           {search.length > 0 && (
             <Button
-              variant="ghost"
+              variant="outline"
               onClick={() => setSearch("")}
               className="shrink-0"
             >
@@ -92,10 +88,13 @@ export default function MembersPage() {
         </div>
       </div>
 
-      {/* MASONRY GRID (unchanged) */}
       <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
         {sortedMembers.map((member) => (
-          <MemberCard key={member.id} member={member} />
+          <MemberCard
+            key={member.id}
+            member={member}
+            onSearch={handleSearchFromRelationship}
+          />
         ))}
       </div>
     </>
