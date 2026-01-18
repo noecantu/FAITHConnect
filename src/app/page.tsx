@@ -12,6 +12,13 @@ import { MemberFormSheet } from "@/app/members/member-form-sheet";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { Input } from "@/components/ui/input";
 
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card";
+
 export default function MembersPage() {
   const churchId = useChurchId();
   const [members, setMembers] = useState<Member[]>([]);
@@ -21,13 +28,7 @@ export default function MembersPage() {
   useEffect(() => {
     if (!churchId) return;
 
-    const unsubscribe = listenToMembers(
-      churchId,
-      (loadedMembers: Member[]) => {
-        setMembers(loadedMembers);
-      }
-    );
-
+    const unsubscribe = listenToMembers(churchId, setMembers);
     return () => unsubscribe();
   }, [churchId]);
 
@@ -56,29 +57,29 @@ export default function MembersPage() {
 
   return (
     <>
-      {/* TITLE + ADD MEMBER BUTTON */}
-      <PageHeader title="Members">
+      <PageHeader title="Members" className="mb-2">
         {isMemberManager && (
           <MemberFormSheet>
             <Button>Add Member</Button>
           </MemberFormSheet>
         )}
       </PageHeader>
-  
-      {/* BREAKDOWN DIRECTLY UNDER TITLE */}
-      <div className="mb-0">
+
+      {/* Breakdown directly under header, tighter spacing */}
+      <div>
         <MemberStatusBreakdown members={members} />
       </div>
-  
-      {/* SEARCH BAR IMMEDIATELY UNDER TITLE + BREAKDOWN */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-1">
-        <div className="w-full max-w-md flex items-center gap-0">
+
+      {/* SEARCH BAR — full width, tighter spacing, closer to cards */}
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="w-full flex items-center gap-02">
           <Input
+            className="w-full"
             placeholder="Search members..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-  
+
           {search.length > 0 && (
             <Button
               variant="ghost"
@@ -90,8 +91,8 @@ export default function MembersPage() {
           )}
         </div>
       </div>
-  
-      {/* MASONRY LAYOUT */}
+
+      {/* MASONRY GRID (unchanged) */}
       <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
         {sortedMembers.map((member) => (
           <MemberCard key={member.id} member={member} />

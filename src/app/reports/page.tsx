@@ -128,8 +128,8 @@ export default function ReportsPage() {
   }
   
   return (
-    <div className="flex gap-6 p-6">
-      <Card className="w-80 h-fit">
+    <div className="flex flex-col lg:flex-row gap-6 p-4 lg:p-6">
+      <Card className="w-full lg:w-80 h-fit">
         <CardHeader>
           <CardTitle>Filters</CardTitle>
         </CardHeader>
@@ -252,7 +252,7 @@ export default function ReportsPage() {
       </Card>
 
       {/* RIGHT PANEL */}
-      <Card className="flex-1">
+      <Card className="flex-1 w-full">
         <CardHeader>
           <CardTitle>Export</CardTitle>
         </CardHeader>
@@ -333,12 +333,23 @@ export default function ReportsPage() {
 
           <Separator />
 
-          <div className="flex gap-4">
-            <Button onClick={handleExportPDF}>Export PDF</Button>
-            <Button variant="secondary" onClick={handleExportExcel}>
+          <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4">
+            <Button
+              onClick={handleExportPDF}
+              className="w-full sm:w-auto"
+            >
+              Export PDF
+            </Button>
+
+            <Button
+              variant="secondary"
+              onClick={handleExportExcel}
+              className="w-full sm:w-auto"
+            >
               Export Excel
             </Button>
           </div>
+
         </CardContent>
       </Card>
     </div>
