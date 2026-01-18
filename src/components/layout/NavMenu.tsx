@@ -2,7 +2,15 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Users, Calendar, DollarSign, Menu, Settings, LogOut, FileText } from 'lucide-react';
+import {
+  Users,
+  Calendar,
+  DollarSign,
+  Menu,
+  Settings,
+  LogOut,
+  FileText,
+} from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -13,9 +21,6 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
 
 import {
@@ -27,7 +32,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -51,10 +56,17 @@ export function NavMenu() {
     try {
       await signOut(auth);
       setIsLogoutAlertOpen(false);
-      toast({ title: "Logged Out", description: "You have been successfully logged out." });
+      toast({
+        title: 'Logged Out',
+        description: 'You have been successfully logged out.',
+      });
     } catch (error) {
-      console.error("Logout error:", error);
-      toast({ title: "Logout Failed", description: "Could not log you out. Please try again.", variant: "destructive" });
+      console.error('Logout error:', error);
+      toast({
+        title: 'Logout Failed',
+        description: 'Could not log you out. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -69,18 +81,24 @@ export function NavMenu() {
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end">
+          {/* Core Navigation */}
           {navItems.map((item) => (
             <Link href={item.href} key={item.label}>
-              <DropdownMenuItem className={pathname === item.href ? 'bg-accent' : ''}>
+              <DropdownMenuItem
+                className={pathname === item.href ? 'bg-accent' : ''}
+              >
                 <item.icon className="mr-2 h-4 w-4" />
                 <span>{item.label}</span>
               </DropdownMenuItem>
             </Link>
           ))}
 
+          {/* Reports (Admin Only) */}
           {isAdmin && (
             <Link href="/reports">
-              <DropdownMenuItem className={pathname === '/reports' ? 'bg-accent' : ''}>
+              <DropdownMenuItem
+                className={pathname === '/reports' ? 'bg-accent' : ''}
+              >
                 <FileText className="mr-2 h-4 w-4" />
                 <span>Reports</span>
               </DropdownMenuItem>
@@ -89,20 +107,25 @@ export function NavMenu() {
 
           <DropdownMenuSeparator />
 
+          {/* Settings */}
           <Link href="/settings">
-            <DropdownMenuItem className={pathname === '/settings' ? 'bg-accent' : ''}>
+            <DropdownMenuItem
+              className={pathname === '/settings' ? 'bg-accent' : ''}
+            >
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </DropdownMenuItem>
           </Link>
-          
-           <DropdownMenuItem onClick={() => setIsLogoutAlertOpen(true)}>
+
+          {/* Logout */}
+          <DropdownMenuItem onClick={() => setIsLogoutAlertOpen(true)}>
             <LogOut className="mr-2 h-4 w-4" />
             <span>Log Out</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* Logout Confirmation */}
       <AlertDialog open={isLogoutAlertOpen} onOpenChange={setIsLogoutAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -111,6 +134,7 @@ export function NavMenu() {
               You will be returned to the login screen.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleLogout}>

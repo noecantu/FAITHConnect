@@ -14,74 +14,61 @@ import { useUserRoles } from '@/hooks/useUserRoles';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { listenToMembers } from '@/lib/members';
-import { listenToContributions } from '@/lib/contributions';
-import type { Member, Contribution } from '@/lib/types';
 
 export default function SettingsPage() {
   const [calendarView, setCalendarView] = React.useState('calendar');
   const [fiscalYear, setFiscalYear] = React.useState(new Date().getFullYear().toString());
+  const [cardView, setCardView] = React.useState('member-card');
+
   const { user } = useAuth();
   const churchId = useChurchId();
   const { isAdmin } = useUserRoles(churchId);
   const { toast } = useToast();
-  const [cardView, setCardView] = React.useState('member-card');
 
-  const [members, setMembers] = React.useState<Member[]>([]);
-  const [contributions, setContributions] = React.useState<Contribution[]>([]);
-  const [reportType, setReportType] = React.useState<'members' | 'contributions' | null>(null);
-
-  // Data Listeners for Reports
+  // Load settings from localStorage + Firestore
   React.useEffect(() => {
-    if (isAdmin && churchId) {
-      const unsubMembers = listenToMembers(churchId, setMembers);
-      const unsubContributions = listenToContributions(churchId, setContributions);
-      return () => {
-        unsubMembers();
-        unsubContributions();
-      };
-    }
-  }, [isAdmin, churchId]);
-
-  React.useEffect(() => {
-    // Load from local storage first (for immediate feedback)
     const savedView = localStorage.getItem("calendarView");
     if (savedView === 'calendar' || savedView === 'list') {
       setCalendarView(savedView);
     }
+
     const savedYear = localStorage.getItem("fiscalYear");
     if (savedYear) {
       setFiscalYear(savedYear);
     }
+
     const savedCardView = localStorage.getItem("cardView");
     if (savedCardView === 'show' || savedCardView === 'hide') {
       setCardView(savedCardView);
     }
-    
-    // Then try to load from Firestore if user is logged in
+
     const fetchUserSettings = async () => {
-      if (user) {
-        try {
-          const userDocRef = doc(db, 'users', user.uid);
-          const userDoc = await getDoc(userDocRef);
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            if (data.settings?.calendarView) {
-              setCalendarView(data.settings.calendarView);
-              localStorage.setItem("calendarView", data.settings.calendarView);
-            }
-            if (data.settings?.fiscalYear) {
-              setFiscalYear(data.settings.fiscalYear);
-              localStorage.setItem("fiscalYear", data.settings.fiscalYear);
-            }
-            if (data.settings?.cardView) {
-              setCardView(data.settings.cardView);
-              localStorage.setItem("cardView", data.settings.cardView);
-            }            
+      if (!user) return;
+
+      try {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+
+          if (data.settings?.calendarView) {
+            setCalendarView(data.settings.calendarView);
+            localStorage.setItem("calendarView", data.settings.calendarView);
           }
-        } catch (error) {
-          console.error("Error fetching user settings:", error);
+
+          if (data.settings?.fiscalYear) {
+            setFiscalYear(data.settings.fiscalYear);
+            localStorage.setItem("fiscalYear", data.settings.fiscalYear);
+          }
+
+          if (data.settings?.cardView) {
+            setCardView(data.settings.cardView);
+            localStorage.setItem("cardView", data.settings.cardView);
+          }
         }
+      } catch (error) {
+        console.error("Error fetching user settings:", error);
       }
     };
 
@@ -89,48 +76,42 @@ export default function SettingsPage() {
   }, [user]);
 
   const handleCalendarViewChange = async (value: string) => {
-    if (value === 'calendar' || value === 'list') {
-      setCalendarView(value);
-      localStorage.setItem("calendarView", value);
+    if (value !== 'calendar' && value !== 'list') return;
 
-      if (user) {
-        try {
-          const userDocRef = doc(db, 'users', user.uid);
-          await updateDoc(userDocRef, {
-            'settings.calendarView': value
-          });
-        } catch (error) {
-          console.error("Error saving calendar view:", error);
-          toast({
-            title: "Error",
-            description: "Failed to save settings to your account.",
-            variant: "destructive",
-          });
-        }
-      }
+    setCalendarView(value);
+    localStorage.setItem("calendarView", value);
+
+    if (!user) return;
+
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      await updateDoc(userDocRef, { 'settings.calendarView': value });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save settings.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleCardViewChange = async (value: string) => {
-    if (value === 'show' || value === 'hide') {
-      setCardView(value);
-      localStorage.setItem("cardView", value);
+    if (value !== 'show' && value !== 'hide') return;
 
-      if (user) {
-        try {
-          const userDocRef = doc(db, 'users', user.uid);
-          await updateDoc(userDocRef, {
-            'settings.cardView': value
-          });
-        } catch (error) {
-          console.error("Error saving member card view:", error);
-          toast({
-            title: "Error",
-            description: "Failed to save settings to your account.",
-            variant: "destructive",
-          });
-        }
-      }
+    setCardView(value);
+    localStorage.setItem("cardView", value);
+
+    if (!user) return;
+
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      await updateDoc(userDocRef, { 'settings.cardView': value });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save settings.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -138,44 +119,36 @@ export default function SettingsPage() {
     setFiscalYear(value);
     localStorage.setItem("fiscalYear", value);
 
-    if (user) {
-      try {
-        const userDocRef = doc(db, 'users', user.uid);
-        await updateDoc(userDocRef, {
-          'settings.fiscalYear': value
-        });
-      } catch (error) {
-        console.error("Error saving fiscal year:", error);
-         toast({
-            title: "Error",
-            description: "Failed to save settings to your account.",
-            variant: "destructive",
-          });
-      }
+    if (!user) return;
+
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      await updateDoc(userDocRef, { 'settings.fiscalYear': value });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save settings.",
+        variant: "destructive",
+      });
     }
   };
 
   const generateYearOptions = () => {
     const currentYear = new Date().getFullYear();
-    const years = [];
-    for (let i = currentYear; i >= currentYear - 10; i--) {
-      years.push(i.toString());
-    }
-    return years;
+    return Array.from({ length: 11 }, (_, i) => (currentYear - i).toString());
   };
 
   return (
     <>
       <PageHeader title="Settings" />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         {/* Calendar View */}
         <Card>
           <CardHeader>
             <CardTitle>Calendar View</CardTitle>
-            <CardDescription>
-              Choose the default view for the Calendar of Events.
-            </CardDescription>
+            <CardDescription>Choose the default view for the Calendar of Events.</CardDescription>
           </CardHeader>
           <CardContent>
             <RadioGroup
@@ -199,9 +172,7 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Financial Year</CardTitle>
-            <CardDescription>
-              Select the year for which to display financial totals.
-            </CardDescription>
+            <CardDescription>Select the year for which to display financial totals.</CardDescription>
           </CardHeader>
           <CardContent>
             <Select value={fiscalYear} onValueChange={handleFiscalYearChange}>
@@ -216,14 +187,12 @@ export default function SettingsPage() {
             </Select>
           </CardContent>
         </Card>
-        
+
         {/* Member Dashboard View */}
         <Card>
           <CardHeader>
             <CardTitle>Member Card View</CardTitle>
-            <CardDescription>
-              Choose the default view for the Member Dashboard Cards.
-            </CardDescription>
+            <CardDescription>Choose the default view for the Member Dashboard Cards.</CardDescription>
           </CardHeader>
           <CardContent>
             <RadioGroup
@@ -244,22 +213,17 @@ export default function SettingsPage() {
         </Card>
 
         {isAdmin && (
-          <>
-            {/* Member Roles (Admin Only) */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Members</CardTitle>
-                <CardDescription>
-                  Manage member settings and roles for your organization.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <MemberRolesDialog>
-                  <Button className="w-full sm:w-auto">Manage Roles</Button>
-                </MemberRolesDialog>
-              </CardContent>
-            </Card>
-          </>
+          <Card>
+            <CardHeader>
+              <CardTitle>Members</CardTitle>
+              <CardDescription>Manage member settings and roles for your organization.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <MemberRolesDialog>
+                <Button className="w-full sm:w-auto">Manage Roles</Button>
+              </MemberRolesDialog>
+            </CardContent>
+          </Card>
         )}
 
       </div>

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { NavMenu } from '@/components/layout/sidebar';
+import { NavMenu } from '@/components/layout/NavMenu';
 
 export default function Header() {
   return (
