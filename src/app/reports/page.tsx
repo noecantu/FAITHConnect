@@ -17,6 +17,7 @@ import {
   generateContributionsPDF,
   generateContributionsExcel
 } from '@/lib/reports';
+import { Address, Member } from '@/lib/types';
 
 export default function ReportsPage() {
   const { members } = useMembers();
@@ -39,6 +40,17 @@ export default function ReportsPage() {
     { label: "Notes", value: "notes" },
     { label: "Roles", value: "roles" },
   ];
+
+  const fieldLabelMap: Record<string, string> = {
+    email: "Email",
+    phoneNumber: "Phone Number",
+    birthday: "Birthday",
+    baptismDate: "Baptism Date",
+    anniversary: "Anniversary",
+    address: "Address",
+    notes: "Notes",
+    roles: "Roles",
+  };  
 
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
 
@@ -87,6 +99,34 @@ export default function ReportsPage() {
     }
   };
 
+  function formatField(value: any): string {
+    if (value == null) return "—";
+  
+    // Arrays of primitives
+    if (Array.isArray(value) && value.every(v => typeof v === "string")) {
+      return value.join(", ");
+    }
+  
+    // Address object
+    if (typeof value === "object" && "street" in value) {
+      const addr = value as Address;
+      return [
+        addr.street,
+        addr.city,
+        addr.state,
+        addr.zip
+      ].filter(Boolean).join(", ");
+    }
+  
+    // Array of Relationship objects
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === "object") {
+      return value.map(r => r.type ?? "—").join(", ");
+    }
+  
+    // Fallback for primitives
+    return String(value);
+  }
+  
   return (
     <div className="flex gap-6 p-6">
       <Card className="w-80 h-fit">
@@ -231,26 +271,36 @@ export default function ReportsPage() {
 
           {/* Preview Table (still simple for now) */}
           <div className="border rounded-md overflow-hidden">
-            {reportType === 'members' ? (
-              <table className="w-full text-sm">
-                <thead className="bg-muted">
-                  <tr>
-                    <th className="p-2 text-left">Name</th>
-                    <th className="p-2 text-left">Email</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredMembers.map((m) => (
-                    <tr key={m.id} className="border-t">
-                      <td className="p-2">
-                        {m.firstName} {m.lastName}
-                      </td>
-                      <td className="p-2">{m.email || '—'}</td>
-                    </tr>
+          {reportType === 'members' ? (
+            <table className="w-full text-sm">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="p-2 text-left">Name</th>
+                  {selectedFields.map((f) => (
+                    <th key={f} className="p-2 text-left">
+                      {fieldLabelMap[f]}
+                    </th>
                   ))}
-                </tbody>
-              </table>
-            ) : (
+                </tr>
+              </thead>
+
+              <tbody>
+                {filteredMembers.map((m) => (
+                  <tr key={m.id} className="border-t">
+                    <td className="p-2">
+                      {m.firstName} {m.lastName}
+                    </td>
+
+                    {selectedFields.map((f) => (
+                      <td key={f} className="p-2">
+                        {formatField(m[f as keyof Member])}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
               <table className="w-full text-sm">
                 <thead className="bg-muted">
                   <tr>
