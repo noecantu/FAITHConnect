@@ -56,7 +56,8 @@ export default function MembersPage() {
 
   return (
     <>
-      <PageHeader title="Members" className="mb-2">
+      {/* TITLE + ADD MEMBER BUTTON */}
+      <PageHeader title="Members">
         {isMemberManager && (
           <MemberFormSheet>
             <Button>Add Member</Button>
@@ -64,16 +65,30 @@ export default function MembersPage() {
         )}
       </PageHeader>
   
-      {/* MEMBER STATUS COUNTS */}
-      <MemberStatusBreakdown members={members} />
+      {/* BREAKDOWN DIRECTLY UNDER TITLE */}
+      <div className="mb-0">
+        <MemberStatusBreakdown members={members} />
+      </div>
   
-      {/* SEARCH BAR BELOW COUNTS */}
-      <div className="w-full max-w-md mb-6">
-        <Input
-          placeholder="Search members..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      {/* SEARCH BAR IMMEDIATELY UNDER TITLE + BREAKDOWN */}
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-1">
+        <div className="w-full max-w-md flex items-center gap-0">
+          <Input
+            placeholder="Search members..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+  
+          {search.length > 0 && (
+            <Button
+              variant="ghost"
+              onClick={() => setSearch("")}
+              className="shrink-0"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
       </div>
   
       {/* MASONRY LAYOUT */}
@@ -83,5 +98,5 @@ export default function MembersPage() {
         ))}
       </div>
     </>
-  );  
+  );
 }
