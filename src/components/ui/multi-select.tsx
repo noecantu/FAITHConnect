@@ -61,7 +61,9 @@ export function MultiSelect({
       <PopoverContent className="p-0 w-full">
         <Command>
           <CommandInput placeholder="Search..." />
-          <CommandList>
+
+          {/* Scrollable list */}
+          <CommandList className="max-h-60 overflow-y-auto">
             <CommandGroup>
               {options.map((opt) => {
                 const selected = value.includes(opt.value);

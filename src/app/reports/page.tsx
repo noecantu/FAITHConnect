@@ -26,7 +26,7 @@ export default function ReportsPage() {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
   // Year selection
-  const [selectedFY, setSelectedFY] = useState<string>('all');
+  const [selectedFY, setSelectedFY] = useState<string[]>([]);
 
   // ---------------------------------------
   // AVAILABLE YEARS (dynamic from data)
@@ -54,11 +54,11 @@ export default function ReportsPage() {
     let list = contributions;
 
     // Filter by year
-    if (selectedFY !== 'all') {
-      list = list.filter(
-        (c) => new Date(c.date).getFullYear().toString() === selectedFY
+    if (selectedFY.length > 0) {
+      list = list.filter((c) =>
+        selectedFY.includes(new Date(c.date).getFullYear().toString())
       );
-    }
+    }    
 
     // Filter by selected members
     if (selectedMembers.length > 0) {
@@ -87,17 +87,6 @@ export default function ReportsPage() {
     }
   };
 
-  // ---------------------------------------
-  // FY CHANGE HANDLER (handles "Select All Years")
-  // ---------------------------------------
-  const handleFYChange = (value: string) => {
-    if (value === 'select-all-years') {
-      setSelectedFY('all');
-      return;
-    }
-    setSelectedFY(value);
-  };
-
   return (
     <div className="flex gap-6 p-6">
       {/* LEFT PANEL */}
@@ -117,7 +106,7 @@ export default function ReportsPage() {
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-64 overflow-y-auto">
                 <SelectItem value="members">Member List</SelectItem>
                 <SelectItem value="contributions">Contributions</SelectItem>
               </SelectContent>
@@ -158,24 +147,37 @@ export default function ReportsPage() {
 
           {/* Year Selection */}
           <div className="space-y-2">
-            <Label>Year</Label>
-            <Select value={selectedFY} onValueChange={handleFYChange}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
+            <div className="flex justify-between items-center">
+              <Label>Year</Label>
 
-              <SelectContent>
-                <SelectItem value="all">Show All</SelectItem>
-                <SelectItem value="select-all-years">Select All Years</SelectItem>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  setSelectedFY(
+                    selectedFY.length === availableYears.length
+                      ? []
+                      : availableYears
+                  )
+                }
+              >
+                {selectedFY.length === availableYears.length
+                  ? 'Clear All'
+                  : 'Select All'}
+              </Button>
+            </div>
 
-                {availableYears.map((year) => (
-                  <SelectItem key={year} value={year}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <MultiSelect
+              options={availableYears.map((year) => ({
+                label: year,
+                value: year,
+              }))}
+              value={selectedFY}
+              onChange={setSelectedFY}
+              placeholder="All Years"
+            />
           </div>
+
         </CardContent>
       </Card>
 
@@ -194,6 +196,53 @@ export default function ReportsPage() {
                 <p>Contributions: {filteredContributions.length}</p>
                 <p>Year: {selectedFY}</p>
               </>
+            )}
+          </div>
+          {/* Preview Table */}
+          <div className="border rounded-md overflow-hidden">
+            {reportType === 'members' ? (
+              <table className="w-full text-sm">
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="p-2 text-left">Name</th>
+                    <th className="p-2 text-left">Email</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredMembers.map((m) => (
+                    <tr key={m.id} className="border-t">
+                      <td className="p-2">{m.firstName} {m.lastName}</td>
+                      <td className="p-2">{m.email || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <table className="w-full text-sm">
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="p-2 text-left">Member</th>
+                    <th className="p-2 text-left">Amount</th>
+                    <th className="p-2 text-left">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredContributions.map((c) => {
+                    const member = members.find((m) => m.id === c.memberId);
+                    return (
+                      <tr key={c.id} className="border-t">
+                        <td className="p-2">
+                          {member ? `${member.firstName} ${member.lastName}` : 'Unknown'}
+                        </td>
+                        <td className="p-2">${c.amount.toFixed(2)}</td>
+                        <td className="p-2">
+                          {new Date(c.date).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             )}
           </div>
 
