@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { UseFormReturn } from "react-hook-form";
 import type { MemberFormValues } from "@/lib/memberForm.schema";
+import { formatPhone } from '@/lib/formatters';
 
 type Props = {
   form: UseFormReturn<MemberFormValues>;
@@ -84,7 +85,14 @@ export function MemberInfoSection({ form }: Props) {
                 Phone <span className="text-destructive">*</span>
               </FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input
+                  {...field}
+                  value={formatPhone(field.value ?? "")}
+                  onChange={(e) => {
+                    const formatted = formatPhone(e.target.value);
+                    field.onChange(formatted);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
