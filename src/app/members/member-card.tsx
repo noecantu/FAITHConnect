@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils';
 import { listenToMembers } from '@/lib/members';
 import { useChurchId } from '@/hooks/useChurchId';
 import { useState, useEffect } from 'react';
+import { formatPhone } from '@/lib/formatters';
 
 const StatusBadge = ({ status }: { status: Member['status'] }) => {
   if (status === 'Active') {
@@ -152,7 +153,7 @@ export function MemberCard({ member }: { member: Member }) {
               className="block hover:underline"
               onClick={(e) => e.stopPropagation()}
             >
-              {member.phoneNumber}
+              {formatPhone(member.phoneNumber)}
             </a>
             {member.baptismDate && (
               <p className="text-foreground">
