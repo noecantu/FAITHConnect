@@ -57,55 +57,65 @@ export function generateMembersPDF(
   const datePrefix = format(new Date(), "yyyy-MM-dd");
   const orientation =
     selectedFields.length > 4 ? "landscape" : "portrait";
+
   const doc = new jsPDF({
     orientation,
     unit: "pt",
     format: "letter",
   });
+
   // Logo (optional)
   if (logoBase64) {
     doc.addImage(logoBase64, "PNG", 20, 10, 50, 50);
   }
+
   doc.setFontSize(18);
   doc.text("Member Directory Report", 80, 40);
+
   const tableColumn = ["Name", ...selectedFields.map(f => fieldLabelMap[f])];
+
   const tableRows = members.map(m => [
     `${m.firstName} ${m.lastName}`,
     ...selectedFields.map(f => formatField(m[f as keyof Member]))
   ]);
-  
+
   autoTable(doc, {
     head: [tableColumn],
     body: tableRows,
     startY: 60,
-    styles: {
-      fontSize: 10,
-    },
+    styles: { fontSize: 10 },
     tableWidth: "auto",
-    columnStyles: {
-      0: { cellWidth: "auto" },
-    },
+    columnStyles: { 0: { cellWidth: "auto" } },
     alternateRowStyles: { fillColor: [245, 245, 245] },
-  });  
+  });
 
-  // Footer + Page Numbers
+  // -------------------------
+  // Footer (aligned to table)
+  // -------------------------
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
 
-    // Footer date
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const footerY = pageHeight - 20;
+
+    const left = 40;               // autoTable default margin
+    const right = pageWidth - 40;  // autoTable default margin
+
     doc.setFontSize(10);
+
     doc.text(
       `Generated on ${format(new Date(), "MM/dd/yyyy hh:mm a")}`,
-      20,
-      doc.internal.pageSize.getHeight() - 20
+      left,
+      footerY
     );
 
-    // Page number
     doc.text(
       `Page ${i} of ${pageCount}`,
-      doc.internal.pageSize.getWidth() - 60,
-      doc.internal.pageSize.getHeight() - 20
+      right,
+      footerY,
+      { align: "right" }
     );
   }
 
@@ -138,7 +148,7 @@ export function generateMembersExcel(
 }
 
 // ---------------------------------
-// Contribution Reports (UNCHANGED)
+// Contribution Reports (UNCHANGED except footer alignment)
 // ---------------------------------
 export function generateContributionsPDF(contributions: Contribution[], logoBase64?: string) {
   const datePrefix = format(new Date(), "yyyy-MM-dd");
@@ -171,31 +181,38 @@ export function generateContributionsPDF(contributions: Contribution[], logoBase
     head: [tableColumn],
     body: tableRows,
     startY: 60,
-    styles: {
-      fontSize: 10,
-      cellWidth: "wrap",
-    },
+    styles: { fontSize: 10, cellWidth: "wrap" },
     alternateRowStyles: { fillColor: [245, 245, 245] },
-    columnStyles: {
-      0: { cellWidth: 140 }, // Member Name wider
-    },
+    columnStyles: { 0: { cellWidth: 140 } },
   });
 
+  // -------------------------
+  // Footer (aligned to table)
+  // -------------------------
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
 
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const footerY = pageHeight - 20;
+
+    const left = 40;
+    const right = pageWidth - 40;
+
     doc.setFontSize(10);
+
     doc.text(
       `Generated on ${format(new Date(), "MM/dd/yyyy hh:mm a")}`,
-      20,
-      doc.internal.pageSize.getHeight() - 20
+      left,
+      footerY
     );
 
     doc.text(
       `Page ${i} of ${pageCount}`,
-      doc.internal.pageSize.getWidth() - 60,
-      doc.internal.pageSize.getHeight() - 20
+      right,
+      footerY,
+      { align: "right" }
     );
   }
 
