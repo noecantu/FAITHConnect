@@ -17,9 +17,11 @@ export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [search, setSearch] = useState("");
   const { isMemberManager } = useUserRoles(churchId);
+  const [previousScroll, setPreviousScroll] = useState(0);
 
   // Relationship search feeds into the same search bar
   function handleSearchFromRelationship(name: string) {
+    setPreviousScroll(window.scrollY);
     setSearch(name);
   }
 
@@ -53,6 +55,15 @@ export default function MembersPage() {
     });
   }, [filteredMembers]);
 
+  function handleClear() {
+    setSearch("");
+  
+    // Restore scroll AFTER the DOM updates
+    requestAnimationFrame(() => {
+      window.scrollTo(0, previousScroll);
+    });
+  }
+  
   return (
     <>
       <PageHeader title="Members" className="mb-2">
@@ -79,7 +90,7 @@ export default function MembersPage() {
           {search.length > 0 && (
             <Button
               variant="outline"
-              onClick={() => setSearch("")}
+              onClick={handleClear}
               className="shrink-0"
             >
               Clear
