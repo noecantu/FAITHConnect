@@ -24,14 +24,14 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/');
       toast({ title: "Login Successful", description: "Welcome back!" });
-    } catch (error) { // Note: it's good practice to type your error
-      console.error("Login error:", error);
+    } catch (error) {
       toast({
         title: "Login Failed",
         description: "The email or password you entered is incorrect.",
         variant: "destructive"
       });
-    } finally {
+    }
+     finally {
       setIsLoading(false);
     }
   };
