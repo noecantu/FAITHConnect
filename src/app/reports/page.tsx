@@ -26,6 +26,9 @@ export default function ReportsPage() {
   const [reportType, setReportType] =
     useState<'members' | 'contributions'>('members');
 
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedContributionTypes, setSelectedContributionTypes] = useState<string[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [selectedFY, setSelectedFY] = useState<string[]>([]);
 
@@ -41,6 +44,12 @@ export default function ReportsPage() {
     { label: "Roles", value: "roles" },
   ];
 
+  const statusOptions = [
+    { label: "Active", value: "Active" },
+    { label: "Prospect", value: "Prospect" },
+    { label: "Archived", value: "Archived" },
+  ];  
+  
   const fieldLabelMap: Record<string, string> = {
     email: "Email",
     phoneNumber: "Phone Number",
@@ -63,25 +72,67 @@ export default function ReportsPage() {
   }, [contributions]);
 
   const filteredMembers = useMemo(() => {
+    // Empty table until user selects members
     if (selectedMembers.length === 0) return [];
-    return members.filter((m) => selectedMembers.includes(m.id));
-  }, [members, selectedMembers]);  
+  
+    let list = members;
+  
+    // Member filter
+    list = list.filter((m) => selectedMembers.includes(m.id));
+  
+    // Status filter (optional)
+    if (selectedStatus.length > 0) {
+      list = list.filter((m) => selectedStatus.includes(m.status));
+    }
+  
+    return list;
+  }, [members, selectedMembers, selectedStatus]);      
 
   const filteredContributions = useMemo(() => {
     let list = contributions;
-
+  
+    // Year filter
     if (selectedFY.length > 0) {
       list = list.filter((c) =>
         selectedFY.includes(new Date(c.date).getFullYear().toString())
       );
     }
-
+  
+    // Member filter
     if (selectedMembers.length > 0) {
       list = list.filter((c) => selectedMembers.includes(c.memberId));
     }
-
+  
+    // Status filter (requires looking up the member)
+    if (selectedStatus.length > 0) {
+      list = list.filter((c) => {
+        const member = members.find((m) => m.id === c.memberId);
+        return member && selectedStatus.includes(member.status);
+      });
+    }
+  
+    // Category filter
+    if (selectedCategories.length > 0) {
+      list = list.filter((c) => selectedCategories.includes(c.category));
+    }
+  
+    // Contribution type filter
+    if (selectedContributionTypes.length > 0) {
+      list = list.filter((c) =>
+        selectedContributionTypes.includes(c.contributionType)
+      );
+    }
+  
     return list;
-  }, [contributions, selectedFY, selectedMembers]);
+  }, [
+    contributions,
+    members,
+    selectedFY,
+    selectedMembers,
+    selectedStatus,
+    selectedCategories,
+    selectedContributionTypes,
+  ]);  
 
   const handleExportPDF = () => {
     if (reportType === 'members') {
@@ -182,38 +233,67 @@ export default function ReportsPage() {
             />
           </div>
 
-          {/* Year Selection */}
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <Label>Year</Label>
+          {reportType === "members" && (
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <Label>Status</Label>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  setSelectedFY(
-                    selectedFY.length === availableYears.length
-                      ? []
-                      : availableYears
-                  )
-                }
-              >
-                {selectedFY.length === availableYears.length
-                  ? 'Clear All'
-                  : 'Select All'}
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    setSelectedStatus(
+                      selectedStatus.length === 0
+                        ? statusOptions.map((s) => s.value)
+                        : []
+                    )
+                  }
+                >
+                  {selectedStatus.length === 0 ? "Select All" : "Clear All"}
+                </Button>
+              </div>
+
+              <MultiSelect
+                options={statusOptions}
+                value={selectedStatus}
+                onChange={setSelectedStatus}
+                placeholder="All Status"
+              />
             </div>
+          )}
 
-            <MultiSelect
-              options={availableYears.map((year) => ({
-                label: year,
-                value: year,
-              }))}
-              value={selectedFY}
-              onChange={setSelectedFY}
-              placeholder="All Years"
-            />
-          </div>
+          {/* Year Selection */}
+          {reportType === "contributions" && (
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <Label>Year</Label>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    setSelectedFY(
+                      selectedFY.length === 0
+                        ? availableYears
+                        : []
+                    )
+                  }
+                >
+                  {selectedFY.length === 0 ? "Select All" : "Clear All"}
+                </Button>
+              </div>
+
+              <MultiSelect
+                options={availableYears.map((year) => ({
+                  label: year,
+                  value: year,
+                }))}
+                value={selectedFY}
+                onChange={setSelectedFY}
+                placeholder="All Years"
+              />
+            </div>
+          )}
 
           {/* Member Fields Selection */}
           {reportType === "members" && (
