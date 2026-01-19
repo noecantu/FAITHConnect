@@ -112,55 +112,43 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
           />
         </div>
 
-        <DialogFooter className="border-t flex flex-col-reverse gap-2 px-6 pb-6 pt-4 sm:flex-row sm:items-center">
+        <DialogFooter className="border-t px-6 pb-6 pt-4 flex justify-end gap-2">
 
-          {isEditMode ? (
-            <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="destructive"
+          {isEditMode && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button type="button" variant="destructive">
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescriptionComponent>
+                    This action cannot be undone. This will permanently delete the member profile for{" "}
+                    {member?.firstName} {member?.lastName}.
+                  </AlertDialogDescriptionComponent>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteMember}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
                     Delete
-                  </Button>
-                </AlertDialogTrigger>
-
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescriptionComponent>
-                      This action cannot be undone. This will permanently delete the member profile for{" "}
-                      {member?.firstName} {member?.lastName}.
-                    </AlertDialogDescriptionComponent>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteMember}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-
-              {/* SAVE BUTTON */}
-              <Button type="submit" form="member-form">
-                Save
-              </Button>
-
-            </div>
-          ) : (
-            <div className="flex w-full justify-end sm:justify-start">
-              <Button type="submit" form="member-form">
-                Add Member
-              </Button>
-            </div>
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
 
-        </DialogFooter>
+          <Button type="submit" form="member-form">
+            {isEditMode ? "Save" : "Add Member"}
+          </Button>
+
+          </DialogFooter>
+
       </DialogContent>
 
       {/* CAMERA DIALOG */}
