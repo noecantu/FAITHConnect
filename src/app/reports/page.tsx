@@ -34,6 +34,7 @@ export default function ReportsPage() {
 
   // Fields to export for Member List (plain strings)
   const memberFieldOptions = [
+    { label: "Status", value: "status" },
     { label: "Email", value: "email" },
     { label: "Phone Number", value: "phoneNumber" },
     { label: "Birthday", value: "birthday" },
@@ -51,6 +52,7 @@ export default function ReportsPage() {
   ];  
   
   const fieldLabelMap: Record<string, string> = {
+    status: "Status",
     email: "Email",
     phoneNumber: "Phone Number",
     birthday: "Birthday",
@@ -352,31 +354,32 @@ export default function ReportsPage() {
           {reportType === 'members' ? (
             <table className="w-full text-sm">
               <thead className="bg-muted">
-                <tr>
-                  <th className="p-2 text-left">Name</th>
+              <tr>
+                <th className="p-2 text-left">Name</th>
+                {selectedFields.map((f) => (
+                  <th key={f} className="p-2 text-left">
+                    {fieldLabelMap[f]}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+
+            <tbody>
+              {filteredMembers.map((m) => (
+                <tr key={m.id} className="border-t">
+                  <td className="p-2">
+                    {m.firstName} {m.lastName}
+                  </td>
+
                   {selectedFields.map((f) => (
-                    <th key={f} className="p-2 text-left">
-                      {fieldLabelMap[f]}
-                    </th>
+                    <td key={f} className="p-2">
+                      {formatField(m[f as keyof Member])}
+                    </td>
                   ))}
                 </tr>
-              </thead>
+              ))}
+            </tbody>
 
-              <tbody>
-                {filteredMembers.map((m) => (
-                  <tr key={m.id} className="border-t">
-                    <td className="p-2">
-                      {m.firstName} {m.lastName}
-                    </td>
-
-                    {selectedFields.map((f) => (
-                      <td key={f} className="p-2">
-                        {formatField(m[f as keyof Member])}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
             </table>
           ) : (
               <table className="w-full text-sm">
