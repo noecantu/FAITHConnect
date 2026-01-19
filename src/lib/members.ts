@@ -67,7 +67,10 @@ export async function addMember(churchId: string, data: Partial<Omit<Member, 'id
 
     // 3. Set the new member document
     const memberRef = doc(db, "churches", churchId, "members", data.id);
-    const payload: any = { ...data };
+    const payload: any = { 
+      ...data,
+      phoneNumber: data.phoneNumber?.replace(/\D/g, "") || undefined,
+    };
     
     if (data.birthday) payload.birthday = Timestamp.fromDate(new Date(data.birthday));
     if (data.baptismDate) payload.baptismDate = Timestamp.fromDate(new Date(data.baptismDate));
@@ -98,7 +101,10 @@ export async function updateMember(churchId: string, memberId: string, data: Par
 
     // If relationships are not being updated, just update the member and exit
     if (!newRels) {
-        const payload: any = { ...data };
+        const payload: any = { 
+          ...data,
+          phoneNumber: data.phoneNumber?.replace(/\D/g, "") || undefined,
+        };
         if (data.birthday) payload.birthday = Timestamp.fromDate(new Date(data.birthday));
         if (data.baptismDate) payload.baptismDate = Timestamp.fromDate(new Date(data.baptismDate));
         if (data.anniversary) payload.anniversary = Timestamp.fromDate(new Date(data.anniversary));
@@ -183,7 +189,10 @@ export async function updateMember(churchId: string, memberId: string, data: Par
     });
 
     // 5. Update the main member
-    const payload: any = { ...data };
+    const payload: any = { 
+      ...data,
+      phoneNumber: data.phoneNumber?.replace(/\D/g, "") || undefined,
+    };
     if (data.birthday) payload.birthday = Timestamp.fromDate(new Date(data.birthday));
     if (data.baptismDate) payload.baptismDate = Timestamp.fromDate(new Date(data.baptismDate));
     if (data.anniversary) payload.anniversary = Timestamp.fromDate(new Date(data.anniversary));
@@ -242,14 +251,15 @@ export function listenToMembers(
   return onSnapshot(q, (snapshot) => {
     const members: Member[] = snapshot.docs.map((doc) => {
       const raw = doc.data();
-
+      const rawPhone = raw.phoneNumber?.replace(/\D/g, "") || "";
+   
       return {
         id: doc.id,
         firstName: raw.firstName,
         lastName: raw.lastName,
         name: `${raw.firstName} ${raw.lastName}`,
         email: raw.email,
-        phoneNumber: raw.phoneNumber,
+        phoneNumber: rawPhone,
         profilePhotoUrl: raw.profilePhotoUrl ?? "",
         status: raw.status,
         address: raw.address,
