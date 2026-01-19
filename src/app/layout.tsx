@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { AuthGuard } from '@/components/auth/auth-guard';
 import { ConditionalLayout } from './conditional-layout';
 import { SettingsProvider } from '@/components/settings-provider';
+import { AppFooter } from '@/components/layout/AppFooter';
 
 export const metadata: Metadata = {
   title: 'FAITH Connect',
@@ -30,12 +31,15 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={cn('min-h-screen bg-background font-body antialiased')}>
+
+      <body className={cn('min-h-screen bg-background font-body antialiased flex flex-col')}>
         <AuthGuard>
           <SettingsProvider>
             <ConditionalLayout>{children}</ConditionalLayout>
           </SettingsProvider>
         </AuthGuard>
+
+        <AppFooter />
         <Toaster />
       </body>
     </html>
