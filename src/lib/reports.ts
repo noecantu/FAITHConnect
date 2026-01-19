@@ -26,7 +26,16 @@ export function generateMembersPDF(
   selectedFields: string[]
 ) {
   const datePrefix = format(new Date(), "yyyy-MM-dd");
-  const doc = new jsPDF();
+
+  // Decide orientation based on number of fields
+  const orientation =
+    selectedFields.length > 4 ? "landscape" : "portrait";
+
+  const doc = new jsPDF({
+    orientation,
+    unit: "pt",
+    format: "letter",
+  });
 
   const tableColumn = ["Name", ...selectedFields.map(f => fieldLabelMap[f])];
   const tableRows: any[] = [];
@@ -79,9 +88,17 @@ export function generateMembersExcel(
 // ---------------------------------
 export function generateContributionsPDF(contributions: Contribution[]) {
   const datePrefix = format(new Date(), "yyyy-MM-dd");
-  const doc = new jsPDF();
 
+  // Determine orientation based on number of columns
   const tableColumn = ["Member Name", "Date", "Amount", "Category", "Type"];
+  const orientation = tableColumn.length > 4 ? "landscape" : "portrait";
+
+  const doc = new jsPDF({
+    orientation,
+    unit: "pt",
+    format: "letter",
+  });
+
   const tableRows: any[] = [];
 
   contributions.forEach(c => {
@@ -94,9 +111,13 @@ export function generateContributionsPDF(contributions: Contribution[]) {
     ]);
   });
 
-  autoTable(doc, { head: [tableColumn], body: tableRows, startY: 20 });
-  doc.text("Contributions Report", 14, 15);
+  autoTable(doc, {
+    head: [tableColumn],
+    body: tableRows,
+    startY: 20,
+  });
 
+  doc.text("Contributions Report", 14, 15);
   doc.save(`${datePrefix} Contributions Report.pdf`);
 }
 
