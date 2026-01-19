@@ -21,6 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useChurchId } from '@/hooks/useChurchId';
 import { listenToMembers } from '@/lib/members';
 import type { Member } from '@/lib/types';
+import { StandardDialogLayout } from '../layout/StandardDialogLayout';
 
 const ROLE_MAP: Record<string, string> = {
   "Admin": "Administrator",
@@ -161,25 +162,21 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      {/* LIST DIALOG */}
       <Dialog open={isListOpen} onOpenChange={setIsListOpen}>
         <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Manage Member Roles</DialogTitle>
-            <DialogDescription>
-              Assign or remove roles for members in your organization.
-            </DialogDescription>
-          </DialogHeader>
   
-          <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
+        <StandardDialogLayout
+          title="Manage Member Roles"
+          description="Assign or remove roles for members in your organization."
+        >
+          <div className="space-y-4">
             {loading ? (
               <div className="space-y-2">
                 <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
               </div>
             ) : (
-              members.map(member => (
+              members.map((member) => (
                 <div
                   key={member.id}
                   className="flex items-center justify-between p-2 border rounded-md"
@@ -196,6 +193,7 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
                             .join(", ") || "No roles assigned"}
                     </p>
                   </div>
+  
                   <Button variant="outline" onClick={() => handleEditClick(member)}>
                     Edit
                   </Button>
@@ -203,33 +201,28 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
               ))
             )}
           </div>
-        </DialogContent>
+        </StandardDialogLayout>
       </Dialog>
   
-      {/* Un-nested Dialog for editing roles */}
-      <Dialog open={!!editingMember} onOpenChange={(open) => { if (!open) handleCloseEdit() }}>
-        <DialogContent
-          onOpenAutoFocus={(e) => e.preventDefault()}
-          onCloseAutoFocus={(e) => e.preventDefault()}
-          className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0"
+      {/* EDIT ROLES DIALOG */}
+      <Dialog
+        open={!!editingMember}
+        onOpenChange={(open) => {
+          if (!open) handleCloseEdit();
+        }}
+      >
+        <StandardDialogLayout
+          title={`Access & Roles: ${editingMember?.firstName} ${editingMember?.lastName}`}
+          description="Create a login for this member and assign their permissions."
+          footer={<Button onClick={handleUpdateRoles}>Update Roles</Button>}
         >
-          {/* Header (NOT sticky — matches MemberFormSheet) */}
-          <DialogHeader className="shrink-0 px-6 pt-6">
-            <DialogTitle className="focus:outline-none">
-              Access & Roles: {editingMember?.firstName} {editingMember?.lastName}
-            </DialogTitle>
-            <DialogDescription>
-              Create a login for this member and assign their permissions.
-            </DialogDescription>
-          </DialogHeader>
-
-          {/* Scrollable Middle */}
-          <div className="flex-grow overflow-y-auto px-6 py-4 space-y-6">
-            
+          {/* Wrap BOTH sections in one space-y container */}
+          <div className="space-y-6">
+  
             {/* Login Creation Section */}
             <div className="space-y-4 p-4 border rounded-md bg-muted/30">
               <h4 className="text-md font-bold">Create/Update Login</h4>
-
+  
               <div className="grid gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="login-email">Email (Username)</Label>
@@ -240,7 +233,7 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
                     placeholder="member@example.com"
                   />
                 </div>
-
+  
                 <div className="grid gap-2">
                   <Label htmlFor="login-password">New Password</Label>
                   <div className="flex gap-2">
@@ -263,19 +256,23 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
                 </div>
               </div>
             </div>
-
+  
             {/* Roles & Permissions Section */}
             <div className="space-y-4 p-4 border rounded-md bg-muted/30">
               <h4 className="text-md font-bold">Roles & Permissions</h4>
-
+  
               <div className="space-y-2">
                 {ALL_ROLES.map((role) => (
                   <div key={role} className="flex items-center space-x-2">
                     <Checkbox
                       id={`role-${role}`}
                       checked={selectedRoles.includes(role)}
-                      onCheckedChange={(checked) => handleRoleChange(role, !!checked)}
-                      disabled={role !== "Admin" && selectedRoles.includes("Admin")}
+                      onCheckedChange={(checked) =>
+                        handleRoleChange(role, !!checked)
+                      }
+                      disabled={
+                        role !== "Admin" && selectedRoles.includes("Admin")
+                      }
                     />
                     <Label
                       htmlFor={`role-${role}`}
@@ -291,16 +288,10 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
                 ))}
               </div>
             </div>
+  
           </div>
-
-          {/* Footer (NO Cancel button — matches your other dialogs) */}
-          <DialogFooter className="border-t px-6 pb-6 pt-4 flex justify-end">
-            <Button onClick={handleUpdateRoles}>Update Roles</Button>
-          </DialogFooter>
-        </DialogContent>
+        </StandardDialogLayout>
       </Dialog>
-
     </>
   );
-  
-}
+}  
