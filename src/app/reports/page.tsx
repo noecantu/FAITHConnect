@@ -92,18 +92,17 @@ export default function ReportsPage() {
 
   const filteredContributions = useMemo(() => {
     let list = contributions;
-  
-    // Year filter
+
+    // If no members selected → show nothing
+    if (selectedMembers.length === 0) return [];
+    
     if (selectedFY.length > 0) {
       list = list.filter((c) =>
         selectedFY.includes(new Date(c.date).getFullYear().toString())
       );
     }
-  
-    // Member filter
-    if (selectedMembers.length > 0) {
-      list = list.filter((c) => selectedMembers.includes(c.memberId));
-    }
+    
+    list = list.filter((c) => selectedMembers.includes(c.memberId));    
   
     // Status filter (requires looking up the member)
     if (selectedStatus.length > 0) {
