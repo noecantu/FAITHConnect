@@ -21,7 +21,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useChurchId } from '@/hooks/useChurchId';
 import { listenToMembers } from '@/lib/members';
 import type { Member } from '@/lib/types';
-import { Key } from 'lucide-react';
 
 const ROLE_MAP: Record<string, string> = {
   "Admin": "Administrator",
@@ -202,7 +201,11 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
 
       {/* Un-nested Dialog for editing roles */}
       <Dialog open={!!editingMember} onOpenChange={(open) => { if(!open) handleCloseEdit()}}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onCloseAutoFocus={(e) => e.preventDefault()}
+          className="max-h-[90vh] overflow-y-auto"
+        >
           <DialogHeader>
             <DialogTitle>Access & Roles: {editingMember?.firstName} {editingMember?.lastName}</DialogTitle>
             <DialogDescription>
@@ -214,8 +217,7 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
             {/* Login Creation Section */}
             <div className="space-y-4 p-4 border rounded-md bg-muted/30">
               <div className="flex items-center gap-2 mb-2">
-                <Key className="h-4 w-4 text-muted-foreground" />
-                <h4 className="text-sm font-medium">Create/Update Login</h4>
+                <h4 className="text-md font-bold">Create/Update Login</h4>
               </div>
               
               <div className="grid gap-4">
@@ -251,25 +253,34 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
               </div>
             </div>
 
-            {/* Roles Section */}
-            <div className="space-y-4">
-              <h4 className="text-sm font-medium">Roles & Permissions</h4>
-              {ALL_ROLES.map(role => (
-                <div key={role} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`role-${role}`}
-                    checked={selectedRoles.includes(role)}
-                    onCheckedChange={(checked) => handleRoleChange(role, !!checked)}
-                    disabled={role !== 'Admin' && selectedRoles.includes('Admin')}
-                  />
-                  <Label 
-                    htmlFor={`role-${role}`}
-                    className={role !== 'Admin' && selectedRoles.includes('Admin') ? 'text-muted-foreground' : ''}
-                  >
-                    {getRoleDisplayName(role)}
-                  </Label>
-                </div>
-              ))}
+            {/* Roles & Permissions Section */}
+            <div className="space-y-4 p-4 border rounded-md bg-muted/30">
+              <div className="flex items-center gap-2 mb-2">
+                <h4 className="text-md font-bold">Roles & Permissions</h4>
+              </div>
+
+              <div className="space-y-2">
+                {ALL_ROLES.map(role => (
+                  <div key={role} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`role-${role}`}
+                      checked={selectedRoles.includes(role)}
+                      onCheckedChange={(checked) => handleRoleChange(role, !!checked)}
+                      disabled={role !== 'Admin' && selectedRoles.includes('Admin')}
+                    />
+                    <Label
+                      htmlFor={`role-${role}`}
+                      className={
+                        role !== 'Admin' && selectedRoles.includes('Admin')
+                          ? 'text-muted-foreground'
+                          : ''
+                      }
+                    >
+                      {getRoleDisplayName(role)}
+                    </Label>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
