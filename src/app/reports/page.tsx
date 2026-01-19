@@ -63,9 +63,9 @@ export default function ReportsPage() {
   }, [contributions]);
 
   const filteredMembers = useMemo(() => {
-    if (selectedMembers.length === 0) return members;
+    if (selectedMembers.length === 0) return [];
     return members.filter((m) => selectedMembers.includes(m.id));
-  }, [members, selectedMembers]);
+  }, [members, selectedMembers]);  
 
   const filteredContributions = useMemo(() => {
     let list = contributions;
@@ -161,15 +161,13 @@ export default function ReportsPage() {
                 size="sm"
                 onClick={() =>
                   setSelectedMembers(
-                    selectedMembers.length === members.length
-                      ? []
-                      : members.map((m) => m.id)
+                    selectedMembers.length > 0
+                      ? [] // Clear All
+                      : members.map((m) => m.id) // Select All
                   )
                 }
               >
-                {selectedMembers.length === members.length
-                  ? 'Clear All'
-                  : 'Select All'}
+                {selectedMembers.length > 0 ? "Clear All" : "Select All"}
               </Button>
             </div>
 
@@ -180,7 +178,7 @@ export default function ReportsPage() {
               }))}
               value={selectedMembers}
               onChange={setSelectedMembers}
-              placeholder="All Members"
+              placeholder="No Members Selected"
             />
           </div>
 
