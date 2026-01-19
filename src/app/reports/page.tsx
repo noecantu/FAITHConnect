@@ -91,20 +91,23 @@ export default function ReportsPage() {
   }, [members, selectedMembers, selectedStatus]);      
 
   const filteredContributions = useMemo(() => {
-    let list = contributions;
-
-    // If no members selected → show nothing
+    // If no members selected → empty table
     if (selectedMembers.length === 0) return [];
-    
-    if (selectedFY.length > 0) {
-      list = list.filter((c) =>
-        selectedFY.includes(new Date(c.date).getFullYear().toString())
-      );
-    }
-    
-    list = list.filter((c) => selectedMembers.includes(c.memberId));    
   
-    // Status filter (requires looking up the member)
+    // If no years selected → empty table
+    if (selectedFY.length === 0) return [];
+  
+    let list = contributions;
+  
+    // Year filter (now guaranteed to run)
+    list = list.filter((c) =>
+      selectedFY.includes(new Date(c.date).getFullYear().toString())
+    );
+  
+    // Member filter
+    list = list.filter((c) => selectedMembers.includes(c.memberId));
+  
+    // Status filter
     if (selectedStatus.length > 0) {
       list = list.filter((c) => {
         const member = members.find((m) => m.id === c.memberId);
@@ -133,7 +136,7 @@ export default function ReportsPage() {
     selectedStatus,
     selectedCategories,
     selectedContributionTypes,
-  ]);  
+  ]);   
 
   const handleExportPDF = () => {
     if (reportType === 'members') {
@@ -291,7 +294,13 @@ export default function ReportsPage() {
                 }))}
                 value={selectedFY}
                 onChange={setSelectedFY}
-                placeholder="All Years"
+                placeholder={
+                  selectedFY.length === 0
+                    ? "No Year Selected"
+                    : selectedFY.length === availableYears.length
+                    ? "All Years"
+                    : selectedFY.join(", ")
+                }
               />
             </div>
           )}
@@ -343,7 +352,9 @@ export default function ReportsPage() {
             ) : (
               <>
                 <p>Contributions: {filteredContributions.length}</p>
-                <p>Year: {selectedFY}</p>
+                <p>
+                  Year: {selectedFY.length === 0 ? "No Year Selected" : selectedFY.join(", ")}
+                </p>
               </>
             )}
           </div>
