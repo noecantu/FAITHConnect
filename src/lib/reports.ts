@@ -64,13 +64,23 @@ export function generateMembersPDF(
     format: "letter",
   });
 
-  // Logo (optional)
+  // -------------------------
+  // Header: Logo + Centered Title
+  // -------------------------
+
+  // Logo (left)
   if (logoBase64) {
-    doc.addImage(logoBase64, "PNG", 20, 10, 50, 50);
+    doc.addImage(logoBase64, "PNG", 40, 20, 100, 0); // width=100, height auto
   }
 
+  // Centered title
+  const pageWidth = doc.internal.pageSize.getWidth();
   doc.setFontSize(18);
-  doc.text("Member Directory Report", 80, 40);
+  doc.text("Member Directory Report", pageWidth / 2, 50, { align: "center" });
+
+  // -------------------------
+  // Table
+  // -------------------------
 
   const tableColumn = ["Name", ...selectedFields.map(f => fieldLabelMap[f])];
 
@@ -82,7 +92,7 @@ export function generateMembersPDF(
   autoTable(doc, {
     head: [tableColumn],
     body: tableRows,
-    startY: 60,
+    startY: 80, // pushed down so it doesn't overlap header
     styles: { fontSize: 10 },
     tableWidth: "auto",
     columnStyles: { 0: { cellWidth: "auto" } },
@@ -92,7 +102,9 @@ export function generateMembersPDF(
   // -------------------------
   // Footer (aligned to table)
   // -------------------------
+
   const pageCount = doc.getNumberOfPages();
+
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
 
@@ -105,12 +117,14 @@ export function generateMembersPDF(
 
     doc.setFontSize(10);
 
+    // Left footer text
     doc.text(
       `Generated on ${format(new Date(), "MM/dd/yyyy hh:mm a")}`,
       left,
       footerY
     );
 
+    // Right footer text
     doc.text(
       `Page ${i} of ${pageCount}`,
       right,
@@ -163,11 +177,12 @@ export function generateContributionsPDF(contributions: Contribution[], logoBase
   });
 
   if (logoBase64) {
-    doc.addImage(logoBase64, "PNG", 20, 10, 50, 50);
+    doc.addImage(logoBase64, "PNG", 40, 20, 100, 0);
   }
 
+  const pageWidth = doc.internal.pageSize.getWidth();
   doc.setFontSize(18);
-  doc.text("Contributions Report", 80, 40);
+  doc.text("Contributions Report", pageWidth / 2, 50, { align: "center" });
 
   const tableRows = contributions.map(c => [
     c.memberName,
@@ -180,7 +195,7 @@ export function generateContributionsPDF(contributions: Contribution[], logoBase
   autoTable(doc, {
     head: [tableColumn],
     body: tableRows,
-    startY: 60,
+    startY: 80,
     styles: { fontSize: 10, cellWidth: "wrap" },
     alternateRowStyles: { fillColor: [245, 245, 245] },
     columnStyles: { 0: { cellWidth: 140 } },

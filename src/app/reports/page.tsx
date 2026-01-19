@@ -31,7 +31,7 @@ export default function ReportsPage() {
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [selectedFY, setSelectedFY] = useState<string[]>([]);
-
+  
   // Fields to export for Member List (plain strings)
   const memberFieldOptions = [
     { label: "Status", value: "status" },
@@ -138,13 +138,15 @@ export default function ReportsPage() {
     selectedContributionTypes,
   ]);   
 
-  const handleExportPDF = () => {
-    if (reportType === 'members') {
-      generateMembersPDF(filteredMembers, selectedFields);
+  const handleExportPDF = async () => {
+    const logoBase64 = await loadPngAsBase64("/FAITH_CONNECT_FLAME_LOGO.png");
+  
+    if (reportType === "members") {
+      generateMembersPDF(filteredMembers, selectedFields, logoBase64);
     } else {
-      generateContributionsPDF(filteredContributions);
+      generateContributionsPDF(filteredContributions, logoBase64);
     }
-  };
+  };  
 
   const handleExportExcel = () => {
     if (reportType === 'members') {
@@ -180,6 +182,21 @@ export default function ReportsPage() {
   
     // Fallback for primitives
     return String(value);
+  }
+  
+  async function loadPngAsBase64(path: string): Promise<string | undefined> {
+    try {
+      const res = await fetch(path);
+      const blob = await res.blob();
+  
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      return undefined;
+    }
   }
   
   return (
