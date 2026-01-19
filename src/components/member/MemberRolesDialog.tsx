@@ -170,6 +170,7 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
               Assign or remove roles for members in your organization.
             </DialogDescription>
           </DialogHeader>
+  
           <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
             {loading ? (
               <div className="space-y-2">
@@ -179,14 +180,20 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
               </div>
             ) : (
               members.map(member => (
-                <div key={member.id} className="flex items-center justify-between p-2 border rounded-md">
+                <div
+                  key={member.id}
+                  className="flex items-center justify-between p-2 border rounded-md"
+                >
                   <div>
-                    <p className="font-semibold">{member.firstName} {member.lastName}</p>
+                    <p className="font-semibold">
+                      {member.firstName} {member.lastName}
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      {(member.roles?.includes('Admin'))
-                        ? getRoleDisplayName('Admin')
-                        : (member.roles || []).map(getRoleDisplayName).join(', ') || 'No roles assigned'
-                      }
+                      {member.roles?.includes("Admin")
+                        ? getRoleDisplayName("Admin")
+                        : (member.roles || [])
+                            .map(getRoleDisplayName)
+                            .join(", ") || "No roles assigned"}
                     </p>
                   </div>
                   <Button variant="outline" onClick={() => handleEditClick(member)}>
@@ -198,50 +205,54 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
           </div>
         </DialogContent>
       </Dialog>
-
+  
       {/* Un-nested Dialog for editing roles */}
-      <Dialog open={!!editingMember} onOpenChange={(open) => { if(!open) handleCloseEdit()}}>
+      <Dialog open={!!editingMember} onOpenChange={(open) => { if (!open) handleCloseEdit() }}>
         <DialogContent
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
-          className="max-h-[90vh] overflow-y-auto"
+          className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0"
         >
-          <DialogHeader>
-            <DialogTitle>Access & Roles: {editingMember?.firstName} {editingMember?.lastName}</DialogTitle>
+          {/* Header (NOT sticky — matches MemberFormSheet) */}
+          <DialogHeader className="shrink-0 px-6 pt-6">
+            <DialogTitle className="focus:outline-none">
+              Access & Roles: {editingMember?.firstName} {editingMember?.lastName}
+            </DialogTitle>
             <DialogDescription>
               Create a login for this member and assign their permissions.
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-6 py-4">
+
+          {/* Scrollable Middle */}
+          <div className="flex-grow overflow-y-auto px-6 py-4 space-y-6">
+            
             {/* Login Creation Section */}
             <div className="space-y-4 p-4 border rounded-md bg-muted/30">
-              <div className="flex items-center gap-2 mb-2">
-                <h4 className="text-md font-bold">Create/Update Login</h4>
-              </div>
-              
+              <h4 className="text-md font-bold">Create/Update Login</h4>
+
               <div className="grid gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="login-email">Email (Username)</Label>
-                  <Input 
+                  <Input
                     id="login-email"
-                    value={loginEmail} 
+                    value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     placeholder="member@example.com"
                   />
                 </div>
+
                 <div className="grid gap-2">
                   <Label htmlFor="login-password">New Password</Label>
                   <div className="flex gap-2">
-                    <Input 
+                    <Input
                       id="login-password"
-                      type="password" 
-                      value={loginPassword} 
+                      type="password"
+                      value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       placeholder="Min. 6 characters"
                     />
-                    <Button 
-                      type="button" 
+                    <Button
+                      type="button"
                       onClick={handleCreateLogin}
                       disabled={isCreatingLogin || !loginEmail || !loginPassword}
                       size="sm"
@@ -255,25 +266,23 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
 
             {/* Roles & Permissions Section */}
             <div className="space-y-4 p-4 border rounded-md bg-muted/30">
-              <div className="flex items-center gap-2 mb-2">
-                <h4 className="text-md font-bold">Roles & Permissions</h4>
-              </div>
+              <h4 className="text-md font-bold">Roles & Permissions</h4>
 
               <div className="space-y-2">
-                {ALL_ROLES.map(role => (
+                {ALL_ROLES.map((role) => (
                   <div key={role} className="flex items-center space-x-2">
                     <Checkbox
                       id={`role-${role}`}
                       checked={selectedRoles.includes(role)}
                       onCheckedChange={(checked) => handleRoleChange(role, !!checked)}
-                      disabled={role !== 'Admin' && selectedRoles.includes('Admin')}
+                      disabled={role !== "Admin" && selectedRoles.includes("Admin")}
                     />
                     <Label
                       htmlFor={`role-${role}`}
                       className={
-                        role !== 'Admin' && selectedRoles.includes('Admin')
-                          ? 'text-muted-foreground'
-                          : ''
+                        role !== "Admin" && selectedRoles.includes("Admin")
+                          ? "text-muted-foreground"
+                          : ""
                       }
                     >
                       {getRoleDisplayName(role)}
@@ -284,12 +293,14 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          <DialogFooter className="border-t pt-4">
-            <Button variant="outline" onClick={handleCloseEdit}>Cancel</Button>
+          {/* Footer (NO Cancel button — matches your other dialogs) */}
+          <DialogFooter className="border-t px-6 pb-6 pt-4 flex justify-end">
             <Button onClick={handleUpdateRoles}>Update Roles</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
     </>
   );
+  
 }
