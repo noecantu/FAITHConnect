@@ -165,10 +165,11 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
       {/* LIST DIALOG */}
       <Dialog open={isListOpen} onOpenChange={setIsListOpen}>
         <DialogTrigger asChild>{children}</DialogTrigger>
-  
+
         <StandardDialogLayout
           title="Manage Member Roles"
           description="Assign or remove roles for members in your organization."
+          onClose={() => setIsListOpen(false)}
         >
           <div className="space-y-4">
             {loading ? (
@@ -193,7 +194,7 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
                             .join(", ") || "No roles assigned"}
                     </p>
                   </div>
-  
+
                   <Button variant="outline" onClick={() => handleEditClick(member)}>
                     Edit
                   </Button>
@@ -214,15 +215,14 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
         <StandardDialogLayout
           title={`Access & Roles: ${editingMember?.firstName} ${editingMember?.lastName}`}
           description="Create a login for this member and assign their permissions."
+          onClose={handleCloseEdit}
           footer={<Button onClick={handleUpdateRoles}>Update Roles</Button>}
         >
-          {/* Wrap BOTH sections in one space-y container */}
           <div className="space-y-6">
-  
             {/* Login Creation Section */}
             <div className="space-y-4 p-4 border rounded-md bg-muted/30">
               <h4 className="text-md font-bold">Create/Update Login</h4>
-  
+
               <div className="grid gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="login-email">Email (Username)</Label>
@@ -233,7 +233,7 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
                     placeholder="member@example.com"
                   />
                 </div>
-  
+
                 <div className="grid gap-2">
                   <Label htmlFor="login-password">New Password</Label>
                   <div className="flex gap-2">
@@ -256,11 +256,11 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
                 </div>
               </div>
             </div>
-  
+
             {/* Roles & Permissions Section */}
             <div className="space-y-4 p-4 border rounded-md bg-muted/30">
               <h4 className="text-md font-bold">Roles & Permissions</h4>
-  
+
               <div className="space-y-2">
                 {ALL_ROLES.map((role) => (
                   <div key={role} className="flex items-center space-x-2">
@@ -288,10 +288,10 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
                 ))}
               </div>
             </div>
-  
           </div>
         </StandardDialogLayout>
       </Dialog>
+
     </>
   );
 }  

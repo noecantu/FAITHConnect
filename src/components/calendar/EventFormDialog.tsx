@@ -1,136 +1,126 @@
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-    DialogFooter,
-  } from "@/components/ui/dialog";
-  import { Button } from "@/components/ui/button";
-  import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-  import { Input } from "@/components/ui/input";
-  import { Textarea } from "@/components/ui/textarea";
-  
-  import { MobileDatePicker } from "@mui/x-date-pickers/MobileDatePicker";
-  import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-  import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-  import { ThemeProvider } from "@mui/material/styles";
-  import dayjs from "dayjs";
-  
-  import type { Event } from "@/lib/types";
-  import { format } from "date-fns";
-  
-  export function EventFormDialog({
-    open,
-    isEditing,
-    event,
-    selectedDate,
-    form,
-    onSubmit,
-    onOpenChange,
-    muiTheme,
-  }: {
-    open: boolean;
-    isEditing: boolean;
-    event: Event | null;
-    selectedDate: Date;
-    form: any;
-    onSubmit: (data: any) => void;
-    onOpenChange: (open: boolean) => void;
-    muiTheme: any;
-  }) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="overflow-y-auto max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>{isEditing ? "Edit Event" : "Add New Event"}</DialogTitle>
-            <DialogDescription>
-              {isEditing
-                ? "Update the details of this event."
-                : `Add a new event for ${format(selectedDate, "PPP")}.`}
-            </DialogDescription>
-          </DialogHeader>
-  
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+import { Dialog } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { StandardDialogLayout } from "@/components/layout/StandardDialogLayout";
 
-              {/* DATE FIRST */}
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem className="space-y-2">
-                    <FormLabel>Date</FormLabel>
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
-                    <FormControl>
-                      <div className="w-full">
-                        <ThemeProvider theme={muiTheme}>
-                          <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <MobileDatePicker
-                              slotProps={{
-                                textField: {
-                                  fullWidth: true,
-                                },
-                              }}
-                              value={dayjs(field.value)}
-                              onChange={(next) => {
-                                if (!next) return;
-                                field.onChange(next.toDate());
-                              }}
-                              closeOnSelect
-                              reduceAnimations
-                            />
-                          </LocalizationProvider>
-                        </ThemeProvider>
-                      </div>
-                    </FormControl>
+import { MobileDatePicker } from "@mui/x-date-pickers/MobileDatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { ThemeProvider } from "@mui/material/styles";
+import dayjs from "dayjs";
 
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+import type { Event } from "@/lib/types";
+import { format } from "date-fns";
 
-              {/* TITLE */}
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Event Title *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Sunday Service" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+export function EventFormDialog({
+  open,
+  isEditing,
+  event,
+  selectedDate,
+  form,
+  onSubmit,
+  onOpenChange,
+  muiTheme,
+}: {
+  open: boolean;
+  isEditing: boolean;
+  event: Event | null;
+  selectedDate: Date;
+  form: any;
+  onSubmit: (data: any) => void;
+  onOpenChange: (open: boolean) => void;
+  muiTheme: any;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <StandardDialogLayout
+        title={isEditing ? "Edit Event" : "Add New Event"}
+        description={
+          isEditing
+            ? "Update the details of this event."
+            : `Add a new event for ${format(selectedDate, "PPP")}.`
+        }
+        onClose={() => onOpenChange(false)}
+        footer={
+          <>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" form="event-form">
+              {isEditing ? "Save Changes" : "Add Event"}
+            </Button>
+          </>
+        }
+      >
+        <Form {...form}>
+          <form id="event-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
-              {/* DESCRIPTION */}
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Event details..." {...field} value={field.value ?? ''} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            
-              <DialogFooter className="border-t pt-4">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" onClick={form.handleSubmit(onSubmit)}>
-                  {isEditing ? "Save Changes" : "Add Event"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+            {/* DATE */}
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormLabel>Date</FormLabel>
+                  <FormControl>
+                    <ThemeProvider theme={muiTheme}>
+                      <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <MobileDatePicker
+                          slotProps={{
+                            textField: { fullWidth: true },
+                          }}
+                          value={dayjs(field.value)}
+                          onChange={(next) => {
+                            if (!next) return;
+                            field.onChange(next.toDate());
+                          }}
+                          closeOnSelect
+                          reduceAnimations
+                        />
+                      </LocalizationProvider>
+                    </ThemeProvider>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* TITLE */}
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Event Title *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Sunday Service" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* DESCRIPTION */}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Event details..." {...field} value={field.value ?? ""} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+          </form>
+        </Form>
+      </StandardDialogLayout>
+    </Dialog>
+  );
+}

@@ -1,5 +1,6 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { StandardDialogLayout } from "@/components/layout/StandardDialogLayout";
 
 export function ConfirmDeleteDialog({
   open,
@@ -12,23 +13,21 @@ export function ConfirmDeleteDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Delete Event</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete this event? This action cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-
-        <DialogFooter className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button variant="destructive" onClick={onConfirm}>
-            Delete
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+      <StandardDialogLayout
+        title="Delete Event"
+        description="Are you sure you want to delete this event? This action cannot be undone."
+        onClose={() => onOpenChange(false)}
+        footer={
+          <>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={onConfirm}>
+              Delete
+            </Button>
+          </>
+        }
+      />
     </Dialog>
   );
 }

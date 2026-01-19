@@ -196,6 +196,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
               Capture
             </Button>
           </DialogFooter>
+          
         </DialogContent>
       </Dialog>
     </Dialog>

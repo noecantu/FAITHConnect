@@ -52,6 +52,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { StandardDialogLayout } from '@/components/layout/StandardDialogLayout';
 
 const contributionSchema = z.object({
   memberId: z.string().min(1, 'Member is required'),
@@ -162,20 +163,34 @@ export function EditContributionDialog({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent 
-          className="max-h-[80vh] overflow-y-auto w-[90vw] sm:w-[500px]"
-          onOpenAutoFocus={(e) => e.preventDefault()}
+        <StandardDialogLayout
+          title="Edit Contribution"
+          description="Update the details of this contribution."
+          onClose={onClose}
+          footer={
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => setIsDeleteAlertOpen(true)}
+              >
+                Delete
+              </Button>
+          
+              <Button type="submit" form="edit-contribution-form">
+                Save Changes
+              </Button>
+            </div>
+          }                              
         >
-          <DialogHeader>
-            <DialogTitle>Edit Contribution</DialogTitle>
-            <DialogDescription>
-              Update the details of this contribution.
-            </DialogDescription>
-          </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-               {/* Date - Moved to top to match Add Dialog */}
-               <FormField
+            <form
+              id="edit-contribution-form"
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-4"
+            >
+              {/* DATE */}
+              <FormField
                 control={form.control}
                 name="date"
                 render={({ field }) => (
@@ -206,7 +221,7 @@ export function EditContributionDialog({
                                     '& .MuiInputBase-input': {
                                       padding: '0.5rem 0.75rem',
                                       height: 'auto',
-                                    }
+                                    },
                                   },
                                 },
                               }}
@@ -225,6 +240,7 @@ export function EditContributionDialog({
                 )}
               />
 
+              {/* MEMBER */}
               <FormField
                 control={form.control}
                 name="memberId"
@@ -251,6 +267,8 @@ export function EditContributionDialog({
                   </FormItem>
                 )}
               />
+
+              {/* AMOUNT */}
               <FormField
                 control={form.control}
                 name="amount"
@@ -265,17 +283,14 @@ export function EditContributionDialog({
                 )}
               />
 
-              {/* Category */}
+              {/* CATEGORY */}
               <FormField
                 control={form.control}
                 name="category"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a category" />
@@ -293,17 +308,14 @@ export function EditContributionDialog({
                 )}
               />
 
-              {/* Contribution Type */}
+              {/* CONTRIBUTION TYPE */}
               <FormField
                 control={form.control}
                 name="contributionType"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Contribution Type</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a contribution type" />
@@ -320,42 +332,23 @@ export function EditContributionDialog({
                   </FormItem>
                 )}
               />
-             
-              <DialogFooter className="border-t pt-4 gap-4 sm:gap-2">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => setIsDeleteAlertOpen(true)}
-                  className="sm:mr-auto"
-                >
-                  Delete
-                </Button>
-                <Button type="button" variant="outline" onClick={onClose}>
-                  Cancel
-                </Button>
-                <Button type="submit">Save Changes</Button>
-              </DialogFooter>
             </form>
           </Form>
-        </DialogContent>
+        </StandardDialogLayout>
       </Dialog>
-      <AlertDialog
-        open={isDeleteAlertOpen}
-        onOpenChange={setIsDeleteAlertOpen}
-      >
+
+      {/* DELETE CONFIRMATION */}
+      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              contribution record.
+              This action cannot be undone. This will permanently delete the contribution record.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
-              Continue
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete}>Continue</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

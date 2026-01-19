@@ -144,11 +144,6 @@ export default function SettingsPage() {
     }
   };
 
-  const generateYearOptions = () => {
-    const currentYear = new Date().getFullYear();
-    return Array.from({ length: 11 }, (_, i) => (currentYear - i).toString());
-  };
-
   const availableYears = useMemo(() => {
     const years = new Set<number>();
   
@@ -157,7 +152,7 @@ export default function SettingsPage() {
       years.add(year);
     });
   
-    return Array.from(years).sort((a, b) => b - a); // newest first
+    return Array.from(years).sort((a, b) => b - a);
   }, [contributions]);
   
   return (
