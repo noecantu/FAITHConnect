@@ -21,10 +21,11 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email.trim(), password);
       router.push('/');
       toast({ title: "Login Successful", description: "Welcome back!" });
     } catch (error) {
+      console.error("Login error:", error);
       toast({
         title: "Login Failed",
         description: "The email or password you entered is incorrect.",
@@ -37,8 +38,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-muted">
-      <Card className="w-full max-w-sm">
+    <div className="flex items-center justify-center min-h-screen bg-black">
+      <Card className="w-full max-w-sm bg-card">
         
         <CardHeader className="text-center space-y-2">
           <img
@@ -58,6 +59,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
+                autoComplete="email"
                 placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -70,6 +72,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
