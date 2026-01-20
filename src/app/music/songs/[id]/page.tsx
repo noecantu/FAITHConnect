@@ -10,6 +10,7 @@ import { useUserRoles } from '@/hooks/useUserRoles';
 import { getSongById, deleteSong } from '@/lib/songs';
 import { useRecentSetLists } from '@/hooks/useRecentSetLists';
 import type { Song, SetList } from '@/lib/types';
+import { Separator } from '@/components/ui/separator';
 
 export default function SongDetailPage() {
   const { id } = useParams();
@@ -102,10 +103,8 @@ export default function SongDetailPage() {
       {/* SECTION: Basic Info */}
       <Card className="p-6 space-y-6">
         <div>
-          <h2 className="text-lg font-semibold">Basic Info</h2>
-          <p className="text-sm text-muted-foreground">
-            Core details about this song.
-          </p>
+          <h2 className="text-lg font-semibold">Song Details</h2>
+          <Separator />
         </div>
   
         <div className="grid grid-cols-2 gap-4">
@@ -151,9 +150,11 @@ export default function SongDetailPage() {
   
       {/* SECTION: Lyrics */}
       <Card className="p-6 space-y-4">
-        <h2 className="text-lg font-semibold">Lyrics</h2>
-
-        <div className="max-h-[300px] overflow-y-auto pr-2">
+        <div>
+          <h2 className="text-lg font-semibold">Lyrics</h2>
+          <Separator />
+        </div>
+        <div className="max-h-[300px] overflow-y-auto pr-2 bg-black text-white rounded-md p-3">
           {song.lyrics ? (
             <pre className="whitespace-pre-wrap text-sm leading-relaxed">
               {song.lyrics}
@@ -166,9 +167,11 @@ export default function SongDetailPage() {
   
       {/* SECTION: Chords */}
       <Card className="p-6 space-y-4">
-        <h2 className="text-lg font-semibold">Chords</h2>
-
-        <div className="max-h-[300px] overflow-y-auto pr-2">
+        <div>
+          <h2 className="text-lg font-semibold">Chords</h2>
+          <Separator />
+        </div>
+        <div className="max-h-[300px] overflow-y-auto pr-2 bg-black text-white rounded-md p-3">
           {song.chords ? (
             <pre className="whitespace-pre-wrap text-sm font-mono leading-relaxed">
               {song.chords}
@@ -181,7 +184,10 @@ export default function SongDetailPage() {
   
       {/* SECTION: Recent Usage */}
       <Card className="p-6 space-y-4">
-        <h2 className="text-lg font-semibold">Recent Usage</h2>
+        <div>
+          <h2 className="text-lg font-semibold">Recent Usage</h2>
+          <Separator />
+        </div>
   
         {usedIn.length === 0 ? (
           <p className="text-muted-foreground">This song has not been used recently.</p>
