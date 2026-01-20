@@ -21,7 +21,7 @@ import {
   // Collection reference
   // -----------------------------------------------------
   export function setListsCollection(churchId: string) {
-    return collection(db, 'churches', churchId, 'setLists');
+    return collection(db, 'churches', churchId, 'setlists');
   }
   
   // -----------------------------------------------------
@@ -83,7 +83,7 @@ import {
     setListId: string,
     data: Partial<Omit<SetList, 'id' | 'churchId' | 'createdAt' | 'updatedAt'>>
   ) {
-    const ref = doc(db, 'churches', churchId, 'setLists', setListId);
+    const ref = doc(db, 'churches', churchId, 'setlists', setListId);
   
     await updateDoc(ref, {
       ...data,
@@ -95,7 +95,7 @@ import {
   // Delete Set List
   // -----------------------------------------------------
   export async function deleteSetList(churchId: string, setListId: string) {
-    const ref = doc(db, 'churches', churchId, 'setLists', setListId);
+    const ref = doc(db, 'churches', churchId, 'setlists', setListId);
     await deleteDoc(ref);
   }
   
