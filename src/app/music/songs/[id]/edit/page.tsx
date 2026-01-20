@@ -25,8 +25,12 @@ export default function EditSongPage() {
 
   // Form state
   const [title, setTitle] = useState('');
-  const [key, setKey] = useState('C');
+  const [artist, setArtist] = useState('');
+  const [key, setKey] = useState('');
   const [bpm, setBpm] = useState('');
+  const [timeSignature, setTimeSignature] = useState('');
+  const [lyrics, setLyrics] = useState('');
+  const [chords, setChords] = useState('');
   const [tags, setTags] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -41,8 +45,12 @@ export default function EditSongPage() {
 
       if (data) {
         setTitle(data.title);
-        setKey(data.key);
+        setArtist(data.artist ?? '');
+        setKey(data.key ?? '');
         setBpm(data.bpm?.toString() ?? '');
+        setTimeSignature(data.timeSignature ?? '');
+        setLyrics(data.lyrics ?? '');
+        setChords(data.chords ?? '');
         setTags(data.tags.join(', '));
       }
     };
@@ -96,8 +104,12 @@ export default function EditSongPage() {
 
     const updated: Partial<Song> = {
       title: title.trim(),
+      artist: artist.trim() || undefined,
       key,
       bpm: bpm ? Number(bpm) : undefined,
+      timeSignature: timeSignature.trim() || undefined,
+      lyrics: lyrics.trim() || undefined,
+      chords: chords.trim() || undefined,
       tags: tags
         .split(',')
         .map((t) => t.trim())
@@ -113,54 +125,122 @@ export default function EditSongPage() {
     <div className="space-y-6">
       <PageHeader title="Edit Song" />
 
-      <Card className="p-6 space-y-4">
+      {/* Back to Songs */}
+      <div
+        className="
+          flex flex-col gap-2
+          sm:flex-row sm:justify-end sm:items-center
+        "
+      >
+        <Button
+          variant="secondary"
+          className="w-full sm:w-auto"
+          onClick={() => router.push('/music/songs')}
+        >
+          Back to Songs
+        </Button>
+      </div>
 
-        {/* Title */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Song Title</label>
-          <Input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Great Are You Lord"
-          />
-        </div>
+      <Card className="p-6 space-y-8">
 
-        {/* Key + BPM */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* SECTION: Basic Info */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Basic Info</h2>
+
+          {/* Title */}
           <div>
-            <label className="block text-sm font-medium mb-1">Default Key</label>
+            <label className="block text-sm font-medium mb-1">Song Title</label>
             <Input
-              value={key}
-              onChange={(e) => setKey(e.target.value)}
-              placeholder="C"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Great Are You Lord"
             />
           </div>
 
+          {/* Artist */}
           <div>
-            <label className="block text-sm font-medium mb-1">BPM</label>
+            <label className="block text-sm font-medium mb-1">Artist</label>
             <Input
-              type="number"
-              value={bpm}
-              onChange={(e) => setBpm(e.target.value)}
-              placeholder="72"
+              value={artist}
+              onChange={(e) => setArtist(e.target.value)}
+              placeholder="All Sons & Daughters"
             />
+          </div>
+
+          {/* Key / BPM / Time Signature */}
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Key</label>
+              <Input
+                value={key}
+                onChange={(e) => setKey(e.target.value)}
+                placeholder="C"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">BPM</label>
+              <Input
+                type="number"
+                value={bpm}
+                onChange={(e) => setBpm(e.target.value)}
+                placeholder="72"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Time Signature</label>
+              <Input
+                value={timeSignature}
+                onChange={(e) => setTimeSignature(e.target.value)}
+                placeholder="4/4, 6/8…"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Tags */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Tags</label>
+        {/* SECTION: Lyrics */}
+        <Card className="p-6 space-y-4">
+          <h2 className="text-lg font-semibold">Lyrics</h2>
+
+          <div className="max-h-[300px] overflow-y-auto pr-2">
+            <Textarea
+              value={lyrics}
+              onChange={(e) => setLyrics(e.target.value)}
+              placeholder="Paste lyrics here…"
+              className="min-h-[200px]"
+            />
+          </div>
+        </Card>
+
+        {/* SECTION: Chords */}
+        <Card className="p-6 space-y-4">
+          <h2 className="text-lg font-semibold">Chords</h2>
+
+          <div className="max-h-[300px] overflow-y-auto pr-2">
+            <Textarea
+              value={chords}
+              onChange={(e) => setChords(e.target.value)}
+              placeholder="Paste chord chart or Nashville numbers…"
+              className="min-h-[200px] font-mono"
+            />
+          </div>
+        </Card>
+
+        {/* SECTION: Tags */}
+        <div className="space-y-2">
+          <h2 className="text-lg font-semibold">Tags</h2>
           <Input
             value={tags}
             onChange={(e) => setTags(e.target.value)}
             placeholder="worship, upbeat, easter"
           />
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground">
             Separate tags with commas.
           </p>
         </div>
 
-        {/* Save */}
+        {/* Save / Cancel */}
         <div
           className="
             flex flex-col gap-2
@@ -183,6 +263,7 @@ export default function EditSongPage() {
             {saving ? 'Saving…' : 'Save Changes'}
           </Button>
         </div>
+
       </Card>
     </div>
   );

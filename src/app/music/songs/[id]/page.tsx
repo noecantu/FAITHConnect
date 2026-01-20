@@ -82,7 +82,7 @@ export default function SongDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader title={song.title} />
-
+  
       {/* Back to Songs */}
       <div
         className="
@@ -98,28 +98,38 @@ export default function SongDetailPage() {
           Back to Songs
         </Button>
       </div>
-
-      {/* Song Info */}
-      <Card className="p-6 space-y-4">
+  
+      {/* SECTION: Basic Info */}
+      <Card className="p-6 space-y-6">
         <div>
-          <h2 className="font-semibold text-lg">Song Information</h2>
+          <h2 className="text-lg font-semibold">Basic Info</h2>
           <p className="text-sm text-muted-foreground">
-            Basic details about this song.
+            Core details about this song.
           </p>
         </div>
-
+  
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-xs text-muted-foreground">Default Key</p>
-            <p className="font-medium">{song.key}</p>
+            <p className="text-xs text-muted-foreground">Artist</p>
+            <p className="font-medium">{song.artist || '—'}</p>
           </div>
-
+  
+          <div>
+            <p className="text-xs text-muted-foreground">Key</p>
+            <p className="font-medium">{song.key || '—'}</p>
+          </div>
+  
           <div>
             <p className="text-xs text-muted-foreground">BPM</p>
             <p className="font-medium">{song.bpm ?? '—'}</p>
           </div>
+  
+          <div>
+            <p className="text-xs text-muted-foreground">Time Signature</p>
+            <p className="font-medium">{song.timeSignature || '—'}</p>
+          </div>
         </div>
-
+  
         <div>
           <p className="text-xs text-muted-foreground">Tags</p>
           {tags.length > 0 ? (
@@ -137,13 +147,42 @@ export default function SongDetailPage() {
             <p className="text-muted-foreground">No tags</p>
           )}
         </div>
-
       </Card>
-
-      {/* Recent Usage */}
+  
+      {/* SECTION: Lyrics */}
       <Card className="p-6 space-y-4">
-        <h2 className="font-semibold text-lg">Recent Usage</h2>
+        <h2 className="text-lg font-semibold">Lyrics</h2>
 
+        <div className="max-h-[300px] overflow-y-auto pr-2">
+          {song.lyrics ? (
+            <pre className="whitespace-pre-wrap text-sm leading-relaxed">
+              {song.lyrics}
+            </pre>
+          ) : (
+            <p className="text-muted-foreground">No lyrics provided.</p>
+          )}
+        </div>
+      </Card>
+  
+      {/* SECTION: Chords */}
+      <Card className="p-6 space-y-4">
+        <h2 className="text-lg font-semibold">Chords</h2>
+
+        <div className="max-h-[300px] overflow-y-auto pr-2">
+          {song.chords ? (
+            <pre className="whitespace-pre-wrap text-sm font-mono leading-relaxed">
+              {song.chords}
+            </pre>
+          ) : (
+            <p className="text-muted-foreground">No chord chart provided.</p>
+          )}
+        </div>
+      </Card>
+  
+      {/* SECTION: Recent Usage */}
+      <Card className="p-6 space-y-4">
+        <h2 className="text-lg font-semibold">Recent Usage</h2>
+  
         {usedIn.length === 0 ? (
           <p className="text-muted-foreground">This song has not been used recently.</p>
         ) : (
@@ -162,20 +201,22 @@ export default function SongDetailPage() {
           </ul>
         )}
       </Card>
-
-      {/* Actions */}
+  
+      {/* SECTION: Actions */}
       {canEdit && (
-        <div className="
-          flex flex-col gap-2
-          sm:flex-row sm:justify-end sm:items-center
-        ">
+        <div
+          className="
+            flex flex-col gap-2
+            sm:flex-row sm:justify-end sm:items-center
+          "
+        >
           <Button
             className="w-full sm:w-auto"
             onClick={() => router.push(`/music/songs/${song.id}/edit`)}
           >
             Edit Song
           </Button>
-
+  
           <Button
             className="w-full sm:w-auto"
             variant="destructive"
@@ -185,7 +226,6 @@ export default function SongDetailPage() {
           </Button>
         </div>
       )}
-
     </div>
   );
-}
+}  
