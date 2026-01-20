@@ -99,3 +99,24 @@ import {
     await deleteDoc(ref);
   }
   
+  export async function getSetListById(churchId: string, id: string): Promise<SetList | null> {
+    const ref = doc(db, 'churches', churchId, 'setlists', id);
+    const snap = await getDoc(ref);
+  
+    if (!snap.exists()) return null;
+  
+    const data = snap.data();
+  
+    return {
+      id: snap.id,
+      churchId,
+      title: data.title,
+      date: data.date.toDate(),
+      songs: data.songs ?? [],
+      createdBy: data.createdBy,
+      createdAt: data.createdAt.toDate(),
+      updatedAt: data.updatedAt.toDate(),
+      serviceType: data.serviceType,
+      serviceNotes: data.serviceNotes,
+    };
+  }

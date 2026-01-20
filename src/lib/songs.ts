@@ -120,3 +120,18 @@ import {
     await deleteDoc(ref);
   }
   
+  export async function getSongById(churchId: string, songId: string): Promise<Song | null> {
+    const ref = doc(db, `churches/${churchId}/songs/${songId}`);
+    const snap = await getDoc(ref);
+  
+    if (!snap.exists()) return null;
+  
+    const data = snap.data();
+  
+    return {
+      id: snap.id,
+      ...(data as any),
+      createdAt: data.createdAt?.toDate?.() ?? new Date(),
+      updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
+    } as Song;
+  }

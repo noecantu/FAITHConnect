@@ -314,7 +314,7 @@ export function AddContributionDialog({
               )}
             />
 
-            <DialogFooter className="border-t pt-4">
+            xc
               <Button type="submit">Add Contribution</Button>
             </DialogFooter>
           </form>

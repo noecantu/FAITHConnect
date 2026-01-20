@@ -36,7 +36,7 @@ export function SetListSongEditor({
         title: song.title,
         key: song.key,
         notes: '',
-        order: 0
+        order: 0,
       },
     ]);
     setSearch('');

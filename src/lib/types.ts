@@ -94,7 +94,7 @@ export interface Song {
   timeSignature?: string;
   lyrics?: string;
   chords?: string;
-  tags?: SongTag[];
+  tags: SongTag[];
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
@@ -102,6 +102,7 @@ export interface Song {
 
 export interface SetListSongEntry {
   songId: string;
+  title: string;
   key: string;
   order: number;
   notes?: string;
