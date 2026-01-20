@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut,
   FileText,
+  Music,
 } from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from 'firebase/auth';
@@ -43,6 +44,7 @@ const navItems = [
   { href: '/', label: 'Members', icon: Users },
   { href: '/calendar', label: 'Calendar', icon: Calendar },
   { href: '/contributions', label: 'Contributions', icon: DollarSign },
+  { href: '/music', label: 'Music', icon: Music },
 ];
 
 export function NavMenu() {
@@ -51,8 +53,8 @@ export function NavMenu() {
   const { toast } = useToast();
   const churchId = useChurchId();
   const { roles, isAdmin } = useUserRoles(churchId);
-  const canSeeContributions = isAdmin || roles.includes("Finance");
-  const canSeeMusic = isAdmin || roles.includes("WorshipLeader");
+  const canSeeContributions = isAdmin || roles.includes('Finance');
+  const canSeeMusic = isAdmin || roles.includes('WorshipLeader');
 
   const handleLogout = async () => {
     try {
@@ -84,35 +86,27 @@ export function NavMenu() {
 
         <DropdownMenuContent align="end">
           {/* Core Navigation */}
-        {navItems
-          .filter((item) => {
-            if (item.href === "/contributions") {
-              return canSeeContributions;
-            }
-            return true;
-          })
-          .map((item) => (
-            <Link href={item.href} key={item.label}>
-              <DropdownMenuItem
-                className={pathname === item.href ? 'bg-accent' : ''}
-              >
-                <item.icon className="mr-2 h-4 w-4" />
-                <span>{item.label}</span>
-              </DropdownMenuItem>
-            </Link>
-          ))}
-
-          {/* Music (Admin or Worship) */}
-          {canSeeMusic && (
-            <Link href="/music">
-              <DropdownMenuItem
-                className={pathname.startsWith('/music') ? 'bg-accent' : ''}
-              >
-                <Calendar className="mr-2 h-4 w-4" />
-                <span>Music</span>
-              </DropdownMenuItem>
-            </Link>
-          )}
+          {navItems
+            .filter((item) => {
+              if (item.href === '/contributions') return canSeeContributions;
+              if (item.href === '/music') return canSeeMusic;
+              return true;
+            })
+            .map((item) => (
+              <Link href={item.href} key={item.label}>
+                <DropdownMenuItem
+                  className={
+                    pathname === item.href ||
+                    pathname.startsWith(item.href + '/')
+                      ? 'bg-accent'
+                      : ''
+                  }
+                >
+                  <item.icon className="mr-2 h-4 w-4" />
+                  <span>{item.label}</span>
+                </DropdownMenuItem>
+              </Link>
+            ))}
 
           {/* Reports (Admin Only) */}
           {isAdmin && (
@@ -150,7 +144,9 @@ export function NavMenu() {
       <AlertDialog open={isLogoutAlertOpen} onOpenChange={setIsLogoutAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Are you sure you want to log out?
+            </AlertDialogTitle>
             <AlertDialogDescription>
               You will be returned to the login screen.
             </AlertDialogDescription>

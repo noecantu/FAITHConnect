@@ -25,10 +25,6 @@ export default function SundayServicePage() {
   const { songs: allSongs, loading: songsLoading } = useSongs(churchId);
   const { lists: recentSetLists } = useRecentSetLists(churchId);
 
-  if (!churchId) {
-    return <p className="text-muted-foreground">Loading…</p>;
-  }
-
   // Step 0 — Template
   const [templateId, setTemplateId] = useState<ServiceTemplateId>('default');
 
@@ -51,6 +47,16 @@ export default function SundayServicePage() {
 
   // Suggestions
   const suggestedSongs = getSuggestedSongs(recentSetLists, allSongs);
+
+  // 🚨 FIX: Now we can safely check churchId
+  if (!churchId) {
+    return (
+      <>
+        <PageHeader title="Plan Sunday Service" />
+        <p className="text-muted-foreground">Loading…</p>
+      </>
+    );
+  }
 
   // Create service
   const handleCreate = async () => {
