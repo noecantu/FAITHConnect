@@ -60,8 +60,13 @@ import {
     churchId: string,
     data: Omit<Song, 'id' | 'churchId' | 'createdAt' | 'updatedAt'>
   ) {
+    // Remove undefined fields so Firestore doesn't choke
+    const cleaned = Object.fromEntries(
+      Object.entries(data).filter(([_, v]) => v !== undefined)
+    );
+  
     const ref = await addDoc(songsCollection(churchId), {
-      ...data,
+      ...cleaned,
       churchId,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -76,7 +81,7 @@ import {
       createdAt: docData?.createdAt?.toDate?.() ?? new Date(),
       updatedAt: docData?.updatedAt?.toDate?.() ?? new Date(),
     } as Song;
-  }
+  }  
   
   // -----------------------------------------------------
   // Get all songs (non-realtime)
