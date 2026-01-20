@@ -25,11 +25,12 @@ export default function SettingsPage() {
 
   const { user } = useAuth();
   const churchId = useChurchId();
-  const { isAdmin } = useUserRoles(churchId);
   const { toast } = useToast();
 
   const [contributions, setContributions] = useState<Contribution[]>([]);
-
+  const { roles, isAdmin } = useUserRoles(churchId);
+  const canSeeFinancialYear = isAdmin || roles.includes("Finance");
+  
   useEffect(() => {
     if (!churchId) return;
     const unsubscribe = listenToContributions(churchId, setContributions);
@@ -186,29 +187,33 @@ export default function SettingsPage() {
         </Card>
 
         {/* Financial Year */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Financial Year</CardTitle>
-            <CardDescription>Select the year for which to display financial totals.</CardDescription>
-          </CardHeader>
-          <CardContent>
-          <Select value={fiscalYear} onValueChange={handleFiscalYearChange}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select a year" />
-            </SelectTrigger>
+        {canSeeFinancialYear && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Financial Year</CardTitle>
+              <CardDescription>
+                Select the year for which to display financial totals.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Select value={fiscalYear} onValueChange={handleFiscalYearChange}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select a year" />
+                </SelectTrigger>
 
-            <SelectContent className="max-h-60 overflow-y-auto">
-              <SelectItem value="all">All Years</SelectItem>
+                <SelectContent className="max-h-60 overflow-y-auto">
+                  <SelectItem value="all">All Years</SelectItem>
 
-              {availableYears.map(year => (
-                <SelectItem key={year} value={String(year)}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          </CardContent>
-        </Card>
+                  {availableYears.map(year => (
+                    <SelectItem key={year} value={String(year)}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Member Dashboard View */}
         <Card>

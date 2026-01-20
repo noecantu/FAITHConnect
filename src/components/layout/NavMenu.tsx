@@ -50,7 +50,8 @@ export function NavMenu() {
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false);
   const { toast } = useToast();
   const churchId = useChurchId();
-  const { isAdmin } = useUserRoles(churchId);
+  const { roles, isAdmin } = useUserRoles(churchId);
+  const canSeeContributions = isAdmin || roles.includes("Finance");
 
   const handleLogout = async () => {
     try {
@@ -82,7 +83,14 @@ export function NavMenu() {
 
         <DropdownMenuContent align="end">
           {/* Core Navigation */}
-          {navItems.map((item) => (
+        {navItems
+          .filter((item) => {
+            if (item.href === "/contributions") {
+              return canSeeContributions;
+            }
+            return true;
+          })
+          .map((item) => (
             <Link href={item.href} key={item.label}>
               <DropdownMenuItem
                 className={pathname === item.href ? 'bg-accent' : ''}

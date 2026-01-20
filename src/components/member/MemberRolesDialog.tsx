@@ -4,15 +4,7 @@ import * as React from 'react';
 import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, createSecondaryUser } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -26,8 +18,9 @@ import { StandardDialogLayout } from '../layout/StandardDialogLayout';
 const ROLE_MAP: Record<string, string> = {
   "Admin": "Administrator",
   "EventManager": "Event Manager",
+  "Finance": "Finance Manager",
   "MemberManager": "Member Manager",
-  "Finance": "Finance Manager"
+  "MusicManager": "Music Manager"
 };
 
 const ALL_ROLES = Object.keys(ROLE_MAP);
