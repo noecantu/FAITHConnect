@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/page-header';
 import { useChurchId } from '@/hooks/useChurchId';
 import { useSongs } from '@/hooks/useSongs';
@@ -15,6 +16,7 @@ export default function SongsPage() {
   const { songs, loading } = useSongs(churchId);
 
   const [sortBy, setSortBy] = useState<'title' | 'key' | 'bpm' | 'artist'>('title');
+  const [search, setSearch] = useState('');
 
   if (!churchId || loading) {
     return (
@@ -26,10 +28,22 @@ export default function SongsPage() {
   }
 
   // -----------------------------
+  // FILTER SONGS BY SEARCH
+  // -----------------------------
+  const filteredSongs = songs.filter((song) => {
+    const q = search.toLowerCase();
+    return (
+      song.title.toLowerCase().includes(q) ||
+      (song.artist ?? '').toLowerCase().includes(q) ||
+      (song.key ?? '').toLowerCase().includes(q)
+    );
+  });
+
+  // -----------------------------
   // GROUPING LOGIC
   // -----------------------------
-  function groupSongs(songs: Song[], sortBy: 'title' | 'key' | 'bpm' | 'artist') {
-    return songs.reduce((acc, song) => {
+  function groupSongs(list: Song[], sortBy: 'title' | 'key' | 'bpm' | 'artist') {
+    return list.reduce((acc, song) => {
       let groupKey = '';
 
       if (sortBy === 'title') {
@@ -48,7 +62,7 @@ export default function SongsPage() {
     }, {} as Record<string, Song[]>);
   }
 
-  const grouped = groupSongs(songs, sortBy);
+  const grouped = groupSongs(filteredSongs, sortBy);
 
   // -----------------------------
   // SORT GROUP KEYS
@@ -72,29 +86,48 @@ export default function SongsPage() {
 
   return (
     <div className="space-y-6">
+      {/* HEADER WITH ADD BUTTON */}
       <PageHeader title="Song List" subtitle={subtitleText}>
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as any)}
-          className="border rounded px-2 py-1 text-sm"
-        >
-          <option value="title">Title</option>
-          <option value="artist">Artist</option>
-          <option value="key">Key</option>
-          <option value="bpm">Tempo</option>
-        </select>
-      </PageHeader>
-
-      {/* Add New Song button */}
-      <div
-        className="
-          flex flex-col gap-2
-          sm:flex-row sm:justify-end sm:items-center
-        "
-      >
-        <Button asChild className="w-full sm:w-auto">
+        <Button asChild>
           <Link href="/music/songs/new">Add New Song</Link>
         </Button>
+      </PageHeader>
+
+      {/* Sticky Search + Sort Bar */}
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="w-full flex items-center gap-2 py-2">
+
+          {/* Search */}
+          <Input
+            className="w-full"
+            placeholder="Search songs..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+
+          {/* Sort */}
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="border rounded px-2 py-1 text-sm shrink-0"
+          >
+            <option value="title">Title</option>
+            <option value="artist">Artist</option>
+            <option value="key">Key</option>
+            <option value="bpm">Tempo</option>
+          </select>
+
+          {/* Clear button */}
+          {search.length > 0 && (
+            <Button
+              variant="outline"
+              onClick={() => setSearch('')}
+              className="shrink-0"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* GROUPED SECTIONS */}
