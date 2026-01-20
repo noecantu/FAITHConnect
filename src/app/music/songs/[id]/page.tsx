@@ -83,6 +83,22 @@ export default function SongDetailPage() {
     <div className="space-y-6">
       <PageHeader title={song.title} />
 
+      {/* Back to Songs */}
+      <div
+        className="
+          flex flex-col gap-2
+          sm:flex-row sm:justify-end sm:items-center
+        "
+      >
+        <Button
+          variant="secondary"
+          className="w-full sm:w-auto"
+          onClick={() => router.push('/music/songs')}
+        >
+          Back to Songs
+        </Button>
+      </div>
+
       {/* Song Info */}
       <Card className="p-6 space-y-4">
         <div>

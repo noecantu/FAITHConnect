@@ -16,9 +16,19 @@ export default function SongsPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Songs</h1>
 
-      <Button asChild>
-        <Link href="/music/songs/new">Add New Song</Link>
-      </Button>
+      <div
+        className="
+          flex flex-col gap-2
+          sm:flex-row sm:justify-end sm:items-center
+        "
+      >
+        <Button
+          asChild
+          className="w-full sm:w-auto"
+        >
+          <Link href="/music/songs/new">Add New Song</Link>
+        </Button>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         {loading && <p>Loading songs…</p>}

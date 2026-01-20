@@ -8,6 +8,20 @@ import { Song, SetListSongEntry } from '@/lib/types';
 import { GripVertical, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSongs } from '@/hooks/useSongs';
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandItem,
+} from "@/components/ui/command";
+
+import { ChevronsUpDown } from "lucide-react";
 
 interface SetListSongEditorProps {
   songs: SetListSongEntry[];
@@ -61,31 +75,42 @@ export function SetListSongEditor({
     onChange(next);
   };
 
+  console.log("ALL SONGS:", allSongs);
+  console.log("SET LIST SONGS:", songs);
+  
   return (
     <div className="space-y-4">
 
-      {/* Search */}
-      <div>
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search songs to add…"
-        />
+      {/* Add Song Dropdown */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full justify-between"
+          >
+            Add Song
+            <ChevronsUpDown className="h-4 w-4 opacity-50" />
+          </Button>
+        </PopoverTrigger>
 
-        {filtered.length > 0 && (
-          <Card className="mt-2 p-2 space-y-1 max-h-48 overflow-y-auto">
-            {filtered.map((song) => (
-              <button
-                key={song.id}
-                className="w-full text-left px-2 py-1 hover:bg-accent rounded"
-                onClick={() => addSong(song)}
-              >
-                {song.title}
-              </button>
-            ))}
-          </Card>
-        )}
-      </div>
+        <PopoverContent className="p-0 w-[300px]">
+          <Command>
+            <CommandInput placeholder="Search songs…" />
+
+            <CommandList>
+              {(allSongs ?? []).map((song) => (
+                <CommandItem
+                  key={song.id}
+                  value={song.title}
+                  onSelect={() => addSong(song)}
+                >
+                  {song.title}
+                </CommandItem>
+              ))}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
 
       {/* Song List */}
       <div className="space-y-3">
