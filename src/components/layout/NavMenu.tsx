@@ -52,6 +52,7 @@ export function NavMenu() {
   const churchId = useChurchId();
   const { roles, isAdmin } = useUserRoles(churchId);
   const canSeeContributions = isAdmin || roles.includes("Finance");
+  const canSeeMusic = isAdmin || roles.includes("WorshipLeader");
 
   const handleLogout = async () => {
     try {
@@ -100,6 +101,18 @@ export function NavMenu() {
               </DropdownMenuItem>
             </Link>
           ))}
+
+          {/* Music (Admin or Worship) */}
+          {canSeeMusic && (
+            <Link href="/music">
+              <DropdownMenuItem
+                className={pathname.startsWith('/music') ? 'bg-accent' : ''}
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                <span>Music</span>
+              </DropdownMenuItem>
+            </Link>
+          )}
 
           {/* Reports (Admin Only) */}
           {isAdmin && (

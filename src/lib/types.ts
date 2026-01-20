@@ -79,3 +79,47 @@ export interface User {
     fiscalYear?: string;
   };
 }
+
+// lib/types.ts
+
+export type SongTag = 'worship' | 'fast' | 'slow' | 'praise' | 'altar' | 'special' | string;
+
+export interface Song {
+  id: string;
+  churchId: string;
+  title: string;
+  artist?: string;
+  key: string;
+  bpm?: number;
+  timeSignature?: string;
+  lyrics?: string;
+  chords?: string;
+  tags?: SongTag[];
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SetListSongEntry {
+  songId: string;
+  key: string;
+  order: number;
+  notes?: string;
+}
+
+export interface SetList {
+  id: string;
+  churchId: string;
+  title: string;
+  date: Date;
+  songs: SetListSongEntry[];
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+  serviceType?: 'Sunday' | 'Midweek' | 'Special';
+  serviceNotes?: {
+    theme?: string;
+    scripture?: string;
+    notes?: string;
+  };
+}

@@ -67,6 +67,7 @@ export function useUserRoles(churchId: string | null) {
     isAdmin: roles.includes('Admin'),
     isMemberManager: roles.includes('Admin') || roles.includes('MemberManager'),
     isFinance: roles.includes('Admin') || roles.includes('Finance'),
-    isEventManager: roles.includes('Admin') || roles.includes('EventManager')
+    isEventManager: roles.includes('Admin') || roles.includes('EventManager'),
+    isMusicManager: roles.includes('Admin') || roles.includes('MusicManager'),
   };
 }
