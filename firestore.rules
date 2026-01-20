@@ -2,74 +2,14 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // ---------------------------
-    // Helper functions
-    // ---------------------------
-    function isSignedIn() {
-      return request.auth != null;
+    // Users can read/write their own user document.
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    function getUser() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-    }
-
-    function isInChurch(churchId) {
-      return isSignedIn() && getUser().churchId == churchId;
-    }
-
-    function hasRole(churchId, allowedRoles) {
-      return isInChurch(churchId)
-        && allowedRoles.hasAny(getUser().roles);
-    }
-
-    // ---------------------------
-    // USERS
-    // ---------------------------
-    match /users/{uid} {
-      allow read, write: if isSignedIn() && request.auth.uid == uid;
-    }
-
-    // ---------------------------
-    // CHURCHES
-    // ---------------------------
-    match /churches/{churchId} {
-
-      // MEMBERS
-      match /members/{memberId} {
-        allow read: if isInChurch(churchId);
-        allow create, update, delete: if hasRole(churchId, ["Admin", "MemberManager"]);
-      }
-
-      // EVENTS
-      match /events/{eventId} {
-        allow read: if isInChurch(churchId);
-        allow create, update, delete: if hasRole(churchId, ["Admin", "EventManager"]);
-      }
-
-      // CONTRIBUTIONS
-      match /contributions/{contributionId} {
-        allow read: if isInChurch(churchId);
-        allow create, update, delete: if hasRole(churchId, ["Admin", "Finance"]);
-      }
-
-      // SONGS
-      match /songs {
-        allow list: if isInChurch(churchId);
-      }
-      match /songs/{songId} {
-        allow read: if isInChurch(churchId);
-        allow create, update, delete: if hasRole(churchId, ["Admin", "Worship"]);
-      }
-
-      // SET LISTS
-      match /setlists {
-        allow list: if isInChurch(churchId);
-      }
-      match /setlists/{setListId} {
-        allow read: if isInChurch(churchId);
-        allow create, update, delete: if hasRole(churchId, ["Admin", "Worship"]);
-      }
+    // Authenticated users can read/write anything within a church's subcollections.
+    match /churches/{churchId}/{document=**} {
+      allow read, write: if request.auth != null;
     }
   }
 }
