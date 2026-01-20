@@ -11,6 +11,7 @@ import { useChurchId } from '@/hooks/useChurchId';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { getSongById, updateSong } from '@/lib/songs';
 import type { Song } from '@/lib/types';
+import { Separator } from '@/components/ui/separator';
 
 export default function EditSongPage() {
   const { id } = useParams();
@@ -124,7 +125,7 @@ export default function EditSongPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="Edit Song" />
-
+  
       {/* Back to Songs */}
       <div
         className="
@@ -140,13 +141,15 @@ export default function EditSongPage() {
           Back to Songs
         </Button>
       </div>
-
-      <Card className="p-6 space-y-8">
-
-        {/* SECTION: Basic Info */}
-        <div className="space-y-4">
+  
+      {/* SECTION: Basic Info */}
+      <Card className="p-6 space-y-6">
+        <div>
           <h2 className="text-lg font-semibold">Basic Info</h2>
-
+          <Separator />
+        </div>
+  
+        <div className="space-y-4">
           {/* Title */}
           <div>
             <label className="block text-sm font-medium mb-1">Song Title</label>
@@ -156,7 +159,7 @@ export default function EditSongPage() {
               placeholder="Great Are You Lord"
             />
           </div>
-
+  
           {/* Artist */}
           <div>
             <label className="block text-sm font-medium mb-1">Artist</label>
@@ -166,7 +169,7 @@ export default function EditSongPage() {
               placeholder="All Sons & Daughters"
             />
           </div>
-
+  
           {/* Key / BPM / Time Signature */}
           <div className="grid grid-cols-3 gap-4">
             <div>
@@ -177,7 +180,7 @@ export default function EditSongPage() {
                 placeholder="C"
               />
             </div>
-
+  
             <div>
               <label className="block text-sm font-medium mb-1">BPM</label>
               <Input
@@ -187,7 +190,7 @@ export default function EditSongPage() {
                 placeholder="72"
               />
             </div>
-
+  
             <div>
               <label className="block text-sm font-medium mb-1">Time Signature</label>
               <Input
@@ -198,73 +201,82 @@ export default function EditSongPage() {
             </div>
           </div>
         </div>
-
-        {/* SECTION: Lyrics */}
-        <Card className="p-6 space-y-4">
-          <h2 className="text-lg font-semibold">Lyrics</h2>
-
-          <div className="max-h-[300px] overflow-y-auto pr-2">
-            <Textarea
-              value={lyrics}
-              onChange={(e) => setLyrics(e.target.value)}
-              placeholder="Paste lyrics here…"
-              className="min-h-[200px]"
-            />
-          </div>
-        </Card>
-
-        {/* SECTION: Chords */}
-        <Card className="p-6 space-y-4">
-          <h2 className="text-lg font-semibold">Chords</h2>
-
-          <div className="max-h-[300px] overflow-y-auto pr-2">
-            <Textarea
-              value={chords}
-              onChange={(e) => setChords(e.target.value)}
-              placeholder="Paste chord chart or Nashville numbers…"
-              className="min-h-[200px] font-mono"
-            />
-          </div>
-        </Card>
-
-        {/* SECTION: Tags */}
-        <div className="space-y-2">
-          <h2 className="text-lg font-semibold">Tags</h2>
-          <Input
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            placeholder="worship, upbeat, easter"
-          />
-          <p className="text-xs text-muted-foreground">
-            Separate tags with commas.
-          </p>
-        </div>
-
-        {/* Save / Cancel */}
-        <div
-          className="
-            flex flex-col gap-2
-            sm:flex-row sm:justify-end sm:items-center
-          "
-        >
-          <Button
-            className="w-full sm:w-auto"
-            variant="secondary"
-            onClick={() => router.push(`/music/songs/${song.id}`)}
-          >
-            Cancel
-          </Button>
-
-          <Button
-            className="w-full sm:w-auto"
-            onClick={handleSave}
-            disabled={saving || !title.trim()}
-          >
-            {saving ? 'Saving…' : 'Save Changes'}
-          </Button>
-        </div>
-
       </Card>
+  
+      {/* SECTION: Lyrics */}
+      <Card className="p-6 space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">Lyrics</h2>
+          <Separator />
+        </div>
+  
+        <div className="max-h-[300px] overflow-y-auto pr-2 bg-black text-white rounded-md p-3">
+          <Textarea
+            value={lyrics}
+            onChange={(e) => setLyrics(e.target.value)}
+            placeholder="Paste lyrics here…"
+            className="min-h-[200px] bg-black text-white"
+          />
+        </div>
+      </Card>
+  
+      {/* SECTION: Chords */}
+      <Card className="p-6 space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">Chords</h2>
+          <Separator />
+        </div>
+  
+        <div className="max-h-[300px] overflow-y-auto pr-2 bg-black text-white rounded-md p-3">
+          <Textarea
+            value={chords}
+            onChange={(e) => setChords(e.target.value)}
+            placeholder="Paste chord chart or Nashville numbers…"
+            className="min-h-[200px] font-mono bg-black text-white"
+          />
+        </div>
+      </Card>
+  
+      {/* SECTION: Tags */}
+      <Card className="p-6 space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">Tags</h2>
+          <Separator />
+        </div>
+  
+        <Input
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
+          placeholder="worship, upbeat, easter"
+        />
+        <p className="text-xs text-muted-foreground">
+          Separate tags with commas.
+        </p>
+      </Card>
+  
+      {/* SECTION: Actions */}
+      <div
+        className="
+          flex flex-col gap-2
+          sm:flex-row sm:justify-end sm:items-center
+        "
+      >
+        <Button
+          className="w-full sm:w-auto"
+          variant="secondary"
+          onClick={() => router.push(`/music/songs/${song.id}`)}
+        >
+          Cancel
+        </Button>
+  
+        <Button
+          className="w-full sm:w-auto"
+          onClick={handleSave}
+          disabled={saving || !title.trim()}
+        >
+          {saving ? 'Saving…' : 'Save Changes'}
+        </Button>
+      </div>
     </div>
   );
-}
+}  
