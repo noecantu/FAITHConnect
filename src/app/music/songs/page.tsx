@@ -92,11 +92,11 @@ export default function SongsPage() {
           <Link href="/music/songs/new">Add New Song</Link>
         </Button>
       </PageHeader>
-
+  
       {/* Sticky Search + Sort Bar */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="w-full flex items-center gap-2 py-2">
-
+  
           {/* Search */}
           <Input
             className="w-full"
@@ -104,20 +104,8 @@ export default function SongsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-
-          {/* Sort */}
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="border rounded px-2 py-1 text-sm shrink-0"
-          >
-            <option value="title">Title</option>
-            <option value="artist">Artist</option>
-            <option value="key">Key</option>
-            <option value="bpm">Tempo</option>
-          </select>
-
-          {/* Clear button */}
+  
+          {/* Clear button (now BEFORE Sort) */}
           {search.length > 0 && (
             <Button
               variant="outline"
@@ -127,9 +115,26 @@ export default function SongsPage() {
               Clear
             </Button>
           )}
+  
+          {/* Sort */}
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-sm text-muted-foreground">Sort:</span>
+  
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="border rounded px-2 py-1 text-sm bg-background"
+            >
+              <option value="title">Title</option>
+              <option value="artist">Artist</option>
+              <option value="key">Key</option>
+              <option value="bpm">Tempo</option>
+            </select>
+          </div>
+  
         </div>
       </div>
-
+  
       {/* GROUPED SECTIONS */}
       {sortedGroupKeys.map((groupKey) => (
         <Card key={groupKey} className="p-6 space-y-4">
@@ -137,7 +142,7 @@ export default function SongsPage() {
             <h2 className="text-xl font-semibold">{groupKey}</h2>
             <Separator />
           </div>
-
+  
           <div className="max-h-[300px] overflow-y-auto pr-2">
             <ul className="space-y-2">
               {grouped[groupKey]
@@ -161,3 +166,4 @@ export default function SongsPage() {
     </div>
   );
 }
+      
