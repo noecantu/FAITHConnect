@@ -127,3 +127,14 @@ export interface SetList {
     notes?: string;
   };
 }
+
+export interface SongInput {
+  title: string;
+  artist?: string;
+  key: string;
+  bpm?: number;
+  timeSignature?: string;
+  lyrics?: string;
+  chords?: string;
+  tags: string[];
+}
