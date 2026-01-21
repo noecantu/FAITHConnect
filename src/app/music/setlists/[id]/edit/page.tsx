@@ -11,8 +11,8 @@ import { useChurchId } from '@/hooks/useChurchId';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useSongs } from '@/hooks/useSongs';
 import { getSetListById, updateSetList } from '@/lib/setlists';
-import { SetList, SetListSongEntry } from '@/lib/types';
-import { SetListSongEditor } from '@/components/music/SetListSongEditor';
+import { SetList, SetListSection } from '@/lib/types';
+import { SetListSectionEditor } from '@/components/music/SetListSectionEditor';
 
 export default function EditSetListPage() {
   const { id } = useParams();
@@ -30,10 +30,9 @@ export default function EditSetListPage() {
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
   const [notes, setNotes] = useState('');
-  const [songs, setSongs] = useState<SetListSongEntry[]>([]);
+  const [sections, setSections] = useState<SetListSection[]>([]);
   const [saving, setSaving] = useState(false);
 
-  // Load set list
   useEffect(() => {
     if (!churchId || !id) return;
 
@@ -45,7 +44,7 @@ export default function EditSetListPage() {
       if (data) {
         setTitle(data.title);
         setDate(new Date(data.date).toISOString().split('T')[0]);
-        setSongs(data.songs);
+        setSections(data.sections ?? []);
         setNotes(data.serviceNotes?.notes ?? '');
       }
     };
@@ -91,7 +90,6 @@ export default function EditSetListPage() {
     );
   }
 
-  // Save handler
   const handleSave = async () => {
     if (!title.trim() || !date) return;
 
@@ -100,8 +98,9 @@ export default function EditSetListPage() {
     const updated: Partial<SetList> = {
       title: title.trim(),
       date: new Date(date),
-      songs,
+      sections,
       serviceNotes: {
+        ...setList.serviceNotes,
         notes: notes.trim(),
       },
       updatedAt: new Date(),
@@ -116,14 +115,13 @@ export default function EditSetListPage() {
       <PageHeader title="Edit Set List" />
 
       <Card className="p-6 space-y-4">
-
         {/* Title */}
         <div>
           <label className="block text-sm font-medium mb-1">Set List Title</label>
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Sunday Worship – March 3"
+            placeholder="Enter Title"
           />
         </div>
 
@@ -137,12 +135,12 @@ export default function EditSetListPage() {
           />
         </div>
 
-        {/* Songs */}
+        {/* Sections */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium">Songs</label>
-          <SetListSongEditor
-            songs={songs}
-            onChange={setSongs}
+          <label className="block text-sm font-medium">Sections & Songs</label>
+          <SetListSectionEditor
+            sections={sections}
+            onChange={setSections}
             allSongs={allSongs}
           />
         </div>
@@ -158,12 +156,7 @@ export default function EditSetListPage() {
         </div>
 
         {/* Save */}
-        <div
-          className="
-            flex flex-col gap-2
-            sm:flex-row sm:justify-end sm:items-center
-          "
-        >
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:items-center">
           <Button
             className="w-full sm:w-auto"
             variant="secondary"

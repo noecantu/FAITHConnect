@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { GripVertical, X } from 'lucide-react';
 import { Song, SetListSongEntry } from '@/lib/types';
-import { X, GripVertical } from 'lucide-react';
 
 import {
   DndContext,
@@ -19,26 +19,28 @@ import {
 import {
   SortableContext,
   useSortable,
-  arrayMove,
   verticalListSortingStrategy,
+  arrayMove,
 } from '@dnd-kit/sortable';
 
 import { CSS } from '@dnd-kit/utilities';
 
-interface SetListSongEditorProps {
+interface Props {
+  sectionId: string;
   songs: SetListSongEntry[];
   onChange: (songs: SetListSongEntry[]) => void;
   allSongs: Song[];
 }
 
-export function SetListSongEditor({
+export function SectionSongList({
+  sectionId,
   songs,
   onChange,
   allSongs,
-}: SetListSongEditorProps) {
+}: Props) {
   const [search, setSearch] = useState('');
-  const [showList, setShowList] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [showList, setShowList] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -46,7 +48,6 @@ export function SetListSongEditor({
     })
   );
 
-  // Always show all songs when search is empty
   const filtered = allSongs.filter((s) =>
     s.title.toLowerCase().includes(search.toLowerCase())
   );
@@ -62,19 +63,16 @@ export function SetListSongEditor({
       },
     ]);
     setSearch('');
-    setShowList(false);
   };
 
-  const removeSong = (index: number) => {
-    const updated = [...songs];
-    updated.splice(index, 1);
-    onChange(updated);
+  const removeSong = (songId: string) => {
+    onChange(songs.filter((s) => s.songId !== songId));
   };
 
-  const updateSong = (index: number, updated: Partial<SetListSongEntry>) => {
-    const next = [...songs];
-    next[index] = { ...next[index], ...updated };
-    onChange(next);
+  const updateSong = (songId: string, updated: Partial<SetListSongEntry>) => {
+    onChange(
+      songs.map((s) => (s.songId === songId ? { ...s, ...updated } : s))
+    );
   };
 
   const handleDragStart = (event: any) => {
@@ -83,7 +81,6 @@ export function SetListSongEditor({
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
-
     setActiveId(null);
 
     if (!over || active.id === over.id) return;
@@ -91,25 +88,24 @@ export function SetListSongEditor({
     const oldIndex = songs.findIndex((s) => s.songId === active.id);
     const newIndex = songs.findIndex((s) => s.songId === over.id);
 
-    const reordered = arrayMove(songs, oldIndex, newIndex);
-    onChange(reordered);
+    onChange(arrayMove(songs, oldIndex, newIndex));
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
 
-      {/* Search */}
-      <div className="relative">
+      {/* Search to add songs */}
+      <div>
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onFocus={() => setShowList(true)}
-          onBlur={() => setTimeout(() => setShowList(false), 150)}
-          placeholder="Add song…"
+          onBlur={() => setTimeout(() => setShowList(false), 150)} // allow clicking
+          placeholder="Add song to this section…"
         />
 
         {showList && filtered.length > 0 && (
-          <Card className="absolute z-10 w-full mt-1 p-2 space-y-1 max-h-48 overflow-y-auto">
+          <Card className="mt-2 p-2 space-y-1 max-h-48 overflow-y-auto">
             {filtered.map((song) => (
               <button
                 key={song.id}
@@ -123,7 +119,7 @@ export function SetListSongEditor({
         )}
       </div>
 
-      {/* Drag + Drop Song List */}
+      {/* Song list */}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -139,15 +135,8 @@ export function SetListSongEditor({
               <SortableSongItem
                 key={entry.songId}
                 entry={entry}
-                onRemove={() =>
-                  removeSong(songs.findIndex((s) => s.songId === entry.songId))
-                }
-                onUpdate={(updated) =>
-                  updateSong(
-                    songs.findIndex((s) => s.songId === entry.songId),
-                    updated
-                  )
-                }
+                onRemove={() => removeSong(entry.songId)}
+                onUpdate={(updated) => updateSong(entry.songId, updated)}
               />
             ))}
           </div>
@@ -171,7 +160,7 @@ export function SetListSongEditor({
 }
 
 /* ---------------------------------------------
-   Sortable Song Item Component
+   Sortable Song Item
 ---------------------------------------------- */
 
 function SortableSongItem({

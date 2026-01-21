@@ -80,8 +80,6 @@ export interface User {
   };
 }
 
-// lib/types.ts
-
 export type SongTag = 'worship' | 'fast' | 'slow' | 'praise' | 'altar' | 'special' | string;
 
 export interface Song {
@@ -104,8 +102,13 @@ export interface SetListSongEntry {
   songId: string;
   title: string;
   key: string;
-  order: number;
   notes?: string;
+}
+
+export interface SetListSection {
+  id: string;
+  name: string;
+  songs: SetListSongEntry[];
 }
 
 export interface SetList {
@@ -113,7 +116,7 @@ export interface SetList {
   churchId: string;
   title: string;
   date: Date;
-  songs: SetListSongEntry[];
+  sections: SetListSection[];
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;

@@ -10,13 +10,15 @@ import { Button } from '@/components/ui/button';
 import { useChurchId } from '@/hooks/useChurchId';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { createSetList } from '@/lib/setlists';
-import { SetListSongEditor } from '@/components/music/SetListSongEditor';
-import type { SetListSongEntry } from '@/lib/types';
+import { SetListSection } from '@/lib/types';
+import { useSongs } from '@/hooks/useSongs';
+import { SetListSectionEditor } from '@/components/music/SetListSectionEditor';
 
 export default function NewSetListPage() {
   const router = useRouter();
   const churchId = useChurchId();
   const { roles, isAdmin } = useUserRoles(churchId);
+  const { songs: allSongs } = useSongs(churchId);
 
   const canEdit = isAdmin || roles.includes('WorshipLeader');
 
@@ -24,7 +26,7 @@ export default function NewSetListPage() {
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
   const [notes, setNotes] = useState('');
-  const [songs, setSongs] = useState<SetListSongEntry[]>([]);
+  const [sections, setSections] = useState<SetListSection[]>([]);
   const [saving, setSaving] = useState(false);
 
   if (!churchId) {
@@ -53,14 +55,11 @@ export default function NewSetListPage() {
     setSaving(true);
 
     const newSetList = {
-      churchId,
       title: title.trim(),
       date: new Date(date),
-      songs,
-      notes: notes.trim(),
+      sections,
+      serviceNotes: { notes: notes.trim() },
       createdBy: 'system',
-      createdAt: new Date(),
-      updatedAt: new Date(),
     };
 
     const created = await createSetList(churchId, newSetList);
@@ -79,7 +78,7 @@ export default function NewSetListPage() {
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Sunday Worship – March 3"
+            placeholder="Enter Title"
           />
         </div>
 
@@ -93,10 +92,14 @@ export default function NewSetListPage() {
           />
         </div>
 
-        {/* Songs */}
+        {/* Sections */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium">Songs</label>
-          <SetListSongEditor songs={songs} onChange={setSongs} allSongs={[]} />
+          <label className="block text-sm font-medium">Sections & Songs</label>
+          <SetListSectionEditor
+            sections={sections}
+            onChange={setSections}
+            allSongs={allSongs}
+          />
         </div>
 
         {/* Notes */}
@@ -110,12 +113,7 @@ export default function NewSetListPage() {
         </div>
 
         {/* Save */}
-        <div
-          className="
-            flex flex-col gap-2
-            sm:flex-row sm:justify-end sm:items-center
-          "
-        >
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:items-center">
           <Button
             className="w-full sm:w-auto"
             variant="secondary"

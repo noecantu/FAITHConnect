@@ -34,7 +34,8 @@ export function SongEditorDialog({
         title,
         artist,
         key,
-        createdBy: 'system', // replace with user.uid if needed
+        createdBy: 'system',
+        tags: []
       });
     } else {
       await updateSong(churchId, song!.id, {
