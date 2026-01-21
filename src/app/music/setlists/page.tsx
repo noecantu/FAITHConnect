@@ -13,6 +13,7 @@ import { useSongs } from '@/hooks/useSongs';
 import { createSetList } from '@/lib/setlists';
 import { SetListSection } from '@/lib/types';
 import { SetListSectionEditor } from '@/components/music/SetListSectionEditor';
+import { DatePicker } from '@/components/ui/date-picker';
 
 export default function NewSetListPage() {
   const router = useRouter();
@@ -83,10 +84,11 @@ export default function NewSetListPage() {
         {/* Date */}
         <div>
           <label className="block text-sm font-medium mb-1">Date</label>
-          <Input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
+
+          <DatePicker
+            value={date ? new Date(date) : null}
+            onChange={(d) => setDate(d?.toISOString().substring(0, 10) ?? "")}
+            placeholder="Select date"
           />
         </div>
 

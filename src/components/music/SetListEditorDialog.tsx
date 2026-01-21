@@ -9,6 +9,9 @@ import { Button } from '@/components/ui/button';
 import { createSetList, updateSetList } from '@/lib/setlists';
 import { useChurchId } from '@/hooks/useChurchId';
 import { SetList } from '@/lib/types';
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 
 export function SetListEditorDialog({
   children,
@@ -27,7 +30,9 @@ export function SetListEditorDialog({
     setList?.date.toISOString().substring(0, 10) ??
       new Date().toISOString().substring(0, 10)
   );
-
+  const [openCalendar, setOpenCalendar] = useState(false);
+  const parsedDate = new Date(date);
+  
   const handleSave = async () => {
     if (!churchId) return;
 
@@ -35,8 +40,8 @@ export function SetListEditorDialog({
       await createSetList(churchId, {
         title,
         date: new Date(date),
-        songs: [],
         createdBy: 'system',
+        sections: []
       });
     } else {
       await updateSetList(churchId, setList!.id, {
@@ -66,8 +71,32 @@ export function SetListEditorDialog({
 
           <div>
             <Label>Date</Label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+
+            <Popover open={openCalendar} onOpenChange={setOpenCalendar}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  {parsedDate ? format(parsedDate, "PPP") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={parsedDate}
+                  onSelect={(d) => {
+                    if (!d) return;
+                    setDate(d.toISOString().substring(0, 10));
+                    setOpenCalendar(false);
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
+
         </div>
       </StandardDialogLayout>
     </Dialog>

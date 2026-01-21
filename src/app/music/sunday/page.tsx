@@ -14,9 +14,11 @@ import { getSuggestedSongs } from '@/lib/songSuggestions';
 import { SERVICE_TEMPLATES, ServiceTemplateId } from '@/lib/serviceTemplates';
 import { exportServiceToPdf } from '@/lib/exportServicePdf';
 import { exportServiceToExcel } from '@/lib/exportServiceExcel';
-import type { SetList, SetListSongEntry } from '@/lib/types';
+import type { SetList, SetListSection, SetListSongEntry } from '@/lib/types';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/navigation';
+import { DatePicker } from '@/components/ui/date-picker';
+import { SetListSectionEditor } from '@/components/music/SetListSectionEditor';
 
 export default function SundayServicePage() {
   const churchId = useChurchId();
@@ -36,8 +38,8 @@ export default function SundayServicePage() {
   );
 
   // Step 2 — Songs
-  const [songs, setSongs] = useState<SetListSongEntry[]>([]);
-
+  const [sections, setSections] = useState<SetListSection[]>([]);
+  
   // Step 3 — Notes
   const [notes, setNotes] = useState({
     theme: '',
@@ -64,9 +66,9 @@ export default function SundayServicePage() {
       churchId,
       title,
       date: new Date(date),
-      songs,
       createdBy: 'system',
       serviceNotes: notes,
+      sections
     };
 
     const created = await createSetList(churchId, newSetList);
@@ -80,11 +82,11 @@ export default function SundayServicePage() {
       churchId,
       title,
       date: new Date(date),
-      songs,
       createdBy: 'system',
       createdAt: new Date(),
       updatedAt: new Date(),
       serviceNotes: notes,
+      sections
     };
 
     exportServiceToPdf(tempSetList, allSongs);
@@ -97,11 +99,11 @@ export default function SundayServicePage() {
       churchId,
       title,
       date: new Date(date),
-      songs,
       createdBy: 'system',
       createdAt: new Date(),
       updatedAt: new Date(),
       serviceNotes: notes,
+      sections
     };
 
     exportServiceToExcel(tempSetList, allSongs);
@@ -145,15 +147,17 @@ export default function SundayServicePage() {
         <Card className="p-4">
           <h2 className="font-semibold mb-2">1. Choose Service Date</h2>
 
-          <Input
-            type="date"
-            value={date}
-            onChange={(e) => {
-              setDate(e.target.value);
-              setTitle(
-                `Sunday Service – ${dayjs(e.target.value).format('MMM D, YYYY')}`
-              );
+          <DatePicker
+            value={date ? new Date(date) : null}
+            onChange={(d) => {
+              const iso = d?.toISOString().substring(0, 10) ?? "";
+              setDate(iso);
+
+              if (d) {
+                setTitle(`Sunday Service – ${dayjs(d).format("MMM D, YYYY")}`);
+              }
             }}
+            placeholder="Select service date"
           />
         </Card>
 
@@ -172,15 +176,33 @@ export default function SundayServicePage() {
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      setSongs((prev) => [
-                        ...prev,
-                        {
+                      setSections((prev) => {
+                        if (prev.length === 0) {
+                          return [
+                            {
+                              id: crypto.randomUUID(),
+                              name: "Worship",
+                              songs: [
+                                {
+                                  songId: song.id,
+                                  title: song.title,
+                                  key: song.key,
+                                  notes: "",
+                                },
+                              ],
+                            },
+                          ];
+                        }
+
+                        const updated = [...prev];
+                        updated[0].songs.push({
                           songId: song.id,
+                          title: song.title,
                           key: song.key,
-                          order: prev.length,
-                          notes: '',
-                        },
-                      ])
+                          notes: "",
+                        });
+                        return updated;
+                      })
                     }
                   >
                     {song.title}
@@ -193,21 +215,10 @@ export default function SundayServicePage() {
           {songsLoading ? (
             <p className="text-muted-foreground">Loading songs…</p>
           ) : (
-            <SetListSongEditor
-              setList={{
-                id: 'temp',
-                churchId,
-                title,
-                date: new Date(date),
-                songs,
-                createdBy: 'system',
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                serviceNotes: notes,
-              }}
+            <SetListSectionEditor
+              sections={sections}
+              onChange={setSections}
               allSongs={allSongs}
-              churchId={churchId}
-              onSongsChange={setSongs}
             />
           )}
         </Card>
