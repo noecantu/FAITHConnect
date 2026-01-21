@@ -136,33 +136,36 @@ export default function SongsPage() {
       </div>
   
       {/* GROUPED SECTIONS */}
-      {sortedGroupKeys.map((groupKey) => (
-        <Card key={groupKey} className="p-6 space-y-4">
-          <div>
-            <h2 className="text-xl font-semibold">{groupKey}</h2>
-            <Separator />
-          </div>
-  
-          <div className="max-h-[300px] overflow-y-auto pr-2">
-            <ul className="space-y-2">
-              {grouped[groupKey]
-                .sort((a, b) => a.title.localeCompare(b.title))
-                .map((song) => (
-                  <li key={song.id}>
-                    <Link href={`/music/songs/${song.id}`}>
-                      <Card className="p-4 hover:bg-accent cursor-pointer">
-                        <h3 className="font-medium">{song.title}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Key: {song.key || '—'} • Tempo: {song.bpm ?? '—'}
-                        </p>
-                      </Card>
-                    </Link>
-                  </li>
-                ))}
-            </ul>
-          </div>
-        </Card>
-      ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {sortedGroupKeys.map((groupKey) => (
+          <Card key={groupKey} className="p-6 space-y-4">
+            <div>
+              <h2 className="text-xl font-semibold">{groupKey}</h2>
+              <Separator />
+            </div>
+
+            <div className="max-h-[300px] overflow-y-auto pr-2">
+              <ul className="space-y-2">
+                {grouped[groupKey]
+                  .sort((a, b) => a.title.localeCompare(b.title))
+                  .map((song) => (
+                    <li key={song.id}>
+                      <Link href={`/music/songs/${song.id}`}>
+                        <Card className="p-4 hover:bg-accent cursor-pointer">
+                          <h3 className="font-medium">{song.title}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Key: {song.key || '—'} • Tempo: {song.bpm ?? '—'}
+                          </p>
+                        </Card>
+                      </Link>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          </Card>
+        ))}
+      </div>
+
     </div>
   );
 }
