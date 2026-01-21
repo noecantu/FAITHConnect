@@ -7,11 +7,23 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useChurchId } from '@/hooks/useChurchId';
 import { useUserRoles } from '@/hooks/useUserRoles';
-import { getSongById, deleteSong } from '@/lib/songs';
+import { getSongById, deleteSong, createSong } from '@/lib/songs';
 import { useRecentSetLists } from '@/hooks/useRecentSetLists';
 import type { Song, SetList } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { ChevronLeft } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SongDetailPage() {
   const { id } = useParams();
@@ -24,7 +36,8 @@ export default function SongDetailPage() {
   const [loading, setLoading] = useState(true);
 
   const { lists: recentSetLists } = useRecentSetLists(churchId);
-
+  const { toast } = useToast();
+  
   // Load song
   useEffect(() => {
     if (!churchId || !id) return;
@@ -65,17 +78,46 @@ export default function SongDetailPage() {
     );
   }
   
-  // ✅ Now TypeScript knows song is NOT null
   const tags = song.tags ?? [];  
 
-  // Delete handler
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this song?')) return;
-
+    if (!churchId) return;
+  
     await deleteSong(churchId, song.id);
+  
+    toast({
+      title: "Song deleted",
+      description: `"${song.title}" has been removed.`,
+    });
+  
     router.push('/music/songs');
-  };
-
+  };  
+  
+  const handleDuplicate = async () => {
+    if (!song) return;
+  
+    const duplicateData = {
+      title: `${song.title} (Copy)`,
+      artist: song.artist || "",
+      key: song.key || "",
+      bpm: song.bpm,
+      timeSignature: song.timeSignature || "",
+      lyrics: song.lyrics || "",
+      chords: song.chords || "",
+      tags: song.tags || [],
+      createdBy: "system",
+    };
+  
+    const newSong = await createSong(churchId, duplicateData);
+  
+    toast({
+      title: "Song duplicated",
+      description: `"${song.title}" was copied successfully.`,
+    });
+  
+    router.push(`/music/songs/${newSong.id}`);
+  };   
+  
   // Find recent usage
   const usedIn = recentSetLists.filter((list: SetList) =>
     list.sections.some((section) =>
@@ -212,7 +254,6 @@ export default function SongDetailPage() {
         )}
       </Card>
   
-      {/* SECTION: Actions */}
       {canEdit && (
         <div
           className="
@@ -221,21 +262,67 @@ export default function SongDetailPage() {
           "
         >
           <Button
+            type="button"
             className="w-full sm:w-auto"
             onClick={() => router.push(`/music/songs/${song.id}/edit`)}
           >
             Edit Song
           </Button>
-  
-          <Button
-            className="w-full sm:w-auto"
-            variant="destructive"
-            onClick={handleDelete}
-          >
-            Delete Song
-          </Button>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                type="button"
+                className="w-full sm:w-auto"
+                variant="secondary"
+              >
+                Duplicate Song
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Duplicate this song?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  A new copy of “{song.title}” will be created with the same details.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDuplicate}>
+                  Duplicate
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                type="button"
+                className="w-full sm:w-auto"
+                variant="destructive"
+              >
+                Delete Song
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this song?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently remove “{song.title}”.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete}>
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
+
     </div>
   );
 }  

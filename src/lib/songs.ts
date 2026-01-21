@@ -123,7 +123,7 @@ import {
   export async function deleteSong(churchId: string, songId: string) {
     const ref = doc(db, 'churches', churchId, 'songs', songId);
     await deleteDoc(ref);
-  }
+  }  
   
   export async function getSongById(churchId: string, songId: string): Promise<Song | null> {
     const ref = doc(db, `churches/${churchId}/songs/${songId}`);
