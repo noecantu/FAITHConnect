@@ -5,23 +5,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Song, SetListSongEntry } from '@/lib/types';
-import { GripVertical, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useSongs } from '@/hooks/useSongs';
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
+import { X, GripVertical } from 'lucide-react';
 
 import {
-  Command,
-  CommandInput,
-  CommandList,
-  CommandItem,
-} from "@/components/ui/command";
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+} from '@dnd-kit/core';
 
-import { ChevronsUpDown } from "lucide-react";
+import {
+  SortableContext,
+  useSortable,
+  arrayMove,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+
+import { CSS } from '@dnd-kit/utilities';
 
 interface SetListSongEditorProps {
   songs: SetListSongEntry[];
@@ -35,6 +37,13 @@ export function SetListSongEditor({
   allSongs,
 }: SetListSongEditorProps) {
   const [search, setSearch] = useState('');
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
+    })
+  );
 
   const filtered = search.trim()
     ? allSongs.filter((s) =>
@@ -50,7 +59,7 @@ export function SetListSongEditor({
         title: song.title,
         key: song.key,
         notes: '',
-        order: 0
+        order: 0,
       },
     ]);
     setSearch('');
@@ -68,107 +77,160 @@ export function SetListSongEditor({
     onChange(next);
   };
 
-  const moveSong = (from: number, to: number) => {
-    const next = [...songs];
-    const [item] = next.splice(from, 1);
-    next.splice(to, 0, item);
-    onChange(next);
+  const handleDragStart = (event: any) => {
+    setActiveId(event.active.id);
   };
 
-  console.log("ALL SONGS:", allSongs);
-  console.log("SET LIST SONGS:", songs);
-  
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
+
+    setActiveId(null);
+
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = songs.findIndex((s) => s.songId === active.id);
+    const newIndex = songs.findIndex((s) => s.songId === over.id);
+
+    const reordered = arrayMove(songs, oldIndex, newIndex);
+    onChange(reordered);
+  };
+
   return (
     <div className="space-y-4">
 
-      {/* Add Song Dropdown */}
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className="w-full justify-between"
-          >
-            Add Song
-            <ChevronsUpDown className="h-4 w-4 opacity-50" />
-          </Button>
-        </PopoverTrigger>
+      {/* Search */}
+      <div>
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search songs to add…"
+        />
 
-        <PopoverContent className="p-0 w-[300px]">
-          <Command>
-            <CommandInput placeholder="Search songs…" />
+        {filtered.length > 0 && (
+          <Card className="mt-2 p-2 space-y-1 max-h-48 overflow-y-auto">
+            {filtered.map((song) => (
+              <button
+                key={song.id}
+                className="w-full text-left px-2 py-1 hover:bg-accent rounded"
+                onClick={() => addSong(song)}
+              >
+                {song.title}
+              </button>
+            ))}
+          </Card>
+        )}
+      </div>
 
-            <CommandList>
-              {(allSongs ?? []).map((song) => (
-                <CommandItem
-                  key={song.id}
-                  value={song.title}
-                  onSelect={() => addSong(song)}
-                >
-                  {song.title}
-                </CommandItem>
-              ))}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-
-      {/* Song List */}
-      <div className="space-y-3">
-        {songs.map((entry, index) => (
-          <Card key={index} className="p-3 flex items-start gap-3">
-
-            {/* Drag handle */}
-            <div className="pt-1 cursor-grab">
-              <GripVertical
-                onClick={() => moveSong(index, Math.max(0, index - 1))}
-              />
-              <GripVertical
-                onClick={() =>
-                  moveSong(index, Math.min(songs.length - 1, index + 1))
+      {/* Drag + Drop Song List */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={songs.map((s) => s.songId)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-3">
+            {songs.map((entry) => (
+              <SortableSongItem
+                key={entry.songId}
+                entry={entry}
+                onRemove={() =>
+                  removeSong(songs.findIndex((s) => s.songId === entry.songId))
+                }
+                onUpdate={(updated) =>
+                  updateSong(
+                    songs.findIndex((s) => s.songId === entry.songId),
+                    updated
+                  )
                 }
               />
-            </div>
+            ))}
+          </div>
+        </SortableContext>
 
-            {/* Song content */}
-            <div className="flex-1 space-y-2">
-              <p className="font-medium">{entry.title}</p>
-
-              {/* Key override */}
-              <div>
-                <label className="text-xs text-muted-foreground">Key</label>
-                <Input
-                  value={entry.key}
-                  onChange={(e) =>
-                    updateSong(index, { key: e.target.value })
-                  }
-                  className="w-24"
-                />
+        <DragOverlay>
+          {activeId ? (
+            <Card className="p-3 flex items-start gap-3 opacity-80">
+              <GripVertical className="cursor-grabbing" />
+              <div className="flex-1 space-y-2">
+                <p className="font-medium">
+                  {songs.find((s) => s.songId === activeId)?.title}
+                </p>
               </div>
-
-              {/* Notes */}
-              <div>
-                <label className="text-xs text-muted-foreground">Notes</label>
-                <Input
-                  value={entry.notes ?? ''}
-                  onChange={(e) =>
-                    updateSong(index, { notes: e.target.value })
-                  }
-                  placeholder="Optional notes"
-                />
-              </div>
-            </div>
-
-            {/* Remove */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => removeSong(index)}
-            >
-              <X />
-            </Button>
-          </Card>
-        ))}
-      </div>
+            </Card>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
     </div>
+  );
+}
+
+/* ---------------------------------------------
+   Sortable Song Item Component
+---------------------------------------------- */
+
+function SortableSongItem({
+  entry,
+  onRemove,
+  onUpdate,
+}: {
+  entry: SetListSongEntry;
+  onRemove: () => void;
+  onUpdate: (updated: Partial<SetListSongEntry>) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: entry.songId });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <Card
+      ref={setNodeRef}
+      style={style}
+      className="p-3 flex items-start gap-3"
+    >
+      {/* Drag handle */}
+      <GripVertical
+        {...attributes}
+        {...listeners}
+        className="cursor-grab mt-1 text-muted-foreground"
+      />
+
+      {/* Song content */}
+      <div className="flex-1 space-y-2">
+        <p className="font-medium">{entry.title}</p>
+
+        {/* Key override */}
+        <div>
+          <label className="text-xs text-muted-foreground">Key</label>
+          <Input
+            value={entry.key}
+            onChange={(e) => onUpdate({ key: e.target.value })}
+            className="w-24"
+          />
+        </div>
+
+        {/* Notes */}
+        <div>
+          <label className="text-xs text-muted-foreground">Notes</label>
+          <Input
+            value={entry.notes ?? ''}
+            onChange={(e) => onUpdate({ notes: e.target.value })}
+            placeholder="Optional notes"
+          />
+        </div>
+      </div>
+
+      {/* Remove */}
+      <Button variant="ghost" size="icon" onClick={onRemove}>
+        <X />
+      </Button>
+    </Card>
   );
 }
