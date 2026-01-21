@@ -2,11 +2,10 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { format } from 'date-fns';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { useChurchId } from '@/hooks/useChurchId';
 import { useSetLists } from '@/hooks/useSetLists';
 import { useUserRoles } from '@/hooks/useUserRoles';
@@ -42,23 +41,29 @@ export default function SetListsPage() {
     return result;
   }, [churchId, lists, search, sort]);
 
-  const stillLoading = !churchId || loading;
-
-  // -----------------------------
-  // SUBTITLE TEXT
-  // -----------------------------
-  const subtitleText =
-  sort === 'date-desc'
-    ? 'All set lists sorted by newest first.'
-    : sort === 'date-asc'
-    ? 'All set lists sorted by oldest first.'
-    : 'All set lists sorted alphabetically by title.';
+  const rows = filtered.map((setList) => {
+    const totalSets = setList.sections.length;
+    const totalSongs = setList.sections.reduce(
+      (sum, section) => sum + section.songs.length,
+      0
+    );
+  
+    return {
+      id: setList.id,
+      title: setList.title,
+      date: setList.date,
+      totalSets,
+      totalSongs,
+    };
+  });  
 
   return (
     <div className="space-y-6">
 
-      {/* HEADER WITH ADD BUTTON */}
-      <PageHeader title="Set Lists" subtitle={subtitleText}>
+      <PageHeader
+        title={`Set Lists (${lists.length})`}
+        subtitle="Each row represents a full set list."
+      >
         <div className="flex items-center gap-2">
           <Link href="/music">
             <Button variant="outline" className="flex items-center gap-2">
@@ -75,11 +80,10 @@ export default function SetListsPage() {
         </div>
       </PageHeader>
 
-      {/* Sticky Search + Sort Bar (identical to Songs) */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {/* Sticky Search + Sort Bar */}
+      <div className="sticky top-16 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="w-full flex items-center gap-2 py-2">
 
-          {/* Search */}
           <Input
             className="w-full"
             placeholder="Search set lists..."
@@ -87,7 +91,6 @@ export default function SetListsPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
 
-          {/* Clear button */}
           {search.length > 0 && (
             <Button
               variant="outline"
@@ -98,7 +101,6 @@ export default function SetListsPage() {
             </Button>
           )}
 
-          {/* Sort */}
           <div className="flex items-center gap-1 shrink-0">
             <span className="text-sm text-muted-foreground">Sort:</span>
 
@@ -116,41 +118,40 @@ export default function SetListsPage() {
         </div>
       </div>
 
-      {/* LIST GRID (matches Songs grid) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {stillLoading && (
-          <p className="text-muted-foreground">Loading set lists…</p>
-        )}
+      {/* List Table */}
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b text-muted-foreground">
+            <th className="text-left py-2 px-2">Event</th>
+            <th className="text-left py-2 px-2">Date</th>
+            <th className="text-left py-2 px-2">Sets</th>
+            <th className="text-left py-2 px-2">Songs</th>
+            <th className="text-left py-2 px-2">View</th>
+          </tr>
+        </thead>
 
-        {!stillLoading && filtered.length === 0 && (
-          <p className="text-muted-foreground">No set lists found.</p>
-        )}
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.id} className="border-b hover:bg-accent">
+              <td className="py-2 px-2">{row.title}</td>
 
-        {!stillLoading &&
-          filtered.map((list) => (
-            <Card key={list.id} className="p-6 space-y-4">
-              <div>
-                <h2 className="text-xl font-semibold">{list.title}</h2>
-                <Separator />
-              </div>
+              <td className="py-2 px-2">
+                {row.date ? format(new Date(row.date), 'M/d/yy, h:mm a') : '—'}
+              </td>
 
-              <div className="max-h-[300px] overflow-y-auto pr-2">
-                <ul className="space-y-2">
-                  <li>
-                    <Link href={`/music/setlists/${list.id}`}>
-                      <Card className="p-4 hover:bg-accent cursor-pointer">
-                        <h3 className="font-medium">{list.title}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {list.date.toLocaleDateString()}
-                        </p>
-                      </Card>
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-            </Card>
+              <td className="py-2 px-2">{row.totalSets}</td>
+
+              <td className="py-2 px-2">{row.totalSongs}</td>
+
+              <td className="py-2 px-2">
+                <Link href={`/music/setlists/${row.id}`}>
+                  <Button variant="ghost" size="sm">View</Button>
+                </Link>
+              </td>
+            </tr>
           ))}
-      </div>
+        </tbody>
+      </table>
 
     </div>
   );

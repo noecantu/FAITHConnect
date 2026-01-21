@@ -107,7 +107,7 @@ export interface SetListSongEntry {
 
 export interface SetListSection {
   id: string;
-  name: string;
+  title: string;
   songs: SetListSongEntry[];
 }
 
