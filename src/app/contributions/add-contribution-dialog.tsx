@@ -3,8 +3,7 @@
 import * as React from 'react';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Controller, useForm } from 'react-hook-form';
-import dayjs, { Dayjs } from 'dayjs';
+import { useForm } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -36,12 +35,6 @@ import { useToast } from '@/hooks/use-toast';
 import { addContribution } from '@/lib/contributions';
 import type { Member } from '@/lib/types';
 
-// MUI date pickers
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-
 const contributionSchema = z.object({
   memberId: z.string().min(1, 'Member is required'),
   amount: z.coerce.number().positive('Amount must be positive'),
@@ -49,7 +42,7 @@ const contributionSchema = z.object({
   contributionType: z.enum(['Digital Transfer', 'Cash', 'Check', 'Other'], {
     required_error: 'Contribution Type is required',
   }),
-  date: z.date({ required_error: 'Date is required' }),
+  date: z.string().min(1, 'Date is required'),
 });
 
 type ContributionFormValues = z.infer<typeof contributionSchema>;
@@ -76,24 +69,18 @@ export function AddContributionDialog({
       amount: 0,
       category: 'Tithes',
       contributionType: 'Digital Transfer',
-      date: new Date(),
-    },
-  });
-
-  const darkTheme = createTheme({
-    palette: {
-      mode: 'dark',
+      date: "",
     },
   });
 
   async function onSubmit(values: ContributionFormValues) {
     if (!churchId) return;
-
+  
     const member = members.find((m) => m.id === values.memberId);
     const memberName = member
       ? `${member.firstName} ${member.lastName}`
       : 'Unknown Member';
-
+  
     try {
       await addContribution(churchId, {
         memberId: values.memberId,
@@ -103,19 +90,20 @@ export function AddContributionDialog({
         contributionType: values.contributionType,
         date: values.date,
       });
-
+  
       toast({
         title: 'Contribution Added',
         description: `Added ${values.amount} (${values.contributionType}) for ${memberName}.`,
       });
-
+  
       form.reset({
         memberId: '',
         amount: 0,
         category: 'Tithes',
         contributionType: 'Digital Transfer',
-        date: new Date(),
+        date: "",
       });
+  
       onClose();
     } catch (error) {
       console.error(error);
@@ -125,7 +113,7 @@ export function AddContributionDialog({
         variant: 'destructive',
       });
     }
-  }
+  }  
 
   // Sort members by Last Name, First Name
   const sortedMembers = React.useMemo(() => {
@@ -138,7 +126,7 @@ export function AddContributionDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose} modal={false}>
-      <DialogContent 
+      <DialogContent
         className="max-h-[80vh] overflow-y-auto w-[90vw] sm:w-[500px]"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
@@ -148,8 +136,10 @@ export function AddContributionDialog({
             Record a new financial contribution.
           </DialogDescription>
         </DialogHeader>
+  
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+  
             {/* Date - Moved to top */}
             <FormField
               control={form.control}
@@ -158,51 +148,17 @@ export function AddContributionDialog({
                 <FormItem>
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <div className="w-full">
-                      <ThemeProvider theme={darkTheme}>
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                          <MobileDatePicker
-                            slotProps={{
-                              textField: {
-                                fullWidth: true,
-                                sx: {
-                                  '& .MuiInputBase-root': {
-                                    backgroundColor: 'transparent',
-                                    color: 'text.primary',
-                                    fontSize: '0.875rem',
-                                    borderRadius: '0.5rem',
-                                    border: '1px solid hsl(var(--input))', // Match shadcn input border
-                                  },
-                                  '& .MuiInputBase-root:hover': {
-                                    borderColor: 'hsl(var(--input))',
-                                  },
-                                  '& .MuiOutlinedInput-notchedOutline': {
-                                    border: 'none', // Remove default MUI outline to use parent border
-                                  },
-                                  '& .MuiInputBase-input': {
-                                    padding: '0.5rem 0.75rem',
-                                    height: 'auto',
-                                  }
-                                },
-                              },
-                            }}
-                            value={dayjs(field.value)}
-                            onChange={(next) => {
-                              if (!next) return;
-                              field.onChange(next.toDate());
-                            }}
-                            closeOnSelect
-                            reduceAnimations
-                          />
-                        </LocalizationProvider>
-                      </ThemeProvider>
-                    </div>
+                    <Input
+                      type="date"
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
+  
             {/* Member */}
             <FormField
               control={form.control}
@@ -210,10 +166,7 @@ export function AddContributionDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Member</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
+                  <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a member" />
@@ -221,7 +174,7 @@ export function AddContributionDialog({
                     </FormControl>
                     <SelectContent>
                       {sortedMembers
-                        .filter((m) => m.status === 'Active')
+                        .filter((m) => m.status === "Active")
                         .map((member) => (
                           <SelectItem key={member.id} value={member.id}>
                             {member.lastName}, {member.firstName}
@@ -233,7 +186,7 @@ export function AddContributionDialog({
                 </FormItem>
               )}
             />
-
+  
             {/* Amount */}
             <FormField
               control={form.control}
@@ -249,7 +202,7 @@ export function AddContributionDialog({
                       {...field}
                       onChange={(e) => {
                         const v = e.target.value;
-                        field.onChange(v === '' ? 0 : Number(v));
+                        field.onChange(v === "" ? 0 : Number(v));
                       }}
                     />
                   </FormControl>
@@ -257,7 +210,7 @@ export function AddContributionDialog({
                 </FormItem>
               )}
             />
-
+  
             {/* Category */}
             <FormField
               control={form.control}
@@ -265,10 +218,7 @@ export function AddContributionDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
+                  <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a category" />
@@ -285,7 +235,7 @@ export function AddContributionDialog({
                 </FormItem>
               )}
             />
-
+  
             {/* Contribution Type */}
             <FormField
               control={form.control}
@@ -293,10 +243,7 @@ export function AddContributionDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Contribution Type</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
+                  <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a contribution type" />
@@ -313,8 +260,8 @@ export function AddContributionDialog({
                 </FormItem>
               )}
             />
-
-            xc
+  
+            <DialogFooter>
               <Button type="submit">Add Contribution</Button>
             </DialogFooter>
           </form>
@@ -322,4 +269,4 @@ export function AddContributionDialog({
       </DialogContent>
     </Dialog>
   );
-}
+}  

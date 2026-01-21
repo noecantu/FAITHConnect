@@ -17,7 +17,6 @@ import { exportServiceToExcel } from '@/lib/exportServiceExcel';
 import type { SetList, SetListSection, SetListSongEntry } from '@/lib/types';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/navigation';
-import { DatePicker } from '@/components/ui/date-picker';
 import { SetListSectionEditor } from '@/components/music/SetListSectionEditor';
 
 export default function SundayServicePage() {
@@ -147,18 +146,22 @@ export default function SundayServicePage() {
         <Card className="p-4">
           <h2 className="font-semibold mb-2">1. Choose Service Date</h2>
 
-          <DatePicker
-            value={date ? new Date(date) : null}
-            onChange={(d) => {
-              const iso = d?.toISOString().substring(0, 10) ?? "";
-              setDate(iso);
+          <div>
+            <label className="block text-sm font-medium mb-1">Date</label>
 
-              if (d) {
-                setTitle(`Sunday Service – ${dayjs(d).format("MMM D, YYYY")}`);
-              }
-            }}
-            placeholder="Select service date"
-          />
+            <Input
+              type="date"
+              value={date || ""}
+              onChange={(e) => {
+                const iso = e.target.value;
+                setDate(iso);
+
+                if (iso) {
+                  setTitle(`Sunday Service – ${dayjs(iso).format("MMM D, YYYY")}`);
+                }
+              }}
+            />
+          </div>
         </Card>
 
         {/* Step 2 — Build Set List */}

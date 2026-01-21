@@ -18,7 +18,6 @@ import { Textarea } from "@/components/ui/textarea";
 import type { UseFormReturn } from "react-hook-form";
 import type { MemberFormValues } from "@/lib/memberForm.schema";
 import { formatPhone } from '@/lib/formatters';
-import { DatePicker } from "../ui/date-picker";
 
 type Props = {
   form: UseFormReturn<MemberFormValues>;
@@ -107,9 +106,10 @@ export function MemberInfoSection({ form }: Props) {
             <FormItem>
               <FormLabel>Birthday</FormLabel>
               <FormControl>
-                <DatePicker
-                  value={field.value ? new Date(field.value) : null}
-                  onChange={(d) => field.onChange(d?.toISOString().substring(0, 10))}
+                <Input
+                  type="date"
+                  value={field.value || ""}
+                  onChange={(e) => field.onChange(e.target.value)}
                 />
               </FormControl>
               <FormMessage />
@@ -124,12 +124,10 @@ export function MemberInfoSection({ form }: Props) {
             <FormItem>
               <FormLabel>Baptism Date</FormLabel>
               <FormControl>
-                <DatePicker
-                  value={field.value ? new Date(field.value) : null}
-                  onChange={(d) =>
-                    field.onChange(d ? d.toISOString().substring(0, 10) : "")
-                  }
-                  placeholder="Select baptism date"
+                <Input
+                  type="date"
+                  value={field.value || ""}
+                  onChange={(e) => field.onChange(e.target.value)}
                 />
               </FormControl>
               <FormMessage />

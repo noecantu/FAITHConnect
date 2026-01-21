@@ -13,7 +13,6 @@ import { useSongs } from '@/hooks/useSongs';
 import { getSetListById, updateSetList } from '@/lib/setlists';
 import { SetList, SetListSection } from '@/lib/types';
 import { SetListSectionEditor } from '@/components/music/SetListSectionEditor';
-import { DatePicker } from '@/components/ui/date-picker';
 
 export default function EditSetListPage() {
   const { id } = useParams();
@@ -130,10 +129,10 @@ export default function EditSetListPage() {
         <div>
           <label className="block text-sm font-medium mb-1">Date</label>
 
-          <DatePicker
-            value={date ? new Date(date) : null}
-            onChange={(d) => setDate(d?.toISOString().substring(0, 10) ?? "")}
-            placeholder="Select date"
+          <Input
+            type="date"
+            value={date || ""}
+            onChange={(e) => setDate(e.target.value)}
           />
         </div>
 

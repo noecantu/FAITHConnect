@@ -52,7 +52,7 @@ export type Contribution = {
   amount: number;
   category: 'Tithes' | 'Offering' | 'Donation' | 'Other';
   contributionType: 'Digital Transfer' | 'Cash' | 'Check' | 'Other';
-  date: Date;
+  date: string;
   notes?: string;
 };
 

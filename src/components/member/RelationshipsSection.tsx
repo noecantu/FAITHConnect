@@ -28,7 +28,6 @@ import { useToast } from "@/hooks/use-toast";
 import type { UseFormReturn, FieldArrayWithId } from "react-hook-form";
 import type { MemberFormValues } from "@/lib/memberForm.schema";
 import type { Member } from "@/lib/types";
-import { DatePicker } from "../ui/date-picker";
 
 type Props = {
   form: UseFormReturn<MemberFormValues>;
@@ -166,19 +165,16 @@ export function RelationshipsSection({
             <FormItem>
               <FormLabel>Anniversary</FormLabel>
               <FormControl>
-                <DatePicker
-                  value={field.value ? new Date(field.value) : null}
-                  onChange={(d) =>
-                    field.onChange(d ? d.toISOString().substring(0, 10) : "")
-                  }
-                  placeholder="Select anniversary date"
+                <Input
+                  type="date"
+                  value={field.value || ""}
+                  onChange={(e) => field.onChange(e.target.value)}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
       </CardContent>
     </Card>
   );

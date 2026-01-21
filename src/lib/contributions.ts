@@ -36,7 +36,12 @@ export function listenToContributions(
         amount: raw.amount,
         category: raw.category as Contribution["category"],
         contributionType: raw.contributionType as Contribution["contributionType"],
-        date: raw.date?.toDate?.() ?? new Date(),
+
+        // 🔥 FIX: Firestore now stores date as a string, not Timestamp
+        date: raw.date instanceof Timestamp
+        ? raw.date.toDate().toISOString().substring(0, 10)
+        : (raw.date ?? ""),      
+
         notes: raw.notes,
       };
     });
@@ -50,7 +55,7 @@ export function listenToContributions(
 // ------------------------------
 export async function addContribution(
   churchId: string,
-  data: Omit<Contribution, "id" | "date"> & { date: Date }
+  data: Omit<Contribution, "id"> // 🔥 FIX: date is already a string in Contribution
 ) {
   const colRef = collection(db, "churches", churchId, "contributions");
   await addDoc(colRef, {
@@ -59,7 +64,10 @@ export async function addContribution(
     amount: data.amount,
     category: data.category,
     contributionType: data.contributionType,
+
+    // 🔥 FIX: store string directly
     date: data.date,
+
     notes: data.notes ?? "",
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -72,12 +80,11 @@ export async function addContribution(
 export async function updateContribution(
   churchId: string,
   id: string,
-  data: Partial<Omit<Contribution, "id" | "date">> & { date?: Date }
+  data: Partial<Omit<Contribution, "id">> // 🔥 FIX: date is string, not Date
 ) {
   const ref = doc(db, "churches", churchId, "contributions", id);
   await updateDoc(ref, {
     ...data,
-    ...(data.date ? { date: data.date } : {}),
     updatedAt: serverTimestamp(),
   });
 }

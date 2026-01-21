@@ -26,6 +26,7 @@ import {
 
 import { CSS } from '@dnd-kit/utilities';
 import { SectionSongList } from '@/components/music/SectionSongList';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface Props {
   sections: SetListSection[];
@@ -42,20 +43,8 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
     })
   );
 
-  const addSection = () => {
-    const newSection: SetListSection = {
-      id: nanoid(),
-      name: 'New Section',
-      songs: [],
-    };
-    // Add to the bottom instead of the top
-    onChange([...sections, newSection]);
-  };
-
   const updateSection = (id: string, updated: Partial<SetListSection>) => {
-    onChange(
-      sections.map((s) => (s.id === id ? { ...s, ...updated } : s))
-    );
+    onChange(sections.map((s) => (s.id === id ? { ...s, ...updated } : s)));
   };
 
   const removeSection = (id: string) => {
@@ -78,13 +67,71 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
     onChange(arrayMove(sections, oldIndex, newIndex));
   };
 
+  /* ---------------------------------------------
+     Add Section Dropdown
+  ---------------------------------------------- */
+
+  const DEFAULT_SECTION_NAMES = [
+    'Praise',
+    'Worship',
+    'Offering',
+    'Altar Call',
+  ];
+
+  function AddSectionDropdown() {
+    const [open, setOpen] = useState(false);
+    const [custom, setCustom] = useState('');
+
+    const handleAdd = (name: string) => {
+      const newSection: SetListSection = {
+        id: nanoid(),
+        name,
+        songs: [],
+      };
+      onChange([...sections, newSection]);
+      setOpen(false);
+      setCustom('');
+    };
+
+    return (
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="outline">+ Add Section</Button>
+        </PopoverTrigger>
+
+        <PopoverContent className="w-48 p-2 space-y-1">
+          {DEFAULT_SECTION_NAMES.map((name) => (
+            <button
+              key={name}
+              className="w-full text-left px-2 py-1 hover:bg-accent rounded"
+              onClick={() => handleAdd(name)}
+            >
+              {name}
+            </button>
+          ))}
+
+          <div className="border-t my-2" />
+
+          <Input
+            placeholder="Custom section…"
+            value={custom}
+            onChange={(e) => setCustom(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && custom.trim()) {
+                handleAdd(custom.trim());
+              }
+            }}
+          />
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
   return (
     <div className="space-y-4">
 
-      {/* Add Section Button (Option B) */}
-      <Button onClick={addSection} variant="outline">
-        + Add Section
-      </Button>
+      {/* Add Section Dropdown */}
+      <AddSectionDropdown />
 
       <DndContext
         sensors={sensors}
@@ -101,9 +148,7 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
               <SortableSectionItem
                 key={section.id}
                 section={section}
-                onRename={(name) =>
-                  updateSection(section.id, { name })
-                }
+                onRename={(name) => updateSection(section.id, { name })}
                 onDelete={() => removeSection(section.id)}
                 onUpdateSongs={(songs) =>
                   updateSection(section.id, { songs })
