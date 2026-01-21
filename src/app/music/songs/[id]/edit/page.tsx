@@ -12,6 +12,7 @@ import { useUserRoles } from '@/hooks/useUserRoles';
 import { getSongById, updateSong } from '@/lib/songs';
 import type { Song } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
+import { ChevronLeft } from 'lucide-react';
 
 export default function EditSongPage() {
   const { id } = useParams();
@@ -127,20 +128,21 @@ export default function EditSongPage() {
       <PageHeader title="Edit Song" />
   
       {/* Back to Songs */}
-      <div
+      {/* <div
         className="
           flex flex-col gap-2
           sm:flex-row sm:justify-end sm:items-center
         "
       >
         <Button
-          variant="secondary"
+          variant="outline"
           className="w-full sm:w-auto"
           onClick={() => router.push('/music/songs')}
         >
+          <ChevronLeft className="h-4 w-4" />
           Back to Songs
         </Button>
-      </div>
+      </div> */}
   
       {/* SECTION: Basic Info */}
       <Card className="p-6 space-y-6">

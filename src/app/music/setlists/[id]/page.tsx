@@ -9,6 +9,9 @@ import { getSetListById } from '@/lib/setlists';
 import { SetList } from '@/lib/types';
 import { useChurchId } from '@/hooks/useChurchId';
 import { useUserRoles } from '@/hooks/useUserRoles';
+import Link from 'next/link';
+import { ChevronLeft } from 'lucide-react';
+import { format } from 'date-fns';
 
 export default function SetListDetailPage() {
   const { id } = useParams();
@@ -51,24 +54,28 @@ export default function SetListDetailPage() {
     );
   }
 
+  const formattedDate = format(new Date(setList.date), 'M/d/yy, h:mm a');
+
   return (
     <div className="space-y-6">
-      <PageHeader title={setList.title} />
+      <PageHeader title={setList.title} subtitle={formattedDate}>
+        <div className="flex items-center gap-2">
+          <Link href="/music/setlists">
+            <Button variant="outline" className="flex items-center gap-2">
+              <ChevronLeft className="h-4 w-4" />
+              Back to Set Lists
+            </Button>
+          </Link>
 
-      {/* Date */}
-      <p className="text-muted-foreground">
-        {new Date(setList.date).toLocaleDateString()}
-      </p>
-
-      {/* Edit Button */}
-      {canEdit && (
-        <Button
-          variant="outline"
-          onClick={() => router.push(`/music/setlists/${setList.id}/edit`)}
-        >
-          Edit Set List
-        </Button>
-      )}
+          {canEdit && (
+            <Button asChild>
+              <Link href={`/music/setlists/${setList.id}/edit`}>
+                Edit Set List
+              </Link>
+            </Button>
+          )}
+        </div>
+      </PageHeader>
 
       {/* Sections */}
       <div className="space-y-6">
@@ -77,9 +84,10 @@ export default function SetListDetailPage() {
             {/* Section Header */}
             <div>
               <h2 className="text-lg font-semibold">
-                {section.name}{' '}
+                {section.title}{' '}
                 <span className="text-muted-foreground text-sm">
-                  ({section.songs.length} {section.songs.length === 1 ? 'Song' : 'Songs'})
+                  ({section.songs.length}{' '}
+                  {section.songs.length === 1 ? 'Song' : 'Songs'})
                 </span>
               </h2>
             </div>

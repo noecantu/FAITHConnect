@@ -25,6 +25,7 @@ export default function NewSetListPage() {
   // Form state
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
   const [notes, setNotes] = useState('');
   const [sections, setSections] = useState<SetListSection[]>([]);
   const [saving, setSaving] = useState(false);
@@ -50,21 +51,29 @@ export default function NewSetListPage() {
   }
 
   const handleSave = async () => {
-    if (!title.trim() || !date) return;
-
+    if (!title.trim() || !date || !time) return;
+  
     setSaving(true);
-
+  
+    // Combine date + time into a single Date object
+    const [hours, minutes] = time.split(':').map(Number);
+    const finalDate = new Date(date);
+    finalDate.setHours(hours);
+    finalDate.setMinutes(minutes);
+    finalDate.setSeconds(0);
+    finalDate.setMilliseconds(0);
+  
     const newSetList = {
       title: title.trim(),
-      date: new Date(date),
+      date: finalDate,
       sections,
       serviceNotes: { notes: notes.trim() },
       createdBy: 'system',
     };
-
+  
     const created = await createSetList(churchId, newSetList);
     router.push(`/music/setlists/${created.id}`);
-  };
+  };  
 
   return (
     <div className="space-y-6">
@@ -93,6 +102,16 @@ export default function NewSetListPage() {
           />
         </div>
 
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Event Time</label>
+          <Input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="w-full"
+          />
+        </div>
+        
         {/* Sections */}
         <div className="space-y-2">
           <label className="block text-sm font-medium">Sections & Songs</label>

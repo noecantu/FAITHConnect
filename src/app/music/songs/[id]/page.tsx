@@ -11,6 +11,7 @@ import { getSongById, deleteSong } from '@/lib/songs';
 import { useRecentSetLists } from '@/hooks/useRecentSetLists';
 import type { Song, SetList } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
+import { ChevronLeft } from 'lucide-react';
 
 export default function SongDetailPage() {
   const { id } = useParams();
@@ -77,8 +78,10 @@ export default function SongDetailPage() {
 
   // Find recent usage
   const usedIn = recentSetLists.filter((list: SetList) =>
-    list.songs.some((s) => s.songId === song.id)
-  );
+    list.sections.some((section) =>
+      section.songs.some((s) => s.songId === song.id)
+    )
+  );  
 
   return (
     <div className="space-y-6">
@@ -92,10 +95,11 @@ export default function SongDetailPage() {
         "
       >
         <Button
-          variant="secondary"
+          variant="outline"
           className="w-full sm:w-auto"
           onClick={() => router.push('/music/songs')}
         >
+          <ChevronLeft className="h-4 w-4" />
           Back to Songs
         </Button>
       </div>

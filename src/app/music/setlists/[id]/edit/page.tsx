@@ -29,6 +29,7 @@ export default function EditSetListPage() {
   // Form state
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
   const [notes, setNotes] = useState('');
   const [sections, setSections] = useState<SetListSection[]>([]);
   const [saving, setSaving] = useState(false);
@@ -51,7 +52,15 @@ export default function EditSetListPage() {
 
     load();
   }, [churchId, id]);
-
+  
+  useEffect(() => {
+    if (setList?.date) {
+      const d = new Date(setList.date);
+      const hhmm = d.toISOString().slice(11, 16); // "HH:MM"
+      setTime(hhmm);
+    }
+  }, [setList]);
+  
   if (!churchId) {
     return (
       <div className="p-6">
@@ -91,13 +100,22 @@ export default function EditSetListPage() {
   }
 
   const handleSave = async () => {
-    if (!title.trim() || !date) return;
-
+    if (!title.trim() || !date || !time) return;
+  
     setSaving(true);
-
+  
+    // Combine date + time into a single Date object
+    const [hours, minutes] = time.split(':').map(Number);
+  
+    const finalDate = new Date(date);
+    finalDate.setHours(hours);
+    finalDate.setMinutes(minutes);
+    finalDate.setSeconds(0);
+    finalDate.setMilliseconds(0);
+  
     const updated: Partial<SetList> = {
       title: title.trim(),
-      date: new Date(date),
+      date: finalDate,
       sections,
       serviceNotes: {
         ...setList.serviceNotes,
@@ -105,10 +123,10 @@ export default function EditSetListPage() {
       },
       updatedAt: new Date(),
     };
-
+  
     await updateSetList(churchId, setList.id, updated);
     router.push(`/music/setlists/${setList.id}`);
-  };
+  };  
 
   return (
     <div className="space-y-6">
@@ -133,6 +151,16 @@ export default function EditSetListPage() {
             type="date"
             value={date || ""}
             onChange={(e) => setDate(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Event Time</label>
+          <Input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="w-full"
           />
         </div>
 
