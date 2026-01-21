@@ -20,7 +20,8 @@ const ROLE_MAP: Record<string, string> = {
   "EventManager": "Event Manager",
   "Finance": "Finance Manager",
   "MemberManager": "Member Manager",
-  "MusicManager": "Music Manager"
+  "MusicManager": "Music Manager",
+  "MusicMember": "Music Member",
 };
 
 const ALL_ROLES = Object.keys(ROLE_MAP);

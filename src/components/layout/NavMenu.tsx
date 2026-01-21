@@ -52,9 +52,11 @@ export function NavMenu() {
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false);
   const { toast } = useToast();
   const churchId = useChurchId();
-  const { roles, isAdmin } = useUserRoles(churchId);
+
+  const { roles, isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
+
   const canSeeContributions = isAdmin || roles.includes('Finance');
-  const canSeeMusic = isAdmin || roles.includes('WorshipLeader');
+  const canAccessMusic = isAdmin || isMusicManager || isMusicMember;
 
   const handleLogout = async () => {
     try {
@@ -89,7 +91,7 @@ export function NavMenu() {
           {navItems
             .filter((item) => {
               if (item.href === '/contributions') return canSeeContributions;
-              if (item.href === '/music') return canSeeMusic;
+              if (item.href === '/music') return canAccessMusic;
               return true;
             })
             .map((item) => (

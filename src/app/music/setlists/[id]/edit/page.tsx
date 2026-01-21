@@ -18,11 +18,10 @@ export default function EditSetListPage() {
   const { id } = useParams();
   const router = useRouter();
   const churchId = useChurchId();
-  const { roles, isAdmin } = useUserRoles(churchId);
   const { songs: allSongs } = useSongs(churchId);
-
-  const canEdit = isAdmin || roles.includes('WorshipLeader');
-
+  const { isAdmin, isMusicManager } = useUserRoles(churchId);
+  const canEdit = isAdmin || isMusicManager;
+  
   const [setList, setSetList] = useState<SetList | null>(null);
   const [loading, setLoading] = useState(true);
 

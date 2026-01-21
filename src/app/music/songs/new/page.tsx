@@ -8,14 +8,13 @@ import { useChurchId } from '@/hooks/useChurchId';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { createSong } from '@/lib/songs';
 import type { SongInput } from '@/lib/types';
-import { Button } from '@/components/ui/button';
 
 export default function NewSongPage() {
   const router = useRouter();
   const churchId = useChurchId();
-  const { roles, isAdmin } = useUserRoles(churchId);
+  const { isAdmin, isMusicManager } = useUserRoles(churchId);
 
-  const canEdit = isAdmin || roles.includes('WorshipLeader');
+  const canEdit = isAdmin || isMusicManager;
   const [saving, setSaving] = useState(false);
 
   if (!churchId) {
@@ -54,6 +53,5 @@ export default function NewSongPage() {
       <PageHeader title="Add New Song" />
       <SongForm mode="new" onSave={handleCreate} saving={saving} />
     </div>
-  );  
-  
+  );
 }

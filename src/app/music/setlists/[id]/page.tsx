@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,12 +15,10 @@ import { format } from 'date-fns';
 
 export default function SetListDetailPage() {
   const { id } = useParams();
-  const router = useRouter();
   const churchId = useChurchId();
-  const { roles, isAdmin } = useUserRoles(churchId);
-
-  const canEdit = isAdmin || roles.includes('WorshipLeader');
-
+  const { isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
+  const canView = isAdmin || isMusicManager || isMusicMember;
+  const canEdit = isAdmin || isMusicManager;
   const [setList, setSetList] = useState<SetList | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,6 +43,17 @@ export default function SetListDetailPage() {
     );
   }
 
+  if (!canView) {
+    return (
+      <div className="p-6">
+        <PageHeader title="Set List" />
+        <p className="text-muted-foreground">
+          You do not have permission to view this set list.
+        </p>
+      </div>
+    );
+  }
+  
   if (!setList) {
     return (
       <div className="p-6">

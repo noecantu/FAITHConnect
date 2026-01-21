@@ -16,9 +16,14 @@ import { useUserRoles } from '@/hooks/useUserRoles';
 export default function SongsPage() {
   const churchId = useChurchId();
   const { songs, loading } = useSongs(churchId);
-  const { isAdmin, isMusicManager } = useUserRoles(churchId);
+  const { isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
   const canManage = isAdmin || isMusicManager;
   
+  const canView = isAdmin || isMusicMember || isMusicManager;
+  const canEdit = isAdmin || isMusicManager;
+  const canCreate = isAdmin || isMusicManager;
+  const canDelete = isAdmin || isMusicManager;
+
   const [sortBy, setSortBy] = useState<'title' | 'key' | 'bpm' | 'artist'>('title');
   const [search, setSearch] = useState('');
 
@@ -31,6 +36,15 @@ export default function SongsPage() {
     );
   }
 
+  if (!canView) {
+    return (
+      <div className="p-6">
+        <PageHeader title="Songs" />
+        <p className="text-muted-foreground">You do not have permission to view songs.</p>
+      </div>
+    );
+  }
+  
   // -----------------------------
   // FILTER SONGS BY SEARCH
   // -----------------------------

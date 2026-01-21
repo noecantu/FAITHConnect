@@ -16,9 +16,10 @@ export default function EditSongPage() {
   const { id } = useParams();
   const router = useRouter();
   const churchId = useChurchId();
-  const { roles, isAdmin } = useUserRoles(churchId);
 
-  const canEdit = isAdmin || roles.includes('WorshipLeader');
+  // UPDATED ROLES
+  const { isAdmin, isMusicManager } = useUserRoles(churchId);
+  const canEdit = isAdmin || isMusicManager;
 
   const [song, setSong] = useState<Song | null>(null);
   const [loading, setLoading] = useState(true);

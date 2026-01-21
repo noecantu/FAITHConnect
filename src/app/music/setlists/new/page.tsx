@@ -17,11 +17,10 @@ import { SetListSectionEditor } from '@/components/music/SetListSectionEditor';
 export default function NewSetListPage() {
   const router = useRouter();
   const churchId = useChurchId();
-  const { roles, isAdmin } = useUserRoles(churchId);
   const { songs: allSongs } = useSongs(churchId);
-
-  const canEdit = isAdmin || roles.includes('WorshipLeader');
-
+  const { isAdmin, isMusicManager } = useUserRoles(churchId);
+  const canCreate = isAdmin || isMusicManager;
+  
   // Form state
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
@@ -39,7 +38,7 @@ export default function NewSetListPage() {
     );
   }
 
-  if (!canEdit) {
+  if (!canCreate) {
     return (
       <div className="p-6">
         <PageHeader title="Create New Set List" />
@@ -49,7 +48,7 @@ export default function NewSetListPage() {
       </div>
     );
   }
-
+  
   const handleSave = async () => {
     if (!title.trim() || !date || !time) return;
   

@@ -15,9 +15,30 @@ import { useRouter } from "next/navigation";
 export default function SetListsPage() {
   const churchId = useChurchId();
   const { lists, loading } = useSetLists(churchId);
-  const { isAdmin, isMusicManager } = useUserRoles(churchId);
+  const { isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
   const canManage = isAdmin || isMusicManager;
-
+  const canView = isAdmin || isMusicMember || isMusicManager;
+  
+  if (!churchId || loading) {
+    return (
+      <div className="p-6">
+        <PageHeader title="Set Lists" />
+        <p className="text-muted-foreground">Loading set lists…</p>
+      </div>
+    );
+  }
+  
+  if (!canView) {
+    return (
+      <div className="p-6">
+        <PageHeader title="Set Lists" />
+        <p className="text-muted-foreground">
+          You do not have permission to view set lists.
+        </p>
+      </div>
+    );
+  }  
+  
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<'date-desc' | 'date-asc' | 'title-asc'>('date-desc');
   const router = useRouter();
