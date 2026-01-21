@@ -105,7 +105,7 @@ export default function NewSongPage() {
 
         {/* SECTION: Basic Info */}
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Basic Info</h2>
+          <h2 className="text-lg font-semibold">Song Information</h2>
 
           {/* Title */}
           <div>
