@@ -55,7 +55,7 @@ export default function SetListDetailPage() {
   }
 
   const formattedDate = format(new Date(setList.date), 'M/d/yy, h:mm a');
-
+  
   return (
     <div className="space-y-6">
       <PageHeader title={setList.title} subtitle={formattedDate}>
@@ -81,13 +81,13 @@ export default function SetListDetailPage() {
       <div className="space-y-6">
         {setList.sections.map((section) => (
           <Card key={section.id} className="p-4 space-y-4">
-            {/* Section Header */}
+  
+           {/* Section Header */}
             <div>
               <h2 className="text-lg font-semibold">
                 {section.title}{' '}
                 <span className="text-muted-foreground text-sm">
-                  ({section.songs.length}{' '}
-                  {section.songs.length === 1 ? 'Song' : 'Songs'})
+                  ({section.songs.length} {section.songs.length === 1 ? 'Song' : 'Songs'})
                 </span>
               </h2>
             </div>
@@ -117,6 +117,7 @@ export default function SetListDetailPage() {
               )}
             </div>
           </Card>
+
         ))}
       </div>
 

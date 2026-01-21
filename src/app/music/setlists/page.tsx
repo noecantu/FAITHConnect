@@ -10,6 +10,7 @@ import { useChurchId } from '@/hooks/useChurchId';
 import { useSetLists } from '@/hooks/useSetLists';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { ChevronLeft } from 'lucide-react';
+import { useRouter } from "next/navigation";
 
 export default function SetListsPage() {
   const churchId = useChurchId();
@@ -19,6 +20,7 @@ export default function SetListsPage() {
 
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<'date-desc' | 'date-asc' | 'title-asc'>('date-desc');
+  const router = useRouter();
 
   const filtered = useMemo(() => {
     if (!churchId) return [];
@@ -124,15 +126,18 @@ export default function SetListsPage() {
           <tr className="border-b text-muted-foreground">
             <th className="text-left py-2 px-2">Event</th>
             <th className="text-left py-2 px-2">Date</th>
-            <th className="text-left py-2 px-2">Sets</th>
+            <th className="text-left py-2 px-2">Sections</th>
             <th className="text-left py-2 px-2">Songs</th>
-            <th className="text-left py-2 px-2">View</th>
           </tr>
         </thead>
 
         <tbody>
           {rows.map((row) => (
-            <tr key={row.id} className="border-b hover:bg-accent">
+            <tr
+              key={row.id}
+              className="border-b hover:bg-accent cursor-pointer"
+              onClick={() => router.push(`/music/setlists/${row.id}`)}
+            >
               <td className="py-2 px-2">{row.title}</td>
 
               <td className="py-2 px-2">
@@ -142,15 +147,10 @@ export default function SetListsPage() {
               <td className="py-2 px-2">{row.totalSets}</td>
 
               <td className="py-2 px-2">{row.totalSongs}</td>
-
-              <td className="py-2 px-2">
-                <Link href={`/music/setlists/${row.id}`}>
-                  <Button variant="ghost" size="sm">View</Button>
-                </Link>
-              </td>
             </tr>
           ))}
         </tbody>
+
       </table>
 
     </div>

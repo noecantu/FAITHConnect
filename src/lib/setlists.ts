@@ -114,14 +114,18 @@ export async function getSetListById(
 
   const data = snap.data();
 
-  // MIGRATION: old set lists had `songs` instead of `sections`
-  let sections: SetListSection[] = data.sections;
+  // MIGRATION: normalize section titles
+  let sections: SetListSection[] = (data.sections || []).map((s: any) => ({
+    ...s,
+    title: s.title || s.name || "Untitled Section",
+  }));
 
-  if (!sections && data.songs) {
+  // MIGRATION: old set lists had `songs` instead of `sections`
+  if ((!sections || sections.length === 0) && data.songs) {
     sections = [
       {
         id: nanoid(),
-        name: 'Main',
+        title: "Main",
         songs: data.songs,
       },
     ];
@@ -137,6 +141,6 @@ export async function getSetListById(
     updatedAt: data.updatedAt.toDate(),
     serviceType: data.serviceType,
     serviceNotes: data.serviceNotes,
-    sections: sections ?? [],
+    sections,
   };
 }
