@@ -128,7 +128,7 @@ export default function SongDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader title={song.title} />
-  
+
       {/* Back to Songs */}
       <div
         className="
@@ -149,10 +149,30 @@ export default function SongDetailPage() {
       {/* SECTION: Basic Info */}
       <Card className="p-6 space-y-6">
         <div>
-          <h2 className="text-lg font-semibold">Song Details</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold">Song Details</h2>
+
+            <span className="text-xs text-muted-foreground">
+              | Last updated:{" "}
+              {new Date(song.updatedAt).toLocaleDateString(undefined, {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </span>
+          </div>
+
           <Separator />
         </div>
   
+        <div className="text-xs text-muted-foreground -mt-2">
+          Last updated: {new Date(song.updatedAt).toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-xs text-muted-foreground">Artist</p>
