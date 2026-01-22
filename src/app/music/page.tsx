@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
-import { Music, ListMusic, CalendarHeart } from 'lucide-react';
+import { Music, ListMusic } from 'lucide-react';
 
 export default function MusicPage() {
   return (
@@ -36,18 +36,6 @@ export default function MusicPage() {
           </Card>
         </Link>
 
-        {/* Sunday Service */}
-        <Link href="/music/sunday">
-          <Card className="p-6 hover:bg-accent transition-colors cursor-pointer">
-            <div className="flex items-center gap-3 mb-2">
-              <CalendarHeart className="h-6 w-6 text-primary" />
-              <h2 className="text-xl font-semibold">Sunday Service</h2>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Plan a full Sunday service with set list, notes, and exports.
-            </p>
-          </Card>
-        </Link>
       </div>
     </div>
   );

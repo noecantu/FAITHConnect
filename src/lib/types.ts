@@ -138,3 +138,20 @@ export interface SongInput {
   chords?: string;
   tags: string[];
 }
+
+export type ServicePlanSection = {
+  id: string;
+  title: string;
+  person?: string;
+  music?: string[];
+  notes: string;
+};
+
+export type ServicePlan = {
+  title: ReactNode;
+  id: string;
+  date: string;
+  sections: ServicePlanSection[];
+  createdAt: number;
+  updatedAt: number;
+};

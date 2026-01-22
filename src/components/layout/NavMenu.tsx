@@ -11,6 +11,7 @@ import {
   LogOut,
   FileText,
   Music,
+  CalendarHeart,
 } from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from 'firebase/auth';
@@ -45,6 +46,7 @@ const navItems = [
   { href: '/calendar', label: 'Calendar', icon: Calendar },
   { href: '/contributions', label: 'Contributions', icon: DollarSign },
   { href: '/music', label: 'Music', icon: Music },
+  { href: '/service-plan', label: 'Service Plan', icon: CalendarHeart },
 ];
 
 export function NavMenu() {
@@ -57,6 +59,7 @@ export function NavMenu() {
 
   const canSeeContributions = isAdmin || roles.includes('Finance');
   const canAccessMusic = isAdmin || isMusicManager || isMusicMember;
+  const canAccessServicePlan = isAdmin || roles.includes('Pastor');
 
   const handleLogout = async () => {
     try {
@@ -92,6 +95,7 @@ export function NavMenu() {
             .filter((item) => {
               if (item.href === '/contributions') return canSeeContributions;
               if (item.href === '/music') return canAccessMusic;
+              if (item.href === '/service-plan') return canAccessServicePlan;
               return true;
             })
             .map((item) => (
