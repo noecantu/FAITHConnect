@@ -13,39 +13,27 @@ import { ChevronLeft } from 'lucide-react';
 import { useRouter } from "next/navigation";
 
 export default function SetListsPage() {
+  // -----------------------------
+  // ALL HOOKS MUST RUN FIRST
+  // -----------------------------
   const churchId = useChurchId();
   const { lists, loading } = useSetLists(churchId);
-  const { isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
+
+  const {
+    isAdmin,
+    isMusicManager,
+    isMusicMember,
+    loading: rolesLoading
+  } = useUserRoles(churchId);
+
   const canManage = isAdmin || isMusicManager;
-  const canView = isAdmin || isMusicMember || isMusicManager;
-  
-  if (!churchId || loading) {
-    return (
-      <div className="p-6">
-        <PageHeader title="Set Lists" />
-        <p className="text-muted-foreground">Loading set lists…</p>
-      </div>
-    );
-  }
-  
-  if (!canView) {
-    return (
-      <div className="p-6">
-        <PageHeader title="Set Lists" />
-        <p className="text-muted-foreground">
-          You do not have permission to view set lists.
-        </p>
-      </div>
-    );
-  }  
-  
+  const canView = isAdmin || isMusicManager || isMusicMember;
+
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<'date-desc' | 'date-asc' | 'title-asc'>('date-desc');
   const router = useRouter();
 
   const filtered = useMemo(() => {
-    if (!churchId) return [];
-
     let result = lists;
 
     if (search.trim()) {
@@ -62,7 +50,30 @@ export default function SetListsPage() {
     }
 
     return result;
-  }, [churchId, lists, search, sort]);
+  }, [lists, search, sort]);
+
+  // -----------------------------
+  // CONDITIONAL RETURNS AFTER HOOKS
+  // -----------------------------
+  if (!churchId || loading || rolesLoading) {
+    return (
+      <div className="p-6">
+        <PageHeader title="Set Lists" />
+        <p className="text-muted-foreground">Loading set lists…</p>
+      </div>
+    );
+  }
+
+  if (!canView) {
+    return (
+      <div className="p-6">
+        <PageHeader title="Set Lists" />
+        <p className="text-muted-foreground">
+          You do not have permission to view set lists.
+        </p>
+      </div>
+    );
+  }
 
   const rows = filtered.map((setList) => {
     const totalSets = setList.sections.length;
@@ -70,7 +81,7 @@ export default function SetListsPage() {
       (sum, section) => sum + section.songs.length,
       0
     );
-  
+
     return {
       id: setList.id,
       title: setList.title,
@@ -78,8 +89,11 @@ export default function SetListsPage() {
       totalSets,
       totalSongs,
     };
-  });  
+  });
 
+  // -----------------------------
+  // RENDER
+  // -----------------------------
   return (
     <div className="space-y-6">
 

@@ -42,7 +42,7 @@ export default function SetListDetailPage() {
       </div>
     );
   }
-
+    
   if (!canView) {
     return (
       <div className="p-6">
@@ -62,7 +62,7 @@ export default function SetListDetailPage() {
       </div>
     );
   }
-
+  
   const formattedDate = format(new Date(setList.date), 'M/d/yy, h:mm a');
   
   return (
@@ -92,20 +92,46 @@ export default function SetListDetailPage() {
           <Card key={section.id} className="p-4 space-y-4">
   
            {/* Section Header */}
-            <div>
-              <h2 className="text-lg font-semibold">
-                {section.title}{' '}
-                <span className="text-muted-foreground text-sm">
-                  ({section.songs.length} {section.songs.length === 1 ? 'Song' : 'Songs'})
-                </span>
-              </h2>
-            </div>
+           <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">
+              {section.title}{' '}
+              <span className="text-muted-foreground text-sm">
+                ({section.songs.length} {section.songs.length === 1 ? 'Song' : 'Songs'})
+              </span>
+            </h2>
+
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+              >
+                <Link href={`/music/setlists/${setList.id}/edit#section-${section.id}`}>
+                  Edit
+                </Link>
+              </Button>
+            )}
+          </div>
 
             {/* Songs */}
             <div className="space-y-3">
               {section.songs.map((song) => (
                 <Card key={song.songId} className="p-3 space-y-2">
-                  <p className="font-medium">{song.title}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium">{song.title}</p>
+
+                    {canEdit && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        asChild
+                      >
+                        <Link href={`/music/setlists/${setList.id}/edit?song=${song.songId}`}>
+                          Edit
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
 
                   <div className="text-sm text-muted-foreground">
                     Key: {song.key}
@@ -133,7 +159,22 @@ export default function SetListDetailPage() {
       {/* Service Notes */}
       {setList.serviceNotes?.notes && (
         <Card className="p-4 space-y-2">
-          <h3 className="font-semibold">Service Notes</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">Service Notes</h3>
+
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+              >
+                <Link href={`/music/setlists/${setList.id}/edit#notes`}>
+                  Edit
+                </Link>
+              </Button>
+            )}
+          </div>
+
           <p className="text-muted-foreground whitespace-pre-wrap">
             {setList.serviceNotes.notes}
           </p>
