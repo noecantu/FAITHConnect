@@ -1,5 +1,6 @@
 
 import { Timestamp } from 'firebase/firestore';
+import { ReactNode } from 'react';
 
 export type Address = {
   street?: string;
@@ -139,19 +140,21 @@ export interface SongInput {
   tags: string[];
 }
 
-export type ServicePlanSection = {
+export interface ServicePlanSection {
   id: string;
   title: string;
-  person?: string;
-  music?: string[];
+  personId: string | null;
+  songIds: string[];
   notes: string;
-};
+}
 
-export type ServicePlan = {
-  title: ReactNode;
+export interface ServicePlan {
   id: string;
+  title: string;
   date: string;
+  notes: string;
   sections: ServicePlanSection[];
+  createdBy: string;
   createdAt: number;
   updatedAt: number;
-};
+}
