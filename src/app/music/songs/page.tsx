@@ -104,16 +104,10 @@ export default function SongsPage() {
 
   return (
     <div className="space-y-6">
+      
       {/* HEADER WITH ADD BUTTON */}
       <PageHeader title="Songs" subtitle={subtitleText}>
         <div className="flex items-center gap-2">
-          <Link href="/music">
-            <Button variant="outline" className="flex items-center gap-2">
-              <ChevronLeft className="h-4 w-4" />
-              Back to Music
-            </Button>
-          </Link>
-
           {canManage && (
             <Button asChild>
               <Link href="/music/songs/new">Add New Song</Link>

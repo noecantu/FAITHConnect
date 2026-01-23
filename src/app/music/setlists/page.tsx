@@ -102,13 +102,6 @@ export default function SetListsPage() {
         subtitle="Each row represents a full set list."
       >
         <div className="flex items-center gap-2">
-          <Link href="/music">
-            <Button variant="outline" className="flex items-center gap-2">
-              <ChevronLeft className="h-4 w-4" />
-              Back to Music
-            </Button>
-          </Link>
-
           {canManage && (
             <Button asChild>
               <Link href="/music/setlists/new">Create Set List</Link>
