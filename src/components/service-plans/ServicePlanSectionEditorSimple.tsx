@@ -3,17 +3,19 @@
 import { useState } from 'react';
 import { GripVertical, Trash, Plus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import type { ServicePlanSection } from '@/lib/types';
 import { nanoid } from 'nanoid';
 
+import { useChurchId } from '@/hooks/useChurchId';
 import { useMembers } from '@/hooks/useMembers';
 import { useSongs } from '@/hooks/useSongs';
+
 import { MemberSelect } from '@/components/service-plans/MemberSelect';
 import { SongSelect } from '@/components/service-plans/SongSelect';
-import { useChurchId } from '@/hooks/useChurchId';
+import { SectionTitleSelect } from '@/components/service-plans/SectionTitleSelect';
+import { Separator } from '@/components/ui/separator';
 
 interface Props {
   sections: ServicePlanSection[];
@@ -30,7 +32,7 @@ export function ServicePlanSectionEditorSimple({ sections, onChange }: Props) {
   function addSection() {
     const newSection: ServicePlanSection = {
       id: nanoid(),
-      title: 'New Section',
+      title: 'Praise',
       personId: null,
       songIds: [],
       notes: ''
@@ -62,15 +64,13 @@ export function ServicePlanSectionEditorSimple({ sections, onChange }: Props) {
   }
 
   function updateSong(index: number, songIndex: number, songId: string | null) {
-    const copy = [...sections];
-    const updatedSongs = [...copy[index].songIds];
+    const updated = [...sections[index].songIds];
     if (songId === null) {
-      updatedSongs.splice(songIndex, 1);
+      updated.splice(songIndex, 1);
     } else {
-      updatedSongs[songIndex] = songId;
+      updated[songIndex] = songId;
     }
-    copy[index].songIds = updatedSongs;
-    onChange(copy);
+    updateSection(index, { songIds: updated });
   }
 
   return (
@@ -78,7 +78,7 @@ export function ServicePlanSectionEditorSimple({ sections, onChange }: Props) {
       {sections.map((section, index) => (
         <Card
           key={section.id}
-          className="p-4 space-y-4 border bg-muted/30 rounded-md"
+          className="p-5 space-y-5"
           draggable
           onDragStart={() => setDragIndex(index)}
           onDragOver={(e) => e.preventDefault()}
@@ -108,14 +108,13 @@ export function ServicePlanSectionEditorSimple({ sections, onChange }: Props) {
           {/* Title */}
           <div>
             <label className="text-sm font-medium mb-1 block">Title</label>
-            <Input
-              className="bg-background text-foreground"
+            <SectionTitleSelect
               value={section.title}
-              onChange={(e) =>
-                updateSection(index, { title: e.target.value })
-              }
+              onChange={(title) => updateSection(index, { title })}
             />
           </div>
+
+          <Separator />
 
           {/* Person */}
           <div>
