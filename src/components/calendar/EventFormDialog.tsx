@@ -46,9 +46,6 @@ export function EventFormDialog({
         onClose={() => onOpenChange(false)}
         footer={
           <>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
             <Button type="submit" form="event-form">
               {isEditing ? "Save Changes" : "Add Event"}
             </Button>
