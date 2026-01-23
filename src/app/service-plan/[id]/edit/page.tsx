@@ -23,6 +23,7 @@ import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 
 import { ServicePlanSectionEditorSimple } from '@/components/service-plans/ServicePlanSectionEditorSimple';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export default function EditServicePlanPage() {
   const { id } = useParams();
@@ -108,22 +109,6 @@ export default function EditServicePlanPage() {
     <div className="bg-background text-foreground min-h-screen">
       <div className="space-y-6">
         <PageHeader title="Edit Service Plan">
-          <div className="flex items-center gap-2">
-            <Link href={`/service-plan/${id}`}>
-              <Button variant="outline" className="flex items-center gap-2">
-                <ChevronLeft className="h-4 w-4" />
-                Back to Plan
-              </Button>
-            </Link>
-
-            <Button onClick={handleSave} disabled={saving || !title.trim()}>
-              {saving ? 'Saving…' : 'Save Changes'}
-            </Button>
-
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
-            </Button>
-          </div>
         </PageHeader>
 
         <Card className="p-6 space-y-4">
@@ -163,26 +148,91 @@ export default function EditServicePlanPage() {
               placeholder="Any special instructions, transitions, or reminders."
             />
           </div>
-
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:items-center">
-            <Button
-              className="w-full sm:w-auto"
-              variant="secondary"
-              onClick={() => router.push(`/service-plan/${id}`)}
-            >
-              Cancel
-            </Button>
-
-            <Button
-              className="w-full sm:w-auto"
-              onClick={handleSave}
-              disabled={saving || !title.trim()}
-            >
-              {saving ? 'Saving…' : 'Save Changes'}
-            </Button>
-          </div>
         </Card>
       </div>
+
+      {canEdit && (
+        <>
+          {/* Save FAB */}
+          <Button
+            onClick={handleSave}
+            disabled={saving || !title.trim()}
+            className="
+              fixed bottom-6 right-6 h-10 w-10 rounded-full shadow-xl
+              bg-white/10 backdrop-blur-sm border border-white/10
+              text-white
+              hover:bg-white/25 active:bg-white/10
+              flex items-center justify-center p-0
+            "
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </Button>
+
+          {/* Delete FAB */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                className="
+                  fixed bottom-6 right-20 h-10 w-10 rounded-full shadow-xl
+                  bg-white/10 backdrop-blur-sm border border-white/10
+                  text-white
+                  hover:bg-white/25 active:bg-white/10
+                  flex items-center justify-center p-0
+                "
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m5-3v3"
+                  />
+                </svg>
+              </Button>
+            </AlertDialogTrigger>
+
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Service Plan?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete this service plan and all its sections.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-white hover:bg-destructive/90"
+                  onClick={handleDelete}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+        </>
+      )}
+
     </div>
   );
 }

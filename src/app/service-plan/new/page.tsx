@@ -77,6 +77,7 @@ export default function NewServicePlanPage() {
   }  
 
   return (
+    <div className="bg-background text-foreground min-h-screen">
     <div className="space-y-6 p-6">
       <PageHeader title="New Service Plan">
         <div className="flex items-center gap-2">
@@ -130,6 +131,36 @@ export default function NewServicePlanPage() {
           />
         </div>
       </Card>
-    </div>
+
+      {/* Floating Save FAB */}
+      <Button
+        onClick={handleSave}
+        disabled={saving || !title.trim()}
+        className="
+          fixed bottom-6 right-6 h-10 w-10 rounded-full shadow-xl
+          bg-white/10 backdrop-blur-sm border border-white/10
+          text-white
+          hover:bg-white/25 active:bg-white/10
+          flex items-center justify-center p-0
+        "
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+      </Button>
+
+      </div>
+      </div>
   );
 }
