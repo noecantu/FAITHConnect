@@ -37,7 +37,12 @@ export const memberSchema: z.ZodType<MemberFormValues> = z.object({
   firstName: z.string().min(1, "First Name is required"),
   lastName: z.string().min(1, "Last Name is required"),
   email: z.string().email().optional().or(z.literal("")),
-  phoneNumber: z.string().min(1, "Phone is required"),
+  phoneNumber: z
+  .string()
+  .transform((val) => val.replace(/\D/g, "")) // strip formatting
+  .refine((val) => val.length === 10, {
+    message: "Phone number must be 10 digits",
+  }),
   birthday: z.string().optional(),
   baptismDate: z.string().optional(),
   anniversary: z.string().optional(),
