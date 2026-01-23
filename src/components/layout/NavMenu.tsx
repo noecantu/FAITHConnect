@@ -11,6 +11,7 @@ import {
   LogOut,
   FileText,
   Music,
+  ListMusic,
   CalendarHeart,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -23,6 +24,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu';
 
 import {
@@ -45,7 +49,7 @@ const navItems = [
   { href: '/', label: 'Members', icon: Users },
   { href: '/calendar', label: 'Calendar', icon: Calendar },
   { href: '/contributions', label: 'Contributions', icon: DollarSign },
-  { href: '/music', label: 'Music', icon: Music },
+  { href: '/music', label: 'Music', icon: Music }, // parent
   { href: '/service-plan', label: 'Service Plan', icon: CalendarHeart },
 ];
 
@@ -98,21 +102,66 @@ export function NavMenu() {
               if (item.href === '/service-plan') return canAccessServicePlan;
               return true;
             })
-            .map((item) => (
-              <Link href={item.href} key={item.label}>
-                <DropdownMenuItem
-                  className={
-                    pathname === item.href ||
-                    pathname.startsWith(item.href + '/')
-                      ? 'bg-accent'
-                      : ''
-                  }
-                >
-                  <item.icon className="mr-2 h-4 w-4" />
-                  <span>{item.label}</span>
-                </DropdownMenuItem>
-              </Link>
-            ))}
+            .map((item) => {
+              if (item.href === '/music') {
+                return (
+                  <DropdownMenuSub key="music">
+                    <DropdownMenuSubTrigger
+                      className={
+                        pathname.startsWith('/music') ? 'bg-accent' : ''
+                      }
+                    >
+                      <item.icon className="mr-2 h-4 w-4" />
+                      <span>Music</span>
+                    </DropdownMenuSubTrigger>
+
+                    <DropdownMenuSubContent>
+                      <Link href="/music/songs">
+                        <DropdownMenuItem
+                          className={
+                            pathname.startsWith('/music/songs')
+                              ? 'bg-accent'
+                              : ''
+                          }
+                        >
+                          <Music className="mr-2 h-4 w-4" />
+                          <span>Songs</span>
+                        </DropdownMenuItem>
+                      </Link>
+
+                      <Link href="/music/setlists">
+                        <DropdownMenuItem
+                          className={
+                            pathname.startsWith('/music/setlists')
+                              ? 'bg-accent'
+                              : ''
+                          }
+                        >
+                          <ListMusic className="mr-2 h-4 w-4" />
+                          <span>Set Lists</span>
+                        </DropdownMenuItem>
+                      </Link>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                );
+              }
+
+              return (
+                <Link href={item.href} key={item.label}>
+                  <DropdownMenuItem
+                    className={
+                      pathname === item.href ||
+                      pathname.startsWith(item.href + '/')
+                        ? 'bg-accent'
+                        : ''
+                    }
+                  >
+                    <item.icon className="mr-2 h-4 w-4" />
+                    <span>{item.label}</span>
+                  </DropdownMenuItem>
+                </Link>
+              );
+            })}
 
           {/* Reports (Admin Only) */}
           {isAdmin && (
@@ -150,9 +199,7 @@ export function NavMenu() {
       <AlertDialog open={isLogoutAlertOpen} onOpenChange={setIsLogoutAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Are you sure you want to log out?
-            </AlertDialogTitle>
+            <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
             <AlertDialogDescription>
               You will be returned to the login screen.
             </AlertDialogDescription>
