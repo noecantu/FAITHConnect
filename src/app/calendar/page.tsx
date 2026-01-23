@@ -52,6 +52,7 @@ import { ListView } from '@/components/calendar/ListView';
 import { ConfirmDeleteDialog } from '@/components/calendar/ConfirmDeleteDialog';
 import { EventFormDialog } from '@/components/calendar/EventFormDialog';
 import { DayEventsDialog } from '@/components/calendar/DayEventsDialog';
+import { Plus } from 'lucide-react';
 
 // ------------------------------
 // Schema & Types
@@ -442,6 +443,30 @@ export default function CalendarPage() {
           onDeleteRequest={handleDeleteRequest}
         />
       )}
+
+{isEventManager && (
+  <Button
+    onClick={() => {
+      setEditEvent(null);
+      form.reset({
+        title: '',
+        description: '',
+        date: new Date(),
+      });
+      setIsFormOpen(true);
+    }}
+    className="
+      fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-xl
+      bg-white/20 backdrop-blur-md border border-white/10
+      text-white
+      hover:bg-white/30 active:bg-white/10
+      flex items-center justify-center p-0
+    "
+  >
+    <Plus className="h-6 w-6" />
+  </Button>
+)}
+
     </>
   );
 }

@@ -43,11 +43,6 @@ export default function ServicePlanPage() {
         title={`Service Plans (${plans.length})`}
         subtitle="Each row represents a full service plan."
       >
-        {/* <div className="flex items-center gap-2">
-        <Button onClick={() => router.push('/service-plan/new')}>
-          Create Service Plan
-        </Button>
-        </div> */}
       </PageHeader>
   
       {loading && <p>Loading service plans…</p>}

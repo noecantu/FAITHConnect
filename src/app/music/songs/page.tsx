@@ -10,8 +10,9 @@ import { PageHeader } from '@/components/page-header';
 import { useChurchId } from '@/hooks/useChurchId';
 import { useSongs } from '@/hooks/useSongs';
 import type { Song } from '@/lib/types';
-import { ChevronLeft, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useUserRoles } from '@/hooks/useUserRoles';
+import { useRouter } from "next/navigation";
 
 export default function SongsPage() {
   const churchId = useChurchId();
@@ -26,6 +27,7 @@ export default function SongsPage() {
 
   const [sortBy, setSortBy] = useState<'title' | 'key' | 'bpm' | 'artist'>('title');
   const [search, setSearch] = useState('');
+  const router = useRouter();
 
   if (!churchId || loading) {
     return (
@@ -106,15 +108,7 @@ export default function SongsPage() {
     <div className="space-y-6">
 
       {/* HEADER WITH ADD BUTTON */}
-      <PageHeader title="Songs" subtitle={subtitleText}>
-        {/* <div className="flex items-center gap-2">
-          {canManage && (
-            <Button asChild>
-              <Link href="/music/songs/new">Add New Song</Link>
-            </Button>
-          )}
-        </div> */}
-      </PageHeader>
+      <PageHeader title="Songs" subtitle={subtitleText}/>
   
       {/* Sticky Search + Sort Bar */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -190,16 +184,17 @@ export default function SongsPage() {
       </div>
 
       {canManage && (
-          <Button
-          asChild
-          className="fixed bottom-6 right-6 h-10 w-10 rounded-full shadow-xl 
-                    bg-white/20 backdrop-blur-md border border-white/10 
-                    border border-white/10
-                    text-white
-                    hover:bg-white/30 active:bg-white/10
-                    flex items-center justify-center p-0"
+        <Button
+          onClick={() => router.push("/music/songs/new")}
+          className="
+            fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-xl
+            bg-white/20 backdrop-blur-md border border-white/10
+            text-white
+            hover:bg-white/30 active:bg-white/10
+            flex items-center justify-center p-0
+          "
         >
-          <Plus className="h-8 w-8" />
+          <Plus className="h-6 w-6" />
         </Button>
       )}
 

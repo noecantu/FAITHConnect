@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { useChurchId } from '@/hooks/useChurchId';
 import { useSetLists } from '@/hooks/useSetLists';
 import { useUserRoles } from '@/hooks/useUserRoles';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Plus } from 'lucide-react';
 import { useRouter } from "next/navigation";
 
 export default function SetListsPage() {
@@ -100,15 +100,7 @@ export default function SetListsPage() {
       <PageHeader
         title={`Set Lists (${lists.length})`}
         subtitle="Each row represents a full set list."
-      >
-        <div className="flex items-center gap-2">
-          {canManage && (
-            <Button asChild>
-              <Link href="/music/setlists/new">Create Set List</Link>
-            </Button>
-          )}
-        </div>
-      </PageHeader>
+      />
 
       {/* Sticky Search + Sort Bar */}
       <div className="sticky top-16 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
@@ -180,6 +172,21 @@ export default function SetListsPage() {
         </tbody>
 
       </table>
+
+      {canManage && (
+          <Button
+            onClick={() => router.push("/music/setlists/new")}
+            className="
+              fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-xl
+              bg-white/20 backdrop-blur-md border border-white/10
+              text-white
+              hover:bg-white/30 active:bg-white/10
+              flex items-center justify-center p-0
+            "
+          >
+            <Plus className="h-6 w-6" />
+          </Button>
+        )}
 
     </div>
   );

@@ -133,13 +133,8 @@ export default function ContributionsPage() {
 
   return (
     <ThemeProvider theme={darkTheme}>
-      <PageHeader title="Contributions" className="mb-2">
-        {/* {isFinance && (
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            Add Contribution
-          </Button>
-        )} */}
-      </PageHeader>
+      <PageHeader title="Contributions" className="mb-2"/>
+
       <ContributionSummary contributions={filteredContributions} />
 
       <div className="grid gap-8">
@@ -202,16 +197,17 @@ export default function ContributionsPage() {
       </AlertDialog>
 
       {isFinance && (
-          <Button
-          asChild
-          className="fixed bottom-6 right-6 h-10 w-10 rounded-full shadow-xl 
-                    bg-white/20 backdrop-blur-md border border-white/10 
-                    border border-white/10
-                    text-white
-                    hover:bg-white/30 active:bg-white/10
-                    flex items-center justify-center p-0"
+        <Button
+          onClick={() => setIsAddDialogOpen(true)}
+          className="
+            fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-xl
+            bg-white/20 backdrop-blur-md border border-white/10
+            text-white
+            hover:bg-white/30 active:bg-white/10
+            flex items-center justify-center p-0
+          "
         >
-          <Plus className="h-8 w-8" />
+          <Plus className="h-6 w-6" />
         </Button>
       )}
 
