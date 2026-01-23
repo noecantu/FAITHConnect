@@ -2,21 +2,23 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 
 import { getServicePlans } from '@/lib/servicePlans';
 import type { ServicePlan } from '@/lib/types';
 
-import { ServicePlanFormDialog } from '@/components/service-plans/ServicePlanFormDialog';
+import { PageHeader } from '@/components/page-header';
+import { format } from 'date-fns';
+import { useRouter } from 'next/navigation';
 
 export default function ServicePlanPage() {
-  const churchId = 'default-church'; // Replace with your auth context or hook
+  const churchId = 'default-church';
 
   const [plans, setPlans] = useState<ServicePlan[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<ServicePlan | null>(null);
+  const router = useRouter();
 
   async function loadPlans() {
     setLoading(true);
@@ -34,54 +36,63 @@ export default function ServicePlanPage() {
     setDialogOpen(true);
   }
 
-  function openEditDialog(plan: ServicePlan) {
-    setEditingPlan(plan);
-    setDialogOpen(true);
-  }
-
-  function handleCloseDialog() {
-    setDialogOpen(false);
-    setEditingPlan(null);
-    loadPlans(); // Refresh list after save
-  }
-
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Service Plans</h1>
-
-        <Button onClick={openAddDialog}>
-          Add Service Plan
+    <div className="space-y-6 p-6">
+      <PageHeader
+        title={`Service Plans (${plans.length})`}
+        subtitle="Each row represents a full service plan."
+      >
+        <div className="flex items-center gap-2">
+        <Button onClick={() => router.push('/service-plan/new')}>
+          Create Service Plan
         </Button>
-      </div>
-
-      {loading && <p>Loading...</p>}
-
+        </div>
+      </PageHeader>
+  
+      {loading && <p>Loading service plans…</p>}
+  
       {!loading && plans.length === 0 && (
         <p className="text-muted-foreground">No service plans yet</p>
       )}
+  
+      {/* Table layout */}
+      {!loading && plans.length > 0 && (
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b text-muted-foreground">
+              <th className="text-left py-2 px-2">Event</th>
+              <th className="text-left py-2 px-2">Date</th>
+              <th className="text-left py-2 px-2">Sections</th>
+            </tr>
+          </thead>
 
-      <div className="grid gap-4">
-        {plans.map((plan) => (
-          <Card key={plan.id} className="p-4 flex justify-between items-center">
-            <div>
-              <div className="font-medium text-lg">{plan.title}</div>
-              <div className="text-sm text-muted-foreground">{plan.date}</div>
-            </div>
+          <tbody>
+            {plans.map((plan) => {
+              const totalSections = plan.sections.length;
 
-            <Button variant="outline" onClick={() => openEditDialog(plan)}>
-              Edit
-            </Button>
-          </Card>
-        ))}
-      </div>
+              return (
+                <tr
+                  key={plan.id}
+                  className="border-b hover:bg-accent cursor-pointer"
+                  onClick={() => router.push(`/service-plan/${plan.id}`)}
+                >
+                  <td className="py-2 px-2">{plan.title}</td>
 
-      <ServicePlanFormDialog
-        isOpen={dialogOpen}
-        onClose={handleCloseDialog}
-        churchId={churchId}
-        plan={editingPlan}
-      />
+                  <td className="py-2 px-2">
+                    {plan.date
+                      ? format(new Date(plan.date), 'M/d/yy, h:mm a')
+                      : '—'}
+                  </td>
+
+                  <td className="py-2 px-2">{totalSections}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+
     </div>
   );
+  
 }
