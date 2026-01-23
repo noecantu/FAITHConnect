@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { createServicePlan } from '@/lib/servicePlans';
-import type { ServicePlanSection } from '@/lib/types';
+import type { ServicePlan, ServicePlanSection } from '@/lib/types';
 import { useChurchId } from '@/hooks/useChurchId';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import Link from 'next/link';
@@ -14,11 +14,12 @@ import { ChevronLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ServicePlanSectionEditorSimple } from '@/components/service-plans/ServicePlanSectionEditorSimple';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function NewServicePlanPage() {
   const router = useRouter();
   const churchId = useChurchId();
-
+  const { user, loading: authLoading } = useAuth();
   const { isAdmin, isServiceManager, loading: rolesLoading } =
     useUserRoles(churchId);
 
@@ -30,7 +31,7 @@ export default function NewServicePlanPage() {
   const [notes, setNotes] = useState('');
   const [sections, setSections] = useState<ServicePlanSection[]>([]);
 
-  if (!churchId || rolesLoading) {
+  if (!churchId || rolesLoading || authLoading) {
     return (
       <div className="p-6">
         <PageHeader title="New Service Plan" />
@@ -53,26 +54,27 @@ export default function NewServicePlanPage() {
   const churchIdSafe = churchId as string;
 
   async function handleSave() {
-    if (!title.trim()) return;
-
+    if (!title.trim() || !date || !user) return;
+  
     setSaving(true);
-
-    const newPlan = {
-      title,
-      date: date ? new Date(date).toISOString() : '',
-      notes,
-      sections,
-      createdBy: '',
+  
+    const newPlan: Omit<ServicePlan, 'id'> = {
+      title: title.trim(),
+      date: new Date(date).toISOString(),
+      notes: notes.trim(),
+      sections: sections ?? [],
+      createdBy: user.uid,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
-
-    const id = await createServicePlan(churchIdSafe, newPlan);
-
-    setSaving(false);
-
-    router.push(`/service-plan/${id}`);
-  }
+  
+    try {
+      const plan = await createServicePlan(churchIdSafe, newPlan);
+      router.push(`/service-plan/${plan.id}`);
+    } finally {
+      setSaving(false);
+    }
+  }  
 
   return (
     <div className="space-y-6 p-6">
