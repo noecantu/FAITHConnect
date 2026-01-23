@@ -114,10 +114,10 @@ export default function MembersPage() {
         <MemberFormSheet>
           <Button
             className="
-              fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-xl
-              bg-white/20 backdrop-blur-md border border-white/10
+              fixed bottom-6 right-6 h-10 w-10 rounded-full shadow-xl
+              bg-white/10 backdrop-blur-sm border border-white/10
               text-white
-              hover:bg-white/30 active:bg-white/10
+              hover:bg-white/25 active:bg-white/10
               flex items-center justify-center p-0
             "
           >
