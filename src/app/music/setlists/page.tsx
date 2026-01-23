@@ -139,7 +139,7 @@ export default function SetListsPage() {
           )}
 
           <div className="flex items-center gap-1 shrink-0">
-            <span className="text-sm text-muted-foreground">Sort:</span>
+            <span className="text-sm text-muted-foreground"> Sort: </span>
 
             <select
               value={sort}

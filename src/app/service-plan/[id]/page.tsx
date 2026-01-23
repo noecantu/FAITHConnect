@@ -14,11 +14,9 @@ import { ChevronLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { useMembers } from '@/hooks/useMembers';
 import { useSongs } from '@/hooks/useSongs';
+import { Separator } from '@/components/ui/separator';
 
 export default function ServicePlanDetailPage() {
-  // -----------------------------
-  // ALL HOOKS MUST RUN FIRST
-  // -----------------------------
   const { id } = useParams();
   const churchId = useChurchId();
   const { members, loading: membersLoading } = useMembers(churchId);
@@ -38,9 +36,6 @@ export default function ServicePlanDetailPage() {
   const [plan, setPlan] = useState<ServicePlan | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // -----------------------------
-  // DATA LOADING
-  // -----------------------------
   useEffect(() => {
     if (!churchId || !id) return;
 
@@ -53,9 +48,6 @@ export default function ServicePlanDetailPage() {
     load();
   }, [churchId, id]);
 
-  // -----------------------------
-  // CONDITIONAL RETURNS AFTER HOOKS
-  // -----------------------------
   if (!churchId || rolesLoading || loading || songsLoading || membersLoading) {
     return (
       <div className="p-6">
@@ -85,9 +77,6 @@ export default function ServicePlanDetailPage() {
     );
   }
 
-  // -----------------------------
-  // RENDER
-  // -----------------------------
   const formattedDate = plan.date
     ? format(new Date(plan.date), 'M/d/yy, h:mm a')
     : '—';
@@ -122,14 +111,16 @@ export default function ServicePlanDetailPage() {
           const hasNotes = section.notes.trim().length > 0;
 
           return (
-            <Card key={section.id} className="p-4 space-y-4">
-              <h2 className="text-lg font-semibold">{section.title}</h2>
-
-              <div className="space-y-3">
+            <Card key={section.id} className="p-5 space-y-2">
+              <h2 className="text-lg font-semibold tracking-tight">
+                {section.title}
+              </h2>
+              <Separator />
+              <div className="space-y-4">
 
                 {hasPerson && (
-                  <div>
-                    <p className="text-sm font-medium">Person</p>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-foreground">Person</p>
                     <p className="text-muted-foreground">
                       {member
                         ? `${member.firstName} ${member.lastName}`
@@ -139,8 +130,8 @@ export default function ServicePlanDetailPage() {
                 )}
 
                 {hasSongs && (
-                  <div>
-                    <p className="text-sm font-medium">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-foreground">
                       Music ({section.songIds.length}{' '}
                       {section.songIds.length === 1 ? 'Song' : 'Songs'})
                     </p>
@@ -149,7 +140,7 @@ export default function ServicePlanDetailPage() {
                       {section.songIds.map((songId) => {
                         const song = songs.find((s) => s.id === songId);
                         return (
-                          <Card key={songId} className="p-3">
+                          <Card key={songId} className="p-3 bg-muted/40">
                             <p className="font-medium">
                               {song ? song.title : 'Unknown Song'}
                             </p>
@@ -161,9 +152,9 @@ export default function ServicePlanDetailPage() {
                 )}
 
                 {hasNotes && (
-                  <div>
-                    <p className="text-sm font-medium">Notes</p>
-                    <p className="text-muted-foreground whitespace-pre-wrap">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-foreground">Notes</p>
+                    <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
                       {section.notes}
                     </p>
                   </div>
