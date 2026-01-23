@@ -12,6 +12,8 @@ import { useUserRoles } from '@/hooks/useUserRoles';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { format } from 'date-fns';
+import { members } from '@/lib/data';
+import { useSongs } from '@/hooks/useSongs';
 
 export default function ServicePlanDetailPage() {
   // -----------------------------
@@ -19,6 +21,7 @@ export default function ServicePlanDetailPage() {
   // -----------------------------
   const { id } = useParams();
   const churchId = useChurchId();
+  const { songs, loading: songsLoading } = useSongs(churchId);
 
   const {
     isAdmin,
@@ -52,7 +55,7 @@ export default function ServicePlanDetailPage() {
   // -----------------------------
   // CONDITIONAL RETURNS AFTER HOOKS
   // -----------------------------
-  if (!churchId || rolesLoading || loading) {
+  if (!churchId || rolesLoading || loading || songsLoading) {
     return (
       <div className="p-6">
         <PageHeader title="Service Plan" />
@@ -111,51 +114,79 @@ export default function ServicePlanDetailPage() {
 
       {/* Sections */}
       <div className="space-y-6">
-        {plan.sections.map((section) => (
-          <Card key={section.id} className="p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">
-                {section.title}{' '}
-                <span className="text-muted-foreground text-sm">
-                  ({section.songIds.length}{' '}
-                  {section.songIds.length === 1 ? 'Song' : 'Songs'})
-                </span>
-              </h2>
+        {plan.sections.map((section) => {
+          const member = members.find((m) => m.id === section.personId);
+          const hasPerson = !!section.personId;
+          const hasSongs = section.songIds.length > 0;
+          const hasNotes = section.notes.trim().length > 0;
 
-              {canEdit && (
-                <Button variant="outline" size="sm" asChild>
-                  <Link href={`/service-plan/${plan.id}/edit#section-${section.id}`}>
-                    Edit
-                  </Link>
-                </Button>
-              )}
-            </div>
+          return (
+            <Card key={section.id} className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">{section.title}</h2>
 
-            <div className="space-y-3">
-              {section.songIds.length === 0 && (
-                <p className="text-sm text-muted-foreground italic">
-                  No songs in this section.
-                </p>
-              )}
+                {canEdit && (
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/service-plan/${plan.id}/edit#section-${section.id}`}>
+                      Edit
+                    </Link>
+                  </Button>
+                )}
+              </div>
 
-              {section.songIds.map((songId) => (
-                <Card key={songId} className="p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="font-medium">{songId}</p>
+              <div className="space-y-3">
 
-                    {canEdit && (
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/service-plan/${plan.id}/edit?song=${songId}`}>
-                          Edit
-                        </Link>
-                      </Button>
-                    )}
+                {hasPerson && (
+                  <div>
+                    <p className="text-sm font-medium">Person</p>
+                    <p className="text-muted-foreground">
+                      {member
+                        ? `${member.firstName} ${member.lastName}`
+                        : 'Unknown Member'}
+                    </p>
                   </div>
-                </Card>
-              ))}
-            </div>
-          </Card>
-        ))}
+                )}
+
+                {hasSongs && (
+                  <div>
+                    <p className="text-sm font-medium">
+                      Music ({section.songIds.length}{' '}
+                      {section.songIds.length === 1 ? 'Song' : 'Songs'})
+                    </p>
+
+                    <div className="space-y-2">
+                      {section.songIds.map((songId) => {
+                        const song = songs.find((s) => s.id === songId);
+                        return (
+                          <Card key={songId} className="p-3">
+                            <p className="font-medium">
+                              {song ? song.title : 'Unknown Song'}
+                            </p>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {hasNotes && (
+                  <div>
+                    <p className="text-sm font-medium">Notes</p>
+                    <p className="text-muted-foreground whitespace-pre-wrap">
+                      {section.notes}
+                    </p>
+                  </div>
+                )}
+
+                {!hasPerson && !hasSongs && !hasNotes && (
+                  <p className="text-sm text-muted-foreground italic">
+                    No details for this section.
+                  </p>
+                )}
+              </div>
+            </Card>
+          );
+        })}
       </div>
 
       {plan.notes && (
