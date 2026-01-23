@@ -10,7 +10,7 @@ import { PageHeader } from '@/components/page-header';
 import { useChurchId } from '@/hooks/useChurchId';
 import { useSongs } from '@/hooks/useSongs';
 import type { Song } from '@/lib/types';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Plus } from 'lucide-react';
 import { useUserRoles } from '@/hooks/useUserRoles';
 
 export default function SongsPage() {
@@ -104,16 +104,16 @@ export default function SongsPage() {
 
   return (
     <div className="space-y-6">
-      
+
       {/* HEADER WITH ADD BUTTON */}
       <PageHeader title="Songs" subtitle={subtitleText}>
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           {canManage && (
             <Button asChild>
               <Link href="/music/songs/new">Add New Song</Link>
             </Button>
           )}
-        </div>
+        </div> */}
       </PageHeader>
   
       {/* Sticky Search + Sort Bar */}
@@ -188,6 +188,20 @@ export default function SongsPage() {
           </Card>
         ))}
       </div>
+
+      {canManage && (
+          <Button
+          asChild
+          className="fixed bottom-6 right-6 h-10 w-10 rounded-full shadow-xl 
+                    bg-white/20 backdrop-blur-md border border-white/10 
+                    border border-white/10
+                    text-white
+                    hover:bg-white/30 active:bg-white/10
+                    flex items-center justify-center p-0"
+        >
+          <Plus className="h-8 w-8" />
+        </Button>
+      )}
 
     </div>
   );

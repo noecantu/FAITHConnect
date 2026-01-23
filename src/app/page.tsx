@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { MemberFormSheet } from "@/app/members/member-form-sheet";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { Input } from "@/components/ui/input";
+import { Plus } from "lucide-react";
 
 export default function MembersPage() {
   const churchId = useChurchId();
@@ -67,11 +68,11 @@ export default function MembersPage() {
   return (
     <>
       <PageHeader title="Members" className="mb-2">
-        {isMemberManager && (
+        {/* {isMemberManager && (
           <MemberFormSheet>
             <Button>Add Member</Button>
           </MemberFormSheet>
-        )}
+        )} */}
       </PageHeader>
 
       <div>
@@ -108,6 +109,23 @@ export default function MembersPage() {
           />
         ))}
       </div>
+
+      {isMemberManager && (
+        <MemberFormSheet>
+          <Button
+            asChild
+            className="fixed bottom-6 right-6 h-10 w-10 rounded-full shadow-xl 
+                      bg-white/20 backdrop-blur-md border border-white/10 
+                      border border-white/10
+                      text-white
+                      hover:bg-white/30 active:bg-white/10
+                      flex items-center justify-center p-0"
+          >
+            <Plus className="h-8 w-8" />
+          </Button>
+        </MemberFormSheet>
+      )}
+
     </>
   );
 }

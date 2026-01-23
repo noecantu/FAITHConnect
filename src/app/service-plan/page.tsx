@@ -9,6 +9,7 @@ import type { ServicePlan } from '@/lib/types';
 import { PageHeader } from '@/components/page-header';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
+import { Plus } from 'lucide-react';
 
 export default function ServicePlanPage() {
   const churchId = 'default-church';
@@ -42,11 +43,11 @@ export default function ServicePlanPage() {
         title={`Service Plans (${plans.length})`}
         subtitle="Each row represents a full service plan."
       >
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
         <Button onClick={() => router.push('/service-plan/new')}>
           Create Service Plan
         </Button>
-        </div>
+        </div> */}
       </PageHeader>
   
       {loading && <p>Loading service plans…</p>}
@@ -91,6 +92,19 @@ export default function ServicePlanPage() {
           </tbody>
         </table>
       )}
+
+      <Button
+        onClick={() => router.push('/service-plan/new')}
+        className="
+          fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-xl
+          bg-white/20 backdrop-blur-md border border-white/10
+          text-white
+          hover:bg-white/30 active:bg-white/10
+          flex items-center justify-center p-0
+        "
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
 
     </div>
   );
