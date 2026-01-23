@@ -12,7 +12,7 @@ import { useUserRoles } from '@/hooks/useUserRoles';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { format } from 'date-fns';
-import { members } from '@/lib/data';
+import { useMembers } from '@/hooks/useMembers';
 import { useSongs } from '@/hooks/useSongs';
 
 export default function ServicePlanDetailPage() {
@@ -21,6 +21,7 @@ export default function ServicePlanDetailPage() {
   // -----------------------------
   const { id } = useParams();
   const churchId = useChurchId();
+  const { members, loading: membersLoading } = useMembers(churchId);
   const { songs, loading: songsLoading } = useSongs(churchId);
 
   const {
@@ -55,7 +56,7 @@ export default function ServicePlanDetailPage() {
   // -----------------------------
   // CONDITIONAL RETURNS AFTER HOOKS
   // -----------------------------
-  if (!churchId || rolesLoading || loading || songsLoading) {
+  if (!churchId || rolesLoading || loading || songsLoading || membersLoading) {
     return (
       <div className="p-6">
         <PageHeader title="Service Plan" />
@@ -122,17 +123,7 @@ export default function ServicePlanDetailPage() {
 
           return (
             <Card key={section.id} className="p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">{section.title}</h2>
-
-                {canEdit && (
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/service-plan/${plan.id}/edit#section-${section.id}`}>
-                      Edit
-                    </Link>
-                  </Button>
-                )}
-              </div>
+              <h2 className="text-lg font-semibold">{section.title}</h2>
 
               <div className="space-y-3">
 
@@ -188,26 +179,6 @@ export default function ServicePlanDetailPage() {
           );
         })}
       </div>
-
-      {plan.notes && (
-        <Card className="p-4 space-y-2">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Service Notes</h3>
-
-            {canEdit && (
-              <Button variant="outline" size="sm" asChild>
-                <Link href={`/service-plan/${plan.id}/edit#notes`}>
-                  Edit
-                </Link>
-              </Button>
-            )}
-          </div>
-
-          <p className="text-muted-foreground whitespace-pre-wrap">
-            {plan.notes}
-          </p>
-        </Card>
-      )}
     </div>
   );
 }

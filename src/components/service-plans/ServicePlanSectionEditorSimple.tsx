@@ -1,13 +1,19 @@
 'use client';
 
-import { GripVertical, Trash } from 'lucide-react';
+import { useState } from 'react';
+import { GripVertical, Trash, Plus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import type { ServicePlanSection } from '@/lib/types';
 import { nanoid } from 'nanoid';
-import { useState } from 'react';
+
+import { useMembers } from '@/hooks/useMembers';
+import { useSongs } from '@/hooks/useSongs';
+import { MemberSelect } from '@/components/service-plans/MemberSelect';
+import { SongSelect } from '@/components/service-plans/SongSelect';
+import { useChurchId } from '@/hooks/useChurchId';
 
 interface Props {
   sections: ServicePlanSection[];
@@ -15,13 +21,17 @@ interface Props {
 }
 
 export function ServicePlanSectionEditorSimple({ sections, onChange }: Props) {
+  const churchId = useChurchId();
+  const { members } = useMembers(churchId);
+  const { songs } = useSongs(churchId);
+
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   function addSection() {
     const newSection: ServicePlanSection = {
       id: nanoid(),
       title: 'New Section',
-      personId: '',
+      personId: null,
       songIds: [],
       notes: ''
     };
@@ -44,6 +54,22 @@ export function ServicePlanSectionEditorSimple({ sections, onChange }: Props) {
     const copy = [...sections];
     const [moved] = copy.splice(from, 1);
     copy.splice(to, 0, moved);
+    onChange(copy);
+  }
+
+  function addSong(index: number) {
+    updateSection(index, { songIds: [...sections[index].songIds, ''] });
+  }
+
+  function updateSong(index: number, songIndex: number, songId: string | null) {
+    const copy = [...sections];
+    const updatedSongs = [...copy[index].songIds];
+    if (songId === null) {
+      updatedSongs.splice(songIndex, 1);
+    } else {
+      updatedSongs[songIndex] = songId;
+    }
+    copy[index].songIds = updatedSongs;
     onChange(copy);
   }
 
@@ -91,19 +117,47 @@ export function ServicePlanSectionEditorSimple({ sections, onChange }: Props) {
             />
           </div>
 
-          {/* Song IDs */}
+          {/* Person */}
           <div>
-            <label className="text-sm font-medium mb-1 block">Song IDs</label>
-            <Textarea
-              className="bg-background text-foreground"
-              rows={3}
-              value={section.songIds.join('\n')}
-              onChange={(e) =>
-                updateSection(index, {
-                  songIds: e.target.value.split('\n').filter(Boolean)
-                })
-              }
+            <label className="text-sm font-medium mb-1 block">Person</label>
+            <MemberSelect
+              members={members}
+              value={section.personId}
+              onChange={(id) => updateSection(index, { personId: id })}
             />
+          </div>
+
+          {/* Songs */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium block">Songs</label>
+
+            {section.songIds.map((songId, songIndex) => (
+              <div key={songIndex} className="flex items-center gap-2">
+                <SongSelect
+                  songs={songs}
+                  value={songId}
+                  onChange={(id) => updateSong(index, songIndex, id)}
+                />
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => updateSong(index, songIndex, null)}
+                >
+                  <Trash className="h-4 w-4 text-red-500" />
+                </Button>
+              </div>
+            ))}
+
+            <Button
+              variant="secondary"
+              size="sm"
+              className="mt-1"
+              onClick={() => addSong(index)}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add Song
+            </Button>
           </div>
 
           {/* Notes */}
