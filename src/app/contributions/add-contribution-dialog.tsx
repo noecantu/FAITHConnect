@@ -75,12 +75,12 @@ export function AddContributionDialog({
 
   async function onSubmit(values: ContributionFormValues) {
     if (!churchId) return;
-  
+
     const member = members.find((m) => m.id === values.memberId);
     const memberName = member
       ? `${member.firstName} ${member.lastName}`
       : 'Unknown Member';
-  
+
     try {
       await addContribution(churchId, {
         memberId: values.memberId,
@@ -90,12 +90,12 @@ export function AddContributionDialog({
         contributionType: values.contributionType,
         date: values.date,
       });
-  
+
       toast({
         title: 'Contribution Added',
         description: `Added ${values.amount} (${values.contributionType}) for ${memberName}.`,
       });
-  
+
       form.reset({
         memberId: '',
         amount: 0,
@@ -103,7 +103,7 @@ export function AddContributionDialog({
         contributionType: 'Digital Transfer',
         date: "",
       });
-  
+
       onClose();
     } catch (error) {
       console.error(error);
@@ -113,9 +113,8 @@ export function AddContributionDialog({
         variant: 'destructive',
       });
     }
-  }  
+  }
 
-  // Sort members by Last Name, First Name
   const sortedMembers = React.useMemo(() => {
     return [...members].sort((a, b) => {
       const nameA = `${a.lastName}, ${a.firstName}`.toLowerCase();
@@ -125,148 +124,158 @@ export function AddContributionDialog({
   }, [members]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose} modal={false}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="max-h-[80vh] overflow-y-auto w-[90vw] sm:w-[500px]"
+        className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <DialogHeader>
+        {/* Header (non-scrollable) */}
+        <DialogHeader className="shrink-0 px-6 pt-6">
           <DialogTitle>Add Contribution</DialogTitle>
           <DialogDescription>
             Record a new financial contribution.
           </DialogDescription>
         </DialogHeader>
-  
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-  
-            {/* Date - Moved to top */}
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.value)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-  
-            {/* Member */}
-            <FormField
-              control={form.control}
-              name="memberId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Member</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
+
+        {/* Scrollable content */}
+        <div className="flex-grow overflow-y-auto px-6 py-4">
+          <Form {...form}>
+            <form
+              id="add-contribution-form"
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-4"
+            >
+              {/* Date */}
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a member" />
-                      </SelectTrigger>
+                      <Input
+                        type="date"
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      {sortedMembers
-                        .filter((m) => m.status === "Active")
-                        .map((member) => (
-                          <SelectItem key={member.id} value={member.id}>
-                            {member.lastName}, {member.firstName}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-  
-            {/* Amount */}
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      {...field}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        field.onChange(v === "" ? 0 : Number(v));
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-  
-            {/* Category */}
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Member */}
+              <FormField
+                control={form.control}
+                name="memberId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Member</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a member" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {sortedMembers
+                          .filter((m) => m.status === "Active")
+                          .map((member) => (
+                            <SelectItem key={member.id} value={member.id}>
+                              {member.lastName}, {member.firstName}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Amount */}
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Amount</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          field.onChange(v === "" ? 0 : Number(v));
+                        }}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Tithes">Tithes</SelectItem>
-                      <SelectItem value="Offering">Offering</SelectItem>
-                      <SelectItem value="Donation">Donation</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-  
-            {/* Contribution Type */}
-            <FormField
-              control={form.control}
-              name="contributionType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contribution Type</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a contribution type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Digital Transfer">Digital Transfer</SelectItem>
-                      <SelectItem value="Cash">Cash</SelectItem>
-                      <SelectItem value="Check">Check</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-  
-            <DialogFooter>
-              <Button type="submit">Add Contribution</Button>
-            </DialogFooter>
-          </form>
-        </Form>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Category */}
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Tithes">Tithes</SelectItem>
+                        <SelectItem value="Offering">Offering</SelectItem>
+                        <SelectItem value="Donation">Donation</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Contribution Type */}
+              <FormField
+                control={form.control}
+                name="contributionType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contribution Type</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a contribution type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Digital Transfer">Digital Transfer</SelectItem>
+                        <SelectItem value="Cash">Cash</SelectItem>
+                        <SelectItem value="Check">Check</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
+        </div>
+
+        {/* Footer (non-scrollable) */}
+        <DialogFooter className="shrink-0 border-t px-6 pb-6 pt-4 flex justify-end gap-2">
+          <Button type="submit" form="add-contribution-form">
+            Add Contribution
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-}  
+}

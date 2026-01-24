@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { listenToMembers } from '@/lib/members';
+import { listenToMembers as listenToMembersFromLib } from '@/lib/members';
 import type { Member } from '@/lib/types';
 
 export function useMembers(churchId: string | null) {
@@ -10,14 +10,12 @@ export function useMembers(churchId: string | null) {
 
   useEffect(() => {
     if (!churchId) {
-      setMembers([]);
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
-
-    const unsubscribe = listenToMembers(churchId, (list) => {
-      setMembers(list);
+    const unsubscribe = listenToMembersFromLib(churchId, (data) => {
+      setMembers(data);
       setLoading(false);
     });
 

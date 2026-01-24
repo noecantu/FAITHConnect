@@ -87,7 +87,12 @@ export default function SetListDetailPage() {
             {/* Songs */}
             <div className="space-y-3">
               {section.songs.map((song) => (
-                <Card key={song.songId} className="p-3 space-y-2">
+                <Card
+                  key={song.songId}
+                  className="p-3 space-y-2 cursor-pointer hover:bg-accent transition"
+                  onClick={() => router.push(`/music/songs/${song.songId}/view`)}
+                >
+              
                   <p className="font-medium">{song.title}</p>
 
                   <div className="text-sm text-muted-foreground">
