@@ -1,12 +1,15 @@
 'use client';
 
-import { CSS } from '@dnd-kit/utilities';
 import { useSortable } from '@dnd-kit/sortable';
-import { GripVertical } from 'lucide-react';
+import { CSS } from '@dnd-kit/utilities';
+import { ReactNode } from 'react';
 
 interface SortableItemProps {
   id: string;
-  children: React.ReactNode;
+  children: (
+    dragHandleProps: any,
+    setActivatorNodeRef: (node: HTMLElement | null) => void
+  ) => ReactNode;
 }
 
 export function SortableItem({ id, children }: SortableItemProps) {
@@ -14,33 +17,24 @@ export function SortableItem({ id, children }: SortableItemProps) {
     attributes,
     listeners,
     setNodeRef,
+    setActivatorNodeRef,
     transform,
     transition,
-    isDragging,
   } = useSortable({ id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.6 : 1,
+  };
+
+  const dragHandleProps = {
+    ...attributes,
+    ...listeners,
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="relative">
-      {/* Drag handle positioned top-left */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="
-          absolute -left-6 top-2
-          cursor-grab active:cursor-grabbing
-          text-muted-foreground
-        "
-      >
-        <GripVertical className="h-5 w-5" />
-      </div>
-
-      {children}
+    <div ref={setNodeRef} style={style}>
+      {children(dragHandleProps, setActivatorNodeRef)}
     </div>
   );
 }

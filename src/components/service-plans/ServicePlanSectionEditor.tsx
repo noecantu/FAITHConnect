@@ -33,87 +33,94 @@ export function ServicePlanSectionEditor({
 }: Props) {
   return (
     <SortableItem id={section.id}>
-      <div className="border rounded-md p-4 space-y-4 bg-muted/30">
+      {(dragHandleProps, setActivatorNodeRef) => (
+        <div className="border rounded-md p-4 space-y-4 bg-muted/30">
 
-        {/* Header with drag handle + delete */}
-        <div className="flex justify-between items-center">
-          <h4 className="font-semibold text-base">Section {index + 1}</h4>
-          <Button variant="destructive" size="sm" onClick={remove}>
-            Delete
-          </Button>
-        </div>
+          <div className="flex justify-between items-center">
+            <div
+              ref={setActivatorNodeRef}
+              {...dragHandleProps}
+              className="cursor-grab active:cursor-grabbing text-muted-foreground"
+            >
+              ⋮⋮
+            </div>
 
-        {/* Section Title */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Section Title</label>
-          <Input
-            {...register(`sections.${index}.title`)}
-            placeholder="e.g., MC, Praise, Worship, Preaching"
-          />
-        </div>
+            <Button variant="destructive" size="sm" onClick={remove}>
+              Delete
+            </Button>
+          </div>
 
-        {/* Person */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Person</label>
-          <Controller
-            control={control}
-            name={`sections.${index}.personId`}
-            render={({ field }) => (
-              <MemberSelect
-                members={members}
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-        </div>
+          {/* Section Title */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Section Title</label>
+            <Input
+              {...register(`sections.${index}.title`)}
+              placeholder="e.g., MC, Praise, Worship, Preaching"
+            />
+          </div>
 
-        {/* Songs */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium">Songs</label>
-
-          {/* Song rows */}
-          <Controller
-            control={control}
-            name={`sections.${index}.songIds`}
-            render={({ field }) => (
-              <div className="space-y-2">
-                {field.value.map((songId: string) => {
-                  const song = songs.find((s) => s.id === songId);
-                  if (!song) return null;
-
-                  return (
-                    <ServicePlanSongRow
-                      key={songId}
-                      song={song}
-                      onRemove={() =>
-                        field.onChange(field.value.filter((id: string) => id !== songId))
-                      }
-                    />
-                  );
-                })}
-
-                {/* Add Song */}
-                <AddSongDropdown
-                  songs={songs}
-                  onSelect={(songId) =>
-                    field.onChange([...field.value, songId])
-                  }
+          {/* Person */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Person</label>
+            <Controller
+              control={control}
+              name={`sections.${index}.personId`}
+              render={({ field }) => (
+                <MemberSelect
+                  members={members}
+                  value={field.value}
+                  onChange={field.onChange}
                 />
-              </div>
-            )}
-          />
-        </div>
+              )}
+            />
+          </div>
 
-        {/* Notes */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Notes</label>
-          <Textarea
-            {...register(`sections.${index}.notes`)}
-            placeholder="Optional notes for this section"
-          />
+          {/* Songs */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Songs</label>
+
+            <Controller
+              control={control}
+              name={`sections.${index}.songIds`}
+              render={({ field }) => (
+                <div className="space-y-2">
+                  {field.value.map((songId: string) => {
+                    const song = songs.find((s) => s.id === songId);
+                    if (!song) return null;
+
+                    return (
+                      <ServicePlanSongRow
+                        key={songId}
+                        song={song}
+                        onRemove={() =>
+                          field.onChange(field.value.filter((id: string) => id !== songId))
+                        }
+                      />
+                    );
+                  })}
+
+                  <AddSongDropdown
+                    songs={songs}
+                    onSelect={(songId) =>
+                      field.onChange([...field.value, songId])
+                    }
+                  />
+                </div>
+              )}
+            />
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Notes</label>
+            <Textarea
+              {...register(`sections.${index}.notes`)}
+              placeholder="Optional notes for this section"
+            />
+          </div>
         </div>
-      </div>
+      )}
     </SortableItem>
+
   );
 }
