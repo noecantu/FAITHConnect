@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -30,6 +30,19 @@ export default function SongsPage() {
   const [search, setSearch] = useState('');
   const router = useRouter();
 
+  const groupRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  function handleTouchMove(e: React.TouchEvent) {
+    const touch = e.touches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (element && element instanceof HTMLElement) {
+      const letter = element.dataset.letter;
+      if (letter && groupRefs.current[letter]) {
+        groupRefs.current[letter]?.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }
+  
   if (!churchId || loading) {
     return (
       <div className="p-6">
@@ -156,7 +169,14 @@ export default function SongsPage() {
       {/* GROUPED SECTIONS */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {sortedGroupKeys.map((groupKey) => (
-          <Card key={groupKey} className="p-6 space-y-4">
+          <Card
+            key={groupKey}
+            ref={(el) => {
+              groupRefs.current[groupKey] = el;
+            }}
+            className="p-6 space-y-4"
+          >
+
             <div>
               <h2 className="text-xl font-semibold">{groupKey}</h2>
               <Separator />
@@ -191,7 +211,29 @@ export default function SongsPage() {
         />
       )}
       
+      {/* Alphabet Index */}
+      <div
+        className="fixed right-2 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-1 
+        bg-background/40 backdrop-blur-sm rounded-full px-1 py-2"
+        onTouchMove={handleTouchMove}
+      >
+        {sortedGroupKeys
+          .filter((key) => /^[A-Z]$/.test(key))
+          .map((letter) => (
+            <button
+              key={letter}
+              data-letter={letter}
+              onClick={() => {
+                const el = groupRefs.current[letter];
+                if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="text-xs text-muted-foreground hover:text-foreground px-1"
+            >
+              {letter}
+            </button>
+          ))}
+      </div>
+
     </div>
   );
 }
-      
