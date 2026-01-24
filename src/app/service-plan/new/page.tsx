@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ServicePlanSectionEditorSimple } from '@/components/service-plans/ServicePlanSectionEditorSimple';
 import { useAuth } from '@/hooks/useAuth';
+import { Fab } from '@/components/ui/fab';
 
 export default function NewServicePlanPage() {
   const router = useRouter();
@@ -77,90 +78,57 @@ export default function NewServicePlanPage() {
   }  
 
   return (
-    <div className="bg-background text-foreground min-h-screen">
-    <div className="space-y-6 p-6">
-      <PageHeader title="New Service Plan">
-        <div className="flex items-center gap-2">
-          <Link href="/service-plan">
-            <Button variant="outline" className="flex items-center gap-2">
-              <ChevronLeft className="h-4 w-4" />
-              Back to Plans
-            </Button>
-          </Link>
-
-          <Button onClick={handleSave} disabled={saving || !title.trim()}>
-            {saving ? 'Saving…' : 'Save'}
-          </Button>
-        </div>
-      </PageHeader>
-
-      <Card className="p-6 space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Title</label>
-          <Input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Sunday Service, Youth Night, etc."
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Date</label>
-          <Input
-            type="datetime-local"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Notes</label>
-          <Textarea
-            rows={4}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Optional notes for this service…"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Sections</label>
-          <ServicePlanSectionEditorSimple
-            sections={sections}
-            onChange={setSections}
-          />
-        </div>
-      </Card>
-
-      {/* Floating Save FAB */}
-      <Button
+    <div className="bg-background text-foreground min-h-screen relative">
+  
+      <div className="space-y-6 p-6">
+        <PageHeader title="New Service Plan"/>
+  
+        <Card className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Title</label>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Sunday Service, Youth Night, etc."
+            />
+          </div>
+  
+          <div>
+            <label className="block text-sm font-medium mb-1">Date</label>
+            <Input
+              type="datetime-local"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+  
+          <div>
+            <label className="block text-sm font-medium mb-1">Notes</label>
+            <Textarea
+              rows={4}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Optional notes for this service…"
+            />
+          </div>
+  
+          <div>
+            <label className="block text-sm font-medium mb-1">Sections</label>
+            <ServicePlanSectionEditorSimple
+              sections={sections}
+              onChange={setSections}
+            />
+          </div>
+        </Card>
+      </div>
+  
+      {/* Floating Save FAB — now ABOVE all content */}
+      <Fab
+        type="save"
         onClick={handleSave}
         disabled={saving || !title.trim()}
-        className="
-          fixed bottom-6 right-6 h-10 w-10 rounded-full shadow-xl
-          bg-white/10 backdrop-blur-sm border border-white/10
-          text-white
-          hover:bg-white/25 active:bg-white/10
-          flex items-center justify-center p-0
-        "
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M5 13l4 4L19 7"
-          />
-        </svg>
-      </Button>
-
-      </div>
-      </div>
-  );
+      />
+  
+    </div>
+  );  
 }

@@ -8,6 +8,7 @@ import { useChurchId } from '@/hooks/useChurchId';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { createSong } from '@/lib/songs';
 import type { SongInput } from '@/lib/types';
+import { Fab } from '@/components/ui/fab';
 
 export default function NewSongPage() {
   const router = useRouter();
@@ -52,6 +53,17 @@ export default function NewSongPage() {
     <div className="space-y-6">
       <PageHeader title="Add New Song" />
       <SongForm mode="new" onSave={handleCreate} saving={saving} />
+
+      <Fab
+        type="save"
+        onClick={() => {
+          // SongForm handles validation + calls handleCreate
+          const submitButton = document.querySelector('[data-songform-submit]');
+          (submitButton as HTMLButtonElement)?.click();
+        }}
+        disabled={saving}
+      />
+
     </div>
   );
 }

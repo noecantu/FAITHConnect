@@ -11,6 +11,7 @@ import type { Song, SongInput } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
+import { Fab } from '@/components/ui/fab';
 
 export default function EditSongPage() {
   const { id } = useParams();
@@ -88,14 +89,6 @@ export default function EditSongPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="Edit Song">
-        <div className="flex items-center gap-2">
-          <Link href={`/music/songs/${song.id}`}>
-            <Button variant="outline" className="flex items-center gap-2">
-              <ChevronLeft className="h-4 w-4" />
-              Back to Song
-            </Button>
-          </Link>
-        </div>
       </PageHeader>
 
       <SongForm
@@ -104,6 +97,16 @@ export default function EditSongPage() {
         onSave={handleUpdate}
         saving={saving}
       />
+
+      <Fab
+        type="save"
+        disabled={saving}
+        onClick={() => {
+          const submitButton = document.querySelector('[data-songform-submit]');
+          (submitButton as HTMLButtonElement)?.click();
+        }}
+      />
+
     </div>
   );
 }

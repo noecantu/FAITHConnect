@@ -111,24 +111,12 @@ export function SongForm({ mode, initialData, onSave, saving }: SongFormProps) {
         <Input value={tags} onChange={(e) => setTags(e.target.value)} />
       </div>
 
-      {/* Save + Cancel */}
-      <div className="flex flex-col sm:flex-row justify-end gap-2 pt-2">
-        <Button
-          variant="secondary"
-          onClick={() => window.history.back()}
-          className="w-full sm:w-auto"
-        >
-          Cancel
-        </Button>
-
-        <Button
-          onClick={handleSubmit}
-          disabled={saving || !title.trim()}
-          className="w-full sm:w-auto"
-        >
-          {saving ? 'Saving…' : mode === 'edit' ? 'Save Changes' : 'Create Song'}
-        </Button>
-      </div>
+      <button
+        type="button"
+        data-songform-submit
+        onClick={handleSubmit}
+        className="hidden"
+      ></button>
 
     </Card>
   );

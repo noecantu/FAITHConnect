@@ -13,6 +13,7 @@ import { createSetList } from '@/lib/setlists';
 import { SetListSection } from '@/lib/types';
 import { useSongs } from '@/hooks/useSongs';
 import { SetListSectionEditor } from '@/components/music/SetListSectionEditor';
+import { Fab } from '@/components/ui/fab';
 
 export default function NewSetListPage() {
   const router = useRouter();
@@ -130,26 +131,14 @@ export default function NewSetListPage() {
             placeholder="Any special instructions, transitions, or reminders."
           />
         </div>
-
-        {/* Save */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:items-center">
-          <Button
-            className="w-full sm:w-auto"
-            variant="secondary"
-            onClick={() => router.push('/music/setlists')}
-          >
-            Cancel
-          </Button>
-
-          <Button
-            className="w-full sm:w-auto"
-            onClick={handleSave}
-            disabled={saving || !title.trim() || !date}
-          >
-            {saving ? 'Saving…' : 'Create Set List'}
-          </Button>
-        </div>
       </Card>
+
+      <Fab
+        type="save"
+        onClick={handleSave}
+        disabled={saving || !title.trim() || !date}
+      />
+
     </div>
   );
 }

@@ -11,7 +11,7 @@ import { getSongById, deleteSong, createSong } from '@/lib/songs';
 import { useRecentSetLists } from '@/hooks/useRecentSetLists';
 import type { Song, SetList } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Copy, Pencil, Trash } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +24,8 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Fab } from '@/components/ui/fab';
 
 export default function SongDetailPage() {
   const { id } = useParams();
@@ -128,23 +130,6 @@ export default function SongDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader title={song.title} />
-
-      {/* Back to Songs */}
-      <div
-        className="
-          flex flex-col gap-2
-          sm:flex-row sm:justify-end sm:items-center
-        "
-      >
-        <Button
-          variant="outline"
-          className="w-full sm:w-auto"
-          onClick={() => router.push('/music/songs')}
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Back to Songs
-        </Button>
-      </div>
   
       {/* SECTION: Basic Info */}
       <Card className="p-6 space-y-6">
@@ -163,14 +148,6 @@ export default function SongDetailPage() {
           </div>
 
           <Separator />
-        </div>
-  
-        <div className="text-xs text-muted-foreground -mt-2">
-          Last updated: {new Date(song.updatedAt).toLocaleDateString(undefined, {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -273,74 +250,82 @@ export default function SongDetailPage() {
           </ul>
         )}
       </Card>
-  
+
       {canEdit && (
-        <div
-          className="
-            flex flex-col gap-2
-            sm:flex-row sm:justify-end sm:items-center
-          "
-        >
-          <Button
-            type="button"
-            className="w-full sm:w-auto"
-            onClick={() => router.push(`/music/songs/${song.id}/edit`)}
-          >
-            Edit Song
-          </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Fab type="menu" />
+          </DropdownMenuTrigger>
 
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                type="button"
-                className="w-full sm:w-auto"
-                variant="secondary"
-              >
-                Duplicate Song
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Duplicate this song?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  A new copy of “{song.title}” will be created with the same details.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDuplicate}>
-                  Duplicate
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+            <DropdownMenuContent
+              side="top"
+              align="end"
+              className="min-w-0 w-10 bg-white/10 backdrop-blur-sm border border-white/10 p-1"
+            >
 
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                type="button"
-                className="w-full sm:w-auto"
-                variant="destructive"
-              >
-                Delete Song
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete this song?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently remove “{song.title}”.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete}>
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
+            <DropdownMenuItem
+              onClick={() => router.push(`/music/songs/${song.id}/edit`)}
+              className="flex items-center gap-2"
+            >
+              <Pencil className="h-4 w-4" />
+            </DropdownMenuItem>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem
+                  className="flex items-center justify-center p-2"
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  <Copy className="h-4 w-4" />
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+
+              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Duplicate this song?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    A new copy of “{song.title}” will be created with the same details.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDuplicate}>
+                    Duplicate
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem
+                  className="flex items-center justify-center p-2"
+                  onSelect={(e) => e.preventDefault()} 
+                >
+                  <Trash className="h-4 w-4" />
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+
+              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete this song?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently remove “{song.title}”.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete}>
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
 
     </div>

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Link from 'next/link';
 import { format } from 'date-fns';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -9,8 +8,8 @@ import { Input } from '@/components/ui/input';
 import { useChurchId } from '@/hooks/useChurchId';
 import { useSetLists } from '@/hooks/useSetLists';
 import { useUserRoles } from '@/hooks/useUserRoles';
-import { ChevronLeft, Plus } from 'lucide-react';
 import { useRouter } from "next/navigation";
+import { Fab } from '@/components/ui/fab';
 
 export default function SetListsPage() {
   // -----------------------------
@@ -174,19 +173,11 @@ export default function SetListsPage() {
       </table>
 
       {canManage && (
-          <Button
-            onClick={() => router.push("/music/setlists/new")}
-            className="
-              fixed bottom-6 right-6 h-10 w-10 rounded-full shadow-xl
-              bg-white/10 backdrop-blur-sm border border-white/10
-              text-white
-              hover:bg-white/25 active:bg-white/10
-              flex items-center justify-center p-0
-            "
-          >
-            <Plus className="h-6 w-6" />
-          </Button>
-        )}
+        <Fab
+          type="add"
+          onClick={() => router.push("/music/setlists/new")}
+        />
+      )}
 
     </div>
   );

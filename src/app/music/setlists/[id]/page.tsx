@@ -4,18 +4,18 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { getSetListById } from '@/lib/setlists';
 import { SetList } from '@/lib/types';
 import { useChurchId } from '@/hooks/useChurchId';
 import { useUserRoles } from '@/hooks/useUserRoles';
-import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
 import { format } from 'date-fns';
+import { Fab } from '@/components/ui/fab';
+import { useRouter } from 'next/navigation';
 
 export default function SetListDetailPage() {
   const { id } = useParams();
   const churchId = useChurchId();
+  const router = useRouter();
   const { isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
   const canView = isAdmin || isMusicManager || isMusicMember;
   const canEdit = isAdmin || isMusicManager;
@@ -69,22 +69,6 @@ export default function SetListDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader title={setList.title} subtitle={formattedDate}>
-        <div className="flex items-center gap-2">
-          <Link href="/music/setlists">
-            <Button variant="outline" className="flex items-center gap-2">
-              <ChevronLeft className="h-4 w-4" />
-              Back to Set Lists
-            </Button>
-          </Link>
-
-          {canEdit && (
-            <Button asChild>
-              <Link href={`/music/setlists/${setList.id}/edit`}>
-                Edit Set List
-              </Link>
-            </Button>
-          )}
-        </div>
       </PageHeader>
 
       {/* Sections */}
@@ -127,6 +111,14 @@ export default function SetListDetailPage() {
           </Card>
         ))}
       </div>
+
+      {canEdit && (
+        <Fab
+          type="edit"
+          onClick={() => router.push(`/music/setlists/${setList.id}/edit`)}
+        />
+      )}
+
     </div>
   );
 }

@@ -14,16 +14,17 @@ import { useUserRoles } from '@/hooks/useUserRoles';
 import {
   getServicePlanById,
   updateServicePlan,
-  deleteServicePlan
+  deleteServicePlan,
+  createServicePlan
 } from '@/lib/servicePlans';
 
 import type { ServicePlanSection } from '@/lib/types';
-
-import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
+import { Fab } from "@/components/ui/fab";
 
 import { ServicePlanSectionEditorSimple } from '@/components/service-plans/ServicePlanSectionEditorSimple';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Pencil, Copy, Trash } from 'lucide-react';
 
 export default function EditServicePlanPage() {
   const { id } = useParams();
@@ -151,87 +152,112 @@ export default function EditServicePlanPage() {
         </Card>
       </div>
 
-      {canEdit && (
-        <>
-          {/* Save FAB */}
-          <Button
-            onClick={handleSave}
-            disabled={saving || !title.trim()}
-            className="
-              fixed bottom-6 right-6 h-10 w-10 rounded-full shadow-xl
-              bg-white/10 backdrop-blur-sm border border-white/10
-              text-white
-              hover:bg-white/25 active:bg-white/10
-              flex items-center justify-center p-0
-            "
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </Button>
+      {/* Back FAB */}
+      <Fab
+        type="back"
+        position="bottom-left"
+        onClick={() => router.push(`/service-plan/${id}`)}
+      />
 
-          {/* Delete FAB */}
+      {/* Menu FAB */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Fab type="menu" />
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent
+          side="top"
+          align="end"
+          className="min-w-0 w-10 bg-white/10 backdrop-blur-sm border border-white/10 p-1"
+        >
+          {/* Save */}
+          <DropdownMenuItem
+            className="flex items-center justify-center p-2"
+            onClick={handleSave}
+          >
+            <Pencil className="h-4 w-4" />
+          </DropdownMenuItem>
+
+          {/* Duplicate */}
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button
-                className="
-                  fixed bottom-6 right-20 h-10 w-10 rounded-full shadow-xl
-                  bg-white/10 backdrop-blur-sm border border-white/10
-                  text-white
-                  hover:bg-white/25 active:bg-white/10
-                  flex items-center justify-center p-0
-                "
+              <DropdownMenuItem
+                className="flex items-center justify-center p-2"
+                onSelect={(e) => e.preventDefault()}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m5-3v3"
-                  />
-                </svg>
-              </Button>
+                <Copy className="h-4 w-4" />
+              </DropdownMenuItem>
             </AlertDialogTrigger>
 
-            <AlertDialogContent>
+            <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete Service Plan?</AlertDialogTitle>
+                <AlertDialogTitle>Duplicate this service plan?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete this service plan and all its sections.
+                  A new copy of “{title}” will be created with the same sections.
                 </AlertDialogDescription>
               </AlertDialogHeader>
 
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
-                  className="bg-destructive text-white hover:bg-destructive/90"
-                  onClick={handleDelete}
+                  onClick={async () => {
+                    const updated = {
+                      title: `${title} (Copy)`,
+                      date: date ? new Date(date).toISOString() : "",
+                      notes,
+                      sections,
+                      updatedAt: Date.now(),
+                    };
+
+                    const newPlan = await createServicePlan(churchId as string, {
+                      title: `${title} (Copy)`,
+                      date: date ? new Date(date).toISOString() : "",
+                      notes,
+                      sections,
+                      createdBy: "system", // optional, depending on your model
+                    });
+                    
+                    router.push(`/service-plan/${newPlan.id}`);
+                  }}
                 >
-                  Delete
+                  Duplicate
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
 
-        </>
-      )}
+          {/* Separator */}
+          <DropdownMenuSeparator className="h-4 w-px bg-white/20 mx-auto" />
+
+          {/* Delete */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <DropdownMenuItem
+                className="flex items-center justify-center p-2 text-destructive"
+                onSelect={(e) => e.preventDefault()}
+              >
+                <Trash className="h-4 w-4" />
+              </DropdownMenuItem>
+            </AlertDialogTrigger>
+
+            <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this service plan?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete “{title}”.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete}>
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
     </div>
   );

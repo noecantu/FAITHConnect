@@ -42,7 +42,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useEffect, useMemo, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Fab } from '@/components/ui/fab';
 
 // ------------------------------
 // Page Component
@@ -197,18 +197,10 @@ export default function ContributionsPage() {
       </AlertDialog>
 
       {isFinance && (
-        <Button
+        <Fab
+          type="add"
           onClick={() => setIsAddDialogOpen(true)}
-          className="
-            fixed bottom-6 right-6 h-10 w-10 rounded-full shadow-xl
-            bg-white/10 backdrop-blur-sm border border-white/10
-            text-white
-            hover:bg-white/25 active:bg-white/10
-            flex items-center justify-center p-0
-          "
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
+        />
       )}
 
     </ThemeProvider>

@@ -13,6 +13,7 @@ import { useSongs } from '@/hooks/useSongs';
 import { getSetListById, updateSetList } from '@/lib/setlists';
 import { SetList, SetListSection } from '@/lib/types';
 import { SetListSectionEditor } from '@/components/music/SetListSectionEditor';
+import { Fab } from '@/components/ui/fab';
 
 export default function EditSetListPage() {
   const { id } = useParams();
@@ -184,7 +185,7 @@ export default function EditSetListPage() {
         </div>
 
         {/* Save */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:items-center">
+        {/* <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:items-center">
           <Button
             className="w-full sm:w-auto"
             variant="secondary"
@@ -200,8 +201,16 @@ export default function EditSetListPage() {
           >
             {saving ? 'Saving…' : 'Save Changes'}
           </Button>
-        </div>
+        </div> */}
       </Card>
+
+      {/* Save FAB */}
+      <Fab
+        type="save"
+        onClick={handleSave}
+        disabled={saving || !title.trim() || !date}
+      />
+
     </div>
   );
 }

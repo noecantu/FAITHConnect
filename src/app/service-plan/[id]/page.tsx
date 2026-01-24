@@ -10,17 +10,23 @@ import type { ServicePlan } from '@/lib/types';
 import { useChurchId } from '@/hooks/useChurchId';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { useMembers } from '@/hooks/useMembers';
 import { useSongs } from '@/hooks/useSongs';
 import { Separator } from '@/components/ui/separator';
+import { Fab } from "@/components/ui/fab";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialogHeader, AlertDialogFooter } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from '@radix-ui/react-alert-dialog';
+import { Pencil, Copy, Trash } from 'lucide-react';
+import { useRouter } from "next/navigation";
 
 export default function ServicePlanDetailPage() {
   const { id } = useParams();
   const churchId = useChurchId();
   const { members, loading: membersLoading } = useMembers(churchId);
   const { songs, loading: songsLoading } = useSongs(churchId);
+  const router = useRouter();
 
   const {
     isAdmin,
@@ -84,22 +90,6 @@ export default function ServicePlanDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader title={plan.title} subtitle={formattedDate}>
-        {/* <div className="flex items-center gap-2">
-          <Link href="/service-plan">
-            <Button variant="outline" className="flex items-center gap-2">
-              <ChevronLeft className="h-4 w-4" />
-              Back to Service Plans
-            </Button>
-          </Link>
-
-          {canEdit && (
-            <Button asChild>
-              <Link href={`/service-plan/${plan.id}/edit`}>
-                Edit Service Plan
-              </Link>
-            </Button>
-          )}
-        </div> */}
       </PageHeader>
 
       {/* Sections */}
@@ -170,34 +160,90 @@ export default function ServicePlanDetailPage() {
           );
         })}
       </div>
-
+      
+      {/* Menu FAB */}
       {canEdit && (
-        <Link href={`/service-plan/${plan.id}/edit`}>
-          <Button
-            className="
-              fixed bottom-6 right-6 h-10 w-10 rounded-full shadow-xl
-              bg-white/10 backdrop-blur-sm border border-white/10
-              text-white
-              hover:bg-white/25 active:bg-white/10
-              flex items-center justify-center p-0
-            "
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Fab type="menu" />
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent
+            side="top"
+            align="end"
+            className="min-w-0 w-10 bg-white/10 backdrop-blur-sm border border-white/10 p-1"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
+            {/* Edit */}
+            <DropdownMenuItem
+              className="flex items-center justify-center p-2"
+              onClick={() => router.push(`/service-plan/${plan.id}/edit`)}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M16.862 3.487a2.25 2.25 0 113.182 3.182L7.5 19.313 3 21l1.687-4.5L16.862 3.487z"
-              />
-            </svg>
-          </Button>
-        </Link>
+              <Pencil className="h-4 w-4" />
+            </DropdownMenuItem>
+
+            {/* Duplicate */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem
+                  className="flex items-center justify-center p-2"
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  <Copy className="h-4 w-4" />
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+
+              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Duplicate this service plan?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    A new copy of “{plan.title}” will be created with the same sections.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      // TODO: implement duplicateServicePlan()
+                    }}
+                  >
+                    Duplicate
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Delete */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem
+                  className="flex items-center justify-center p-2"
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  <Trash className="h-4 w-4" />
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+
+              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete this service plan?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently remove “{plan.title}”.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      // TODO: implement deleteServicePlan()
+                    }}
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
 
     </div>
