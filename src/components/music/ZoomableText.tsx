@@ -2,24 +2,42 @@
 
 import { useZoom } from "./ZoomContext";
 
-export function ZoomableText({ children }) {
+interface ZoomableTextProps {
+  children: string;
+}
+
+export function ZoomableText({ children }: ZoomableTextProps) {
   const { zoom } = useZoom();
+  const text = children?.trim();
+
+  if (!text) {
+    return (
+      <div
+        className="
+          w-full
+          py-20
+          text-center
+          text-white/40 italic
+          text-2xl
+        "
+        style={{ fontSize: `${zoom}px` }}
+      >
+        No Content Provided
+      </div>
+    );
+  }
 
   return (
     <pre
       className="
-        w-full
         whitespace-pre-wrap
         font-mono
         leading-relaxed
+        text-white
       "
-      style={{
-        fontSize: `${zoom * 1.5}rem`,
-        lineHeight: `${zoom * 1.8}rem`,
-        transition: "font-size 120ms ease, line-height 120ms ease",
-      }}
+      style={{ fontSize: `${zoom}px` }}
     >
-      {children}
+      {text}
     </pre>
   );
 }

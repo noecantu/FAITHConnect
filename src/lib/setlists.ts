@@ -95,9 +95,15 @@ export async function updateSetList(
 // -----------------------------------------------------
 // Delete Set List
 // -----------------------------------------------------
-export async function deleteSetList(churchId: string, setListId: string) {
-  const ref = doc(db, 'churches', churchId, 'setlists', setListId);
-  await deleteDoc(ref);
+export async function deleteSetList(
+  churchId: string | null,
+  setListId: string,
+  router: any
+) {
+  if (!churchId) return;
+
+  await deleteDoc(doc(db, "churches", churchId, "setlists", setListId));
+  router.push("/music/setlists");
 }
 
 // -----------------------------------------------------

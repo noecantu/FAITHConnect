@@ -4,13 +4,16 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Card } from '@/components/ui/card';
-import { getSetListById } from '@/lib/setlists';
+import { deleteSetList, getSetListById } from '@/lib/setlists';
 import { SetList } from '@/lib/types';
 import { useChurchId } from '@/hooks/useChurchId';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { format } from 'date-fns';
 import { Fab } from '@/components/ui/fab';
 import { useRouter } from 'next/navigation';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Copy, Pencil, Trash } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export default function SetListDetailPage() {
   const { id } = useParams();
@@ -118,10 +121,85 @@ export default function SetListDetailPage() {
       </div>
 
       {canEdit && (
-        <Fab
-          type="edit"
-          onClick={() => router.push(`/music/setlists/${setList.id}/edit`)}
-        />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Fab type="menu" />
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent
+            side="top"
+            align="end"
+            className="min-w-0 w-10 bg-white/10 backdrop-blur-sm border border-white/10 p-1"
+          >
+            {/* Edit */}
+            <DropdownMenuItem
+              className="flex items-center justify-center p-2"
+              onClick={() => router.push(`/music/setlists/${setList.id}/edit`)}
+            >
+              <Pencil className="h-4 w-4" />
+            </DropdownMenuItem>
+
+            {/* Duplicate */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem
+                  className="flex items-center justify-center p-2"
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  <Copy className="h-4 w-4" />
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+
+              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Duplicate this set list?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    A new copy of “{setList.title}” will be created with the same sections and songs.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      // TODO: duplicateSetList()
+                    }}
+                  >
+                    Duplicate
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Delete */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem
+                  className="flex items-center justify-center p-2"
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  <Trash className="h-4 w-4" />
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+
+              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete this set list?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently remove “{setList.title}”.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => deleteSetList(churchId, setList.id, router)}
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
 
     </div>
