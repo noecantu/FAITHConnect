@@ -24,6 +24,17 @@ import { createServicePlan, updateServicePlan } from '@/lib/servicePlans';
 import type { ServicePlan, ServicePlanSection } from '@/lib/types';
 import { useMembers } from '@/hooks/useMembers';
 import { useSongs } from '@/hooks/useSongs';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
+
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+  },
+});
 
 const sectionSchema = z.object({
   title: z.string().min(1, 'Section title is required'),
@@ -34,7 +45,7 @@ const sectionSchema = z.object({
 
 const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  date: z.string().min(1, 'Date is required'),
+  date: z.date(),
   notes: z.string().optional(),
   sections: z.array(sectionSchema),
 });
@@ -58,7 +69,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: plan?.title ?? '',
-      date: plan?.date ?? '',
+      date: plan?.date ? new Date(plan.date) : new Date(),
       notes: plan?.notes ?? '',
       sections: plan?.sections?.map(s => ({
         title: s.title,
@@ -134,7 +145,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                 )}
               />
 
-              {/* Date */}
+              {/* DATE */}
               <FormField
                 control={form.control}
                 name="date"
@@ -142,7 +153,43 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                   <FormItem>
                     <FormLabel>Date</FormLabel>
                     <FormControl>
-                      <Input type="datetime-local" {...field} />
+                      <div className="w-full">
+                        <ThemeProvider theme={darkTheme}>
+                          <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            <MobileDatePicker
+                              slotProps={{
+                                textField: {
+                                  fullWidth: true,
+                                  sx: {
+                                    '& .MuiInputBase-root': {
+                                      backgroundColor: 'transparent',
+                                      color: 'text.primary',
+                                      fontSize: '0.875rem',
+                                      borderRadius: '0.5rem',
+                                      border: '1px solid hsl(var(--input))',
+                                    },
+                                    '& .MuiInputBase-root:hover': {
+                                      borderColor: 'hsl(var(--input))',
+                                    },
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                      border: 'none',
+                                    },
+                                    '& .MuiInputBase-input': {
+                                      padding: '0.5rem 0.75rem',
+                                      height: 'auto',
+                                    },
+                                  },
+                                },
+                              }}
+                              value={dayjs(field.value)}
+                              onChange={(next) => {
+                                if (!next) return;
+                                field.onChange(next.toDate());
+                              }}
+                            />
+                          </LocalizationProvider>
+                        </ThemeProvider>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

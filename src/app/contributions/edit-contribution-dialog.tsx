@@ -114,7 +114,10 @@ export function EditContributionDialog({
     if (!churchId || !contribution) return;
 
     try {
-      await updateContribution(churchId, contribution.id, values);
+      await updateContribution(churchId, contribution.id, {
+        ...values,
+        date: values.date.toISOString(),
+      });      
       toast({
         title: 'Contribution Updated',
         description: 'The contribution details have been saved.',
