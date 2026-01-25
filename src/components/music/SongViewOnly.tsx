@@ -31,14 +31,28 @@ export default function SongViewOnly({ songId }: { songId: string }) {
       <div className="flex gap-3">
         <button
           onClick={() => setShowLyrics(true)}
-          className="px-4 py-2 rounded bg-blue-600 text-white"
+          className="
+            px-4 py-2 rounded
+            border border-white/10
+            bg-blue-600/20
+            text-white
+            hover:bg-blue-600/30
+            backdrop-blur-sm
+          "
         >
           Fullscreen Lyrics
         </button>
 
         <button
           onClick={() => setShowChords(true)}
-          className="px-4 py-2 rounded bg-green-600 text-white"
+          className="
+            px-4 py-2 rounded
+            border border-white/10
+            bg-green-600/20
+            text-white
+            hover:bg-green-600/30
+            backdrop-blur-sm
+          "
         >
           Fullscreen Chords
         </button>
