@@ -50,7 +50,7 @@ const navItems = [
   { href: '/calendar', label: 'Calendar', icon: Calendar },
   { href: '/contributions', label: 'Contributions', icon: DollarSign },
   { href: '/music', label: 'Music', icon: Music }, // parent
-  { href: '/service-plan', label: 'Service Plan', icon: CalendarHeart },
+  { href: '/service-plan', label: 'Service Plans', icon: CalendarHeart },
 ];
 
 export function NavMenu() {
