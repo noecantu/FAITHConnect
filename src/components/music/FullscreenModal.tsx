@@ -27,9 +27,14 @@ export default function FullscreenModal({
           bg-black text-white
           overflow-y-auto
           rounded-none
-          transform-none
           border-none
           shadow-none
+          !max-w-none !max-h-none
+          !translate-x-0 !translate-y-0
+          data-[state=open]:!translate-x-0
+          data-[state=open]:!translate-y-0
+          data-[state=open]:!max-w-none
+          data-[state=open]:!max-h-none
         "
         style={{
           transform: "none",
@@ -38,18 +43,23 @@ export default function FullscreenModal({
           paddingBottom: "env(safe-area-inset-bottom)",
         }}
       >
-        {/* Required for accessibility */}
         <VisuallyHidden>
           <DialogTitle>{title}</DialogTitle>
         </VisuallyHidden>
 
-        {/* Actual fullscreen content */}
-        <div className="p-6 space-y-6">
-          <h1 className="text-3xl font-semibold">{title}</h1>
+        <div className="w-full max-w-5xl mx-auto p-6 space-y-6">
+          <h1 className="text-3xl md:text-4xl font-semibold">{title}</h1>
 
-          <pre className="whitespace-pre-wrap text-2xl leading-relaxed">
+          <pre className="
+            w-full
+            whitespace-pre-wrap
+            text-2xl md:text-3xl lg:text-4xl
+            leading-relaxed
+            font-mono
+          ">
             {content}
           </pre>
+
         </div>
       </DialogContent>
     </Dialog>
