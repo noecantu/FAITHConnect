@@ -10,7 +10,23 @@ import { MemberSelect } from './MemberSelect';
 import { AddSongDropdown } from './AddSongDropdown';
 import { ServicePlanSongRow } from './ServicePlanSongRow';
 
-import type { Member, Song } from '@/lib/types';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
+
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from '@/components/ui/form';
+import { Member, Song } from '@/lib/types';
 
 interface Props {
   section: any; // field from useFieldArray
@@ -31,6 +47,7 @@ export function ServicePlanSectionEditor({
   register,
   control,
 }: Props) {
+  
   return (
     <SortableItem id={section.id}>
       {(dragHandleProps, setActivatorNodeRef) => (
@@ -76,38 +93,44 @@ export function ServicePlanSectionEditor({
           </div>
 
           {/* Songs */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Songs</label>
+          <div>
+            <label className="block text-sm font-medium mb-1">Songs</label>
 
             <Controller
               control={control}
               name={`sections.${index}.songIds`}
               render={({ field }) => (
                 <div className="space-y-2">
-                  {field.value.map((songId: string) => {
-                    const song = songs.find((s) => s.id === songId);
-                    if (!song) return null;
 
-                    return (
-                      <ServicePlanSongRow
-                        key={songId}
-                        song={song}
-                        onRemove={() =>
-                          field.onChange(field.value.filter((id: string) => id !== songId))
-                        }
-                      />
-                    );
-                  })}
+                  {/* Add Song Button */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => field.onChange([...(field.value ?? []), ""])}
+                  >
+                    Add Song
+                  </Button>
 
-                  <AddSongDropdown
-                    songs={songs}
-                    onSelect={(songId) =>
-                      field.onChange([...field.value, songId])
-                    }
-                  />
+                  {/* Song Rows or Empty State */}
+                  {field.value && field.value.length > 0 ? (
+                    field.value.map((songId: string, songIndex: number) => {
+                      const song = songs.find((s) => s.id === songId);
+
+                      return (
+                        <div key={songIndex} className="flex items-center gap-2">
+                          {/* dropdown */}
+                          {/* remove button */}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No songs added</p>
+                  )}
                 </div>
               )}
             />
+
           </div>
 
           {/* Notes */}

@@ -14,32 +14,55 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from '@/components/ui/form';
+
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 import { createServicePlan, updateServicePlan } from '@/lib/servicePlans';
 import type { ServicePlan, ServicePlanSection } from '@/lib/types';
 import { useMembers } from '@/hooks/useMembers';
 import { useSongs } from '@/hooks/useSongs';
+
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import { SectionEditor } from './SectionEditor';
 
+// ------------------------------------------------------
+// THEME
+// ------------------------------------------------------
 const darkTheme = createTheme({
   palette: {
     mode: 'dark',
   },
 });
 
+// ------------------------------------------------------
+// ZOD SCHEMAS
+// ------------------------------------------------------
 const sectionSchema = z.object({
+  id: z.string().optional(), // added optional id for editing
   title: z.string().min(1, 'Section title is required'),
   personId: z.string().nullable(),
-  songId: z.string().nullable(),
+  songIds: z.array(z.string()).default([]),
   notes: z.string().optional(),
 });
 
@@ -52,6 +75,9 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+// ------------------------------------------------------
+// COMPONENT
+// ------------------------------------------------------
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -71,12 +97,14 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
       title: plan?.title ?? '',
       date: plan?.date ? new Date(plan.date) : new Date(),
       notes: plan?.notes ?? '',
-      sections: plan?.sections?.map(s => ({
-        title: s.title,
-        personId: s.personId ?? null,
-        songId: s.songIds?.[0] ?? null,
-        notes: s.notes ?? '',
-      })) ?? [],
+      sections:
+        plan?.sections?.map((s) => ({
+          id: s.id,
+          title: s.title,
+          personId: s.personId ?? null,
+          songIds: s.songIds ?? [],
+          notes: s.notes ?? '',
+        })) ?? [],
     },
   });
 
@@ -85,13 +113,16 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
     name: 'sections',
   });
 
+  // ------------------------------------------------------
+  // SUBMIT HANDLER
+  // ------------------------------------------------------
   async function onSubmit(values: FormValues) {
-    const normalizedSections: ServicePlanSection[] = values.sections.map(s => ({
-      id: crypto.randomUUID(),
+    const normalizedSections: ServicePlanSection[] = values.sections.map((s) => ({
+      id: s.id ?? crypto.randomUUID(),
       title: s.title,
-      personId: s.personId,
-      songIds: s.songId ? [s.songId] : [],
+      personId: s.personId ?? null,
       notes: s.notes ?? '',
+      songIds: Array.isArray(s.songIds) ? s.songIds : [],
     }));
 
     const payload = {
@@ -212,116 +243,35 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
               />
 
               {/* Sections */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-semibold text-lg">Sections</h3>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() =>
-                      append({
-                        title: '',
-                        personId: null,
-                        songId: null,
-                        notes: '',
-                      })
-                    }
-                  >
-                    Add Section
-                  </Button>
-                </div>
-
-                {fields.map((field, index) => (
-                  <div key={field.id} className="border rounded-md p-4 space-y-4 bg-muted/30">
-
-                    {/* Section Title */}
-                    <FormField
-                      control={form.control}
-                      name={`sections.${index}.title`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Section Title</FormLabel>
-                          <FormControl>
-                            <Input placeholder="MC, Worship, Preaching…" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Person */}
-                    <FormField
-                      control={form.control}
-                      name={`sections.${index}.personId`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Person</FormLabel>
-                          <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a person" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {members.map((m) => (
-                                <SelectItem key={m.id} value={m.id}>
-                                  {m.firstName} {m.lastName}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Song */}
-                    <FormField
-                      control={form.control}
-                      name={`sections.${index}.songId`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Song</FormLabel>
-                          <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a song" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {songs.map((s) => (
-                                <SelectItem key={s.id} value={s.id}>
-                                  {s.title}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Notes */}
-                    <FormField
-                      control={form.control}
-                      name={`sections.${index}.notes`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Notes</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="Optional notes…" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <Button variant="destructive" size="sm" onClick={() => remove(index)}>
-                      Delete Section
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-semibold text-lg">Sections</h3>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        append({
+                          title: '',
+                          personId: null,
+                          songIds: [],
+                          notes: '',
+                        })
+                      }
+                    >
+                      Add Section
                     </Button>
                   </div>
-                ))}
-              </div>
+
+                  {fields.map((field, index) => (
+                    <SectionEditor
+                      key={field.id}
+                      index={index}
+                      members={members}
+                      songs={songs}
+                      remove={() => remove(index)}
+                    />
+                  ))}
+                </div>
 
             </form>
           </Form>
