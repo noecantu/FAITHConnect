@@ -184,24 +184,6 @@ export default function EditSetListPage() {
           />
         </div>
 
-        {/* Save */}
-        {/* <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:items-center">
-          <Button
-            className="w-full sm:w-auto"
-            variant="secondary"
-            onClick={() => router.push(`/music/setlists/${setList.id}`)}
-          >
-            Cancel
-          </Button>
-
-          <Button
-            className="w-full sm:w-auto"
-            onClick={handleSave}
-            disabled={saving || !title.trim() || !date}
-          >
-            {saving ? 'Saving…' : 'Save Changes'}
-          </Button>
-        </div> */}
       </Card>
 
       {/* Save FAB */}
