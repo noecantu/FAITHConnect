@@ -10,7 +10,6 @@ import { PageHeader } from '@/components/page-header';
 import { useChurchId } from '@/hooks/useChurchId';
 import { useSongs } from '@/hooks/useSongs';
 import type { Song } from '@/lib/types';
-import { Plus } from 'lucide-react';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useRouter } from "next/navigation";
 import { Fab } from '@/components/ui/fab';

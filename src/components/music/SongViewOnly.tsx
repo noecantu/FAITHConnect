@@ -62,14 +62,14 @@ export default function SongViewOnly({ songId }: { songId: string }) {
         open={showLyrics}
         onClose={() => setShowLyrics(false)}
         content={song.lyrics ?? ""}
-        title={`${song.title} — Lyrics`}
+        title={`${song.title}`}
     />
 
     <FullscreenModal
         open={showChords}
         onClose={() => setShowChords(false)}
         content={song.chords ?? ""}
-        title={`${song.title} — Chords`}
+        title={`${song.title}`}
     />
 
     </div>

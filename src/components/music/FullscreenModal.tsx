@@ -2,6 +2,11 @@
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { X } from "lucide-react";
+
+import { ZoomProvider } from "./ZoomContext";
+import { ZoomControls } from "./ZoomControls";
+import { ZoomableText } from "./ZoomableText";
 
 interface FullscreenModalProps {
   open: boolean;
@@ -16,52 +21,97 @@ export default function FullscreenModal({
   content,
   title,
 }: FullscreenModalProps) {
+  const cleanTitle = title
+    .replace(/ — Chords$/i, "")
+    .replace(/ — Lyrics$/i, "");
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent
-        aria-describedby={undefined}
-        className="
-          fixed inset-0
-          w-screen h-screen
-          p-0 m-0
-          bg-black text-white
-          overflow-y-auto
-          rounded-none
-          border-none
-          shadow-none
-          !max-w-none !max-h-none
-          !translate-x-0 !translate-y-0
-          data-[state=open]:!translate-x-0
-          data-[state=open]:!translate-y-0
-          data-[state=open]:!max-w-none
-          data-[state=open]:!max-h-none
-        "
-        style={{
-          transform: "none",
-          WebkitOverflowScrolling: "touch",
-          paddingTop: "env(safe-area-inset-top)",
-          paddingBottom: "env(safe-area-inset-bottom)",
-        }}
-      >
-        <VisuallyHidden>
-          <DialogTitle>{title}</DialogTitle>
-        </VisuallyHidden>
+      <ZoomProvider>
+        <DialogContent
+          aria-describedby={undefined}
+          className="
+            fixed inset-0
+            p-0 m-0
+            bg-black text-white
+            border-none shadow-none
+            !max-w-none !max-h-none
+            !translate-x-0 !translate-y-0
+          "
+          style={{
+            transform: "none",
+          }}
+        >
+          <VisuallyHidden>
+            <DialogTitle>{cleanTitle}</DialogTitle>
+          </VisuallyHidden>
 
-        <div className="w-full max-w-5xl mx-auto p-6 space-y-6">
-          <h1 className="text-3xl md:text-4xl font-semibold">{title}</h1>
+          {/* FULLSCREEN SHELL */}
+          <div
+            className="
+              relative
+              w-full h-full
+              flex flex-col
+              overflow-hidden
+            "
+            style={{
+              paddingTop: "env(safe-area-inset-top)",
+              paddingBottom: "env(safe-area-inset-bottom)",
+            }}
+          >
+            {/* HEADER */}
+            <div
+              className="
+                sticky top-0
+                z-40
+                bg-black
+                px-6 py-4
+                border-b border-white/10
+                flex justify-between items-center
+              "
+            >
+              <h1 className="text-3xl font-semibold">{cleanTitle}</h1>
 
-          <pre className="
-            w-full
-            whitespace-pre-wrap
-            text-2xl md:text-3xl lg:text-4xl
-            leading-relaxed
-            font-mono
-          ">
-            {content}
-          </pre>
+              <button
+                onClick={() => onClose(false)}
+                className="
+                  p-2
+                  rounded-full
+                  bg-white/10
+                  backdrop-blur
+                "
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
 
-        </div>
-      </DialogContent>
+            {/* SCROLL AREA */}
+            <div
+              className="
+                flex-1
+                overflow-y-auto
+                px-6 py-6
+              "
+            >
+              <ZoomableText>{content}</ZoomableText>
+            </div>
+
+            {/* FOOTER (STICKY) */}
+            <div
+              className="
+                sticky bottom-0
+                z-40
+                bg-black
+                px-6 py-4
+                border-t border-white/10
+                flex justify-center
+              "
+            >
+              <ZoomControls />
+            </div>
+          </div>
+        </DialogContent>
+      </ZoomProvider>
     </Dialog>
   );
 }
