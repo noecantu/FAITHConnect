@@ -43,7 +43,9 @@ export default function EditSetListPage() {
 
       if (data) {
         setTitle(data.title);
-        setDate(new Date(data.date).toISOString().split('T')[0]);
+        const d = new Date(data.date);
+        const localDate = d.toISOString().split("T")[0];
+        setDate(localDate);
         setSections(data.sections ?? []);
         setNotes(data.serviceNotes?.notes ?? '');
       }
@@ -55,10 +57,15 @@ export default function EditSetListPage() {
   useEffect(() => {
     if (setList?.date) {
       const d = new Date(setList.date);
-      const hhmm = d.toISOString().slice(11, 16); // "HH:MM"
-      setTime(hhmm);
+  
+      // Local time in HH:mm (24-hour) format
+      const localTime = d
+        .toLocaleTimeString("en-US", { hour12: false })
+        .slice(0, 5);
+  
+      setTime(localTime);
     }
-  }, [setList]);
+  }, [setList]);    
   
   if (!churchId) {
     return (

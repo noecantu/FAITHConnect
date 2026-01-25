@@ -54,12 +54,17 @@ export function listenToSetLists(
 // Create Set List
 // -----------------------------------------------------
 export async function createSetList(
-  churchId: string,
+  churchId: string | null,
   data: Omit<SetList, 'id' | 'churchId' | 'createdAt' | 'updatedAt'>
 ) {
-  const ref = await addDoc(setListsCollection(churchId), {
+  if (!churchId) throw new Error("churchId is required");
+
+  // Shadow the variable so TS narrows it to string
+  const cid: string = churchId;
+
+  const ref = await addDoc(setListsCollection(cid), {
     ...data,
-    churchId,
+    churchId: cid,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });

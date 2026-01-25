@@ -51,29 +51,45 @@ export default function NewSetListPage() {
   }
   
   const handleSave = async () => {
-    if (!title.trim() || !date || !time) return;
+    console.log("Saving…", { churchId, title, date, time, sections });
+  
+    if (!title.trim()) return;
   
     setSaving(true);
   
-    // Combine date + time into a single Date object
-    const [hours, minutes] = time.split(':').map(Number);
-    const finalDate = new Date(date);
-    finalDate.setHours(hours);
-    finalDate.setMinutes(minutes);
-    finalDate.setSeconds(0);
-    finalDate.setMilliseconds(0);
+    // Default date = today if none selected
+    const baseDate = date ? new Date(date) : new Date();
+  
+    // Default time = 10:30 AM if none selected
+    let hours = 10;
+    let minutes = 30;
+  
+    if (time) {
+      const parts = time.split(':').map(Number);
+      if (parts.length === 2) {
+        hours = parts[0];
+        minutes = parts[1];
+      }
+    }
+  
+    baseDate.setHours(hours);
+    baseDate.setMinutes(minutes);
+    baseDate.setSeconds(0);
+    baseDate.setMilliseconds(0);
   
     const newSetList = {
       title: title.trim(),
-      date: finalDate,
+      date: baseDate,
       sections,
       serviceNotes: { notes: notes.trim() },
       createdBy: 'system',
     };
   
+    if (!churchId) return; // safety
+  
     const created = await createSetList(churchId, newSetList);
     router.push(`/music/setlists/${created.id}`);
-  };  
+  };   
 
   return (
     <div className="space-y-6">
