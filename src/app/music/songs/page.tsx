@@ -109,14 +109,17 @@ export default function SongsPage() {
     return a.localeCompare(b);
   });
 
+  const totalSongs = songs.length;
+
   // -----------------------------
   // SUBTITLE TEXT
   // -----------------------------
-  const subtitleText =
-    sortBy === 'bpm'
-      ? 'All available songs sorted by Tempo.'
-      : `All available songs sorted by ${sortBy.charAt(0).toUpperCase() + sortBy.slice(1)}.`;
-
+  const subtitleText = `${totalSongs} Total Songs | Sorted by ${
+    sortBy === "bpm"
+      ? "Tempo"
+      : sortBy.charAt(0).toUpperCase() + sortBy.slice(1)
+  }`;
+  
   return (
     <div className="space-y-6">
 
