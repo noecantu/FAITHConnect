@@ -13,11 +13,12 @@ import { Button } from '@/components/ui/button';
 
 import { useToast } from '@/hooks/use-toast';
 import { ContributionChart } from '@/app/contributions/contribution-chart';
-import { ContributionSummary } from '@/app/contributions/contribution-summary';
+// import { ContributionSummary } from '@/app/contributions/contribution-summary';
 import { ContributionsTable } from '@/app/contributions/contributions-table';
 import { getColumns } from '@/app/contributions/columns';
 import { EditContributionDialog } from '@/app/contributions/edit-contribution-dialog';
 import { AddContributionDialog } from '@/app/contributions/add-contribution-dialog';
+import { getContributionSummaryText } from "@/app/contributions/contribution-summary";
 
 // MUI theme
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -43,6 +44,11 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useEffect, useMemo, useState } from 'react';
 import { Fab } from '@/components/ui/fab';
+import { useSettings } from "@/hooks/use-settings";
+import { useAuth } from "@/hooks/useAuth";
+import { updateDoc, doc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // ------------------------------
 // Page Component
@@ -57,27 +63,27 @@ export default function ContributionsPage() {
   const [editingContribution, setEditingContribution] = React.useState<Contribution | null>(null);
   const [deletingContribution, setDeletingContribution] = React.useState<Contribution | null>(null);
   const { isFinance } = useUserRoles(churchId);
-  const [selectedYear, setSelectedYear] = useState<number | "all">(new Date().getFullYear());
-
-  useEffect(() => {
-    const savedYear = localStorage.getItem("fiscalYear");
-    if (!savedYear) return;
-
-    if (savedYear === "all") {
-      setSelectedYear("all");
-    } else {
-      setSelectedYear(parseInt(savedYear, 10));
-    }
-  }, []);
+  const { fiscalYear } = useSettings();
+  const { user } = useAuth();
 
   const filteredContributions = useMemo(() => {
-    if (selectedYear === "all") return contributions;
-  
+    if (fiscalYear === "all") return contributions;
+
     return contributions.filter(c => {
       const year = new Date(c.date).getFullYear();
-      return year === selectedYear;
+      return year === Number(fiscalYear);
     });
-  }, [contributions, selectedYear]);  
+  }, [contributions, fiscalYear]);  
+  const summaryText = getContributionSummaryText(filteredContributions, fiscalYear);
+  
+  async function handleFiscalYearChange(value: string) {
+    if (!user?.uid) return;
+  
+    await updateDoc(doc(db, "users", user.uid), {
+      "settings.fiscalYear": value,
+      updatedAt: serverTimestamp(),
+    });
+  }
   
   React.useEffect(() => {
     setIsClient(true);
@@ -127,15 +133,42 @@ export default function ContributionsPage() {
   });
 
   if (!isClient) {
-    // Render a placeholder or null on the server and initial client render
     return null;
   }
 
   return (
     <ThemeProvider theme={darkTheme}>
-      <PageHeader title="Contributions" className="mb-2"/>
+      <PageHeader
+        title="Contributions"
+        subtitle={summaryText}
+        className="mb-2"
+      >
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-medium text-muted-foreground">
+            Fiscal Year
+          </span>
 
-      <ContributionSummary contributions={filteredContributions} />
+          <Select value={fiscalYear} onValueChange={handleFiscalYearChange}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Year" />
+            </SelectTrigger>
+
+            <SelectContent>
+              <SelectItem value="all">All Years</SelectItem>
+
+              {Array.from(new Set(contributions.map(c =>
+                new Date(c.date).getFullYear()
+              )))
+                .sort((a, b) => b - a)
+                .map(year => (
+                  <SelectItem key={year} value={String(year)}>
+                    {year}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </PageHeader>
 
       <div className="grid gap-8">
         {/* Full-width Chart */}
