@@ -98,20 +98,14 @@ const UpcomingEventBadge = ({
 export function MemberCard({
   member,
   onSearch,
+  cardView,
 }: {
   member: Member;
   onSearch: (name: string) => void;
+  cardView: "show" | "hide";
 }) {
   const churchId = useChurchId();
   const [allMembers, setAllMembers] = useState<Member[]>([]);
-  const [cardView, setCardView] = useState<'show' | 'hide'>('show');
-
-  useEffect(() => {
-    const saved = localStorage.getItem('cardView');
-    if (saved === 'show' || saved === 'hide') {
-      setCardView(saved);
-    }
-  }, []);
 
   useEffect(() => {
     if (!churchId) return;

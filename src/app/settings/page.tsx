@@ -191,30 +191,6 @@ export default function SettingsPage() {
           </Card>
         )}
 
-        {/* Member Dashboard View */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Member Card View</CardTitle>
-            <CardDescription>Choose the default view for the Member Dashboard Cards.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RadioGroup
-              value={cardView}
-              onValueChange={handleCardViewChange}
-              className="flex items-center space-x-6"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="show" id="show-view" />
-                <Label htmlFor="show-view">Show Photo</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="hide" id="hide-view" />
-                <Label htmlFor="hide-view">Hide Photo</Label>
-              </div>
-            </RadioGroup>
-          </CardContent>
-        </Card>
-
         {isAdmin && (
           <Card>
             <CardHeader>

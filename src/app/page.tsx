@@ -12,6 +12,11 @@ import { MemberFormSheet } from "@/app/members/member-form-sheet";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { Input } from "@/components/ui/input";
 import { Fab } from "@/components/ui/fab";
+import { useSettings } from "@/hooks/use-settings";
+import { useAuth } from "@/hooks/useAuth";
+import { updateDoc, doc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export default function MembersPage() {
   const churchId = useChurchId();
@@ -19,7 +24,9 @@ export default function MembersPage() {
   const [search, setSearch] = useState("");
   const { isMemberManager } = useUserRoles(churchId);
   const [previousScroll, setPreviousScroll] = useState(0);
-
+  const { cardView } = useSettings();
+  const { user } = useAuth();
+  
   // Relationship search feeds into the same search bar
   function handleSearchFromRelationship(name: string) {
     setPreviousScroll(window.scrollY);
@@ -67,11 +74,35 @@ export default function MembersPage() {
   return (
     <>
       <PageHeader title="Members" className="mb-2">
-        {/* {isMemberManager && (
-          <MemberFormSheet>
-            <Button>Add Member</Button>
-          </MemberFormSheet>
-        )} */}
+        <div className="flex items-center gap-4">
+
+          {/* View Selector */}
+          <RadioGroup
+            value={cardView}
+            onValueChange={async (value) => {
+              const v = value as "show" | "hide";
+
+              if (!user?.uid) return;
+
+              await updateDoc(doc(db, "users", user.uid), {
+                "settings.cardView": v,
+                updatedAt: serverTimestamp(),
+              });
+            }}
+            className="flex items-center gap-4"
+          >
+            <div className="flex items-center gap-1">
+              <RadioGroupItem value="show" id="show-photo" />
+              <label htmlFor="show-photo" className="text-sm">Show Photo</label>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <RadioGroupItem value="hide" id="hide-photo" />
+              <label htmlFor="hide-photo" className="text-sm">Hide Photo</label>
+            </div>
+          </RadioGroup>
+
+        </div>
       </PageHeader>
 
       <div>
@@ -112,10 +143,11 @@ export default function MembersPage() {
 
         {sortedMembers.map((member) => (
           <MemberCard
-            key={member.id}
-            member={member}
-            onSearch={handleSearchFromRelationship}
-          />
+          key={member.id}
+          member={member}
+          cardView={cardView}
+          onSearch={handleSearchFromRelationship}
+        />        
         ))}
       </div>
 
