@@ -20,7 +20,7 @@ export function ZoomableText({ children }: ZoomableTextProps) {
           text-white/40 italic
           text-2xl
         "
-        style={{ fontSize: `${zoom}px` }}
+        style={{ fontSize: `${zoom * 24}px` }}
       >
         No Content Provided
       </div>
@@ -35,7 +35,7 @@ export function ZoomableText({ children }: ZoomableTextProps) {
         leading-relaxed
         text-white
       "
-      style={{ fontSize: `${zoom}px` }}
+      style={{ fontSize: `${zoom * 24}px` }}
     >
       {text}
     </pre>
