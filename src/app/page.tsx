@@ -79,7 +79,7 @@ export default function MembersPage() {
     const prospect = members.filter(m => m.status === "Prospect").length;
     const archived = members.filter(m => m.status === "Archived").length;
   
-    return `Active Members: ${active} | Prospects: ${prospect} | Archived: ${archived}`;
+    return `Active: ${active} | Prospects: ${prospect} | Archived: ${archived}`;
   }
   
   return (

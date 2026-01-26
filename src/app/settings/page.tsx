@@ -162,35 +162,6 @@ export default function SettingsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        {/* Financial Year */}
-        {canSeeFinancialYear && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Financial Year</CardTitle>
-              <CardDescription>
-                Select the year for which to display financial totals.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Select value={fiscalYear} onValueChange={handleFiscalYearChange}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select a year" />
-                </SelectTrigger>
-
-                <SelectContent className="max-h-60 overflow-y-auto">
-                  <SelectItem value="all">All Years</SelectItem>
-
-                  {availableYears.map(year => (
-                    <SelectItem key={year} value={String(year)}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
-        )}
-
         {isAdmin && (
           <Card>
             <CardHeader>
