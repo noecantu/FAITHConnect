@@ -53,6 +53,9 @@ import { ConfirmDeleteDialog } from '@/components/calendar/ConfirmDeleteDialog';
 import { EventFormDialog } from '@/components/calendar/EventFormDialog';
 import { DayEventsDialog } from '@/components/calendar/DayEventsDialog';
 import { Fab } from '@/components/ui/fab';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useSettings } from '@/hooks/use-settings';
+import { useAuth } from '@/hooks/useAuth';
 
 // ------------------------------
 // Schema & Types
@@ -95,11 +98,14 @@ export default function CalendarPage() {
   const { isEventManager } = useUserRoles(churchId);
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
   const isDeleteOpen = deleteId !== null;
+  const { calendarView } = useSettings();
 
   // New state for the DayEventsDialog
   const [selectedDate, setSelectedDate] = React.useState<Date | null>(null);
   const [isDayEventsDialogOpen, setIsDayEventsDialogOpen] = React.useState(false);
-
+  const [view, setView] = React.useState<'calendar' | 'list'>(calendarView);
+  const { user } = useAuth();
+  
   // Firestore listener
   useEffect(() => {
     if (!churchId) return;
@@ -128,7 +134,20 @@ export default function CalendarPage() {
   }, [churchId]);
 
   // View preference (calendar vs list)
-  const [view, setView] = React.useState<'calendar' | 'list'>('calendar');
+  // const [view, setView] = React.useState<'calendar' | 'list'>(() => {
+  //   if (typeof window !== 'undefined') {
+  //     const saved = localStorage.getItem('calendarView');
+  //     if (saved === 'calendar' || saved === 'list') {
+  //       return saved;
+  //     }
+  //   }
+  //   return 'calendar';
+  // });
+
+  useEffect(() => {
+    setView(calendarView);
+  }, [calendarView]);
+  
   React.useEffect(() => {
     const checkStorage = () => {
       const saved = localStorage.getItem('calendarView');
@@ -157,12 +176,6 @@ export default function CalendarPage() {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('focus', handleFocus);
     };
-  }, []);
-
-  // Hydration guard
-  const [hydrated, setHydrated] = React.useState(false);
-  React.useEffect(() => {
-    setHydrated(true);
   }, []);
 
   const selectedDayEvents = React.useMemo(() => {
@@ -348,8 +361,6 @@ export default function CalendarPage() {
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
 
-  if (!hydrated) return null;
-
   return (
     <>
       <ConfirmDeleteDialog
@@ -397,31 +408,94 @@ export default function CalendarPage() {
         subtitle="Select a date to view or add events."
       >
         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-            <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
-                <Select
-                    value={String(month.getMonth())}
-                    onValueChange={(value) => setMonth(setMonthDate(month, Number(value)))}
-                >
-                    <SelectTrigger>
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {months.map(m => <SelectItem key={m.value} value={String(m.value)}>{m.label}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-                <Select
-                    value={String(month.getFullYear())}
-                    onValueChange={(value) => setMonth(setYearDate(month, Number(value)))}
-                >
-                    <SelectTrigger>
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-            </div>
-            <Button variant="outline" onClick={handleToday} className="w-full sm:w-auto">Today</Button>
+
+          {/* Month + Year Selectors */}
+          <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
+            {/* Month Select */}
+            <Select
+              value={String(month.getMonth())}
+              onValueChange={(value) =>
+                setMonth(setMonthDate(month, Number(value)))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map((m) => (
+                  <SelectItem key={m.value} value={String(m.value)}>
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Year Select */}
+            <Select
+              value={String(month.getFullYear())}
+              onValueChange={(value) =>
+                setMonth(setYearDate(month, Number(value)))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {years.map((y) => (
+                  <SelectItem key={y} value={String(y)}>
+                    {y}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Today + Divider + View Selector */}
+          <div className="flex items-center gap-4">
+
+            {/* Today Button */}
+            <Button
+              variant="outline"
+              onClick={handleToday}
+              className="w-full sm:w-auto"
+            >
+              Today
+            </Button>
+
+            {/* Perfectly centered vertical divider */}
+            <div className="h-6 w-px bg-white/20" />
+
+            {/* View Selector */}
+            <RadioGroup
+              value={view}
+              onValueChange={async (value) => {
+                const v = value as "calendar" | "list";
+                setView(v);
+              
+                if (!user?.uid) return; // ⭐ prevents the TS error AND runtime crash
+              
+                await updateDoc(doc(db, "users", user.uid), {
+                  "settings.calendarView": v,
+                  updatedAt: serverTimestamp(),
+                });
+              }}              
+              className="flex items-center gap-4"
+            >
+              <div className="flex items-center gap-1">
+                <RadioGroupItem value="calendar" id="view-calendar" />
+                <label htmlFor="view-calendar" className="text-sm">
+                  Calendar
+                </label>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <RadioGroupItem value="list" id="view-list" />
+                <label htmlFor="view-list" className="text-sm">
+                  List
+                </label>
+              </div>
+            </RadioGroup>
+          </div>
         </div>
       </PageHeader>
 

@@ -162,30 +162,6 @@ export default function SettingsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        {/* Calendar View */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Calendar View</CardTitle>
-            <CardDescription>Choose the default view for the Calendar of Events.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RadioGroup
-              value={calendarView}
-              onValueChange={handleCalendarViewChange}
-              className="flex items-center space-x-6"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="calendar" id="calendar-view" />
-                <Label htmlFor="calendar-view">Calendar View</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="list" id="list-view" />
-                <Label htmlFor="list-view">List View</Label>
-              </div>
-            </RadioGroup>
-          </CardContent>
-        </Card>
-
         {/* Financial Year */}
         {canSeeFinancialYear && (
           <Card>
