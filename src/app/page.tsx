@@ -63,6 +63,8 @@ export default function MembersPage() {
     });
   }, [filteredMembers]);
 
+  const statusSummary = getMemberStatusSummary(members);
+
   function handleClear() {
     setSearch("");
   
@@ -71,11 +73,23 @@ export default function MembersPage() {
       window.scrollTo(0, previousScroll);
     });
   }
+
+  function getMemberStatusSummary(members: Member[]) {
+    const active = members.filter(m => m.status === "Active").length;
+    const prospect = members.filter(m => m.status === "Prospect").length;
+    const archived = members.filter(m => m.status === "Archived").length;
+  
+    return `Active Members: ${active} | Prospects: ${prospect} | Archived: ${archived}`;
+  }
+  
   return (
     <>
-      <PageHeader title="Members" className="mb-2">
+      <PageHeader
+        title="Members"
+        subtitle={statusSummary}
+        className="mb-2"
+      >
         <div className="flex items-center gap-4">
-
           {/* View Selector */}
           <RadioGroup
             value={cardView}
@@ -101,13 +115,8 @@ export default function MembersPage() {
               <label htmlFor="hide-photo" className="text-sm">Hide Photo</label>
             </div>
           </RadioGroup>
-
         </div>
       </PageHeader>
-
-      <div>
-        <MemberStatusBreakdown members={members} />
-      </div>
 
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="w-full flex items-center gap-02">
