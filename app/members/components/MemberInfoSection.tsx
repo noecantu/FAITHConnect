@@ -5,16 +5,16 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../ui/card";
+} from "../../components/ui/card";
 import {
   FormField,
   FormItem,
   FormLabel,
   FormControl,
   FormMessage,
-} from "../ui/form";
-import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
+} from "../../components/ui/form";
+import { Input } from "../../components/ui/input";
+import { Textarea } from "../../components/ui/textarea";
 import type { UseFormReturn } from "react-hook-form";
 import type { MemberFormValues } from "../../lib/memberForm.schema";
 import { formatPhone } from '../../lib/formatters';

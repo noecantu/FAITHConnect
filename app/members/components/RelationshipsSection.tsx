@@ -6,23 +6,23 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "../ui/card";
+} from "../../components/ui/card";
 import {
   FormItem,
   FormLabel,
   FormControl,
   FormField,
   FormMessage,
-} from "../ui/form";
+} from "../../components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
+} from "../../components/ui/select";
+import { Input } from "../../components/ui/input";
+import { Button } from "../../components/ui/button";
 import { Trash2 } from "lucide-react";
 import { useToast } from "../../hooks/use-toast";
 import type { UseFormReturn, FieldArrayWithId } from "react-hook-form";

@@ -1,49 +1,11 @@
 
 import { Timestamp } from 'firebase/firestore';
-import { ReactNode } from 'react';
 
 export type Address = {
   street?: string;
   city?: string;
   state?: string;
   zip?: string;
-};
-
-export type Family = {
-  id: string;
-  name: string;
-};
-
-export type Relationship = {
-  id?: string;
-  memberIds: [string, string];
-  type: string;
-  anniversary?: string;
-};
-
-export type Member = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email?: string;
-  phoneNumber: string;
-  profilePhotoUrl?: string;
-  status: 'Active' | 'Prospect' | 'Archived';
-  address?: Address;
-  birthday?: string;
-  baptismDate?: string;
-  familyId?: string;
-  notes?: string;
-  relationships?: Relationship[];
-  anniversary?: string;
-  roles?: string[];
-};
-
-export type Event = {
-  id: string;
-  title: string;
-  date: Date;
-  description?: string;
 };
 
 export type Contribution = {
@@ -69,34 +31,60 @@ export type ContributionRecord = {
   updatedAt: Timestamp;
 };
 
-export interface User {
+export type Event = {
   id: string;
-  displayName?: string;
-  email: string;
-  roles: string[];
-  settings?: {
-    calendarView?: 'calendar' | 'list';
-    cardView?: 'show' | 'hide';
-    fiscalYear?: string;
-  };
+  title: string;
+  date: Date;
+  description?: string;
+};
+
+export type Family = {
+  id: string;
+  name: string;
+};
+
+export type Member = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phoneNumber: string;
+  profilePhotoUrl?: string;
+  status: 'Active' | 'Prospect' | 'Archived';
+  address?: Address;
+  birthday?: string;
+  baptismDate?: string;
+  familyId?: string;
+  notes?: string;
+  relationships?: Relationship[];
+  anniversary?: string;
+  roles?: string[];
+};
+
+export type Relationship = {
+  id?: string;
+  memberIds: [string, string];
+  type: string;
+  anniversary?: string;
+};
+
+export interface ServicePlan {
+  id: string;
+  title: string;
+  date: string;
+  notes: string;
+  sections: ServicePlanSection[];
+  createdBy: string;
+  createdAt: number;
+  updatedAt: number;
 }
 
-export type SongTag = 'worship' | 'fast' | 'slow' | 'praise' | 'altar' | 'special' | string;
-
-export interface Song {
+export interface ServicePlanSection {
   id: string;
-  churchId: string;
   title: string;
-  artist?: string;
-  key: string;
-  bpm?: number;
-  timeSignature?: string;
-  lyrics?: string;
-  chords?: string;
-  tags: SongTag[];
-  createdBy: string;
-  createdAt: Date;
-  updatedAt: Date;
+  personId: string | null;
+  songIds: string[];
+  notes: string;
 }
 
 export interface SetListSongEntry {
@@ -129,6 +117,24 @@ export interface SetList {
   };
 }
 
+export type SongTag = 'worship' | 'fast' | 'slow' | 'praise' | 'altar' | 'special' | string;
+
+export interface Song {
+  id: string;
+  churchId: string;
+  title: string;
+  artist?: string;
+  key: string;
+  bpm?: number;
+  timeSignature?: string;
+  lyrics?: string;
+  chords?: string;
+  tags: SongTag[];
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface SongInput {
   title: string;
   artist?: string;
@@ -140,21 +146,14 @@ export interface SongInput {
   tags: string[];
 }
 
-export interface ServicePlanSection {
+export interface User {
   id: string;
-  title: string;
-  personId: string | null;
-  songIds: string[];
-  notes: string;
-}
-
-export interface ServicePlan {
-  id: string;
-  title: string;
-  date: string;
-  notes: string;
-  sections: ServicePlanSection[];
-  createdBy: string;
-  createdAt: number;
-  updatedAt: number;
+  displayName?: string;
+  email: string;
+  roles: string[];
+  settings?: {
+    calendarView?: 'calendar' | 'list';
+    cardView?: 'show' | 'hide';
+    fiscalYear?: string;
+  };
 }

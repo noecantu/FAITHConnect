@@ -1,20 +1,20 @@
 'use client';
 
 import Image from "next/image";
-import { Button } from "../ui/button";
+import { Button } from "../../components/ui/button";
 import {
   FormField,
   FormItem,
   FormControl,
   FormMessage,
-} from "../ui/form";
-import { Input } from "../ui/input";
+} from "../../components/ui/form";
+import { Input } from "../../components/ui/input";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
-} from "../ui/card";
+} from "../../components/ui/card";
 import { Camera, Upload } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import type { MemberFormValues } from "../../lib/memberForm.schema";

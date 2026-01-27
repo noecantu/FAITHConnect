@@ -11,19 +11,25 @@ export function useUserRoles(churchId: string | null) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!churchId || !user?.uid) {
+      setRoles([]);
+      setLoading(false);
+      return;
+    }
+  
+    const uid = user.uid;
+    const email = user.email;
+    const safeChurchId = churchId;
+  
+    let isActive = true;
+    setLoading(true);
+  
     async function fetchRoles() {
-      // Stay in loading state until both user and churchId exist
-      if (!user || !churchId) {
-        setRoles([]);
-        setLoading(true);
-        return;
-      }
-
       try {
         let combinedRoles: string[] = [];
-
-        // 1. Fetch roles from /users/{uid}
-        const userDocRef = doc(db, 'users', user.uid);
+  
+        // ✅ narrowed uid
+        const userDocRef = doc(db, 'users', uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
           const userData = userDoc.data();
@@ -31,13 +37,13 @@ export function useUserRoles(churchId: string | null) {
             combinedRoles.push(...userData.roles);
           }
         }
-
-        // 2. Fetch roles from /churches/{churchId}/members
-        if (user.email) {
-          const membersRef = collection(db, 'churches', churchId, 'members');
-          const q = query(membersRef, where('email', '==', user.email));
+  
+        // ✅ narrowed churchId and email
+        if (email) {
+          const membersRef = collection(db, 'churches', safeChurchId, 'members');
+          const q = query(membersRef, where('email', '==', email));
           const querySnapshot = await getDocs(q);
-
+  
           if (!querySnapshot.empty) {
             const memberData = querySnapshot.docs[0].data();
             if (Array.isArray(memberData.roles)) {
@@ -45,18 +51,24 @@ export function useUserRoles(churchId: string | null) {
             }
           }
         }
-
-        setRoles(Array.from(new Set(combinedRoles)));
+  
+        if (isActive) {
+          setRoles(Array.from(new Set(combinedRoles)));
+        }
       } catch (error) {
         console.error("Error fetching user roles:", error);
-        setRoles([]);
+        if (isActive) setRoles([]);
       } finally {
-        setLoading(false);
+        if (isActive) setLoading(false);
       }
     }
-
+  
     fetchRoles();
-  }, [user, churchId]);
+  
+    return () => {
+      isActive = false;
+    };
+  }, [user?.uid, user?.email, churchId]);  
 
   return {
     roles,

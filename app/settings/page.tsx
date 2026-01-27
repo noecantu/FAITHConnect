@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { Label } from "../components/ui/label";
 import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { MemberRolesDialog } from '../components/member/MemberRolesDialog';
+import { MemberRolesDialog } from '../members/components/MemberRolesDialog';
 import * as React from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useChurchId } from '../hooks/useChurchId';

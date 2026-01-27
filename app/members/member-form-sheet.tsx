@@ -35,7 +35,8 @@ import type { Member } from "../lib/types";
 import { useMemberForm } from "../hooks/useMemberForm";
 import { useMemberRelationships } from "../hooks/useMemberRelationships";
 import { usePhotoCapture } from "../hooks/usePhotoCapture";
-import { MemberForm } from "../components/member/MemberForm";
+import { MemberForm } from "./components/MemberForm";
+import { useChurchId } from "../hooks/useChurchId";   // ← NEW
 
 interface MemberFormSheetProps {
   member?: Member;
@@ -46,6 +47,8 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const titleRef = useRef<HTMLHeadingElement | null>(null);
+
+  const churchId = useChurchId();   // ← NEW
 
   const { form, isEditMode, onSubmit, handleDeleteMember } = useMemberForm(
     member,
@@ -109,6 +112,8 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
               fileInputRef,
               setIsTakingPhoto,
             }}
+            churchId={churchId}   // ← UPDATED
+            member={member}       // ← REQUIRED FOR RolesSection
           />
         </div>
 
@@ -147,7 +152,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
             {isEditMode ? "Save" : "Add Member"}
           </Button>
 
-          </DialogFooter>
+        </DialogFooter>
 
       </DialogContent>
 
@@ -196,7 +201,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
               Capture
             </Button>
           </DialogFooter>
-          
+
         </DialogContent>
       </Dialog>
     </Dialog>

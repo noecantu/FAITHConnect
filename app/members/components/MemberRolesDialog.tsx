@@ -3,17 +3,17 @@
 import * as React from 'react';
 import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, createSecondaryUser } from '../../lib/firebase';
-import { Button } from '../ui/button';
-import { Dialog, DialogTrigger } from '../ui/dialog';
-import { Checkbox } from '../ui/checkbox';
-import { Label } from '../ui/label';
-import { Input } from '../ui/input';
+import { Button } from '../../components/ui/button';
+import { Dialog, DialogTrigger } from '../../components/ui/dialog';
+import { Checkbox } from '../../components/ui/checkbox';
+import { Label } from '../../components/ui/label';
+import { Input } from '../../components/ui/input';
 import { useToast } from '../../hooks/use-toast';
-import { Skeleton } from '../ui/skeleton';
+import { Skeleton } from '../../components/ui/skeleton';
 import { useChurchId } from '../../hooks/useChurchId';
 import { listenToMembers } from '../../lib/members';
 import type { Member } from '../../lib/types';
-import { StandardDialogLayout } from '../layout/StandardDialogLayout';
+import { StandardDialogLayout } from '../../components/layout/StandardDialogLayout';
 
 const ROLE_MAP: Record<string, string> = {
   "Admin": "Administrator",
