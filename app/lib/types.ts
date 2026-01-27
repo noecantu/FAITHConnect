@@ -45,6 +45,7 @@ export type Family = {
 
 export type Member = {
   id: string;
+  userId?: string | null;
   firstName: string;
   lastName: string;
   email?: string;

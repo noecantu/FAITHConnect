@@ -1,17 +1,22 @@
-'use client';
 
 import { Form } from "../../components/ui/form";
 import type { UseFormReturn } from "react-hook-form";
 import type { MemberFormValues } from "../../lib/memberForm.schema";
 import type { Member } from "../../lib/types";
+
 import { MemberInfoSection } from "./MemberInfoSection";
 import { StatusSection } from "./StatusSection";
 import { RelationshipsSection } from "./RelationshipsSection";
 import { PhotoSection } from "./PhotoSection";
 import { RolesSection } from "../roles-section";
+import { LoginAccessSection } from "./LoginAccessSection";
+
 import { useUserRoles } from "../../hooks/useUserRoles";
 import type { FieldArrayWithId } from "react-hook-form";
-import { LoginAccessSection } from "./LoginAccessSection";
+
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { app } from "../../lib/firebase";
+import { useState } from "react";
 
 type RelationshipsProps = {
   fields: FieldArrayWithId<MemberFormValues, "relationships", "id">[];
@@ -34,7 +39,7 @@ type MemberFormProps = {
   relationships: RelationshipsProps;
   photo: PhotoProps;
   churchId: string | null;
-  member?: Member; // <-- you already added this correctly
+  member?: Member;
 };
 
 export function MemberForm({
@@ -43,10 +48,48 @@ export function MemberForm({
   relationships,
   photo,
   churchId,
-  member,          // <-- you forgot to destructure this
+  member,
 }: MemberFormProps) {
 
   const { isAdmin } = useUserRoles(churchId);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const functions = getFunctions(app);
+  const createMemberLogin = httpsCallable(functions, "createMemberLogin");
+  const sendPasswordReset = httpsCallable(functions, "sendPasswordReset"); // you'll add this next
+
+  async function handleCreateLogin() {
+    if (!member || !churchId) return;
+  
+    setIsLoading(true);
+    try {
+      await createMemberLogin({
+        email: form.watch("email"),
+        memberId: member.id,
+        churchId,
+      });
+  
+      console.log("Login created and reset email sent");
+    } catch (err) {
+      console.error("Error creating login:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+  
+  async function handleSendReset() {
+    if (!member?.userId) return;
+  
+    setIsLoading(true);
+    try {
+      await sendPasswordReset({ userId: member.userId });
+      console.log("Password reset email sent");
+    } catch (err) {
+      console.error("Error sending reset:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <Form {...form}>
@@ -70,13 +113,9 @@ export function MemberForm({
           hasUserAccount={!!member?.id}
           email={form.watch("email")}
           onEmailChange={(value) => form.setValue("email", value)}
-          onCreateLogin={() => {
-            // TODO: trigger Cloud Function to create login
-          }}
-          onSendReset={() => {
-            // TODO: trigger password reset email
-          }}
-          isLoading={false} // TODO: wire loading state
+          onCreateLogin={handleCreateLogin}
+          onSendReset={handleSendReset}
+          isLoading={isLoading}
         />
 
         <PhotoSection form={form} {...photo} />

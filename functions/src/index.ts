@@ -73,3 +73,25 @@ export const createMemberLogin = onCall(
     }
   }
 );
+
+export const sendPasswordReset = onCall(async (request) => {
+  const { userId } = request.data;
+
+  if (!userId) {
+    throw new Error("Missing userId");
+  }
+
+  const auth = admin.auth();
+
+  // Lookup the user by UID
+  const user = await auth.getUser(userId);
+
+  if (!user.email) {
+    throw new Error("User has no email");
+  }
+
+  // Send reset email
+  await auth.generatePasswordResetLink(user.email);
+
+  return { success: true };
+});

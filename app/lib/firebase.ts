@@ -54,3 +54,5 @@ export async function createSecondaryUser(email: string, password: string) {
     await deleteApp(secondaryApp);
   }
 }
+
+export { app };
