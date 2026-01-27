@@ -82,10 +82,10 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
     const [open, setOpen] = useState(false);
     const [custom, setCustom] = useState('');
 
-    const handleAdd = (name: string) => {
+    const handleAdd = (title: string) => {
       const newSection: SetListSection = {
         id: nanoid(),
-        name,
+        title,
         songs: [],
       };
       onChange([...sections, newSection]);
@@ -148,7 +148,7 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
               <SortableSectionItem
                 key={section.id}
                 section={section}
-                onRename={(name) => updateSection(section.id, { name })}
+                onRename={(title) => updateSection(section.id, { title })}
                 onDelete={() => removeSection(section.id)}
                 onUpdateSongs={(songs) =>
                   updateSection(section.id, { songs })
@@ -164,7 +164,7 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
             <Card className="p-4 opacity-80 flex items-center gap-3">
               <GripVertical className="text-muted-foreground" />
               <p className="font-medium">
-                {sections.find((s) => s.id === activeId)?.name}
+                {sections.find((s) => s.id === activeId)?.title}
               </p>
             </Card>
           ) : null}
@@ -186,7 +186,7 @@ function SortableSectionItem({
   allSongs,
 }: {
   section: SetListSection;
-  onRename: (name: string) => void;
+  onRename: (title: string) => void;
   onDelete: () => void;
   onUpdateSongs: (songs: SetListSongEntry[]) => void;
   allSongs: Song[];
@@ -211,7 +211,7 @@ function SortableSectionItem({
         />
 
         <Input
-          value={section.name}
+          value={section.title}
           onChange={(e) => onRename(e.target.value)}
           className="font-medium"
         />

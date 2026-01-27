@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { SetList, Song } from '@/lib/types';
+import type { SetList, Song, SetListSongEntry } from '@/lib/types';
 
 export function exportServiceToPdf(
   setList: SetList,
@@ -21,9 +21,11 @@ export function exportServiceToPdf(
     doc.text(`Scripture: ${setList.serviceNotes.scripture}`, 14, 46);
   }
 
-  const rows = setList.songs
-    .sort((a, b) => a.order - b.order)
-    .map((entry, index) => {
+  const allSetlistSongs: SetListSongEntry[] = setList.sections.flatMap(
+    (section) => section.songs
+  );
+
+  const rows = allSetlistSongs.map((entry, index) => {
       const song = allSongs.find((s) => s.id === entry.songId);
       return [
         index + 1,
