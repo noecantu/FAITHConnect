@@ -24,6 +24,10 @@ type CreateMemberLoginPayload = {
 // -----------------------------
 export const createMemberLogin = onCall(
   async (request) => {
+
+    console.log("AUTH:", request.auth);
+    console.log("DATA:", request.data);
+
     const { data, auth } = request;
 
     // 1. Ensure the caller is authenticated

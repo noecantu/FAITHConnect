@@ -17,6 +17,7 @@ import type { FieldArrayWithId } from "react-hook-form";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { app } from "../../lib/firebase";
 import { useState } from "react";
+import { toast } from "@/app/hooks/use-toast";
 
 type RelationshipsProps = {
   fields: FieldArrayWithId<MemberFormValues, "relationships", "id">[];
@@ -54,7 +55,7 @@ export function MemberForm({
   const { isAdmin } = useUserRoles(churchId);
   const [isLoading, setIsLoading] = useState(false);
 
-  const functions = getFunctions(app);
+  const functions = getFunctions(app, "us-central1");
   const createMemberLogin = httpsCallable(functions, "createMemberLogin");
   const sendPasswordReset = httpsCallable(functions, "sendPasswordReset"); // you'll add this next
 
@@ -68,11 +69,19 @@ export function MemberForm({
         memberId: member.id,
         churchId,
       });
-  
-      console.log("Login created and reset email sent");
+    
+      toast({
+        title: "Login Created",
+        description: "A password reset email has been sent.",
+      });
     } catch (err) {
-      console.error("Error creating login:", err);
-    } finally {
+      toast({
+        title: "Error",
+        description: "Failed to create login.",
+        variant: "destructive",
+      });
+    }
+     finally {
       setIsLoading(false);
     }
   }
@@ -83,9 +92,17 @@ export function MemberForm({
     setIsLoading(true);
     try {
       await sendPasswordReset({ userId: member.userId });
-      console.log("Password reset email sent");
+    
+      toast({
+        title: "Reset Email Sent",
+        description: "A password reset email has been sent.",
+      });
     } catch (err) {
-      console.error("Error sending reset:", err);
+      toast({
+        title: "Error",
+        description: "Failed to send reset email.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -110,7 +127,7 @@ export function MemberForm({
         )}
 
         <LoginAccessSection
-          hasUserAccount={!!member?.id}
+          hasUserAccount={!!member?.userId}
           email={form.watch("email")}
           onEmailChange={(value) => form.setValue("email", value)}
           onCreateLogin={handleCreateLogin}

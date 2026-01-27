@@ -255,9 +255,9 @@ export function listenToMembers(
    
       return {
         id: doc.id,
+        userId: raw.userId ?? null,
         firstName: raw.firstName,
         lastName: raw.lastName,
-        name: `${raw.firstName} ${raw.lastName}`,
         email: raw.email,
         phoneNumber: rawPhone,
         profilePhotoUrl: raw.profilePhotoUrl ?? "",
