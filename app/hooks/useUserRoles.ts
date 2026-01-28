@@ -26,7 +26,7 @@ export function useUserRoles(churchId: string | null) {
   
     async function fetchRoles() {
       try {
-        let combinedRoles: string[] = [];
+        const combinedRoles: string[] = [];
   
         // ✅ narrowed uid
         const userDocRef = doc(db, 'users', uid);

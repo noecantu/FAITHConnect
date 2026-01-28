@@ -2,18 +2,18 @@
 
 import * as React from 'react';
 import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { db, createSecondaryUser } from '../../lib/firebase';
-import { Button } from '../../components/ui/button';
-import { Dialog, DialogTrigger } from '../../components/ui/dialog';
-import { Checkbox } from '../../components/ui/checkbox';
-import { Label } from '../../components/ui/label';
-import { Input } from '../../components/ui/input';
-import { useToast } from '../../hooks/use-toast';
-import { Skeleton } from '../../components/ui/skeleton';
-import { useChurchId } from '../../hooks/useChurchId';
-import { listenToMembers } from '../../lib/members';
-import type { Member } from '../../lib/types';
-import { StandardDialogLayout } from '../../components/layout/StandardDialogLayout';
+import { db, createSecondaryUser } from '../lib/firebase';
+import { Button } from '../components/ui/button';
+import { Dialog, DialogTrigger } from '../components/ui/dialog';
+import { Checkbox } from '../components/ui/checkbox';
+import { Label } from '../components/ui/label';
+import { Input } from '../components/ui/input';
+import { useToast } from '../hooks/use-toast';
+import { Skeleton } from '../components/ui/skeleton';
+import { useChurchId } from '../hooks/useChurchId';
+import { listenToMembers } from '../lib/members';
+import type { Member } from '../lib/types';
+import { StandardDialogLayout } from '../components/layout/StandardDialogLayout';
 
 const ROLE_MAP: Record<string, string> = {
   "Admin": "Administrator",
@@ -26,7 +26,7 @@ const ROLE_MAP: Record<string, string> = {
 
 const ALL_ROLES = Object.keys(ROLE_MAP);
 
-export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
+export function AccessManagementDialog({ children }: { children: React.ReactNode }) {
   const [isListOpen, setIsListOpen] = React.useState(false);
   const [members, setMembers] = React.useState<Member[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -161,8 +161,8 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
         <DialogTrigger asChild>{children}</DialogTrigger>
 
         <StandardDialogLayout
-          title="Manage Member Roles"
-          description="Assign or remove roles for members in your organization."
+          title="Access Management"
+          description="Manage user logins and permissions for your organization."
           onClose={() => setIsListOpen(false)}
         >
           <div className="space-y-4">
@@ -207,8 +207,8 @@ export function MemberRolesDialog({ children }: { children: React.ReactNode }) {
         }}
       >
         <StandardDialogLayout
-          title={`Access & Roles: ${editingMember?.firstName} ${editingMember?.lastName}`}
-          description="Create a login for this member and assign their permissions."
+          title={`User Access: ${editingMember?.firstName} ${editingMember?.lastName}`}
+          description="Create or update login credentials and assign roles."
           onClose={handleCloseEdit}
           footer={<Button onClick={handleUpdateRoles}>Update Roles</Button>}
         >

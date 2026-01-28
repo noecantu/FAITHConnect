@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { Label } from "../components/ui/label";
 import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { MemberRolesDialog } from '../members/components/MemberRolesDialog';
+import { AccessManagementDialog } from './AccessManagementDialog';
 import * as React from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useChurchId } from '../hooks/useChurchId';
@@ -169,9 +169,9 @@ export default function SettingsPage() {
               <CardDescription>Manage member settings and roles for your organization.</CardDescription>
             </CardHeader>
             <CardContent>
-              <MemberRolesDialog>
+              <AccessManagementDialog>
                 <Button className="w-full sm:w-auto">Manage Roles</Button>
-              </MemberRolesDialog>
+              </AccessManagementDialog>
             </CardContent>
           </Card>
         )}

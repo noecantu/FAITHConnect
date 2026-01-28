@@ -3,7 +3,7 @@
  */
 
 import { setGlobalOptions } from "firebase-functions/v2/options";
-import { onCall } from "firebase-functions/v2/https";
+import { HttpsError, onCall } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
 setGlobalOptions({ maxInstances: 10 });
@@ -25,21 +25,18 @@ type CreateMemberLoginPayload = {
 export const createMemberLogin = onCall(
   async (request) => {
 
-    console.log("AUTH:", request.auth);
-    console.log("DATA:", request.data);
-
     const { data, auth } = request;
 
     // 1. Ensure the caller is authenticated
     if (!auth) {
-      throw new Error("Only authenticated admins can create logins.");
+      throw new HttpsError("unauthenticated", "Only authenticated admins can create logins.");
     }
 
     // 2. Extract and type the payload
     const { email, memberId, churchId } = data as CreateMemberLoginPayload;
 
     if (!email || !memberId || !churchId) {
-      throw new Error("Missing required fields: email, memberId, churchId.");
+      throw new HttpsError("invalid-argument", "Missing required fields: email, memberId, churchId.");
     }
 
     try {
@@ -73,7 +70,7 @@ export const createMemberLogin = onCall(
       return { uid };
     } catch (error: any) {
       console.error("Error creating member login:", error);
-      throw new Error(error.message || "Failed to create login.");
+      throw new HttpsError("internal", error.message || "Failed to create login.");
     }
   }
 );
@@ -82,7 +79,7 @@ export const sendPasswordReset = onCall(async (request) => {
   const { userId } = request.data;
 
   if (!userId) {
-    throw new Error("Missing userId");
+    throw new HttpsError("invalid-argument", "Missing userId");
   }
 
   const auth = admin.auth();
@@ -91,7 +88,7 @@ export const sendPasswordReset = onCall(async (request) => {
   const user = await auth.getUser(userId);
 
   if (!user.email) {
-    throw new Error("User has no email");
+    throw new HttpsError("not-found", "User has no email address.");
   }
 
   // Send reset email
