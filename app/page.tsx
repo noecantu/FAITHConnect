@@ -23,11 +23,12 @@ export default function MembersPage() {
   const churchId = useChurchId();
   const [members, setMembers] = useState<Member[]>([]);
   const [search, setSearch] = useState("");
-  const { isMemberManager } = useUserRoles(churchId);
+  const { isAdmin, isMemberManager } = useUserRoles(churchId);
   const [previousScroll, setPreviousScroll] = useState(0);
   const { cardView } = useSettings();
   const { user } = useAuth();
-  
+  const canEditMembers = isAdmin || isMemberManager;
+
   // Relationship search feeds into the same search bar
   function handleSearchFromRelationship(name: string) {
     setPreviousScroll(window.scrollY);
@@ -150,15 +151,24 @@ export default function MembersPage() {
           gap-6
         "
       >
-
-        {sortedMembers.map((member) => (
-          <MemberCard
-          key={member.id}
-          member={member}
-          cardView={cardView}
-          onSearch={handleSearchFromRelationship}
-        />        
-        ))}
+        {sortedMembers.map((member) =>
+          canEditMembers ? (
+            <MemberFormSheet key={member.id} member={member}>
+              <MemberCard
+                member={member}
+                cardView={cardView}
+                searchAction={handleSearchFromRelationship}
+              />
+            </MemberFormSheet>
+          ) : (
+            <MemberCard
+              key={member.id}
+              member={member}
+              cardView={cardView}
+              searchAction={handleSearchFromRelationship}
+            />
+          )
+        )}
       </div>
 
       {isMemberManager && (
