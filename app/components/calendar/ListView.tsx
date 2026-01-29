@@ -11,8 +11,8 @@ export function ListView({
   onDeleteRequest,
 }: {
   events: Event[];
-  onEdit: (event: Event) => void;
-  onDeleteRequest: (id: string) => void;
+  onEdit?: (event: Event) => void;
+  onDeleteRequest?: (id: string) => void;
 }) {
   const grouped = React.useMemo(() => {
     const map = new Map<string, Event[]>();
@@ -51,19 +51,26 @@ export function ListView({
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => onEdit(e)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                  {(onEdit || onDeleteRequest) && (
+                    <div className="flex items-center gap-2">
+                      {onEdit && (
+                        <Button variant="outline" size="sm" onClick={() => onEdit(e)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
 
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => onDeleteRequest(e.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                      {onDeleteRequest && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => onDeleteRequest(e.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                  
                 </li>
               ))}
             </ul>

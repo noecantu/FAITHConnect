@@ -133,17 +133,6 @@ export default function CalendarPage() {
     return () => unsubscribe();
   }, [churchId]);
 
-  // View preference (calendar vs list)
-  // const [view, setView] = React.useState<'calendar' | 'list'>(() => {
-  //   if (typeof window !== 'undefined') {
-  //     const saved = localStorage.getItem('calendarView');
-  //     if (saved === 'calendar' || saved === 'list') {
-  //       return saved;
-  //     }
-  //   }
-  //   return 'calendar';
-  // });
-
   useEffect(() => {
     setView(calendarView);
   }, [calendarView]);
@@ -513,8 +502,8 @@ export default function CalendarPage() {
       ) : (
         <ListView
           events={events}
-          onEdit={handleEdit}
-          onDeleteRequest={handleDeleteRequest}
+          onEdit={isEventManager ? handleEdit : undefined}
+          onDeleteRequest={isEventManager ? handleDeleteRequest : undefined}
         />
       )}
 
