@@ -252,7 +252,7 @@ export function listenToMembers(
     const members: Member[] = snapshot.docs.map((doc) => {
       const raw = doc.data();
       const rawPhone = raw.phoneNumber?.replace(/\D/g, "") || "";
-   
+
       return {
         id: doc.id,
         userId: raw.userId ?? null,
@@ -263,16 +263,14 @@ export function listenToMembers(
         profilePhotoUrl: raw.profilePhotoUrl ?? "",
         status: raw.status,
         address: raw.address,
-        birthday: raw.birthday?.toDate?.()?.toISOString().split('T')[0] ?? undefined,
-        baptismDate: raw.baptismDate?.toDate?.()?.toISOString().split('T')[0] ?? undefined,
+        birthday: raw.birthday?.toDate?.()?.toISOString().split("T")[0] ?? undefined,
+        baptismDate: raw.baptismDate?.toDate?.()?.toISOString().split("T")[0] ?? undefined,
         familyId: raw.familyId,
         notes: raw.notes ?? "",
         relationships: raw.relationships,
-        anniversary: raw.anniversary?.toDate?.()?.toISOString().split('T')[0] ?? undefined,
-        roles: raw.roles,
+        anniversary: raw.anniversary?.toDate?.()?.toISOString().split("T")[0] ?? undefined,
       };
     });
-    
     callback(members);
   });
 }

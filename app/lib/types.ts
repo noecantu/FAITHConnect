@@ -59,7 +59,6 @@ export type Member = {
   notes?: string;
   relationships?: Relationship[];
   anniversary?: string;
-  roles?: string[];
 };
 
 export type Relationship = {
