@@ -7,7 +7,6 @@ import { HttpsError, onCall } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
 setGlobalOptions({ maxInstances: 10 });
-
 admin.initializeApp();
 
 // -----------------------------
@@ -20,61 +19,88 @@ type CreateMemberLoginPayload = {
 };
 
 // -----------------------------
-// createMemberLogin (v2)
+// Helpers
 // -----------------------------
-export const createMemberLogin = onCall(
-  async (request) => {
+async function sendPasswordSetupEmail(email: string, resetLink: string) {
+  // TODO: Replace with your email provider (Nodemailer, Mailgun, Resend, etc.)
+  console.log(`Password setup link for ${email}: ${resetLink}`);
+}
 
-    const { data, auth } = request;
+// -----------------------------
+// createMemberLogin
+// -----------------------------
+export const createMemberLogin = onCall(async (request) => {
+  const { data, auth } = request;
 
-    // 1. Ensure the caller is authenticated
-    if (!auth) {
-      throw new HttpsError("unauthenticated", "Only authenticated admins can create logins.");
-    }
-
-    // 2. Extract and type the payload
-    const { email, memberId, churchId } = data as CreateMemberLoginPayload;
-
-    if (!email || !memberId || !churchId) {
-      throw new HttpsError("invalid-argument", "Missing required fields: email, memberId, churchId.");
-    }
-
-    try {
-      // 3. Create the Firebase Auth user
-      const userRecord = await admin.auth().createUser({ email });
-      const uid = userRecord.uid;
-
-      // 4. Write /users/{uid}
-      await admin.firestore().collection("users").doc(uid).set({
-        email,
-        memberId,
-        churchId,
-        roles: [],
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-
-      // 5. Link the Member to the User
-      await admin
-        .firestore()
-        .collection("churches")
-        .doc(churchId)
-        .collection("members")
-        .doc(memberId)
-        .update({
-          userId: uid,
-        });
-
-      // 6. Send password reset email
-      await admin.auth().generatePasswordResetLink(email);
-
-      return { uid };
-    } catch (error: any) {
-      console.error("Error creating member login:", error);
-      throw new HttpsError("internal", error.message || "Failed to create login.");
-    }
+  if (!auth) {
+    throw new HttpsError(
+      "unauthenticated",
+      "Only authenticated admins can create logins."
+    );
   }
-);
 
+  const { email, memberId, churchId } = data as CreateMemberLoginPayload;
+
+  if (!email || !memberId || !churchId) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Missing required fields: email, memberId, churchId."
+    );
+  }
+
+  try {
+    // 1. Create Firebase Auth user with a temporary password
+    const userRecord = await admin.auth().createUser({
+      email,
+      password: Math.random().toString(36).slice(-10),
+    });
+
+    const uid = userRecord.uid;
+
+    // 2. Create Firestore user document
+    await admin.firestore().collection("users").doc(uid).set({
+      email,
+      memberId,
+      churchId,
+      roles: [],
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    // 3. Link Member → User
+    await admin
+      .firestore()
+      .collection("churches")
+      .doc(churchId)
+      .collection("members")
+      .doc(memberId)
+      .update({ userId: uid });
+
+    // 4. Generate password reset link
+    const actionCodeSettings = {
+      url: "https://faith-connect-7342d.web.app",
+      handleCodeInApp: false,
+    };
+
+    const resetLink = await admin
+      .auth()
+      .generatePasswordResetLink(email, actionCodeSettings);
+
+    // 5. Send email (provider‑agnostic)
+    await sendPasswordSetupEmail(email, resetLink);
+
+    return {
+      uid,
+      message: "User created and password setup email sent.",
+    };
+  } catch (error: any) {
+    console.error("Error creating member login:", error);
+    throw new HttpsError("internal", error.message || "Failed to create login.");
+  }
+});
+
+// -----------------------------
+// sendPasswordReset
+// -----------------------------
 export const sendPasswordReset = onCall(async (request) => {
   const { userId } = request.data;
 
@@ -82,17 +108,21 @@ export const sendPasswordReset = onCall(async (request) => {
     throw new HttpsError("invalid-argument", "Missing userId");
   }
 
-  const auth = admin.auth();
+  try {
+    const user = await admin.auth().getUser(userId);
 
-  // Lookup the user by UID
-  const user = await auth.getUser(userId);
+    if (!user.email) {
+      throw new HttpsError("not-found", "User has no email address.");
+    }
 
-  if (!user.email) {
-    throw new HttpsError("not-found", "User has no email address.");
+    const resetLink = await admin.auth().generatePasswordResetLink(user.email);
+
+    // You can optionally email the link here using the same helper
+    // await sendPasswordSetupEmail(user.email, resetLink);
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error sending password reset:", error);
+    throw new HttpsError("internal", error.message || "Failed to send reset.");
   }
-
-  // Send reset email
-  await auth.generatePasswordResetLink(user.email);
-
-  return { success: true };
 });

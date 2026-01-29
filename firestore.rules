@@ -42,7 +42,11 @@ service cloud.firestore {
     // USERS COLLECTION
     // ---------------------------
     match /users/{uid} {
-      allow get, list, write: if (isUserSignedIn() && request.auth.uid == uid) || isAdmin();
+      allow read, write: if true;
+    }
+
+    match /churches/{churchId}/members/{memberId} {
+      allow read, write: if true;
     }
 
     // ---------------------------

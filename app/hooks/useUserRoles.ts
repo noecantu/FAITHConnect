@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from './useAuth';
 
@@ -11,49 +11,29 @@ export function useUserRoles(churchId: string | null) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!churchId || !user?.uid) {
+    if (!user?.uid || !churchId) {
       setRoles([]);
-      setLoading(false);
+      setLoading(true);
       return;
     }
-  
+
     const uid = user.uid;
-    const email = user.email;
-    const safeChurchId = churchId;
-  
     let isActive = true;
     setLoading(true);
-  
+
     async function fetchRoles() {
       try {
-        const combinedRoles: string[] = [];
-  
-        // ✅ narrowed uid
         const userDocRef = doc(db, 'users', uid);
         const userDoc = await getDoc(userDocRef);
+
+        if (!isActive) return;
+
         if (userDoc.exists()) {
-          const userData = userDoc.data();
-          if (Array.isArray(userData.roles)) {
-            combinedRoles.push(...userData.roles);
-          }
-        }
-  
-        // ✅ narrowed churchId and email
-        if (email) {
-          const membersRef = collection(db, 'churches', safeChurchId, 'members');
-          const q = query(membersRef, where('email', '==', email));
-          const querySnapshot = await getDocs(q);
-  
-          if (!querySnapshot.empty) {
-            const memberData = querySnapshot.docs[0].data();
-            if (Array.isArray(memberData.roles)) {
-              combinedRoles.push(...memberData.roles);
-            }
-          }
-        }
-  
-        if (isActive) {
-          setRoles(Array.from(new Set(combinedRoles)));
+          const data = userDoc.data();
+          const userRoles = Array.isArray(data.roles) ? data.roles : [];
+          setRoles(userRoles);
+        } else {
+          setRoles([]);
         }
       } catch (error) {
         console.error("Error fetching user roles:", error);
@@ -62,13 +42,10 @@ export function useUserRoles(churchId: string | null) {
         if (isActive) setLoading(false);
       }
     }
-  
+
     fetchRoles();
-  
-    return () => {
-      isActive = false;
-    };
-  }, [user?.uid, user?.email, churchId]);  
+    return () => { isActive = false };
+  }, [user?.uid, churchId]);
 
   return {
     roles,

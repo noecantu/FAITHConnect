@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, serverTimestamp, collection, query, getDocs, where, onSnapshot } from 'firebase/firestore';
 import { db, createSecondaryUser } from '../lib/firebase';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogTrigger } from '../components/ui/dialog';
@@ -14,14 +14,15 @@ import { useChurchId } from '../hooks/useChurchId';
 import { listenToMembers } from '../lib/members';
 import type { Member } from '../lib/types';
 import { StandardDialogLayout } from '../components/layout/StandardDialogLayout';
+import { useUserRoles } from '../hooks/useUserRoles';
 
 const ROLE_MAP: Record<string, string> = {
-  "Admin": "Administrator",
-  "EventManager": "Event Manager",
-  "Finance": "Finance Manager",
-  "MemberManager": "Member Manager",
-  "MusicManager": "Music Manager",
-  "MusicMember": "Music Member",
+  Admin: "Administrator",
+  EventManager: "Event Manager",
+  Finance: "Finance Manager",
+  MemberManager: "Member Manager",
+  MusicManager: "Music Manager",
+  MusicMember: "Music Member",
 };
 
 const ALL_ROLES = Object.keys(ROLE_MAP);
@@ -29,10 +30,11 @@ const ALL_ROLES = Object.keys(ROLE_MAP);
 export function AccessManagementDialog({ children }: { children: React.ReactNode }) {
   const [isListOpen, setIsListOpen] = React.useState(false);
   const [members, setMembers] = React.useState<Member[]>([]);
+  const [users, setUsers] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [editingMember, setEditingMember] = React.useState<Member | null>(null);
   const [selectedRoles, setSelectedRoles] = React.useState<string[]>([]);
-  
+
   // Login creation state
   const [loginEmail, setLoginEmail] = React.useState("");
   const [loginPassword, setLoginPassword] = React.useState("");
@@ -41,6 +43,9 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
   const { toast } = useToast();
   const churchId = useChurchId();
 
+  const { roles, loading: rolesLoading, isAdmin } = useUserRoles(churchId);
+
+  // 🔥 Listen to members
   React.useEffect(() => {
     if (isListOpen && churchId) {
       setLoading(true);
@@ -48,29 +53,58 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
         setMembers(membersList);
         setLoading(false);
       });
-
       return () => unsubscribe();
     }
   }, [isListOpen, churchId]);
 
+  // 🔥 Listen to users (for roles)
+  React.useEffect(() => {
+    if (!churchId) return;
+
+    const usersRef = collection(db, "users");
+    const unsubscribe = onSnapshot(usersRef, (snap) => {
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setUsers(list);
+    });
+
+    return () => unsubscribe();
+  }, [churchId]);
+
+  // 🔥 Build map: email → roles string
+  const userRolesByEmail: Record<string, string> = React.useMemo(() => {
+    const map: Record<string, string> = {};
+    users.forEach((u) => {
+      const roles = Array.isArray(u.roles) ? u.roles : [];
+      map[u.email] = roles.map((r: string) => ROLE_MAP[r] || r).join(", ");
+    });
+    return map;
+  }, [users]);
+
   const handleEditClick = (member: Member) => {
     setEditingMember(member);
-    setSelectedRoles(member.roles || []);
+  
+    // 🔥 Find the user doc for this member
+    const user = users.find((u) => u.email === member.email);
+  
+    // 🔥 Use roles from the USER doc, not the MEMBER doc
+    const roles = Array.isArray(user?.roles) ? user.roles : [];
+  
+    setSelectedRoles(roles);
     setLoginEmail(member.email || "");
     setLoginPassword("");
-  };
+  };  
 
   const handleCloseEdit = () => {
     setEditingMember(null);
   };
 
   const handleRoleChange = (role: string, checked: boolean) => {
-    if (role === 'Admin') {
-      setSelectedRoles(checked ? ['Admin'] : []);
+    if (role === "Admin") {
+      setSelectedRoles(checked ? ["Admin"] : []);
     } else {
-      setSelectedRoles(prev => {
-        const newRoles = checked ? [...prev, role] : prev.filter(r => r !== role);
-        return newRoles.filter(r => r !== 'Admin');
+      setSelectedRoles((prev) => {
+        const newRoles = checked ? [...prev, role] : prev.filter((r) => r !== role);
+        return newRoles.filter((r) => r !== "Admin");
       });
     }
   };
@@ -97,19 +131,19 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
     setIsCreatingLogin(true);
     try {
       const newUser = await createSecondaryUser(loginEmail, loginPassword);
-      
-      const userDocRef = doc(db, 'users', newUser.uid);
+
+      const userDocRef = doc(db, "users", newUser.uid);
       await setDoc(userDocRef, {
         email: loginEmail,
         displayName: `${editingMember.firstName} ${editingMember.lastName}`,
-        churchId: churchId,
+        churchId,
         roles: [],
         createdAt: serverTimestamp(),
       });
 
       if (editingMember.email !== loginEmail) {
-          const memberDocRef = doc(db, 'churches', churchId, 'members', editingMember.id);
-          await updateDoc(memberDocRef, { email: loginEmail });
+        const memberDocRef = doc(db, "churches", churchId, "members", editingMember.id);
+        await updateDoc(memberDocRef, { email: loginEmail });
       }
 
       toast({
@@ -130,17 +164,38 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
   };
 
   const handleUpdateRoles = async () => {
-    if (!editingMember || !churchId) return;
+    if (!editingMember) return;
 
     try {
-      const memberDocRef = doc(db, 'churches', churchId, 'members', editingMember.id);
-      await updateDoc(memberDocRef, {
-        roles: selectedRoles,
-      });
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("email", "==", editingMember.email));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        toast({
+          title: "No User Account",
+          description: "This member does not have a login yet.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const userDoc = snapshot.docs[0];
+      const userDocRef = doc(db, "users", userDoc.id);
+
+      await setDoc(
+        userDocRef,
+        {
+          roles: selectedRoles,
+        },
+        { merge: true }
+      );
+
       toast({
         title: "Success",
         description: `Roles for ${editingMember.firstName} ${editingMember.lastName} updated successfully.`,
       });
+
       handleCloseEdit();
     } catch (error) {
       console.error("Error updating roles:", error);
@@ -180,12 +235,10 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
                     <p className="font-semibold">
                       {member.firstName} {member.lastName}
                     </p>
+
+                    {/* 🔥 FIXED: Now showing USER roles, not MEMBER roles */}
                     <p className="text-sm text-muted-foreground">
-                      {member.roles?.includes("Admin")
-                        ? getRoleDisplayName("Admin")
-                        : (member.roles || [])
-                            .map(getRoleDisplayName)
-                            .join(", ") || "No roles assigned"}
+                      {userRolesByEmail[member.email ?? ""] || "No roles assigned"}
                     </p>
                   </div>
 
@@ -198,7 +251,7 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
           </div>
         </StandardDialogLayout>
       </Dialog>
-  
+
       {/* EDIT ROLES DIALOG */}
       <Dialog
         open={!!editingMember}
@@ -285,7 +338,6 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
           </div>
         </StandardDialogLayout>
       </Dialog>
-
     </>
   );
-}  
+}
