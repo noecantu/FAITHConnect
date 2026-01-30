@@ -238,8 +238,8 @@ export async function deleteMember(churchId: string, memberId: string) {
     transaction.delete(memberRef);
   });
 }
-
 export function listenToMembers(
+  
   churchId: string,
   callback: (members: Member[]) => void
 ) {

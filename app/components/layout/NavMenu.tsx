@@ -83,6 +83,8 @@ export function NavMenu() {
     }
   };
 
+  const canSeeSettings = isAdmin;
+
   return (
     <>
       <DropdownMenu modal={false}>
@@ -178,14 +180,16 @@ export function NavMenu() {
           <DropdownMenuSeparator />
 
           {/* Settings */}
-          <Link href="/settings">
-            <DropdownMenuItem
-              className={pathname === '/settings' ? 'bg-accent' : ''}
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </DropdownMenuItem>
-          </Link>
+          {isAdmin && (
+            <Link href="/settings">
+              <DropdownMenuItem
+                className={pathname === '/settings' ? 'bg-accent' : ''}
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+            </Link>
+          )}
 
           {/* Logout */}
           <DropdownMenuItem onClick={() => setIsLogoutAlertOpen(true)}>
