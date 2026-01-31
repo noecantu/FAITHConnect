@@ -17,6 +17,16 @@ import { StandardDialogLayout } from '../components/layout/StandardDialogLayout'
 import { useUserRoles } from '../hooks/useUserRoles';
 import { deleteDoc } from "firebase/firestore";
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../components/ui/alert-dialog";
 
 const ROLE_MAP: Record<string, string> = {
   Admin: "Administrator",
@@ -47,7 +57,9 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
 
   const { roles, loading: rolesLoading, isAdmin } = useUserRoles(churchId);
   const functions = getFunctions();
-  
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+
   // 🔥 Listen to members
   React.useEffect(() => {
     if (isListOpen && churchId) {
@@ -211,74 +223,6 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
   };
 
   const getRoleDisplayName = (role: string) => ROLE_MAP[role] || role;
-
-  async function handleDeleteUser() {
-    if (!editingMember || !editingMember.email) {
-      toast({
-        title: "Error",
-        description: "This member does not have a login to delete.",
-        variant: "destructive",
-      });
-      return;
-    }
-  
-    if (!churchId) {
-      toast({
-        title: "Error",
-        description: "No church selected.",
-        variant: "destructive",
-      });
-      return;
-    }
-  
-    try {
-      // 1. Find the user document by email
-      const usersRef = collection(db, "users");
-      const q = query(usersRef, where("email", "==", editingMember.email));
-      const snapshot = await getDocs(q);
-  
-      if (snapshot.empty) {
-        toast({
-          title: "No User Account",
-          description: "This member does not have a login.",
-          variant: "destructive",
-        });
-        return;
-      }
-  
-      const userDoc = snapshot.docs[0];
-      const userDocRef = doc(db, "users", userDoc.id);
-  
-      // 2. Delete the user document
-      await deleteDoc(userDocRef);
-  
-      // 3. Remove email from the member record
-      const memberRef = doc(
-        db,
-        "churches",
-        churchId as string,
-        "members",
-        editingMember.id
-      );
-  
-      await updateDoc(memberRef, { email: "" });
-  
-      // 4. Notify and close
-      toast({
-        title: "User Deleted",
-        description: `Login for ${editingMember.email} has been removed.`,
-      });
-  
-      handleCloseEdit();
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete user.",
-        variant: "destructive",
-      });
-    }
-  }  
   
   const handleDeleteUserAccount = async () => {
     if (!loginEmail) {
@@ -287,24 +231,18 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
     }
   
     try {
-      setIsCreatingLogin(true);
+      setIsDeleting(true);
   
-      // 1. Delete Firebase Auth user
       const deleteUserFn = httpsCallable(functions, "deleteUserByEmail");
       await deleteUserFn({ email: loginEmail });
   
-      // 2. Delete the User document (roles live here)
-      const q = query(
-        collection(db, "users"),
-        where("email", "==", loginEmail)
-      );
+      const q = query(collection(db, "users"), where("email", "==", loginEmail));
       const snap = await getDocs(q);
   
       snap.forEach(async (docSnap) => {
         await deleteDoc(docSnap.ref);
       });
   
-      // 3. Reset UI state
       setLoginEmail("");
       setLoginPassword("");
       setSelectedRoles([]);
@@ -312,17 +250,16 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
       toast({
         title: "Success",
         description: "User account deleted",
-        variant: "default",
-      });      
+      });
     } catch (error) {
       console.error("Error deleting user:", error);
       toast({
         title: "Error",
         description: "Failed to delete user",
         variant: "destructive",
-      });      
+      });
     } finally {
-      setIsCreatingLogin(false);
+      setIsDeleting(false);
     }
   };  
   
@@ -401,7 +338,7 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
                 <div className="flex gap-2 items-start">
                   <Input
                     id="login-password"
-                    type="password"
+                    type="text"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     placeholder="Min. 6 characters"
@@ -419,11 +356,13 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
                   <Button
                     type="button"
                     variant="destructive"
-                    onClick={handleDeleteUserAccount}
                     size="sm"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    disabled={isDeleting}
                   >
-                    Delete
+                    {isDeleting ? "Deleting..." : "Delete"}
                   </Button>
+
                 </div>
 
               </div>
@@ -463,6 +402,34 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
           </div>
         </StandardDialogLayout>
       </Dialog>
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User Account</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the login for <strong>{loginEmail}</strong>.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDeleteConfirm(false)}>
+              Cancel
+            </AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={() => {
+                setShowDeleteConfirm(false);
+                handleDeleteUserAccount();
+              }}
+            >
+              Confirm Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </>
   );
 }
