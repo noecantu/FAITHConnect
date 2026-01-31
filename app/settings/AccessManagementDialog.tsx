@@ -15,6 +15,8 @@ import { listenToMembers } from '../lib/members';
 import type { Member } from '../lib/types';
 import { StandardDialogLayout } from '../components/layout/StandardDialogLayout';
 import { useUserRoles } from '../hooks/useUserRoles';
+import { deleteDoc } from "firebase/firestore";
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 const ROLE_MAP: Record<string, string> = {
   Admin: "Administrator",
@@ -44,7 +46,8 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
   const churchId = useChurchId();
 
   const { roles, loading: rolesLoading, isAdmin } = useUserRoles(churchId);
-
+  const functions = getFunctions();
+  
   // 🔥 Listen to members
   React.useEffect(() => {
     if (isListOpen && churchId) {
@@ -209,6 +212,120 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
 
   const getRoleDisplayName = (role: string) => ROLE_MAP[role] || role;
 
+  async function handleDeleteUser() {
+    if (!editingMember || !editingMember.email) {
+      toast({
+        title: "Error",
+        description: "This member does not have a login to delete.",
+        variant: "destructive",
+      });
+      return;
+    }
+  
+    if (!churchId) {
+      toast({
+        title: "Error",
+        description: "No church selected.",
+        variant: "destructive",
+      });
+      return;
+    }
+  
+    try {
+      // 1. Find the user document by email
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("email", "==", editingMember.email));
+      const snapshot = await getDocs(q);
+  
+      if (snapshot.empty) {
+        toast({
+          title: "No User Account",
+          description: "This member does not have a login.",
+          variant: "destructive",
+        });
+        return;
+      }
+  
+      const userDoc = snapshot.docs[0];
+      const userDocRef = doc(db, "users", userDoc.id);
+  
+      // 2. Delete the user document
+      await deleteDoc(userDocRef);
+  
+      // 3. Remove email from the member record
+      const memberRef = doc(
+        db,
+        "churches",
+        churchId as string,
+        "members",
+        editingMember.id
+      );
+  
+      await updateDoc(memberRef, { email: "" });
+  
+      // 4. Notify and close
+      toast({
+        title: "User Deleted",
+        description: `Login for ${editingMember.email} has been removed.`,
+      });
+  
+      handleCloseEdit();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete user.",
+        variant: "destructive",
+      });
+    }
+  }  
+  
+  const handleDeleteUserAccount = async () => {
+    if (!loginEmail) {
+      console.error("No login email provided");
+      return;
+    }
+  
+    try {
+      setIsCreatingLogin(true);
+  
+      // 1. Delete Firebase Auth user
+      const deleteUserFn = httpsCallable(functions, "deleteUserByEmail");
+      await deleteUserFn({ email: loginEmail });
+  
+      // 2. Delete the User document (roles live here)
+      const q = query(
+        collection(db, "users"),
+        where("email", "==", loginEmail)
+      );
+      const snap = await getDocs(q);
+  
+      snap.forEach(async (docSnap) => {
+        await deleteDoc(docSnap.ref);
+      });
+  
+      // 3. Reset UI state
+      setLoginEmail("");
+      setLoginPassword("");
+      setSelectedRoles([]);
+  
+      toast({
+        title: "Success",
+        description: "User account deleted",
+        variant: "default",
+      });      
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete user",
+        variant: "destructive",
+      });      
+    } finally {
+      setIsCreatingLogin(false);
+    }
+  };  
+  
   return (
     <>
       {/* LIST DIALOG */}
@@ -281,26 +398,34 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
                   />
                 </div>
 
-                <div className="grid gap-2">
-                  <Label htmlFor="login-password">New Password</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="login-password"
-                      type="password"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="Min. 6 characters"
-                    />
-                    <Button
-                      type="button"
-                      onClick={handleCreateLogin}
-                      disabled={isCreatingLogin || !loginEmail || !loginPassword}
-                      size="sm"
-                    >
-                      {isCreatingLogin ? "Creating..." : "Create"}
-                    </Button>
-                  </div>
+                <div className="flex gap-2 items-start">
+                  <Input
+                    id="login-password"
+                    type="password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    placeholder="Min. 6 characters"
+                  />
+
+                  <Button
+                    type="button"
+                    onClick={handleCreateLogin}
+                    disabled={isCreatingLogin || !loginEmail || !loginPassword}
+                    size="sm"
+                  >
+                    {isCreatingLogin ? "Creating..." : "Create"}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={handleDeleteUserAccount}
+                    size="sm"
+                  >
+                    Delete
+                  </Button>
                 </div>
+
               </div>
             </div>
 

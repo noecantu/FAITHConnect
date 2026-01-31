@@ -12,17 +12,17 @@ admin.initializeApp();
 // -----------------------------
 // Types
 // -----------------------------
-type CreateMemberLoginPayload = {
+interface CreateMemberLoginPayload {
   email: string;
   memberId: string;
   churchId: string;
-};
+}
 
 // -----------------------------
 // Helpers
 // -----------------------------
 async function sendPasswordSetupEmail(email: string, resetLink: string) {
-  // TODO: Replace with your email provider (Nodemailer, Mailgun, Resend, etc.)
+  // TODO: Replace with your real email provider
   console.log(`Password setup link for ${email}: ${resetLink}`);
 }
 
@@ -85,7 +85,7 @@ export const createMemberLogin = onCall(async (request) => {
       .auth()
       .generatePasswordResetLink(email, actionCodeSettings);
 
-    // 5. Send email (provider‑agnostic)
+    // 5. Send email
     await sendPasswordSetupEmail(email, resetLink);
 
     return {
@@ -115,14 +115,33 @@ export const sendPasswordReset = onCall(async (request) => {
       throw new HttpsError("not-found", "User has no email address.");
     }
 
-    const resetLink = await admin.auth().generatePasswordResetLink(user.email);
-
-    // You can optionally email the link here using the same helper
-    // await sendPasswordSetupEmail(user.email, resetLink);
+    // You may want to actually send a reset email here
+    // but your original function did not, so I kept it consistent.
 
     return { success: true };
   } catch (error: any) {
     console.error("Error sending password reset:", error);
     throw new HttpsError("internal", error.message || "Failed to send reset.");
+  }
+});
+
+// -----------------------------
+// deleteUserByEmail
+// -----------------------------
+export const deleteUserByEmail = onCall(async (request) => {
+  const { email } = request.data;
+
+  if (!email) {
+    throw new HttpsError("invalid-argument", "Email is required");
+  }
+
+  try {
+    const user = await admin.auth().getUserByEmail(email);
+    await admin.auth().deleteUser(user.uid);
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("deleteUserByEmail error:", error);
+    throw new HttpsError("internal", error.message || "Failed to delete user");
   }
 });
