@@ -14,7 +14,6 @@ import { useChurchId } from '../hooks/useChurchId';
 import { listenToMembers } from '../lib/members';
 import type { Member } from '../lib/types';
 import { StandardDialogLayout } from '../components/layout/StandardDialogLayout';
-import { useUserRoles } from '../hooks/useUserRoles';
 import { deleteDoc } from "firebase/firestore";
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import {
@@ -106,11 +105,16 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
     setSelectedRoles(roles);
     setLoginEmail(member.email || "");
     setLoginPassword("");
-  };  
+  };
 
-  // const hasAccount = !!userRolesByEmail[editingMember?.email ?? ""];
-  const hasAccount = !!editingMember?.email && !!userRolesByEmail[editingMember.email];
-
+  const sortedMembers = React.useMemo(() => {
+    return [...members].sort((a, b) => {
+      const nameA = `${a.lastName}, ${a.firstName}`.toLowerCase();
+      const nameB = `${b.lastName}, ${b.firstName}`.toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+  }, [members]);  
+  
   const handleCloseEdit = () => {
     setEditingMember(null);
   };
@@ -135,7 +139,7 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
       });
       return;
     }
-
+  
     if (loginPassword.length < 6) {
       toast({
         title: "Error",
@@ -144,41 +148,81 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
       });
       return;
     }
-
+  
     setIsCreatingLogin(true);
+  
     try {
-      const newUser = await createSecondaryUser(loginEmail, loginPassword);
-
-      const userDocRef = doc(db, "users", newUser.uid);
-      await setDoc(userDocRef, {
-        email: loginEmail,
-        displayName: `${editingMember.firstName} ${editingMember.lastName}`,
-        churchId,
-        roles: [],
-        createdAt: serverTimestamp(),
-      });
-
-      if (editingMember.email !== loginEmail) {
-        const memberDocRef = doc(db, "churches", churchId, "members", editingMember.id);
-        await updateDoc(memberDocRef, { email: loginEmail });
+      // 1️⃣ First: check if a user doc already exists for this email
+      const usersRef = collection(db, "users");
+      const existingQ = query(usersRef, where("email", "==", loginEmail));
+      const existingSnap = await getDocs(existingQ);
+  
+      let uid: string;
+  
+      if (!existingSnap.empty) {
+        // ✅ Existing user doc found — link to it
+        const existingUserDoc = existingSnap.docs[0];
+        uid = existingUserDoc.id;
+  
+        // Optionally keep user doc in sync
+        await setDoc(
+          doc(db, "users", uid),
+          {
+            email: loginEmail,
+            displayName: `${editingMember.firstName} ${editingMember.lastName}`,
+            churchId,
+          },
+          { merge: true }
+        );
+      } else {
+        // 2️⃣ No user doc — create a new auth user + user doc
+        const newUser = await createSecondaryUser(loginEmail, loginPassword);
+        uid = newUser.uid;
+  
+        const userDocRef = doc(db, "users", uid);
+        await setDoc(userDocRef, {
+          id: uid,
+          email: loginEmail,
+          displayName: `${editingMember.firstName} ${editingMember.lastName}`,
+          churchId,
+          roles: [],
+          createdAt: serverTimestamp(),
+        });
       }
-
+  
+      // 3️⃣ Link the member to this user via userId
+      const memberDocRef = doc(
+        db,
+        "churches",
+        churchId,
+        "members",
+        editingMember.id
+      );
+  
+      await updateDoc(memberDocRef, {
+        email: loginEmail,
+        userId: uid,
+      });
+  
       toast({
         title: "Success",
-        description: `Login created for ${loginEmail}.`,
+        description: `Login linked/created for ${loginEmail}.`,
       });
+  
       setLoginPassword("");
     } catch (error: any) {
-      console.error("Error creating login:", error);
+      console.error("Error creating/login linking:", error);
+  
       toast({
         title: "Error Creating Login",
-        description: error.message || "Failed to create user account.",
+        description:
+          error?.message || "Failed to create or link user account.",
         variant: "destructive",
       });
     } finally {
       setIsCreatingLogin(false);
     }
-  };
+  };    
 
   const handleUpdateRoles = async () => {
     if (!editingMember) return;
@@ -227,37 +271,49 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
   const getRoleDisplayName = (role: string) => ROLE_MAP[role] || role;
   
   const handleDeleteUserAccount = async () => {
-    if (!loginEmail) {
-      console.error("No login email provided");
+    if (!editingMember) return;
+    if (!churchId) {
+      console.warn("No churchId — cannot delete");
       return;
     }
   
+    const email = editingMember.email;
+    const userId = editingMember.userId;
+  
+    if (!email || typeof userId !== "string") {
+      console.warn("Cannot delete — missing email or userId");
+      return;
+    }
+  
+    setIsDeleting(true);
+  
     try {
-      setIsDeleting(true);
-  
       const deleteUserFn = httpsCallable(functions, "deleteUserByEmail");
-      await deleteUserFn({ email: loginEmail });
+      await deleteUserFn({ email });
   
-      const q = query(collection(db, "users"), where("email", "==", loginEmail));
-      const snap = await getDocs(q);
+      await deleteDoc(doc(db, "users", userId));
   
-      snap.forEach(async (docSnap) => {
-        await deleteDoc(docSnap.ref);
-      });
+      await updateDoc(
+        doc(db, "churches", churchId, "members", editingMember.id),
+        { userId: null }
+      );
   
-      setLoginEmail("");
-      setLoginPassword("");
-      setSelectedRoles([]);
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.id === editingMember.id ? { ...m, userId: null } : m
+        )
+      );
   
       toast({
         title: "Success",
-        description: "User account deleted",
+        description: "User account deleted.",
       });
-    } catch (error) {
-      console.error("Error deleting user:", error);
+  
+      handleCloseEdit();
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to delete user",
+        description: error.message || "Failed to delete user account.",
         variant: "destructive",
       });
     } finally {
@@ -282,27 +338,35 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
                 <Skeleton className="h-10 w-full" />
               </div>
             ) : (
-              members.map((member) => (
-                <div
-                  key={member.id}
-                  className="flex items-center justify-between p-2 border rounded-md"
-                >
-                  <div>
-                    <p className="font-semibold">
-                      {member.firstName} {member.lastName}
-                    </p>
-
-                    {/* 🔥 FIXED: Now showing USER roles, not MEMBER roles */}
-                    <p className="text-sm text-muted-foreground">
-                      {userRolesByEmail[member.email ?? ""] || "No roles assigned"}
-                    </p>
+              sortedMembers.map((member) => {
+                const hasAccount = !!member.userId;
+                const roles = hasAccount
+                  ? userRolesByEmail[member.email ?? ""] || []
+                  : [];
+              
+                return (
+                  <div
+                    key={member.id}
+                    className="flex items-center justify-between p-2 border rounded-md"
+                  >
+                    <div>
+                      <p className="font-semibold">
+                        {member.firstName} {member.lastName}
+                      </p>
+              
+                      <p className="text-sm text-muted-foreground">
+                        {hasAccount
+                          ? `Account: ${roles || "No Roles Assigned"}`
+                          : "No Account"}
+                      </p>
+                    </div>
+              
+                    <Button variant="outline" onClick={() => handleEditClick(member)}>
+                      Edit
+                    </Button>
                   </div>
-
-                  <Button variant="outline" onClick={() => handleEditClick(member)}>
-                    Edit
-                  </Button>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </StandardDialogLayout>
@@ -315,106 +379,113 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
           if (!open) handleCloseEdit();
         }}
       >
-        <StandardDialogLayout
-          title={`User Access: ${editingMember?.firstName} ${editingMember?.lastName}`}
-          description="Create or update login credentials and assign roles."
-          onClose={handleCloseEdit}
-          footer={<Button onClick={handleUpdateRoles}>Update Roles</Button>}
-        >
-          <div className="space-y-6">
-            {/* Login Creation Section */}
-            <div className="space-y-4 p-4 border rounded-md bg-muted/30">
-              <h4 className="text-md font-bold">Create/Update Login</h4>
+        {editingMember && (() => {
+          const hasAccount = typeof editingMember.userId === "string";
 
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="login-email">Email (Username)</Label>
-                  <Input
-                    id="login-email"
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                    placeholder="member@example.com"
-                  />
-                </div>
+          const roles = hasAccount
+            ? userRolesByEmail[editingMember.email ?? ""] || []
+            : [];
 
-                <div className="flex gap-2 items-start">
-                  <Input
-                    id="login-password"
-                    type="text"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    placeholder="Min. 6 characters"
-                  />
-
-                  <Button
-                    type="button"
-                    onClick={handleCreateLogin}
-                    disabled={isCreatingLogin || !loginEmail || !loginPassword}
-                    size="sm"
-                  >
-                    {isCreatingLogin ? "Creating..." : "Create"}
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setShowDeleteConfirm(true)}
-                    disabled={!hasAccount || isDeleting}
-                    className={!hasAccount ? "opacity-50 cursor-not-allowed" : ""}
-                  >
-                    {isDeleting ? "Deleting..." : "Delete"}
-                  </Button>
-
-                </div>
-
-              </div>
-            </div>
-
-            {/* Roles & Permissions Section */}
-            <div
-              className={`space-y-4 p-4 border rounded-md bg-muted/30 ${
-                !hasAccount ? "opacity-50 pointer-events-none" : ""
-              }`}
+          return (
+            <StandardDialogLayout
+              title={`User Access: ${editingMember.firstName} ${editingMember.lastName}`}
+              description="Create or update login credentials and assign roles."
+              onClose={handleCloseEdit}
+              footer={<Button onClick={handleUpdateRoles}>Update Roles</Button>}
             >
-              <h4 className="text-md font-bold">Roles & Permissions</h4>
+              <div className="space-y-6">
+                {/* Login Creation Section */}
+                <div className="space-y-4 p-4 border rounded-md bg-muted/30">
+                  <h4 className="text-md font-bold">Create/Update Login</h4>
 
-              {!hasAccount && (
-                <p className="text-sm text-muted-foreground">
-                  Create a login first to assign roles.
-                </p>
-              )}
+                  <div className="grid gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="login-email">Email (Username)</Label>
+                      <Input
+                        id="login-email"
+                        value={loginEmail}
+                        onChange={(e) => setLoginEmail(e.target.value)}
+                        placeholder="member@example.com"
+                      />
+                    </div>
 
-              <div className="space-y-2">
-                {ALL_ROLES.map((role) => (
-                  <div key={role} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`role-${role}`}
-                      checked={selectedRoles.includes(role)}
-                      onCheckedChange={(checked) => handleRoleChange(role, !!checked)}
-                      disabled={
-                        !hasAccount ||
-                        (role !== "Admin" && selectedRoles.includes("Admin"))
-                      }
-                    />
-                    <Label
-                      htmlFor={`role-${role}`}
-                      className={
-                        !hasAccount ||
-                        (role !== "Admin" && selectedRoles.includes("Admin"))
-                          ? "text-muted-foreground"
-                          : ""
-                      }
-                    >
-                      {getRoleDisplayName(role)}
-                    </Label>
+                    <div className="flex gap-2 items-start">
+                      <Input
+                        id="login-password"
+                        type="text"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        placeholder="Min. 6 characters"
+                      />
+
+                      <Button
+                        type="button"
+                        onClick={handleCreateLogin}
+                        disabled={isCreatingLogin || !loginEmail || !loginPassword}
+                        size="sm"
+                      >
+                        {isCreatingLogin ? "Creating..." : "Create"}
+                      </Button>
+
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setShowDeleteConfirm(true)}
+                        disabled={!hasAccount || isDeleting}
+                        className={!hasAccount ? "opacity-50 cursor-not-allowed" : ""}
+                      >
+                        {isDeleting ? "Deleting..." : "Delete"}
+                      </Button>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
 
-          </div>
-        </StandardDialogLayout>
+                {/* Roles & Permissions Section */}
+                <div
+                  className={`space-y-4 p-4 border rounded-md bg-muted/30 ${
+                    !hasAccount ? "opacity-50 pointer-events-none" : ""
+                  }`}
+                >
+                  <h4 className="text-md font-bold">Roles & Permissions</h4>
+
+                  {!hasAccount && (
+                    <p className="text-sm text-muted-foreground">
+                      Create a login first to assign roles.
+                    </p>
+                  )}
+
+                  <div className="space-y-2">
+                    {ALL_ROLES.map((role) => (
+                      <div key={role} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`role-${role}`}
+                          checked={selectedRoles.includes(role)}
+                          onCheckedChange={(checked) => handleRoleChange(role, !!checked)}
+                          disabled={
+                            !hasAccount ||
+                            (role !== "Admin" && selectedRoles.includes("Admin"))
+                          }
+                        />
+                        <Label
+                          htmlFor={`role-${role}`}
+                          className={
+                            !hasAccount ||
+                            (role !== "Admin" && selectedRoles.includes("Admin"))
+                              ? "text-muted-foreground"
+                              : ""
+                          }
+                        >
+                          {getRoleDisplayName(role)}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </StandardDialogLayout>
+          );
+        })()}
       </Dialog>
 
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
