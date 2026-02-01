@@ -148,7 +148,9 @@ export interface SongInput {
 
 export interface User {
   id: string;
-  displayName?: string;
+  churchId: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   roles: string[];
   settings?: {

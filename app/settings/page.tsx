@@ -165,12 +165,12 @@ export default function SettingsPage() {
         {isAdmin && (
           <Card>
             <CardHeader>
-              <CardTitle>Members</CardTitle>
-              <CardDescription>Manage member settings and roles for your organization.</CardDescription>
+              <CardTitle>User Accounts</CardTitle>
+              <CardDescription>Manage accounts and roles for your organization.</CardDescription>
             </CardHeader>
             <CardContent>
               <AccessManagementDialog>
-                <Button className="w-full sm:w-auto">Manage Roles</Button>
+                <Button className="w-full sm:w-auto">Manage</Button>
               </AccessManagementDialog>
             </CardContent>
           </Card>
