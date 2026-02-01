@@ -108,7 +108,8 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
     setLoginPassword("");
   };  
 
-  const hasAccount = !!userRolesByEmail[editingMember?.email ?? ""];
+  // const hasAccount = !!userRolesByEmail[editingMember?.email ?? ""];
+  const hasAccount = !!editingMember?.email && !!userRolesByEmail[editingMember.email];
 
   const handleCloseEdit = () => {
     setEditingMember(null);
@@ -359,7 +360,8 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
                     variant="destructive"
                     size="sm"
                     onClick={() => setShowDeleteConfirm(true)}
-                    disabled={isDeleting}
+                    disabled={!hasAccount || isDeleting}
+                    className={!hasAccount ? "opacity-50 cursor-not-allowed" : ""}
                   >
                     {isDeleting ? "Deleting..." : "Delete"}
                   </Button>
