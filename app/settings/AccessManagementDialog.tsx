@@ -55,7 +55,6 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
   const { toast } = useToast();
   const churchId = useChurchId();
 
-  const { roles, loading: rolesLoading, isAdmin } = useUserRoles(churchId);
   const functions = getFunctions();
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
@@ -97,7 +96,7 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
 
   const handleEditClick = (member: Member) => {
     setEditingMember(member);
-  
+
     // 🔥 Find the user doc for this member
     const user = users.find((u) => u.email === member.email);
   
@@ -108,6 +107,8 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
     setLoginEmail(member.email || "");
     setLoginPassword("");
   };  
+
+  const hasAccount = !!userRolesByEmail[editingMember?.email ?? ""];
 
   const handleCloseEdit = () => {
     setEditingMember(null);
@@ -369,8 +370,18 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
             </div>
 
             {/* Roles & Permissions Section */}
-            <div className="space-y-4 p-4 border rounded-md bg-muted/30">
+            <div
+              className={`space-y-4 p-4 border rounded-md bg-muted/30 ${
+                !hasAccount ? "opacity-50 pointer-events-none" : ""
+              }`}
+            >
               <h4 className="text-md font-bold">Roles & Permissions</h4>
+
+              {!hasAccount && (
+                <p className="text-sm text-muted-foreground">
+                  Create a login first to assign roles.
+                </p>
+              )}
 
               <div className="space-y-2">
                 {ALL_ROLES.map((role) => (
@@ -378,17 +389,17 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
                     <Checkbox
                       id={`role-${role}`}
                       checked={selectedRoles.includes(role)}
-                      onCheckedChange={(checked) =>
-                        handleRoleChange(role, !!checked)
-                      }
+                      onCheckedChange={(checked) => handleRoleChange(role, !!checked)}
                       disabled={
-                        role !== "Admin" && selectedRoles.includes("Admin")
+                        !hasAccount ||
+                        (role !== "Admin" && selectedRoles.includes("Admin"))
                       }
                     />
                     <Label
                       htmlFor={`role-${role}`}
                       className={
-                        role !== "Admin" && selectedRoles.includes("Admin")
+                        !hasAccount ||
+                        (role !== "Admin" && selectedRoles.includes("Admin"))
                           ? "text-muted-foreground"
                           : ""
                       }
@@ -399,6 +410,7 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
                 ))}
               </div>
             </div>
+
           </div>
         </StandardDialogLayout>
       </Dialog>
