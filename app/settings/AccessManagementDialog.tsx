@@ -204,6 +204,11 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
         userId: uid,
       });
   
+      // 🔥 Immediately unlock roles section in UI
+      setEditingMember((prev) =>
+        prev ? { ...prev, userId: uid } : prev
+      );
+
       toast({
         title: "Success",
         description: `Login linked/created for ${loginEmail}.`,
@@ -319,7 +324,7 @@ export function AccessManagementDialog({ children }: { children: React.ReactNode
     } finally {
       setIsDeleting(false);
     }
-  };  
+  };
   
   return (
     <>
