@@ -165,11 +165,11 @@ export default function SettingsPage() {
               <CardTitle>User Accounts</CardTitle>
               <CardDescription>Manage accounts and roles for your organization.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <AccessManagementController />
-                {/* <Button className="w-full sm:w-auto">Manage</Button> */}
-              {/* </AccessManagementController> */}
-            </CardContent>
+              <CardContent>
+                <Button asChild>
+                  <a href="/settings/access-management">Open Access Management</a>
+                </Button>
+              </CardContent>
           </Card>
         )}
 

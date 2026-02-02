@@ -24,6 +24,7 @@ import { Skeleton } from '../components/ui/skeleton';
 import { StandardDialogLayout } from '../components/layout/StandardDialogLayout';
 import { useToast } from '../hooks/use-toast';
 import { useChurchId } from '../hooks/useChurchId';
+import { app } from "../lib/firebase";
 
 import {
   AlertDialog,
@@ -35,7 +36,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../components/ui/alert-dialog';
-
 
 // ---------------------------------------------------------
 // ROLE MAP
@@ -53,7 +53,6 @@ export type Role = keyof typeof ROLE_MAP;
 
 export const ALL_ROLES: Role[] = Object.keys(ROLE_MAP) as Role[];
 
-
 // ---------------------------------------------------------
 // USER TYPE
 // ---------------------------------------------------------
@@ -65,7 +64,6 @@ export interface User {
   email: string;
   roles: Role[];
 }
-
 
 // ---------------------------------------------------------
 // MANAGE USERS DIALOG
@@ -132,7 +130,6 @@ function ManageUsersDialog({
   );
 }
 
-
 // ---------------------------------------------------------
 // CREATE USER DIALOG
 // ---------------------------------------------------------
@@ -166,7 +163,9 @@ function CreateUserDialog({
   isCreating,
 }: CreateUserDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={(open) => {
+      if (!open) onClose();
+    }}>
       <StandardDialogLayout
         title="Create User Account"
         description="Add a new user to this church."
@@ -209,7 +208,6 @@ function CreateUserDialog({
     </Dialog>
   );
 }
-
 
 // ---------------------------------------------------------
 // EDIT USER DIALOG
@@ -255,7 +253,12 @@ function EditUserDialog({
 }: EditUserDialogProps) {
   return (
     <>
-      <Dialog open={open} onOpenChange={onClose}>
+      <Dialog
+        open={open}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) onClose();
+        }}
+      >
         <StandardDialogLayout
           title={`Edit User: ${user?.firstName ?? ""} ${user?.lastName ?? ""}`}
           description="Update user details and roles."
@@ -325,15 +328,15 @@ function EditUserDialog({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
 
             <AlertDialogAction asChild>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setShowDeleteConfirm(false);
-                  onDelete();
-                }}
-              >
-                Confirm Delete
-              </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                await onDelete();
+                setShowDeleteConfirm(false);
+              }}
+            >
+              Confirm Delete
+            </Button>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -342,14 +345,13 @@ function EditUserDialog({
   );
 }
 
-
 // ---------------------------------------------------------
 // ACCESS MANAGEMENT CONTROLLER
 // ---------------------------------------------------------
 export function AccessManagementController() {
   const churchId = useChurchId();
   const { toast } = useToast();
-  const functions = getFunctions();
+  const functions = getFunctions(app, "us-central1");
 
   const [users, setUsers] = React.useState<User[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -370,7 +372,6 @@ export function AccessManagementController() {
   const [isSaving, setIsSaving] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
 
-
   // LOAD USERS
   React.useEffect(() => {
     if (!churchId) return;
@@ -390,7 +391,6 @@ export function AccessManagementController() {
     return () => unsub();
   }, [churchId]);
 
-
   // RESET FORM
   const resetForm = () => {
     setFirstName("");
@@ -400,7 +400,6 @@ export function AccessManagementController() {
     setSelectedRoles([]);
     setEditingUser(null);
   };
-
 
   // CREATE USER
   const handleCreateUser = async () => {
@@ -438,7 +437,6 @@ export function AccessManagementController() {
     }
   };
 
-
   // SAVE USER
   const handleSaveUser = async () => {
     if (!editingUser) return;
@@ -464,7 +462,6 @@ export function AccessManagementController() {
     }
   };
 
-
   // DELETE USER
   const handleDeleteUser = async () => {
     if (!editingUser) return;
@@ -472,8 +469,8 @@ export function AccessManagementController() {
     setIsDeleting(true);
 
     try {
-      const deleteFn = httpsCallable(functions, "deleteUserByEmail");
-      await deleteFn({ email: editingUser.email });
+      const deleteFn = httpsCallable(functions, "deleteUserByUid");
+      await deleteFn({ uid: editingUser.id });      
 
       await deleteDoc(doc(db, "users", editingUser.id));
 
@@ -488,7 +485,6 @@ export function AccessManagementController() {
     }
   };
 
-
   // ROLE CHANGE
   const handleRoleChange = (role: Role, checked: boolean) => {
     if (role === "Admin") {
@@ -502,7 +498,6 @@ export function AccessManagementController() {
       });
     }
   };
-
 
   // ---------------------------------------------------------
   // RETURN — CONDITIONAL RENDERING (THE FIX)
@@ -524,7 +519,6 @@ export function AccessManagementController() {
           setShowManage(open);
           if (!open) {
             resetForm();
-            setEditingUser(null);
           }
         }}
         users={users}

@@ -145,3 +145,28 @@ export const deleteUserByEmail = onCall(async (request) => {
     throw new HttpsError("internal", error.message || "Failed to delete user");
   }
 });
+
+// -----------------------------
+// deleteUserByUid
+// -----------------------------
+export const deleteUserByUid = onCall(async (request) => {
+  console.log("deleteUserByUid request:", request.data);
+
+  const { uid } = request.data;
+
+  if (!uid) {
+    console.error("deleteUserByUid missing UID");
+    throw new HttpsError("invalid-argument", "UID is required");
+  }
+
+  try {
+    console.log("Deleting user:", uid);
+    await admin.auth().deleteUser(uid);
+    console.log("Deleted user:", uid);
+    return { success: true };
+  } catch (error: any) {
+    console.error("deleteUserByUid error:", error);
+    throw new HttpsError("internal", error.message || "Failed to delete user");
+  }
+});
+
