@@ -1,6 +1,5 @@
 'use client';
 
-import { AccessManagementDialog } from '../../settings/AccessManagementDialog';
 import { Button } from '../../components/ui/button';
 
 export default function AccessSettingsPage() {
@@ -10,10 +9,6 @@ export default function AccessSettingsPage() {
       <p className="text-muted-foreground">
         Manage user accounts, logins, and roles for your organization.
       </p>
-
-      <AccessManagementDialog>
-        <Button>Manage Access</Button>
-      </AccessManagementDialog>
     </div>
   );
 }

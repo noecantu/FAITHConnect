@@ -2,11 +2,7 @@
 
 import { PageHeader } from '../components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
-import { Label } from "../components/ui/label";
 import { Button } from '../components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { AccessManagementDialog } from './AccessManagementDialog';
 import * as React from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useChurchId } from '../hooks/useChurchId';
@@ -17,6 +13,7 @@ import { useToast } from '../hooks/use-toast';
 import { listenToContributions } from '../lib/contributions';
 import { useEffect, useMemo, useState } from 'react';
 import { Contribution } from '../lib/types';
+import { AccessManagementController } from './ManageUsersDialog';
 
 export default function SettingsPage() {
   const [calendarView, setCalendarView] = React.useState('calendar');
@@ -169,9 +166,9 @@ export default function SettingsPage() {
               <CardDescription>Manage accounts and roles for your organization.</CardDescription>
             </CardHeader>
             <CardContent>
-              <AccessManagementDialog>
-                <Button className="w-full sm:w-auto">Manage</Button>
-              </AccessManagementDialog>
+              <AccessManagementController />
+                {/* <Button className="w-full sm:w-auto">Manage</Button> */}
+              {/* </AccessManagementController> */}
             </CardContent>
           </Card>
         )}
