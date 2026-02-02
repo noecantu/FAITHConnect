@@ -1,179 +1,392 @@
 'use client';
 
-import { PageHeader } from '../components/page-header';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Button } from '../components/ui/button';
 import * as React from 'react';
-import { useAuth } from '../hooks/useAuth';
-import { useChurchId } from '../hooks/useChurchId';
-import { useUserRoles } from '../hooks/useUserRoles';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { useToast } from '../hooks/use-toast';
-import { listenToContributions } from '../lib/contributions';
-import { useEffect, useMemo, useState } from 'react';
-import { Contribution } from '../lib/types';
-import { AccessManagementController } from './ManageUsersDialog';
+import {
+  collection,
+  doc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  query,
+  where,
+  serverTimestamp,
+} from 'firebase/firestore';
+import { db, createSecondaryUser } from '@/app/lib/firebase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { Label } from '@/app/components/ui/label';
+import { Checkbox } from '@/app/components/ui/checkbox';
+import { Skeleton } from '@/app/components/ui/skeleton';
+import { useToast } from '@/app/hooks/use-toast';
+import { useChurchId } from '@/app/hooks/useChurchId';
+import { ROLE_MAP, ALL_ROLES, Role } from '@/app/lib/roles';
+import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { Fab } from '@/app/components/ui/fab';
 
-export default function SettingsPage() {
-  const [calendarView, setCalendarView] = React.useState('calendar');
-  const [fiscalYear, setFiscalYear] = React.useState(new Date().getFullYear().toString());
-  const [cardView, setCardView] = React.useState('member-card');
+export interface User {
+  id: string;
+  churchId: string;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  roles: Role[];
+}
 
-  const { user } = useAuth();
+type Mode = 'list' | 'create' | 'edit' | 'confirm-delete';
+
+export default function AccessManagementPage() {
   const churchId = useChurchId();
   const { toast } = useToast();
+  const functions = getFunctions(undefined, 'us-central1');
 
-  const [contributions, setContributions] = useState<Contribution[]>([]);
+  const [users, setUsers] = React.useState<User[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  const [mode, setMode] = React.useState<Mode>('list');
+  const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
+
+  const [firstName, setFirstName] = React.useState('');
+  const [lastName, setLastName] = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [selectedRoles, setSelectedRoles] = React.useState<Role[]>([]);
+
+  const [isCreating, setIsCreating] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(false);
   const { roles, isAdmin } = useUserRoles(churchId);
-  const canSeeFinancialYear = isAdmin || roles.includes("Finance");
-  
-  useEffect(() => {
+
+  // Load users
+  React.useEffect(() => {
     if (!churchId) return;
-    const unsubscribe = listenToContributions(churchId, setContributions);
-    return () => unsubscribe();
+
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('churchId', '==', churchId));
+
+    const unsub = onSnapshot(q, (snap) => {
+      const list = snap.docs.map((d) => ({
+        ...(d.data() as User),
+        id: d.id,
+      }));
+      setUsers(list);
+      setLoading(false);
+    });
+
+    return () => unsub();
   }, [churchId]);
 
-  // Load settings from localStorage + Firestore
-  React.useEffect(() => {
-    const savedView = localStorage.getItem("calendarView");
-    if (savedView === 'calendar' || savedView === 'list') {
-      setCalendarView(savedView);
-    }
+  const resetForm = () => {
+    setFirstName('');
+    setLastName('');
+    setEmail('');
+    setPassword('');
+    setSelectedRoles([]);
+    setSelectedUser(null);
+  };
 
-    const savedYear = localStorage.getItem("fiscalYear");
-    if (savedYear) {
-      setFiscalYear(savedYear);
-    }
-
-    const savedCardView = localStorage.getItem("cardView");
-    if (savedCardView === 'show' || savedCardView === 'hide') {
-      setCardView(savedCardView);
-    }
-
-    const fetchUserSettings = async () => {
-      if (!user) return;
-
-      try {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-
-          if (data.settings?.calendarView) {
-            setCalendarView(data.settings.calendarView);
-            localStorage.setItem("calendarView", data.settings.calendarView);
-          }
-
-          if (data.settings?.fiscalYear) {
-            setFiscalYear(data.settings.fiscalYear);
-            localStorage.setItem("fiscalYear", data.settings.fiscalYear);
-          }
-
-          if (data.settings?.cardView) {
-            setCardView(data.settings.cardView);
-            localStorage.setItem("cardView", data.settings.cardView);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching user settings:", error);
-      }
-    };
-
-    fetchUserSettings();
-  }, [user]);
-
-  const handleCalendarViewChange = async (value: string) => {
-    if (value !== 'calendar' && value !== 'list') return;
-
-    setCalendarView(value);
-    localStorage.setItem("calendarView", value);
-
-    if (!user) return;
-
-    try {
-      const userDocRef = doc(db, 'users', user.uid);
-      await updateDoc(userDocRef, { 'settings.calendarView': value });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save settings.",
-        variant: "destructive",
+  const handleRoleChange = (role: Role, checked: boolean) => {
+    if (role === 'Admin') {
+      setSelectedRoles(checked ? ['Admin'] : []);
+    } else {
+      setSelectedRoles((prev) => {
+        const next = checked ? [...prev, role] : prev.filter((r) => r !== role);
+        return next.filter((r) => r !== 'Admin');
       });
     }
   };
 
-  const handleCardViewChange = async (value: string) => {
-    if (value !== 'show' && value !== 'hide') return;
+  // CREATE
+  const handleCreateUser = async () => {
+    if (!churchId) return;
 
-    setCardView(value);
-    localStorage.setItem("cardView", value);
+    if (!firstName || !lastName || !email || !password) {
+      toast({ title: 'Missing fields', description: 'Please fill all fields.' });
+      return;
+    }
 
-    if (!user) return;
+    setIsCreating(true);
 
     try {
-      const userDocRef = doc(db, 'users', user.uid);
-      await updateDoc(userDocRef, { 'settings.cardView': value });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save settings.",
-        variant: "destructive",
+      const authUser = await createSecondaryUser(email, password);
+      const uid = authUser.uid;
+
+      await setDoc(doc(db, 'users', uid), {
+        id: uid,
+        churchId,
+        firstName,
+        lastName,
+        email,
+        roles: selectedRoles,
+        createdAt: serverTimestamp(),
       });
+
+      toast({ title: 'Success', description: 'User created.' });
+      resetForm();
+      setMode('list');
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message });
+    } finally {
+      setIsCreating(false);
     }
   };
 
-  const handleFiscalYearChange = async (value: string) => {
-    setFiscalYear(value);
-    localStorage.setItem("fiscalYear", value);
+  // SAVE
+  const handleSaveUser = async () => {
+    if (!selectedUser) return;
 
-    if (!user) return;
+    setIsSaving(true);
 
     try {
-      const userDocRef = doc(db, 'users', user.uid);
-      await updateDoc(userDocRef, { 'settings.fiscalYear': value });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save settings.",
-        variant: "destructive",
+      await updateDoc(doc(db, 'users', selectedUser.id), {
+        firstName,
+        lastName,
+        email,
+        roles: selectedRoles,
       });
+
+      toast({ title: 'Success', description: 'User updated.' });
+      resetForm();
+      setMode('list');
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message });
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const availableYears = useMemo(() => {
-    const years = new Set<number>();
-  
-    contributions.forEach(c => {
-      const year = new Date(c.date).getFullYear();
-      years.add(year);
-    });
-  
-    return Array.from(years).sort((a, b) => b - a);
-  }, [contributions]);
-  
-  return (
-    <>
-      <PageHeader title="Settings" />
+  // DELETE
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    setIsDeleting(true);
 
-        {isAdmin && (
-          <Card>
-            <CardHeader>
-              <CardTitle>User Accounts</CardTitle>
-              <CardDescription>Manage accounts and roles for your organization.</CardDescription>
-            </CardHeader>
-              <CardContent>
-                <Button asChild>
-                  <a href="/settings/access-management">Open Access Management</a>
-                </Button>
-              </CardContent>
-          </Card>
-        )}
+    try {
+      const deleteFn = httpsCallable(functions, 'deleteUserByUid');
+      await deleteFn({ uid: selectedUser.id });
 
+      await deleteDoc(doc(db, 'users', selectedUser.id));
+
+      toast({ title: 'Success', description: 'User deleted.' });
+      resetForm();
+      setMode('list');
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Helpers to enter modes
+  const startCreate = () => {
+    resetForm();
+    setMode('create');
+  };
+
+  const startEdit = (user: User) => {
+    setSelectedUser(user);
+    setFirstName(user.firstName ?? '');
+    setLastName(user.lastName ?? '');
+    setEmail(user.email);
+    setSelectedRoles(user.roles ?? []);
+    setMode('edit');
+  };
+
+  const startConfirmDelete = (user: User) => {
+    setSelectedUser(user);
+    setMode('confirm-delete');
+  };
+
+  const goBackToList = () => {
+    resetForm();
+    setMode('list');
+  };
+
+  // RENDER
+  if (loading) {
+    return (
+      <div className="p-6 space-y-4">
+        <h1 className="text-2xl font-bold">Accounts</h1>
+        <Skeleton className="h-10 w-full" />
       </div>
-    </>
+    );
+  }
+
+  return (
+    <div className="p-6 space-y-6">
+        {/* <nav className="text-sm text-muted-foreground mb-2">
+            <span>Settings</span>
+            <span className="mx-2">/</span>
+            <span className="text-foreground">Accounts</span>
+        </nav> */}
+        <div className="flex items-center justify-between">
+            <div>
+            <h1 className="text-2xl font-bold">Accounts</h1>
+            <p className="text-sm text-muted-foreground">
+                Manage user accounts and roles for your organization.
+            </p>
+            </div>
+        </div>
+
+      {mode === 'list' && (
+        <div className="space-y-2">
+          {users.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              No users found for this church.
+            </p>
+          )}
+
+          {users.map((u) => (
+            <div
+              key={u.id}
+              className="flex items-center justify-between p-2 border rounded-md"
+            >
+              <div>
+                <p className="font-semibold">
+                  {(u.firstName ?? '') + ' ' + (u.lastName ?? '')}
+                </p>
+                <p className="text-sm text-muted-foreground">{u.email}</p>
+                <p className="text-xs text-muted-foreground">
+                  {u.roles.length
+                    ? u.roles.map((r) => ROLE_MAP[r]).join(', ')
+                    : 'No roles assigned'}
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => startEdit(u)}>
+                  Edit
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => startConfirmDelete(u)}
+                >
+                  Delete
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {(mode === 'create' || mode === 'edit') && (
+        <div className="space-y-4 border rounded-md p-4 bg-muted/30">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">
+              {mode === 'create' ? 'Create User Account' : 'Edit User Account'}
+            </h2>
+          </div>
+
+          <div className="grid gap-4">
+            <div className="grid gap-1">
+              <Label>First Name</Label>
+              <Input
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+            </div>
+
+            <div className="grid gap-1">
+              <Label>Last Name</Label>
+              <Input
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
+            </div>
+
+            <div className="grid gap-1">
+              <Label>Email</Label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            {mode === 'create' && (
+              <div className="grid gap-1">
+                <Label>Password</Label>
+                <Input
+                  type="text"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Min. 6 characters"
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="mt-4 space-y-4">
+            <h4 className="text-md font-bold">Roles & Permissions</h4>
+            <div className="space-y-2">
+              {ALL_ROLES.map((role) => (
+                <div key={role} className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={selectedRoles.includes(role)}
+                    onCheckedChange={(checked) =>
+                      handleRoleChange(role, !!checked)
+                    }
+                  />
+                  <Label>{ROLE_MAP[role]}</Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={goBackToList}>
+              Cancel
+            </Button>
+            {mode === 'create' ? (
+              <Button onClick={handleCreateUser} disabled={isCreating}>
+                {isCreating ? 'Creating...' : 'Create Account'}
+              </Button>
+            ) : (
+              <Button onClick={handleSaveUser} disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {mode === 'confirm-delete' && selectedUser && (
+        <div className="space-y-4 border rounded-md p-4 bg-red-50">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-red-700">
+              Delete User Account
+            </h2>
+            <Button variant="ghost" onClick={goBackToList}>
+              Cancel
+            </Button>
+          </div>
+
+          <p className="text-sm text-red-800">
+            This will permanently delete the login for{' '}
+            <span className="font-semibold">{selectedUser.email}</span>.
+          </p>
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={goBackToList}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteUser}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+            </Button>
+          </div>
+        </div>
+      )}
+        {mode === 'list' && (
+            <div className="fixed bottom-6 right-6 z-50">
+                <Fab type="add" onClick={startCreate} />
+            </div>
+        )}
+    </div>
   );
 }
