@@ -24,7 +24,8 @@ import { useChurchId } from '@/app/hooks/useChurchId';
 import { ROLE_MAP, ALL_ROLES, Role } from '@/app/lib/roles';
 import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { Fab } from '@/app/components/ui/fab';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { PageHeader } from '../components/page-header';
 
 export interface User {
   id: string;
@@ -215,184 +216,204 @@ export default function AccessManagementPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">    
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Settings</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage settings, user accounts, and roles for your organization.
-          </p>
-        </div>
-      </div>
+    <>
+      <PageHeader
+        title="Settings"
+        subtitle="Manage user accounts and roles for your organization."
+        className="mb-2"
+      />
   
-      {/* Main Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>User Accounts</CardTitle>
-        </CardHeader>
-  
-        <CardContent className="space-y-6">
-  
-          {/* LIST MODE */}
-          {mode === 'list' && (
-            <div className="space-y-2">
-              {users.length === 0 && (
+      {/* LIST MODE */}
+      {mode === 'list' && (
+        <Card>
+            <CardHeader>
+            <CardTitle>Accounts</CardTitle>
+            <CardDescription>
+                Create, delete, and add assigned roles here.
+            </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-2">
+
+            {users.length === 0 && (
                 <p className="text-sm text-muted-foreground">
-                  No users found for this church.
+                No users found for this church.
                 </p>
-              )}
-  
-              {users.map((u) => (
-                <div
-                  key={u.id}
-                  className="flex items-center justify-between p-4 border rounded-md bg-muted/20"
+            )}
+
+            {users.map((u) => (
+                <button
+                key={u.id}
+                onClick={() => startEdit(u)}
+                className="
+                    w-full text-left
+                    p-4 rounded-md border bg-muted/20
+                    hover:bg-muted transition
+                    focus:outline-none focus:ring-2 focus:ring-primary
+                "
                 >
-                  <div>
-                    <p className="font-semibold">
-                      {(u.firstName ?? '') + ' ' + (u.lastName ?? '')}
-                    </p>
-                    <p className="text-sm text-muted-foreground">{u.email}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {u.roles.length
-                        ? u.roles.map((r) => ROLE_MAP[r]).join(', ')
-                        : 'No roles assigned'}
-                    </p>
-                  </div>
-  
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => startEdit(u)}>
-                      Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => startConfirmDelete(u)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                <p className="font-semibold">
+                    {(u.firstName ?? '') + ' ' + (u.lastName ?? '')}
+                </p>
+
+                <p className="text-sm text-muted-foreground">{u.email}</p>
+
+                <p className="text-xs text-muted-foreground">
+                    {u.roles.length
+                    ? u.roles.map((r) => ROLE_MAP[r]).join(', ')
+                    : 'No roles assigned'}
+                </p>
+                </button>
+            ))}
+
+            </CardContent>
+        </Card>
+        )}
+
+    {(mode === 'create' || mode === 'edit') && (
+    <Card className="p-4 space-y-4">
+        <h2 className="text-lg font-semibold">
+        {mode === 'create' ? 'Create User Account' : 'Edit User Account'}
+        </h2>
+
+        <div className="grid gap-4">
+        <div className="grid gap-1">
+            <Label>First Name</Label>
+            <Input
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            />
+        </div>
+
+        <div className="grid gap-1">
+            <Label>Last Name</Label>
+            <Input
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            />
+        </div>
+
+        <div className="grid gap-1">
+            <Label>Email</Label>
+            <Input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            />
+        </div>
+
+        {mode === 'create' && (
+            <div className="grid gap-1">
+            <Label>Password</Label>
+            <Input
+                type="text"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Min. 6 characters"
+            />
             </div>
-          )}
-  
-          {/* CREATE / EDIT MODE */}
-          {(mode === 'create' || mode === 'edit') && (
-            <div className="space-y-4 border rounded-md p-4 bg-muted/30">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">
-                  {mode === 'create' ? 'Create User Account' : 'Edit User Account'}
-                </h2>
-              </div>
-  
-              <div className="grid gap-4">
-                <div className="grid gap-1">
-                  <Label>First Name</Label>
-                  <Input
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                  />
-                </div>
-  
-                <div className="grid gap-1">
-                  <Label>Last Name</Label>
-                  <Input
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                  />
-                </div>
-  
-                <div className="grid gap-1">
-                  <Label>Email</Label>
-                  <Input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-  
-                {mode === 'create' && (
-                  <div className="grid gap-1">
-                    <Label>Password</Label>
-                    <Input
-                      type="text"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Min. 6 characters"
-                    />
-                  </div>
-                )}
-              </div>
-  
-              <div className="mt-4 space-y-4">
-                <h4 className="text-md font-bold">Roles & Permissions</h4>
-                <div className="space-y-2">
-                  {ALL_ROLES.map((role) => (
-                    <div key={role} className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={selectedRoles.includes(role)}
-                        onCheckedChange={(checked) =>
-                          handleRoleChange(role, !!checked)
-                        }
-                      />
-                      <Label>{ROLE_MAP[role]}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-  
-              <div className="flex justify-end gap-2 mt-4">
-                <Button variant="outline" onClick={goBackToList}>
-                  Cancel
-                </Button>
-                {mode === 'create' ? (
-                  <Button onClick={handleCreateUser} disabled={isCreating}>
-                    {isCreating ? 'Creating...' : 'Create Account'}
-                  </Button>
-                ) : (
-                  <Button onClick={handleSaveUser} disabled={isSaving}>
-                    {isSaving ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                )}
-              </div>
+        )}
+        </div>
+
+        <div className="space-y-4">
+        <h4 className="text-md font-bold">Roles & Permissions</h4>
+        <div className="space-y-2">
+            {ALL_ROLES.map((role) => (
+            <div key={role} className="flex items-center space-x-2">
+                <Checkbox
+                checked={selectedRoles.includes(role)}
+                onCheckedChange={(checked) =>
+                    handleRoleChange(role, !!checked)
+                }
+                />
+                <Label>{ROLE_MAP[role]}</Label>
             </div>
-          )}
+            ))}
+        </div>
+        </div>
+
+        <div
+        className="
+            flex flex-col sm:flex-row
+            justify-end gap-2 mt-4
+        "
+        >
+        {mode === 'edit' && (
+            <Button
+            variant="destructive"
+            onClick={() => setMode('confirm-delete')}
+            className="w-full sm:w-auto"
+            >
+            Delete User
+            </Button>
+        )}
+
+        <Button
+            variant="outline"
+            onClick={goBackToList}
+            className="w-full sm:w-auto"
+        >
+            Cancel
+        </Button>
+
+        {mode === 'create' ? (
+            <Button
+            onClick={handleCreateUser}
+            disabled={isCreating}
+            className="w-full sm:w-auto"
+            >
+            {isCreating ? 'Creating...' : 'Create Account'}
+            </Button>
+        ) : (
+            <Button
+            onClick={handleSaveUser}
+            disabled={isSaving}
+            className="w-full sm:w-auto"
+            >
+            {isSaving ? 'Saving...' : 'Save Changes'}
+            </Button>
+        )}
+        </div>
+    </Card>
+    )}
   
-          {/* DELETE CONFIRMATION */}
-          {mode === 'confirm-delete' && selectedUser && (
-            <div className="space-y-4 border border-red-300 rounded-md p-4 bg-red-50">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-red-700">
-                  Delete User Account
-                </h2>
-                <Button variant="ghost" onClick={goBackToList}>
-                  Cancel
-                </Button>
-              </div>
+      {/* DELETE CONFIRMATION */}
+      {mode === 'confirm-delete' && selectedUser && (
+        <div className="space-y-4 border border-red-300 rounded-md p-4 bg-red-50">
+          <h2 className="text-lg font-semibold text-red-700">
+            Delete User Account
+          </h2>
   
-              <p className="text-sm text-red-800">
-                This will permanently delete the login for{' '}
-                <span className="font-semibold">{selectedUser.email}</span>.
-              </p>
+          <p className="text-sm text-red-800">
+            This will permanently delete the login for{' '}
+            <span className="font-semibold">{selectedUser.email}</span>.
+          </p>
   
-              <div className="flex justify-end gap-2 mt-4">
-                <Button variant="outline" onClick={goBackToList}>
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleDeleteUser}
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? 'Deleting...' : 'Confirm Delete'}
-                </Button>
-              </div>
-            </div>
-          )}
+          <div
+            className="
+              flex flex-col sm:flex-row
+              justify-end gap-2 mt-4
+            "
+          >
+            <Button
+              variant="outline"
+              onClick={goBackToList}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
   
-        </CardContent>
-      </Card>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteUser}
+              disabled={isDeleting}
+              className="w-full sm:w-auto"
+            >
+              {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+            </Button>
+          </div>
+        </div>
+      )}
   
       {/* Floating FAB */}
       {mode === 'list' && (
@@ -400,7 +421,6 @@ export default function AccessManagementPage() {
           <Fab type="add" onClick={startCreate} />
         </div>
       )}
-  
-    </div>
-  );  
+    </>
+  );
 }
