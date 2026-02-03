@@ -2,16 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { PageHeader } from '../../../components/page-header';
-import { Card } from '../../../components/ui/card';
-import { deleteSetList, getSetListById } from '../../../lib/setlists';
-import { SetList } from '../../../lib/types';
-import { useChurchId } from '../../../hooks/useChurchId';
-import { useUserRoles } from '../../../hooks/useUserRoles';
+import { PageHeader } from '@/app/components/page-header';
+import { Card } from '@/app/components/ui/card';
+import { deleteSetList, getSetListById } from '@/app/lib/setlists';
+import { SetList } from '@/app/lib/types';
+import { useChurchId } from '@/app/hooks/useChurchId';
+import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { format } from 'date-fns';
-import { Fab } from '../../../components/ui/fab';
+import { Fab } from '@/app/components/ui/fab';
 import { useRouter } from 'next/navigation';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../../../components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu';
 import { Copy, Pencil, Trash } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../../../components/ui/alert-dialog';
 
