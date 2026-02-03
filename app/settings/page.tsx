@@ -26,6 +26,9 @@ import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { Fab } from '@/app/components/ui/fab';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { PageHeader } from '../components/page-header';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
+import { Database, UserRoundPlus } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export interface User {
   id: string;
@@ -59,7 +62,9 @@ export default function AccessManagementPage() {
   const [isSaving, setIsSaving] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const { roles, isAdmin } = useUserRoles(churchId);
-
+  const [storageUsed, setStorageUsed] = useState<number | null>(null);
+  const [hasLoadedUsage, setHasLoadedUsage] = useState(false);
+    
   // Load users
   React.useEffect(() => {
     if (!churchId) return;
@@ -79,6 +84,26 @@ export default function AccessManagementPage() {
     return () => unsub();
   }, [churchId]);
 
+  useEffect(() => {
+    const fetchUsage = async () => {
+      try {
+        const res = await fetch("https://getfirestoreusage-nn2kyrzdaa-uc.a.run.app");
+  
+        const data = await res.json();
+        console.log("Usage data:", data);
+  
+        setStorageUsed(data.usageBytes);
+      } catch (err) {
+        console.error("Error fetching usage:", err);
+        setStorageUsed(null);
+      } finally {
+        setHasLoadedUsage(true);
+      }
+    };
+  
+    fetchUsage();
+  }, []);   
+  
   const resetForm = () => {
     setFirstName('');
     setLastName('');
@@ -87,7 +112,7 @@ export default function AccessManagementPage() {
     setSelectedRoles([]);
     setSelectedUser(null);
   };
-
+  
   const handleRoleChange = (role: Role, checked: boolean) => {
     if (role === 'Admin') {
       setSelectedRoles(checked ? ['Admin'] : []);
@@ -195,10 +220,10 @@ export default function AccessManagementPage() {
     setMode('edit');
   };
 
-  const startConfirmDelete = (user: User) => {
-    setSelectedUser(user);
-    setMode('confirm-delete');
-  };
+  // const startConfirmDelete = (user: User) => {
+  //   setSelectedUser(user);
+  //   setMode('confirm-delete');
+  // };
 
   const goBackToList = () => {
     resetForm();
@@ -233,61 +258,95 @@ export default function AccessManagementPage() {
   
       {/* LIST MODE */}
       {mode === 'list' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Accounts</CardTitle>
-            <CardDescription>
-              Create, delete, and add assigned roles here.
-            </CardDescription>
-          </CardHeader>
+          <>
+            {/* ACCOUNTS CARD */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-start justify-between w-full">
+                  <div>
+                    <CardTitle>Accounts</CardTitle>
+                    <CardDescription>
+                      Assign access and roles here.
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
 
-          <CardContent className="space-y-4">
+              <CardContent className="space-y-4">
+                {sortedUsers.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    No users found for this church.
+                  </p>
+                )}
 
-            {sortedUsers.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                No users found for this church.
-              </p>
-            )}
-
-            {/* GRID LAYOUT + SORTED */}
-            <div
-              className="
-                grid
-                grid-cols-1
-                sm:grid-cols-2
-                lg:grid-cols-3
-                gap-4
-              "
-            >
-              {sortedUsers.map((u) => (
-                <button
-                  key={u.id}
-                  onClick={() => startEdit(u)}
+                <div
                   className="
-                    w-full text-left
-                    p-4 rounded-md border bg-muted/20
-                    hover:bg-muted transition
-                    focus:outline-none focus:ring-2 focus:ring-primary
+                    grid
+                    grid-cols-1
+                    sm:grid-cols-2
+                    lg:grid-cols-3
+                    gap-4
                   "
                 >
-                  <p className="font-semibold">
-                    {(u.firstName ?? '') + ' ' + (u.lastName ?? '')}
+                  {sortedUsers.map((u) => (
+                    <button
+                      key={u.id}
+                      onClick={() => startEdit(u)}
+                      className="
+                        w-full text-left
+                        p-4 rounded-md border bg-muted/20
+                        hover:bg-muted transition
+                        focus:outline-none focus:ring-2 focus:ring-primary
+                      "
+                    >
+                      <p className="font-semibold">
+                        {(u.firstName ?? '') + ' ' + (u.lastName ?? '')}
+                      </p>
+
+                      <p className="text-sm text-muted-foreground">{u.email}</p>
+
+                      <p className="text-xs text-muted-foreground">
+                        {u.roles.length
+                          ? u.roles.map((r) => ROLE_MAP[r]).join(', ')
+                          : 'No roles assigned'}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* DATABASE STORAGE CARD */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Database Storage</CardTitle>
+                <CardDescription>
+                  View usage and storage allocation for your organization.
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">Total Storage Used</p>
+
+                {!hasLoadedUsage && (
+                  <p className="text-sm text-muted-foreground">Loading...</p>
+                )}
+
+                {hasLoadedUsage && storageUsed === null && (
+                  <p className="text-sm text-muted-foreground">No usage data available yet</p>
+                )}
+
+                {hasLoadedUsage && storageUsed !== null && (
+                  <p className="font-medium">
+                    {(storageUsed / 1024 / 1024).toFixed(2)} MB
                   </p>
-
-                  <p className="text-sm text-muted-foreground">{u.email}</p>
-
-                  <p className="text-xs text-muted-foreground">
-                    {u.roles.length
-                      ? u.roles.map((r) => ROLE_MAP[r]).join(', ')
-                      : 'No roles assigned'}
-                  </p>
-                </button>
-              ))}
-            </div>
-
-          </CardContent>
-        </Card>
-      )}
+                )}
+              </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
 
     {(mode === 'create' || mode === 'edit') && (
     <Card className="p-4 space-y-4">
@@ -433,13 +492,34 @@ export default function AccessManagementPage() {
           </div>
         </div>
       )}
-  
-      {/* Floating FAB */}
-      {mode === 'list' && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <Fab type="add" onClick={startCreate} />
-        </div>
-      )}
+
+      {/* Floating FAB Menu */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Fab type="menu" />
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent
+          side="top"
+          align="end"
+          className="min-w-0 w-10 bg-white/10 backdrop-blur-sm border border-white/10 p-1"
+        >
+          <DropdownMenuItem
+            className="flex items-center justify-center p-2"
+            onClick={() => startCreate()}
+          >
+            <UserRoundPlus className="h-4 w-4" />
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            className="flex items-center justify-center p-2"
+            // onClick={() => openStorageDetails()}
+          >
+            <Database className="h-4 w-4" />
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
     </>
   );
 }

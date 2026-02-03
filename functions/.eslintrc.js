@@ -15,7 +15,7 @@ module.exports = {
   ],
   ignorePatterns: ["lib/", "generated/"],
   rules: {
-    quotes: ["error", "double"],
+    quotes: ["error", "double", { avoidEscape: true }],
     indent: ["error", 2],
     "@typescript-eslint/no-unused-vars": "warn",
     "@typescript-eslint/no-explicit-any": "off"
