@@ -58,6 +58,8 @@ export function SetListSongEditor({
         songId: song.id,
         title: song.title,
         key: song.key,
+        bpm: song.bpm,
+        timeSignature: song.timeSignature,
         notes: '',
       },
     ]);

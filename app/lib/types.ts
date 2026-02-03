@@ -90,7 +90,9 @@ export interface ServicePlanSection {
 export interface SetListSongEntry {
   songId: string;
   title: string;
-  key: string;
+  key?: string;
+  bpm?: number;
+  timeSignature?: string;
   notes?: string;
 }
 

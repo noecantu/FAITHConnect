@@ -26,14 +26,15 @@ export function exportServiceToPdf(
   );
 
   const rows = allSetlistSongs.map((entry, index) => {
-      const song = allSongs.find((s) => s.id === entry.songId);
-      return [
-        index + 1,
-        song?.title ?? 'Unknown',
-        entry.key,
-        entry.notes ?? '',
-      ];
-    });
+    const song = allSongs.find((s) => s.id === entry.songId);
+  
+    return [
+      index + 1,
+      song?.title ?? 'Unknown',
+      entry.key ?? '',
+      entry.notes ?? '',
+    ];
+  });  
 
   autoTable(doc, {
     startY: 60,

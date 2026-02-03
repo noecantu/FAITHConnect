@@ -70,7 +70,9 @@ export default function SetListDetailPage() {
   const formattedDate = format(new Date(setList.date), 'M/d/yy, h:mm a');
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-6 py-6 space-y-6">
+    // <div className="w-full max-w-5xl mx-auto px-6 py-6 space-y-6">
+    // <div className="p-6 space-y-4">
+    <div className="space-y-6">
       <PageHeader title={setList.title} subtitle={formattedDate}>
       </PageHeader>
 
@@ -95,11 +97,13 @@ export default function SetListDetailPage() {
                   className="p-3 space-y-2 cursor-pointer hover:bg-accent transition"
                   onClick={() => router.push(`/music/songs/${song.songId}/view`)}
                 >
-              
                   <p className="font-medium">{song.title}</p>
 
-                  <div className="text-sm text-muted-foreground">
-                    Key: {song.key}
+                  {/* Musical metadata */}
+                  <div className="text-sm text-muted-foreground flex gap-2">
+                    <span>Key: {song.key}</span>
+                    {song.bpm && <span>| BPM: {song.bpm}</span>}
+                    {song.timeSignature && <span>| Time: {song.timeSignature}</span>}
                   </div>
 
                   {song.notes && (
@@ -116,6 +120,7 @@ export default function SetListDetailPage() {
                 </p>
               )}
             </div>
+
           </Card>
         ))}
       </div>
