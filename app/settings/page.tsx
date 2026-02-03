@@ -220,11 +220,6 @@ export default function AccessManagementPage() {
     setMode('edit');
   };
 
-  // const startConfirmDelete = (user: User) => {
-  //   setSelectedUser(user);
-  //   setMode('confirm-delete');
-  // };
-
   const goBackToList = () => {
     resetForm();
     setMode('list');
@@ -411,47 +406,55 @@ export default function AccessManagementPage() {
         </div>
 
         <div
-        className="
+          className="
             flex flex-col sm:flex-row
             justify-end gap-2 mt-4
-        "
+          "
         >
-        {mode === 'edit' && (
-            <Button
-            variant="destructive"
-            onClick={() => setMode('confirm-delete')}
-            className="w-full sm:w-auto"
-            >
-            Delete User
-            </Button>
-        )}
+          {mode === 'edit' && (
+            <>
+              <Button
+                variant="destructive"
+                onClick={() => setMode('confirm-delete')}
+                className="w-full sm:w-auto"
+              >
+                Delete User
+              </Button>
 
-        <Button
+              {/* Separator */}
+              <span className="hidden sm:flex items-center text-muted-foreground px-2">
+                |
+              </span>
+            </>
+          )}
+
+          <Button
             variant="outline"
             onClick={goBackToList}
             className="w-full sm:w-auto"
-        >
+          >
             Cancel
-        </Button>
+          </Button>
 
-        {mode === 'create' ? (
+          {mode === 'create' ? (
             <Button
-            onClick={handleCreateUser}
-            disabled={isCreating}
-            className="w-full sm:w-auto"
+              onClick={handleCreateUser}
+              disabled={isCreating}
+              className="w-full sm:w-auto"
             >
-            {isCreating ? 'Creating...' : 'Create Account'}
+              {isCreating ? 'Creating...' : 'Create Account'}
             </Button>
-        ) : (
+          ) : (
             <Button
-            onClick={handleSaveUser}
-            disabled={isSaving}
-            className="w-full sm:w-auto"
+              onClick={handleSaveUser}
+              disabled={isSaving}
+              className="w-full sm:w-auto"
             >
-            {isSaving ? 'Saving...' : 'Save Changes'}
+              {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
-        )}
+          )}
         </div>
+
     </Card>
     )}
   
