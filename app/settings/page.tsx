@@ -205,6 +205,14 @@ export default function AccessManagementPage() {
     setMode('list');
   };
 
+  const sortedUsers = React.useMemo(() => {
+    return [...users].sort((a, b) => {
+      const nameA = `${a.lastName ?? ''}, ${a.firstName ?? ''}`.toLowerCase();
+      const nameB = `${b.lastName ?? ''}, ${b.firstName ?? ''}`.toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+  }, [users]);
+  
   // RENDER
   if (loading) {
     return (
@@ -226,49 +234,60 @@ export default function AccessManagementPage() {
       {/* LIST MODE */}
       {mode === 'list' && (
         <Card>
-            <CardHeader>
+          <CardHeader>
             <CardTitle>Accounts</CardTitle>
             <CardDescription>
-                Create, delete, and add assigned roles here.
+              Create, delete, and add assigned roles here.
             </CardDescription>
-            </CardHeader>
+          </CardHeader>
 
-            <CardContent className="space-y-2">
+          <CardContent className="space-y-4">
 
-            {users.length === 0 && (
-                <p className="text-sm text-muted-foreground">
+            {sortedUsers.length === 0 && (
+              <p className="text-sm text-muted-foreground">
                 No users found for this church.
-                </p>
+              </p>
             )}
 
-            {users.map((u) => (
+            {/* GRID LAYOUT + SORTED */}
+            <div
+              className="
+                grid
+                grid-cols-1
+                sm:grid-cols-2
+                lg:grid-cols-3
+                gap-4
+              "
+            >
+              {sortedUsers.map((u) => (
                 <button
-                key={u.id}
-                onClick={() => startEdit(u)}
-                className="
+                  key={u.id}
+                  onClick={() => startEdit(u)}
+                  className="
                     w-full text-left
                     p-4 rounded-md border bg-muted/20
                     hover:bg-muted transition
                     focus:outline-none focus:ring-2 focus:ring-primary
-                "
+                  "
                 >
-                <p className="font-semibold">
+                  <p className="font-semibold">
                     {(u.firstName ?? '') + ' ' + (u.lastName ?? '')}
-                </p>
+                  </p>
 
-                <p className="text-sm text-muted-foreground">{u.email}</p>
+                  <p className="text-sm text-muted-foreground">{u.email}</p>
 
-                <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {u.roles.length
-                    ? u.roles.map((r) => ROLE_MAP[r]).join(', ')
-                    : 'No roles assigned'}
-                </p>
+                      ? u.roles.map((r) => ROLE_MAP[r]).join(', ')
+                      : 'No roles assigned'}
+                  </p>
                 </button>
-            ))}
+              ))}
+            </div>
 
-            </CardContent>
+          </CardContent>
         </Card>
-        )}
+      )}
 
     {(mode === 'create' || mode === 'edit') && (
     <Card className="p-4 space-y-4">
