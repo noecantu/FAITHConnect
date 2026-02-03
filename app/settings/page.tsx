@@ -27,7 +27,7 @@ import { Fab } from '@/app/components/ui/fab';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { PageHeader } from '../components/page-header';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
-import { Database, UserRoundPlus } from 'lucide-react';
+import { Database, UserRoundPlus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export interface User {
@@ -344,10 +344,22 @@ export default function AccessManagementPage() {
         )}
 
     {(mode === 'create' || mode === 'edit') && (
-    <Card className="p-4 space-y-4">
-        <h2 className="text-lg font-semibold">
+      <Card className="p-4 space-y-4 relative">
+      {/* Close button */}
+      <button
+        onClick={goBackToList}
+        className="
+          absolute right-4 top-4
+          text-muted-foreground hover:text-foreground
+          transition
+        "
+      >
+        <X className="h-5 w-5" />
+      </button>
+
+      <h2 className="text-lg font-semibold pr-8">
         {mode === 'create' ? 'Create User Account' : 'Edit User Account'}
-        </h2>
+      </h2>
 
         <div className="grid gap-4">
         <div className="grid gap-1">
@@ -428,13 +440,13 @@ export default function AccessManagementPage() {
             </>
           )}
 
-          <Button
+          {/* <Button
             variant="outline"
             onClick={goBackToList}
             className="w-full sm:w-auto"
           >
             Cancel
-          </Button>
+          </Button> */}
 
           {mode === 'create' ? (
             <Button
