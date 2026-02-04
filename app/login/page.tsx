@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { auth, db } from '../lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -20,19 +21,48 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
     try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
-      router.push('/');
-      toast({ title: "Login Successful", description: "Welcome back!" });
+      // 1. Sign in
+      const { user } = await signInWithEmailAndPassword(auth, email.trim(), password);
+
+      // 2. Load Firestore user document
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        console.error('User document missing');
+        toast({
+          title: 'Login Error',
+          description: 'Your account is missing required data.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const data = userSnap.data();
+      const role = data.role;
+      const churchId = data.churchId;
+
+      // 3. Role-based redirect
+      if (role === 'RootAdmin') {
+        router.push('/admin');
+      } else if (role === 'Admin' && churchId) {
+        router.push(`/admin/churches/${churchId}`);
+      } else {
+        router.push('/');
+      }
+
+      toast({ title: 'Login Successful', description: 'Welcome back!' });
+
     } catch (error) {
-      console.error("Login error:", error);
+      console.error('Login error:', error);
       toast({
-        title: "Login Failed",
-        description: "The email or password you entered is incorrect.",
-        variant: "destructive"
+        title: 'Login Failed',
+        description: 'The email or password you entered is incorrect.',
+        variant: 'destructive',
       });
-    }
-     finally {
+    } finally {
       setIsLoading(false);
     }
   };
@@ -40,14 +70,12 @@ export default function LoginPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-black">
       <Card className="w-full max-w-sm bg-card">
-        
         <CardHeader className="text-center space-y-2">
           <img
             src="/F-Flame_Vector.svg"
             alt="Faith Connect Logo"
             className="mx-auto h-20 w-20"
           />
-
           <CardTitle>FAITH Connect</CardTitle>
           <CardDescription>Log in to your account</CardDescription>
         </CardHeader>
@@ -67,6 +95,7 @@ export default function LoginPage() {
                 disabled={isLoading}
               />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -79,6 +108,7 @@ export default function LoginPage() {
                 disabled={isLoading}
               />
             </div>
+
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Logging in...' : 'Log In'}
             </Button>
