@@ -12,6 +12,16 @@ import {
   where,
 } from "firebase/firestore";
 
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/app/components/ui/card";
+
+import { Button } from "@/app/components/ui/button";
+
 export default function ChurchDashboardPage() {
   const { slug } = useParams();
 
@@ -93,8 +103,8 @@ export default function ChurchDashboardPage() {
 
   if (loading || !church) {
     return (
-      <div className="p-6">
-        <p>Loading church dashboard…</p>
+      <div className="flex justify-center items-center min-h-screen text-foreground">
+        Loading church dashboard…
       </div>
     );
   }
@@ -108,61 +118,63 @@ export default function ChurchDashboardPage() {
     .toUpperCase();
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-8">
 
       {/* Identity Card */}
-      <div className="border rounded-lg p-6 flex items-center gap-6 bg-white shadow-sm">
-        {church.logoUrl ? (
-          <img
-            src={church.logoUrl}
-            alt="Church Logo"
-            className="w-20 h-20 rounded-lg object-cover"
-          />
-        ) : (
-          <div className="w-20 h-20 rounded-lg bg-gray-200 flex items-center justify-center text-xl font-bold">
-            {initials}
-          </div>
-        )}
+      <Card className="bg-card text-card-foreground">
+        <CardContent className="flex items-center gap-6 p-6">
+          {church.logoUrl ? (
+            <img
+              src={church.logoUrl}
+              alt="Church Logo"
+              className="w-20 h-20 rounded-lg object-cover"
+            />
+          ) : (
+            <div className="w-20 h-20 rounded-lg bg-muted flex items-center justify-center text-xl font-bold">
+              {initials}
+            </div>
+          )}
 
-        <div>
-          <h1 className="text-2xl font-bold">{church.name}</h1>
-          <p className="text-gray-600">{church.timezone}</p>
-        </div>
-      </div>
+          <div>
+            <h1 className="text-3xl font-bold">{church.name}</h1>
+            <p className="text-muted-foreground">{church.timezone}</p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Two-Column Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         {/* Stats Card */}
-        <div className="border rounded-lg p-6 bg-white shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Church Stats</h2>
+        <Card className="bg-card text-card-foreground">
+          <CardHeader>
+            <CardTitle>Church Stats</CardTitle>
+            <CardDescription>Overview of church activity</CardDescription>
+          </CardHeader>
 
-          <div className="space-y-2">
+          <CardContent className="space-y-2">
             <p><strong>Members:</strong> {memberCount}</p>
             <p><strong>Upcoming Services:</strong> {serviceCount}</p>
             <p><strong>Events This Week:</strong> {eventCount}</p>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Quick Actions Card */}
-        <div className="border rounded-lg p-6 bg-white shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+        <Card className="bg-card text-card-foreground">
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>Manage your church</CardDescription>
+          </CardHeader>
 
-          <div className="space-y-3">
-            <button className="w-full bg-black text-white py-2 rounded">
-              Add Member
-            </button>
-            <button className="w-full bg-black text-white py-2 rounded">
-              Add Event
-            </button>
-            <button className="w-full bg-black text-white py-2 rounded">
-              Add Service Plan
-            </button>
-            <button className="w-full bg-gray-200 py-2 rounded">
+          <CardContent className="space-y-3">
+            <Button className="w-full">Add Member</Button>
+            <Button className="w-full">Add Event</Button>
+            <Button className="w-full">Add Service Plan</Button>
+            <Button variant="secondary" className="w-full">
               Manage Settings
-            </button>
-          </div>
-        </div>
+            </Button>
+          </CardContent>
+        </Card>
 
       </div>
     </div>

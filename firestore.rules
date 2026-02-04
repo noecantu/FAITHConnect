@@ -14,6 +14,14 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid));
     }
 
+    function isRootAdmin() {
+      let userDoc = getUserDoc();
+      return isUserSignedIn() &&
+             userDoc.data != null &&
+             'roles' in userDoc.data &&
+             userDoc.data.roles.hasAny(['RootAdmin']);
+    }
+
     function isChurchMember(churchId) {
       let userDoc = getUserDoc();
       return isUserSignedIn() &&
@@ -36,6 +44,13 @@ service cloud.firestore {
              userDoc.data != null &&
              'roles' in userDoc.data &&
              userDoc.data.roles.hasAny(['Admin']);
+    }
+
+    // ---------------------------
+    // ROOT ADMIN FULL ACCESS
+    // ---------------------------
+    match /{document=**} {
+      allow read, write: if isRootAdmin();
     }
 
     // ---------------------------
@@ -68,15 +83,17 @@ service cloud.firestore {
         allow create, update, delete: if hasChurchRole(churchId, ["Admin", "Finance"]);
       }
 
-      // SERVICE PLANS  ← NEW
+      // SERVICE PLANS
       match /servicePlans/{planId} {
         allow read, write: if isChurchMember(churchId);
       }
+
       // SONGS
       match /songs/{songId} {
         allow read: if isChurchMember(churchId);
         allow create, update, delete: if hasChurchRole(churchId, ["Admin", "MusicManager"]);
       }
+
       // SET LISTS
       match /setlists/{setListId} {
         allow read: if isChurchMember(churchId);

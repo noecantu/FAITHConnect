@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { db, auth } from "@/app/lib/firebase";
 import { slugify } from "@/app/lib/slugify";
 import {
-  collection,
   doc,
   getDoc,
   serverTimestamp,
@@ -15,6 +14,11 @@ import {
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
 } from "firebase/auth";
+
+import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
+import { Input } from "@/app/components/ui/input";
+import { Label } from "@/app/components/ui/label";
+import { Button } from "@/app/components/ui/button";
 
 export default function NewChurchPage() {
   const router = useRouter();
@@ -46,11 +50,9 @@ export default function NewChurchPage() {
     setLoading(true);
 
     try {
-      // 1. Generate slug
       const baseSlug = slugify(name);
       const slug = await generateUniqueSlug(baseSlug);
 
-      // 2. Create church document
       await setDoc(doc(db, "churches", slug), {
         name,
         slug,
@@ -62,7 +64,6 @@ export default function NewChurchPage() {
         settings: {},
       });
 
-      // 3. Create first admin user
       const tempPassword = Math.random().toString(36).slice(2, 10);
       const userCred = await createUserWithEmailAndPassword(
         auth,
@@ -72,7 +73,6 @@ export default function NewChurchPage() {
 
       const uid = userCred.user.uid;
 
-      // 4. Create Firestore user document
       await setDoc(doc(db, "users", uid), {
         email: adminEmail,
         roles: ["Admin"],
@@ -80,10 +80,8 @@ export default function NewChurchPage() {
         createdAt: serverTimestamp(),
       });
 
-      // 5. Send password reset email
       await sendPasswordResetEmail(auth, adminEmail);
 
-      // 6. Redirect to church dashboard
       router.push(`/admin/churches/${slug}`);
     } catch (err) {
       console.error(err);
@@ -94,67 +92,70 @@ export default function NewChurchPage() {
   }
 
   return (
-    <div className="p-6 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Create New Church</h1>
+    <div className="flex justify-center items-center min-h-screen bg-black">
+      <Card className="w-full max-w-lg bg-card text-card-foreground">
+        <CardHeader>
+          <CardTitle>Create New Church</CardTitle>
+        </CardHeader>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block mb-1">Church Name</label>
-          <input
-            className="w-full border p-2 rounded"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
 
-        <div>
-          <label className="block mb-1">Timezone</label>
-          <input
-            className="w-full border p-2 rounded"
-            value={timezone}
-            onChange={(e) => setTimezone(e.target.value)}
-            required
-          />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="name">Church Name</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
 
-        <div>
-          <label className="block mb-1">Address (optional)</label>
-          <input
-            className="w-full border p-2 rounded"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-          />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="timezone">Timezone</Label>
+              <Input
+                id="timezone"
+                value={timezone}
+                onChange={(e) => setTimezone(e.target.value)}
+                required
+              />
+            </div>
 
-        <div>
-          <label className="block mb-1">Logo URL (optional)</label>
-          <input
-            className="w-full border p-2 rounded"
-            value={logoUrl}
-            onChange={(e) => setLogoUrl(e.target.value)}
-          />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="address">Address (optional)</Label>
+              <Input
+                id="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
+            </div>
 
-        <div>
-          <label className="block mb-1">First Admin Email</label>
-          <input
-            type="email"
-            className="w-full border p-2 rounded"
-            value={adminEmail}
-            onChange={(e) => setAdminEmail(e.target.value)}
-            required
-          />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="logoUrl">Logo URL (optional)</Label>
+              <Input
+                id="logoUrl"
+                value={logoUrl}
+                onChange={(e) => setLogoUrl(e.target.value)}
+              />
+            </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-black text-white px-4 py-2 rounded"
-        >
-          {loading ? "Creating..." : "Create Church"}
-        </button>
-      </form>
+            <div className="space-y-2">
+              <Label htmlFor="adminEmail">First Admin Email</Label>
+              <Input
+                id="adminEmail"
+                type="email"
+                value={adminEmail}
+                onChange={(e) => setAdminEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading ? "Creating..." : "Create Church"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
