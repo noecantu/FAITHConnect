@@ -170,6 +170,35 @@ export const deleteUserByUid = onCall(async (request) => {
   }
 });
 
+export const createRootAdmin = onCall(async (request) => {
+  // Protect this function so it can only run once
+  const rootDoc = await admin.firestore().doc("system/rootAdmin").get();
+  if (rootDoc.exists) {
+    throw new HttpsError("failed-precondition", "Root admin already exists.");
+  }
+
+  // Create the Auth user
+  const user = await admin.auth().createUser({
+    email: "root@faithconnect.app",
+    password: "TempPassword123!",
+    emailVerified: true,
+    disabled: false,
+  });
+
+  // Store metadata in Firestore
+  await admin.firestore().doc("system/rootAdmin").set({
+    uid: user.uid,
+    email: user.email,
+    role: "root",
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  // Generate reset link
+  const resetLink = await admin.auth().generatePasswordResetLink(user.email!);
+
+  return { resetLink };
+});
+
 export const getFirestoreUsage = onRequest(async (req, res) => {
   res.set("Access-Control-Allow-Origin", "*");
   res.set("Access-Control-Allow-Headers", "Content-Type");
