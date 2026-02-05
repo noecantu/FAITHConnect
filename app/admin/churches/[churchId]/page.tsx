@@ -10,6 +10,7 @@ import {
   getCountFromServer,
   query,
   where,
+  getDocs,
 } from "firebase/firestore";
 
 import {
@@ -22,8 +23,8 @@ import {
 
 import { Button } from "@/app/components/ui/button";
 
-export default function ChurchDashboardPage() {
-  const { slug } = useParams();
+export default function MasterChurchDetailsPage() {
+  const { churchId } = useParams();
 
   const [church, setChurch] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -31,15 +32,16 @@ export default function ChurchDashboardPage() {
   const [memberCount, setMemberCount] = useState(0);
   const [serviceCount, setServiceCount] = useState(0);
   const [eventCount, setEventCount] = useState(0);
+  const [admins, setAdmins] = useState<any[]>([]);
 
   useEffect(() => {
     async function load() {
-      if (!slug) return;
+      if (!churchId) return;
 
       setLoading(true);
 
       // 1. Load church document
-      const churchRef = doc(db, "churches", slug as string);
+      const churchRef = doc(db, "churches", churchId as string);
       const churchSnap = await getDoc(churchRef);
 
       if (churchSnap.exists()) {
@@ -47,18 +49,18 @@ export default function ChurchDashboardPage() {
       }
 
       // 2. Members count
-      const membersRef = collection(db, "churches", slug as string, "members");
+      const membersRef = collection(db, "churches", churchId as string, "members");
       const membersSnap = await getCountFromServer(membersRef);
       setMemberCount(membersSnap.data().count);
 
-      // 3. Upcoming services (today + future)
+      // 3. Upcoming services
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
       const servicesRef = collection(
         db,
         "churches",
-        slug as string,
+        churchId as string,
         "servicePlans"
       );
       const servicesQuery = query(
@@ -84,7 +86,7 @@ export default function ChurchDashboardPage() {
       const eventsRef = collection(
         db,
         "churches",
-        slug as string,
+        churchId as string,
         "events"
       );
       const eventsQuery = query(
@@ -95,21 +97,30 @@ export default function ChurchDashboardPage() {
       const eventsSnap = await getCountFromServer(eventsQuery);
       setEventCount(eventsSnap.data().count);
 
+      // 5. Church Admins (global users collection)
+      const usersRef = collection(db, "users");
+      const adminsQuery = query(
+        usersRef,
+        where("churchId", "==", churchId),
+        where("roles", "array-contains", "Admin")
+      );
+      const adminsSnap = await getDocs(adminsQuery);
+      setAdmins(adminsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+
       setLoading(false);
     }
 
     load();
-  }, [slug]);
+  }, [churchId]);
 
   if (loading || !church) {
     return (
       <div className="flex justify-center items-center min-h-screen text-foreground">
-        Loading church dashboard…
+        Loading church details…
       </div>
     );
   }
 
-  // Logo → initials → fallback
   const initials = church.name
     .split(" ")
     .map((w: string) => w[0])
@@ -121,7 +132,7 @@ export default function ChurchDashboardPage() {
     <div className="p-6 space-y-8">
 
       {/* Identity Card */}
-      <Card className="bg-card text-card-foreground">
+      <Card>
         <CardContent className="flex items-center gap-6 p-6">
           {church.logoUrl ? (
             <img
@@ -146,10 +157,10 @@ export default function ChurchDashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         {/* Stats Card */}
-        <Card className="bg-card text-card-foreground">
+        <Card>
           <CardHeader>
             <CardTitle>Church Stats</CardTitle>
-            <CardDescription>Overview of church activity</CardDescription>
+            <CardDescription>System-level overview</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-2">
@@ -159,24 +170,45 @@ export default function ChurchDashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions Card */}
-        <Card className="bg-card text-card-foreground">
+        {/* Admins Card */}
+        <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Manage your church</CardDescription>
+            <CardTitle>Church Admins</CardTitle>
+            <CardDescription>Users with Admin role</CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-3">
-            <Button className="w-full">Add Member</Button>
-            <Button className="w-full">Add Event</Button>
-            <Button className="w-full">Add Service Plan</Button>
-            <Button variant="secondary" className="w-full">
-              Manage Settings
-            </Button>
+          <CardContent className="space-y-2">
+            {admins.length === 0 ? (
+              <p>No admins assigned.</p>
+            ) : (
+              admins.map((admin) => (
+                <p key={admin.id}>
+                  {admin.displayName || admin.email}  
+                </p>
+              ))
+            )}
           </CardContent>
         </Card>
 
       </div>
+
+      {/* Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Master Admin Actions</CardTitle>
+          <CardDescription>High-level controls</CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-3">
+          <Button className="w-full">Open as Church Admin</Button>
+          <Button className="w-full">Edit Church</Button>
+          <Button className="w-full">Add Admin</Button>
+          <Button variant="destructive" className="w-full">
+            Disable Church
+          </Button>
+        </CardContent>
+      </Card>
+
     </div>
   );
 }

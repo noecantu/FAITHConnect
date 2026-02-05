@@ -17,15 +17,15 @@ export default function HomePage() {
       return;
     }
 
-    // Root Admin → system admin dashboard
+    // Root Admin → Master Admin Dashboard
     if (user.roles?.includes("RootAdmin")) {
       router.push("/admin");
       return;
     }
 
-    // Admin → Members Page (your real landing page)
-    if (user.roles?.includes("Admin")) {
-      router.push("/members");
+    // Church Admin → Church Admin Dashboard (slug-based)
+    if (user.roles?.includes("Admin") && user.churchId) {
+      router.push(`/admin/church/${user.churchId}`);
       return;
     }
 

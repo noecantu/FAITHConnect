@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Users,
   Calendar,
@@ -13,10 +13,11 @@ import {
   Music,
   ListMusic,
   CalendarHeart,
-} from 'lucide-react';
-import { useState } from 'react';
-import { signOut } from 'firebase/auth';
-import { auth } from '../../lib/firebase';
+  Home,
+} from "lucide-react";
+import { useState } from "react";
+import { signOut } from "firebase/auth";
+import { auth } from "../../lib/firebase";
 
 import {
   DropdownMenu,
@@ -27,7 +28,7 @@ import {
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
-} from '../ui/dropdown-menu';
+} from "../ui/dropdown-menu";
 
 import {
   AlertDialog,
@@ -38,19 +39,19 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '../ui/alert-dialog';
+} from "../ui/alert-dialog";
 
-import { Button } from '../ui/button';
-import { useToast } from '../../hooks/use-toast';
-import { useUserRoles } from '../../hooks/useUserRoles';
-import { useChurchId } from '../../hooks/useChurchId';
+import { Button } from "../ui/button";
+import { useToast } from "../../hooks/use-toast";
+import { useUserRoles } from "../../hooks/useUserRoles";
+import { useChurchId } from "../../hooks/useChurchId";
 
 const navItems = [
-  { href: '/', label: 'Members', icon: Users },
-  { href: '/calendar', label: 'Calendar', icon: Calendar },
-  { href: '/contributions', label: 'Contributions', icon: DollarSign },
-  { href: '/music', label: 'Music', icon: Music }, // parent
-  { href: '/service-plan', label: 'Service Plans', icon: CalendarHeart },
+  { href: "/members", label: "Members", icon: Users },
+  { href: "/calendar", label: "Calendar", icon: Calendar },
+  { href: "/contributions", label: "Contributions", icon: DollarSign },
+  { href: "/music", label: "Music", icon: Music },
+  { href: "/service-plan", label: "Service Plans", icon: CalendarHeart },
 ];
 
 export function NavMenu() {
@@ -61,29 +62,28 @@ export function NavMenu() {
 
   const { roles, isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
 
-  const canSeeContributions = isAdmin || roles.includes('Finance');
+  const canSeeContributions = isAdmin || roles.includes("Finance");
   const canAccessMusic = isAdmin || isMusicManager || isMusicMember;
-  const canAccessServicePlan = isAdmin || roles.includes('Pastor');
+  const canAccessServicePlan = isAdmin || roles.includes("Pastor");
+  const canSeeSettings = isAdmin;
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
       setIsLogoutAlertOpen(false);
       toast({
-        title: 'Logged Out',
-        description: 'You have been successfully logged out.',
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
       });
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
       toast({
-        title: 'Logout Failed',
-        description: 'Could not log you out. Please try again.',
-        variant: 'destructive',
+        title: "Logout Failed",
+        description: "Could not log you out. Please try again.",
+        variant: "destructive",
       });
     }
   };
-
-  const canSeeSettings = isAdmin;
 
   return (
     <>
@@ -96,21 +96,37 @@ export function NavMenu() {
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end">
+          {/* Admin Dashboard Link */}
+          {isAdmin && churchId && (
+            <Link href={`/admin/church/${churchId}`}>
+              <DropdownMenuItem
+                className={
+                  pathname.startsWith(`/admin/church/${churchId}`)
+                    ? "bg-accent"
+                    : ""
+                }
+              >
+                <Home className="mr-2 h-4 w-4" />
+                <span>Dashboard</span>
+              </DropdownMenuItem>
+            </Link>
+          )}
+
           {/* Core Navigation */}
           {navItems
             .filter((item) => {
-              if (item.href === '/contributions') return canSeeContributions;
-              if (item.href === '/music') return canAccessMusic;
-              if (item.href === '/service-plan') return canAccessServicePlan;
+              if (item.href === "/contributions") return canSeeContributions;
+              if (item.href === "/music") return canAccessMusic;
+              if (item.href === "/service-plan") return canAccessServicePlan;
               return true;
             })
             .map((item) => {
-              if (item.href === '/music') {
+              if (item.href === "/music") {
                 return (
                   <DropdownMenuSub key="music">
                     <DropdownMenuSubTrigger
                       className={
-                        pathname.startsWith('/music') ? 'bg-accent' : ''
+                        pathname.startsWith("/music") ? "bg-accent" : ""
                       }
                     >
                       <item.icon className="mr-2 h-4 w-4" />
@@ -121,9 +137,9 @@ export function NavMenu() {
                       <Link href="/music/songs">
                         <DropdownMenuItem
                           className={
-                            pathname.startsWith('/music/songs')
-                              ? 'bg-accent'
-                              : ''
+                            pathname.startsWith("/music/songs")
+                              ? "bg-accent"
+                              : ""
                           }
                         >
                           <Music className="mr-2 h-4 w-4" />
@@ -134,9 +150,9 @@ export function NavMenu() {
                       <Link href="/music/setlists">
                         <DropdownMenuItem
                           className={
-                            pathname.startsWith('/music/setlists')
-                              ? 'bg-accent'
-                              : ''
+                            pathname.startsWith("/music/setlists")
+                              ? "bg-accent"
+                              : ""
                           }
                         >
                           <ListMusic className="mr-2 h-4 w-4" />
@@ -153,9 +169,9 @@ export function NavMenu() {
                   <DropdownMenuItem
                     className={
                       pathname === item.href ||
-                      pathname.startsWith(item.href + '/')
-                        ? 'bg-accent'
-                        : ''
+                      pathname.startsWith(item.href + "/")
+                        ? "bg-accent"
+                        : ""
                     }
                   >
                     <item.icon className="mr-2 h-4 w-4" />
@@ -169,7 +185,7 @@ export function NavMenu() {
           {isAdmin && (
             <Link href="/reports">
               <DropdownMenuItem
-                className={pathname === '/reports' ? 'bg-accent' : ''}
+                className={pathname === "/reports" ? "bg-accent" : ""}
               >
                 <FileText className="mr-2 h-4 w-4" />
                 <span>Reports</span>
@@ -180,10 +196,10 @@ export function NavMenu() {
           <DropdownMenuSeparator />
 
           {/* Settings */}
-          {isAdmin && (
+          {canSeeSettings && (
             <Link href="/settings">
               <DropdownMenuItem
-                className={pathname === '/settings' ? 'bg-accent' : ''}
+                className={pathname === "/settings" ? "bg-accent" : ""}
               >
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
