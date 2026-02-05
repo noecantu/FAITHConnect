@@ -28,10 +28,15 @@ export default function AdminHomePage() {
     async function load() {
       setLoading(true);
 
-      // Churches
-      const churchesRef = collection(db, "churches");
-      const churchesSnap = await getCountFromServer(churchesRef);
-      setChurchCount(churchesSnap.data().count);
+      try {
+        const churchesRef = collection(db, "churches");
+        const churchesSnap = await getCountFromServer(churchesRef);
+        console.log("Church count SUCCESS:", churchesSnap.data());
+        setChurchCount(churchesSnap.data().count);
+      } catch (err) {
+        console.error("Church count ERROR:", err);
+        setChurchCount(-1); // so we know it errored
+      }
 
       // Users
       const usersRef = collection(db, "users");
@@ -54,9 +59,9 @@ export default function AdminHomePage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground">FAITH Connect — Master Admin</h1>
+        <h1 className="text-3xl font-bold text-foreground">FAITH Connect - MASTER ADMIN</h1>
         <p className="text-muted-foreground mt-1">
-          System-wide overview and administrative tools
+          System-wide overview and administrative tools.
         </p>
       </div>
 
@@ -65,7 +70,7 @@ export default function AdminHomePage() {
         <Card className="bg-card text-card-foreground">
           <CardHeader>
             <CardTitle>Total Churches</CardTitle>
-            <CardDescription>All churches in the system</CardDescription>
+            <CardDescription>All churches in the system.</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold">{loading ? "…" : churchCount}</p>
@@ -75,7 +80,7 @@ export default function AdminHomePage() {
         <Card className="bg-card text-card-foreground">
           <CardHeader>
             <CardTitle>Total Users</CardTitle>
-            <CardDescription>All users across all churches</CardDescription>
+            <CardDescription>All users across all churches.</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold">{loading ? "…" : userCount}</p>
@@ -85,7 +90,7 @@ export default function AdminHomePage() {
         <Card className="bg-card text-card-foreground">
           <CardHeader>
             <CardTitle>Total Admins</CardTitle>
-            <CardDescription>Church administrators</CardDescription>
+            <CardDescription>Church Administrators</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold">{loading ? "…" : adminCount}</p>
