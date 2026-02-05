@@ -66,7 +66,7 @@ service cloud.firestore {
     }
 
     // ---------------------------
-    // CHURCHES ROOT (REQUIRED FOR COUNT)
+    // CHURCHES ROOT
     // ---------------------------
     match /churches {
       allow list: if isRootAdmin();
@@ -77,13 +77,18 @@ service cloud.firestore {
     // ---------------------------
     match /churches/{churchId} {
 
-      // Root Admin full access
+      // 1. Allow login-time read of the user's own church
+      allow read: if request.auth != null
+            && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.churchId == churchId;
+
+      // 2. Root Admin full access
       allow read, write, list: if isRootAdmin();
 
-      // Members can read their own church
+      // 3. Members can read their own church
       allow read: if isChurchMember(churchId);
 
-      // Admins can update their church
+      // 4. Admins can update their church
       allow update: if hasChurchRole(churchId, ["Admin"]);
 
       // ---------------------------

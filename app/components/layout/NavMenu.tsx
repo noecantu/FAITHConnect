@@ -84,7 +84,7 @@ export function NavMenu() {
       });
     }
   };
-
+console.log("roles from hook:", roles);
   return (
     <>
       <DropdownMenu modal={false}>
@@ -96,8 +96,19 @@ export function NavMenu() {
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end">
-          {/* Admin Dashboard Link */}
-          {isAdmin && churchId && (
+          {/* Dashboard Link (Root Admin or Church Admin) */}
+          {roles.includes("RootAdmin") && (
+            <Link href="/admin">
+              <DropdownMenuItem
+                className={pathname === "/admin" ? "bg-accent" : ""}
+              >
+                <Home className="mr-2 h-4 w-4" />
+                <span>Dashboard</span>
+              </DropdownMenuItem>
+            </Link>
+          )}
+
+          {!roles.includes("RootAdmin") && isAdmin && churchId && (
             <Link href={`/admin/church/${churchId}`}>
               <DropdownMenuItem
                 className={
@@ -112,74 +123,78 @@ export function NavMenu() {
             </Link>
           )}
 
-          {/* Core Navigation */}
-          {navItems
-            .filter((item) => {
-              if (item.href === "/contributions") return canSeeContributions;
-              if (item.href === "/music") return canAccessMusic;
-              if (item.href === "/service-plan") return canAccessServicePlan;
-              return true;
-            })
-            .map((item) => {
-              if (item.href === "/music") {
-                return (
-                  <DropdownMenuSub key="music">
-                    <DropdownMenuSubTrigger
-                      className={
-                        pathname.startsWith("/music") ? "bg-accent" : ""
-                      }
-                    >
-                      <item.icon className="mr-2 h-4 w-4" />
-                      <span>Music</span>
-                    </DropdownMenuSubTrigger>
-
-                    <DropdownMenuSubContent>
-                      <Link href="/music/songs">
-                        <DropdownMenuItem
+          {/* Core Navigation (hidden for Root Admin) */}
+          {!roles.includes("RootAdmin") && (
+            <>
+              {navItems
+                .filter((item) => {
+                  if (item.href === "/contributions") return canSeeContributions;
+                  if (item.href === "/music") return canAccessMusic;
+                  if (item.href === "/service-plan") return canAccessServicePlan;
+                  return true;
+                })
+                .map((item) => {
+                  if (item.href === "/music") {
+                    return (
+                      <DropdownMenuSub key="music">
+                        <DropdownMenuSubTrigger
                           className={
-                            pathname.startsWith("/music/songs")
-                              ? "bg-accent"
-                              : ""
+                            pathname.startsWith("/music") ? "bg-accent" : ""
                           }
                         >
-                          <Music className="mr-2 h-4 w-4" />
-                          <span>Songs</span>
-                        </DropdownMenuItem>
-                      </Link>
+                          <item.icon className="mr-2 h-4 w-4" />
+                          <span>Music</span>
+                        </DropdownMenuSubTrigger>
 
-                      <Link href="/music/setlists">
-                        <DropdownMenuItem
-                          className={
-                            pathname.startsWith("/music/setlists")
-                              ? "bg-accent"
-                              : ""
-                          }
-                        >
-                          <ListMusic className="mr-2 h-4 w-4" />
-                          <span>Set Lists</span>
-                        </DropdownMenuItem>
-                      </Link>
-                    </DropdownMenuSubContent>
-                  </DropdownMenuSub>
-                );
-              }
+                        <DropdownMenuSubContent>
+                          <Link href="/music/songs">
+                            <DropdownMenuItem
+                              className={
+                                pathname.startsWith("/music/songs")
+                                  ? "bg-accent"
+                                  : ""
+                              }
+                            >
+                              <Music className="mr-2 h-4 w-4" />
+                              <span>Songs</span>
+                            </DropdownMenuItem>
+                          </Link>
 
-              return (
-                <Link href={item.href} key={item.label}>
-                  <DropdownMenuItem
-                    className={
-                      pathname === item.href ||
-                      pathname.startsWith(item.href + "/")
-                        ? "bg-accent"
-                        : ""
-                    }
-                  >
-                    <item.icon className="mr-2 h-4 w-4" />
-                    <span>{item.label}</span>
-                  </DropdownMenuItem>
-                </Link>
-              );
-            })}
+                          <Link href="/music/setlists">
+                            <DropdownMenuItem
+                              className={
+                                pathname.startsWith("/music/setlists")
+                                  ? "bg-accent"
+                                  : ""
+                              }
+                            >
+                              <ListMusic className="mr-2 h-4 w-4" />
+                              <span>Set Lists</span>
+                            </DropdownMenuItem>
+                          </Link>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                    );
+                  }
+
+                  return (
+                    <Link href={item.href} key={item.label}>
+                      <DropdownMenuItem
+                        className={
+                          pathname === item.href ||
+                          pathname.startsWith(item.href + "/")
+                            ? "bg-accent"
+                            : ""
+                        }
+                      >
+                        <item.icon className="mr-2 h-4 w-4" />
+                        <span>{item.label}</span>
+                      </DropdownMenuItem>
+                    </Link>
+                  );
+                })}
+            </>
+          )}
 
           {/* Reports (Admin Only) */}
           {isAdmin && (

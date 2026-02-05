@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { db } from "@/app/lib/firebase";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth, db } from "@/app/lib/firebase";
+
 import {
   doc,
   getDoc,
@@ -25,6 +27,10 @@ import { Button } from "@/app/components/ui/button";
 export default function ChurchAdminDashboard() {
   const { churchId } = useParams();
 
+  // Auth state
+  const [user, userLoading] = useAuthState(auth);
+
+  // Local state
   const [church, setChurch] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -34,24 +40,43 @@ export default function ChurchAdminDashboard() {
 
   useEffect(() => {
     async function load() {
+      // 1. Wait for auth to resolve
+      if (userLoading) return;
+
+      // 2. If user is signed out (disabled church case), stop immediately
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
       if (!churchId) return;
 
       setLoading(true);
 
-      // 1. Load church document
+      // 3. Load church document
       const churchRef = doc(db, "churches", churchId as string);
       const churchSnap = await getDoc(churchRef);
 
-      if (churchSnap.exists()) {
-        setChurch(churchSnap.data());
+      if (!churchSnap.exists()) {
+        setLoading(false);
+        return;
       }
 
-      // 2. Members count
+      const churchData = churchSnap.data();
+      setChurch(churchData);
+
+      // 4. If church is disabled, STOP — do NOT load subcollections
+      if (churchData.status === "disabled") {
+        setLoading(false);
+        return;
+      }
+
+      // 5. Members count
       const membersRef = collection(db, "churches", churchId as string, "members");
       const membersSnap = await getCountFromServer(membersRef);
       setMemberCount(membersSnap.data().count);
 
-      // 3. Upcoming services
+      // 6. Upcoming services
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -68,7 +93,7 @@ export default function ChurchAdminDashboard() {
       const servicesSnap = await getCountFromServer(servicesQuery);
       setServiceCount(servicesSnap.data().count);
 
-      // 4. Events this week
+      // 7. Events this week
       const now = new Date();
       const day = now.getDay();
       const diffToMonday = day === 0 ? -6 : 1 - day;
@@ -99,8 +124,31 @@ export default function ChurchAdminDashboard() {
     }
 
     load();
-  }, [churchId]);
+  }, [user, userLoading, churchId]);
 
+  // ---------------------------
+  // RENDER STATES
+  // ---------------------------
+
+  // 1. Still resolving auth
+  if (userLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-foreground">
+        Loading…
+      </div>
+    );
+  }
+
+  // 2. User is signed out (disabled church case)
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-foreground">
+        You do not have access to this church.
+      </div>
+    );
+  }
+
+  // 3. Still loading church data
   if (loading || !church) {
     return (
       <div className="flex justify-center items-center min-h-screen text-foreground">
@@ -108,6 +156,19 @@ export default function ChurchAdminDashboard() {
       </div>
     );
   }
+
+  // 4. Church is disabled — show a friendly message
+  if (church.status === "disabled") {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-foreground">
+        This church is currently disabled.
+      </div>
+    );
+  }
+
+  // ---------------------------
+  // NORMAL RENDER
+  // ---------------------------
 
   const initials = church.name
     .split(" ")

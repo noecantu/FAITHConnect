@@ -11,8 +11,10 @@ import {
   query,
   where,
   getDocs,
+  updateDoc,
 } from "firebase/firestore";
 
+import { PageHeader } from "@/app/components/page-header";
 import {
   Card,
   CardHeader,
@@ -20,11 +22,16 @@ import {
   CardDescription,
   CardContent,
 } from "@/app/components/ui/card";
-
 import { Button } from "@/app/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/app/components/ui/alert-dialog";
 
 export default function MasterChurchDetailsPage() {
   const { churchId } = useParams();
+  const churchIdStr = Array.isArray(churchId) ? churchId[0] : churchId;
+  if (!churchIdStr) {
+    console.error("Invalid churchId param");
+    return null;
+  }
 
   const [church, setChurch] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -33,6 +40,7 @@ export default function MasterChurchDetailsPage() {
   const [serviceCount, setServiceCount] = useState(0);
   const [eventCount, setEventCount] = useState(0);
   const [admins, setAdmins] = useState<any[]>([]);
+  const [showDisableDialog, setShowDisableDialog] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -97,7 +105,7 @@ export default function MasterChurchDetailsPage() {
       const eventsSnap = await getCountFromServer(eventsQuery);
       setEventCount(eventsSnap.data().count);
 
-      // 5. Church Admins (global users collection)
+      // 5. Church Admins
       const usersRef = collection(db, "users");
       const adminsQuery = query(
         usersRef,
@@ -131,23 +139,29 @@ export default function MasterChurchDetailsPage() {
   return (
     <div className="p-6 space-y-8">
 
-      {/* Identity Card */}
+      {/* Page Header */}
+      <PageHeader
+        title={church.name}
+        subtitle="System-level church details"
+      />
+
+      {/* Identity Header (A1 minimal style) */}
       <Card>
-        <CardContent className="flex items-center gap-6 p-6">
+        <CardContent className="flex items-center gap-4 p-6">
           {church.logoUrl ? (
             <img
               src={church.logoUrl}
               alt="Church Logo"
-              className="w-20 h-20 rounded-lg object-cover"
+              className="w-12 h-12 rounded-md object-cover"
             />
           ) : (
-            <div className="w-20 h-20 rounded-lg bg-muted flex items-center justify-center text-xl font-bold">
+            <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center text-lg font-bold">
               {initials}
             </div>
           )}
 
           <div>
-            <h1 className="text-3xl font-bold">{church.name}</h1>
+            <h2 className="text-xl font-semibold">{church.name}</h2>
             <p className="text-muted-foreground">{church.timezone}</p>
           </div>
         </CardContent>
@@ -163,7 +177,7 @@ export default function MasterChurchDetailsPage() {
             <CardDescription>System-level overview</CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-3 text-sm">
             <p><strong>Members:</strong> {memberCount}</p>
             <p><strong>Upcoming Services:</strong> {serviceCount}</p>
             <p><strong>Events This Week:</strong> {eventCount}</p>
@@ -177,14 +191,22 @@ export default function MasterChurchDetailsPage() {
             <CardDescription>Users with Admin role</CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-2 text-sm">
             {admins.length === 0 ? (
-              <p>No admins assigned.</p>
+              <p className="text-muted-foreground">No admins assigned.</p>
             ) : (
               admins.map((admin) => (
-                <p key={admin.id}>
-                  {admin.displayName || admin.email}  
-                </p>
+                <div key={admin.id} className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold">
+                    {(admin.displayName || admin.email)
+                      .split(" ")
+                      .map((w: string) => w[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase()}
+                  </div>
+                  <span>{admin.displayName || admin.email}</span>
+                </div>
               ))
             )}
           </CardContent>
@@ -195,19 +217,87 @@ export default function MasterChurchDetailsPage() {
       {/* Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Master Admin Actions</CardTitle>
-          <CardDescription>High-level controls</CardDescription>
+          <CardTitle>High-Level Controls</CardTitle>
+          <CardDescription>System-level actions for this church</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-3">
-          <Button className="w-full">Open as Church Admin</Button>
-          <Button className="w-full">Edit Church</Button>
-          <Button className="w-full">Add Admin</Button>
-          <Button variant="destructive" className="w-full">
+
+          {/* Open as Church Admin */}
+          <Button
+            className="w-full"
+            onClick={() => {
+              // No impersonation needed — just navigate into the church admin dashboard
+              window.location.href = `/admin/church/${churchId}`;
+            }}
+          >
+            Open as Church Admin
+          </Button>
+
+          {/* Edit Church */}
+          <Button
+            className="w-full"
+            onClick={() => {
+              window.location.href = `/admin/churches/${churchId}/edit`;
+            }}
+          >
+            Edit Church
+          </Button>
+
+          {/* Add Admin */}
+          <Button
+            className="w-full"
+            onClick={() => {
+              window.location.href = `/admin/churches/${churchId}/add-admin`;
+            }}
+          >
+            Add Admin
+          </Button>
+
+          {/* Disable Church */}
+          <Button
+            variant="destructive"
+            className="w-full"
+            onClick={() => setShowDisableDialog(true)}
+          >
             Disable Church
           </Button>
+
         </CardContent>
       </Card>
+
+      {/* Disable Confirmation Dialog */}
+      <AlertDialog open={showDisableDialog} onOpenChange={setShowDisableDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Disable this church?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will prevent all users from accessing this church. 
+              No data will be deleted, and you can re-enable it later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                try {
+                  await updateDoc(doc(db, "churches", churchIdStr), {
+                    status: "disabled",
+                    disabledAt: new Date().toISOString(),
+                  });
+                  setShowDisableDialog(false);
+                  // Optional: toast notification
+                } catch (err) {
+                  console.error("Failed to disable church:", err);
+                }
+              }}
+            >
+              Disable Church
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   );

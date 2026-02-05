@@ -20,6 +20,8 @@ import {
   CardTitle,
   CardContent,
 } from "@/app/components/ui/card";
+import { PageHeader } from "@/app/components/page-header";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/app/components/ui/select";
 
 export default function GlobalChurchListPage() {
   const PAGE_SIZE = 10;
@@ -32,9 +34,6 @@ export default function GlobalChurchListPage() {
   const [search, setSearch] = useState("");
   const [sortField, setSortField] = useState<"name" | "createdAt">("name");
 
-  // -----------------------------
-  // LOAD FIRST PAGE
-  // -----------------------------
   async function loadInitial() {
     setLoading(true);
 
@@ -42,7 +41,6 @@ export default function GlobalChurchListPage() {
     const q = query(ref, orderBy(sortField), limit(PAGE_SIZE));
 
     const snap = await getDocs(q);
-
     const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
     setChurches(docs);
@@ -51,21 +49,13 @@ export default function GlobalChurchListPage() {
     setLoading(false);
   }
 
-  // -----------------------------
-  // NEXT PAGE
-  // -----------------------------
   async function loadNext() {
     if (!lastDoc) return;
 
     setLoading(true);
 
     const ref = collection(db, "churches");
-    const q = query(
-      ref,
-      orderBy(sortField),
-      startAfter(lastDoc),
-      limit(PAGE_SIZE)
-    );
+    const q = query(ref, orderBy(sortField), startAfter(lastDoc), limit(PAGE_SIZE));
 
     const snap = await getDocs(q);
     const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -79,20 +69,13 @@ export default function GlobalChurchListPage() {
     setLoading(false);
   }
 
-  // -----------------------------
-  // PREVIOUS PAGE
-  // -----------------------------
   async function loadPrevious() {
     if (!firstDoc) return;
 
     setLoading(true);
 
     const ref = collection(db, "churches");
-    const q = query(
-      ref,
-      orderBy(sortField),
-      limit(PAGE_SIZE)
-    );
+    const q = query(ref, orderBy(sortField), limit(PAGE_SIZE));
 
     const snap = await getDocs(q);
     const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -104,104 +87,95 @@ export default function GlobalChurchListPage() {
     setLoading(false);
   }
 
-  // -----------------------------
-  // RELOAD WHEN SORT CHANGES
-  // -----------------------------
   useEffect(() => {
     loadInitial();
   }, [sortField]);
 
-  // -----------------------------
-  // SEARCH FILTER (client-side)
-  // -----------------------------
   const filtered = useMemo(() => {
     const term = search.toLowerCase();
-    return churches.filter((c) =>
-      c.name?.toLowerCase().includes(term)
-    );
+    return churches.filter((c) => c.name?.toLowerCase().includes(term));
   }, [churches, search]);
 
   return (
     <div className="p-6 space-y-8">
-
-      <div>
-        <h1 className="text-3xl font-bold">All Churches</h1>
-        <p className="text-muted-foreground">
-          Manage every church in the FAITH Connect system.
-        </p>
-      </div>
+      <PageHeader
+        title="All Churches"
+        subtitle="Manage every church in the FAITH Connect system."
+      />
 
       {/* Search + Sort */}
-      <div className="flex flex-col md:flex-row gap-4 items-center">
-        <Input
-          placeholder="Search churches..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full md:w-1/2"
-        />
+      <div className="flex flex-col md:flex-row md:items-center gap-4 w-full">
 
-        <select
-          className="border rounded p-2"
-          value={sortField}
-          onChange={(e) =>
-            setSortField(e.target.value as "name" | "createdAt")
-          }
-        >
-          <option value="name">Sort by Name</option>
-          <option value="createdAt">Sort by Created Date</option>
-        </select>
+        {/* Search bar — full width */}
+        <div className="flex-1">
+          <Input
+            placeholder="Search churches..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full"
+          />
+        </div>
+
+        {/* Sort dropdown — fixed width, right side */}
+        <div className="w-full md:w-48">
+          <Select
+            value={sortField}
+            onValueChange={(v) => setSortField(v as "name" | "createdAt")}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Sort by Name</SelectItem>
+              <SelectItem value="createdAt">Sort by Created Date</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
       </div>
 
-      {/* Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Churches</CardTitle>
-        </CardHeader>
+      {/* Church Grid */}
+      {loading ? (
+        <p className="text-muted-foreground">Loading…</p>
+      ) : filtered.length === 0 ? (
+        <p className="text-muted-foreground">No churches found.</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filtered.map((church) => (
+            <Card key={church.id} className="hover:shadow-md transition">
+              <CardHeader>
+                <CardTitle className="text-xl">{church.name}</CardTitle>
+              </CardHeader>
 
-        <CardContent>
-          {loading ? (
-            <p>Loading…</p>
-          ) : filtered.length === 0 ? (
-            <p>No churches found.</p>
-          ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2">Name</th>
-                  <th className="text-left py-2">Timezone</th>
-                  <th className="text-left py-2">Created</th>
-                  <th className="text-left py-2"></th>
-                </tr>
-              </thead>
+              <CardContent className="space-y-2 text-sm">
+                <p>
+                  <span className="font-medium">Timezone:</span>{" "}
+                  {church.timezone || "—"}
+                </p>
 
-              <tbody>
-                {filtered.map((church) => (
-                  <tr key={church.id} className="border-b">
-                    <td className="py-2">{church.name}</td>
-                    <td className="py-2">{church.timezone || "—"}</td>
-                    <td className="py-2">
-                      {church.createdAt
-                        ? new Date(church.createdAt.seconds * 1000).toLocaleDateString()
-                        : "—"}
-                    </td>
-                    <td className="py-2 text-right">
-                      <Link
-                        href={`/admin/churches/${church.id}`}
-                        className="text-primary hover:underline"
-                      >
-                        View →
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </CardContent>
-      </Card>
+                <p>
+                  <span className="font-medium">Created:</span>{" "}
+                  {church.createdAt
+                    ? new Date(church.createdAt.seconds * 1000).toLocaleDateString()
+                    : "—"}
+                </p>
+
+                <div className="pt-2">
+                  <Link
+                    href={`/admin/churches/${church.id}`}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    View Details →
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Pagination */}
-      <div className="flex justify-between">
+      {/* <div className="flex justify-between pt-4">
         <Button variant="outline" onClick={loadPrevious} disabled={loading}>
           Previous
         </Button>
@@ -209,7 +183,7 @@ export default function GlobalChurchListPage() {
         <Button variant="outline" onClick={loadNext} disabled={loading}>
           Next
         </Button>
-      </div>
+      </div> */}
     </div>
   );
 }

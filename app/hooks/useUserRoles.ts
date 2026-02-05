@@ -11,14 +11,13 @@ export function useUserRoles(churchId: string | null) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.id || !churchId) {
+    if (!user?.id) {
       setRoles([]);
       setLoading(false);
       return;
     }
 
-    const uid = user.id; // TS now knows this is a string
-
+    const uid = user.id;
     let isActive = true;
     setLoading(true);
 
@@ -48,7 +47,7 @@ export function useUserRoles(churchId: string | null) {
 
     fetchRoles();
     return () => { isActive = false };
-  }, [user?.id, churchId]);
+  }, [user?.id]);
 
   return {
     roles,

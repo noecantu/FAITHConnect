@@ -31,7 +31,7 @@ export default function LoginPage() {
       const userSnap = await getDoc(userRef);
 
       if (!userSnap.exists()) {
-        console.error('User document missing');
+        await auth.signOut();
         toast({
           title: 'Login Error',
           description: 'Your account is missing required data.',
@@ -41,19 +41,65 @@ export default function LoginPage() {
       }
 
       const data = userSnap.data();
-      const role = data.role;
+      const roles = data.roles || [];
+      const isRootAdmin = roles.includes("RootAdmin");
+      const isAdmin = roles.includes("Admin");
+
       const churchId = data.churchId;
 
-      // 3. Role-based redirect
-      if (role === 'RootAdmin') {
+      // 3. ROOT ADMIN — bypass church lookup entirely
+      if (isRootAdmin) {
         router.push('/admin');
-      } else if (role === 'Admin' && churchId) {
-        router.push(`/admin/churches/${churchId}`);
-      } else {
-        router.push('/');
+        return;
       }
 
+      // 4. Admins MUST have a churchId
+      if (!churchId) {
+        await auth.signOut();
+        toast({
+          title: 'Login Error',
+          description: 'Your account is missing a church assignment.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // 5. Load church document (safe now)
+      const churchRef = doc(db, 'churches', churchId);
+      const churchSnap = await getDoc(churchRef);
+
+      if (!churchSnap.exists()) {
+        await auth.signOut();
+        toast({
+          title: 'Login Error',
+          description: 'Your church record is missing.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const church = churchSnap.data();
+
+      // 6. HARD BLOCK — disabled church
+      if (church.status === 'disabled') {
+        await auth.signOut();
+        toast({
+          title: 'Access Denied',
+          description: 'Your church has been disabled. Please contact your administrator.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // 7. Admin redirect
+      if (isAdmin && churchId) {
+        router.push(`/admin/churches/${churchId}`);
+        return;
+      }
+
+      // 8. Default fallback
       toast({ title: 'Login Successful', description: 'Welcome back!' });
+      router.push('/');
 
     } catch (error) {
       console.error('Login error:', error);
