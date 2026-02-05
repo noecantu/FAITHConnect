@@ -93,7 +93,7 @@ export default function LoginPage() {
 
       // 7. Admin redirect
       if (isAdmin && churchId) {
-        router.push(`/admin/churches/${churchId}`);
+        router.push(`/admin/church/${churchId}`);
         return;
       }
 

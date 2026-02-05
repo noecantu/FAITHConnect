@@ -254,14 +254,33 @@ export default function MasterChurchDetailsPage() {
             Add Admin
           </Button>
 
-          {/* Disable Church */}
-          <Button
-            variant="destructive"
-            className="w-full"
-            onClick={() => setShowDisableDialog(true)}
-          >
-            Disable Church
-          </Button>
+          {/* Disable/Enable Church */}
+          {church.status === "disabled" ? (
+            <Button
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              onClick={async () => {
+                try {
+                  await updateDoc(doc(db, "churches", churchIdStr), {
+                    status: "active",
+                    enabledAt: new Date().toISOString(),
+                  });
+                  setChurch((prev: any) => ({ ...prev, status: "active" }));
+                } catch (err) {
+                  console.error("Failed to enable church:", err);
+                }
+              }}
+            >
+              Enable Church
+            </Button>
+          ) : (
+            <Button
+              variant="destructive"
+              className="w-full"
+              onClick={() => setShowDisableDialog(true)}
+            >
+              Disable Church
+            </Button>
+          )}
 
         </CardContent>
       </Card>
