@@ -1,181 +1,43 @@
-'use client';
+"use client";
 
-import { listenToMembers } from "./lib/members";
-import { Member } from "./lib/types";
-import { PageHeader } from "./components/page-header";
-import { MemberCard } from "./members/member-card";
-import { MemberStatusBreakdown } from "./members/member-status-breakdown";
-import { MemberFormSheet } from "./members/member-form-sheet";
-import { useChurchId } from "./hooks/useChurchId";
-import { useUserRoles } from "./hooks/useUserRoles";
-import { useSettings } from "./hooks/use-settings";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "./hooks/useAuth";
-import { Button } from "./components/ui/button";
-import { Input } from "./components/ui/input";
-import { Fab } from "./components/ui/fab";
-import { RadioGroup, RadioGroupItem } from "./components/ui/radio-group";
-import { updateDoc, doc, serverTimestamp } from "firebase/firestore";
-import { db } from "./lib/firebase";
-import { useEffect, useMemo, useState } from "react";
 
-export default function MembersPage() {
-  const churchId = useChurchId();
-  const [members, setMembers] = useState<Member[]>([]);
-  const [search, setSearch] = useState("");
-  const { isAdmin, isMemberManager } = useUserRoles(churchId);
-  const [previousScroll, setPreviousScroll] = useState(0);
-  const { cardView } = useSettings();
-  const { user } = useAuth();
-  const canEditMembers = isAdmin || isMemberManager;
-
-  // Relationship search feeds into the same search bar
-  function handleSearchFromRelationship(name: string) {
-    setPreviousScroll(window.scrollY);
-    setSearch(name);
-  }
+export default function HomePage() {
+  const router = useRouter();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    if (!churchId) return;
+    if (loading) return;
 
-    const unsubscribe = listenToMembers(churchId, setMembers);
-    return () => unsubscribe();
-  }, [churchId]);
+    // Not logged in → login
+    if (!user) {
+      router.push("/login");
+      return;
+    }
 
-  const filteredMembers = useMemo(() => {
-    const term = search.toLowerCase();
+    // Root Admin → system admin dashboard
+    if (user.roles?.includes("RootAdmin")) {
+      router.push("/admin");
+      return;
+    }
 
-    return members.filter((m) => {
-      const name = `${m.firstName} ${m.lastName}`.toLowerCase();
-      const email = m.email?.toLowerCase() ?? "";
-      const phone = m.phoneNumber ?? "";
-      return (
-        name.includes(term) ||
-        email.includes(term) ||
-        phone.includes(term)
-      );
-    });
-  }, [members, search]);
+    // Admin → Members Page (your real landing page)
+    if (user.roles?.includes("Admin")) {
+      router.push("/members");
+      return;
+    }
 
-  const sortedMembers = useMemo(() => {
-    return [...filteredMembers].sort((a, b) => {
-      const nameA = `${a.lastName}, ${a.firstName}`.toLowerCase();
-      const nameB = `${b.lastName}, ${b.firstName}`.toLowerCase();
-      return nameA.localeCompare(nameB);
-    });
-  }, [filteredMembers]);
+    // New user with no church → onboarding
+    if (!user.churchId) {
+      router.push("/onboarding/create-church");
+      return;
+    }
 
-  const statusSummary = getMemberStatusSummary(members);
+    // Regular member → Members Page
+    router.push("/members");
+  }, [user, loading, router]);
 
-  function handleClear() {
-    setSearch("");
-  
-    // Restore scroll AFTER the DOM updates
-    requestAnimationFrame(() => {
-      window.scrollTo(0, previousScroll);
-    });
-  }
-
-  function getMemberStatusSummary(members: Member[]) {
-    const active = members.filter(m => m.status === "Active").length;
-    const prospect = members.filter(m => m.status === "Prospect").length;
-    const archived = members.filter(m => m.status === "Archived").length;
-  
-    return `Active: ${active} | Prospects: ${prospect} | Archived: ${archived}`;
-  }
-  
-  return (
-    <>
-      <PageHeader
-        title="Members"
-        subtitle={statusSummary}
-        className="mb-2"
-      >
-        <div className="flex items-center gap-4">
-          {/* View Selector */}
-          <RadioGroup
-            value={cardView}
-            onValueChange={async (value) => {
-              const v = value as "show" | "hide";
-
-              if (!user?.uid) return;
-
-              await updateDoc(doc(db, "users", user.uid), {
-                "settings.cardView": v,
-                updatedAt: serverTimestamp(),
-              });
-            }}
-            className="flex items-center gap-4"
-          >
-            <div className="flex items-center gap-1">
-              <RadioGroupItem value="show" id="show-photo" />
-              <label htmlFor="show-photo" className="text-sm">Show Photo</label>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <RadioGroupItem value="hide" id="hide-photo" />
-              <label htmlFor="hide-photo" className="text-sm">Hide Photo</label>
-            </div>
-          </RadioGroup>
-        </div>
-      </PageHeader>
-
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="w-full flex items-center gap-02">
-          <Input
-            className="w-full"
-            placeholder="Search members..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-
-          {search.length > 0 && (
-            <Button
-              variant="outline"
-              onClick={handleClear}
-              className="shrink-0"
-            >
-              Clear
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <div
-        className="
-          grid
-          grid-cols-1
-          sm:grid-cols-2
-          lg:grid-cols-3
-          xl:grid-cols-4
-          gap-6
-        "
-      >
-        {sortedMembers.map((member) =>
-          canEditMembers ? (
-            <MemberFormSheet key={member.id} member={member}>
-              <MemberCard
-                member={member}
-                cardView={cardView}
-                searchAction={handleSearchFromRelationship}
-              />
-            </MemberFormSheet>
-          ) : (
-            <MemberCard
-              key={member.id}
-              member={member}
-              cardView={cardView}
-              searchAction={handleSearchFromRelationship}
-            />
-          )
-        )}
-      </div>
-
-      {isMemberManager && (
-        <MemberFormSheet>
-          <Fab type="add" />
-        </MemberFormSheet>
-      )}
-
-    </>
-  );
+  return null;
 }

@@ -14,10 +14,14 @@ export function useMembers(churchId: string | null) {
       return;
     }
 
-    const unsubscribe = listenToMembersFromLib(churchId, (data) => {
-      setMembers(data);
-      setLoading(false);
-    });
+    const unsubscribe = listenToMembersFromLib(
+      churchId,
+      (data) => {
+        setMembers(data);
+        setLoading(false);
+      },
+      "use-members-hook"
+    );
 
     return () => unsubscribe();
   }, [churchId]);

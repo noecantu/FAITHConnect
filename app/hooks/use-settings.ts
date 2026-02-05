@@ -11,9 +11,14 @@ export function useSettings() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.uid) return;
+    if (!user?.id) {
+      // If user logs out, clear settings immediately
+      setSettings(null);
+      setLoading(false);
+      return;
+    }
 
-    const ref = doc(db, 'users', user.uid);
+    const ref = doc(db, 'users', user.id);
 
     const unsubscribe = onSnapshot(ref, (snap) => {
       if (!snap.exists()) {
@@ -28,7 +33,7 @@ export function useSettings() {
     });
 
     return () => unsubscribe();
-  }, [user?.uid]);
+  }, [user?.id]);
 
   return {
     settings,

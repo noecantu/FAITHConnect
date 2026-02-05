@@ -29,25 +29,38 @@ export function setListsCollection(churchId: string) {
 // -----------------------------------------------------
 export function listenToSetLists(
   churchId: string,
-  callback: (lists: SetList[]) => void
+  callback: (lists: SetList[]) => void,
+  userId?: string
 ) {
+  // Prevent listener from attaching during logout or unstable auth
+  if (!churchId || !userId) return () => {};
+
   const q = query(setListsCollection(churchId), orderBy('date', 'desc'));
 
-  return onSnapshot(q, (snapshot) => {
-    const lists: SetList[] = snapshot.docs.map((docSnap) => {
-      const data = docSnap.data();
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const lists: SetList[] = snapshot.docs.map((docSnap) => {
+        const data = docSnap.data();
 
-      return {
-        id: docSnap.id,
-        ...(data as any),
-        date: data.date?.toDate?.() ?? new Date(),
-        createdAt: data.createdAt?.toDate?.() ?? new Date(),
-        updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
-      } as SetList;
-    });
+        return {
+          id: docSnap.id,
+          ...(data as any),
+          date: data.date?.toDate?.() ?? new Date(),
+          createdAt: data.createdAt?.toDate?.() ?? new Date(),
+          updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
+        } as SetList;
+      });
 
-    callback(lists);
-  });
+      callback(lists);
+    },
+    (error) => {
+      // Swallow the expected logout error
+      if (error.code !== "permission-denied") {
+        console.error("listenToSetLists error:", error);
+      }
+    }
+  );
 }
 
 // -----------------------------------------------------

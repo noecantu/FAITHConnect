@@ -11,13 +11,14 @@ export function useUserRoles(churchId: string | null) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.uid || !churchId) {
+    if (!user?.id || !churchId) {
       setRoles([]);
-      setLoading(true);
+      setLoading(false);
       return;
     }
 
-    const uid = user.uid;
+    const uid = user.id; // TS now knows this is a string
+
     let isActive = true;
     setLoading(true);
 
@@ -36,8 +37,10 @@ export function useUserRoles(churchId: string | null) {
           setRoles([]);
         }
       } catch (error) {
-        console.error("Error fetching user roles:", error);
-        if (isActive) setRoles([]);
+        if (isActive) {
+          console.error("Error fetching user roles:", error);
+          setRoles([]);
+        }
       } finally {
         if (isActive) setLoading(false);
       }
@@ -45,7 +48,7 @@ export function useUserRoles(churchId: string | null) {
 
     fetchRoles();
     return () => { isActive = false };
-  }, [user?.uid, churchId]);
+  }, [user?.id, churchId]);
 
   return {
     roles,

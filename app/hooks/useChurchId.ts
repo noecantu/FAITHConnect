@@ -8,23 +8,42 @@ export function useChurchId(): string | null {
   const [churchId, setChurchId] = useState<string | null>(null);
 
   useEffect(() => {
+    let isActive = true;
+
+    // If user logs out, clear immediately and stop
+    if (!user?.id) {
+      setChurchId(null);
+      return () => { isActive = false };
+    }
+
+    const uid = user.id;
+
     const fetchChurchId = async () => {
-      if (user) {
-        const userDocRef = doc(db, 'users', user.uid);
+      try {
+        const userDocRef = doc(db, 'users', uid);
         const userDoc = await getDoc(userDocRef);
+
+        if (!isActive) return;
+
         if (userDoc.exists()) {
           setChurchId(userDoc.data().churchId);
         } else {
-          console.warn(`User document not found for uid: ${user.uid}`);
           setChurchId(null);
         }
-      } else {
-        setChurchId(null);
+      } catch (err) {
+        if (isActive) {
+          console.error("Error fetching churchId:", err);
+          setChurchId(null);
+        }
       }
     };
 
     fetchChurchId();
-  }, [user]);
+
+    return () => {
+      isActive = false;
+    };
+  }, [user?.id]);
 
   return churchId;
 }

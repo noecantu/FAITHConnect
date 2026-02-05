@@ -25,33 +25,31 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [fiscalYear, setFiscalYear] = useState<string>(new Date().getFullYear().toString());
 
   useEffect(() => {
-    // 1. Load initial values from localStorage (fastest)
-    const savedView = localStorage.getItem("calendarView");
-    if (savedView === 'calendar' || savedView === 'list') {
-      setCalendarView(savedView);
-    }
-    const savedYear = localStorage.getItem("fiscalYear");
-    if (savedYear) {
-      setFiscalYear(savedYear);
-    }
+    let isActive = true;
 
-    // 2. If user is logged in, fetch from Firestore and update
     const fetchSettings = async () => {
-      if (!user) return;
+      if (!user) {
+        // Clear settings when user logs out
+        setCalendarView('calendar');
+        setFiscalYear(new Date().getFullYear().toString());
+        return;
+      }
 
       try {
-        const userDocRef = doc(db, 'users', user.uid);
+        const userDocRef = doc(db, 'users', user.id);
         const userDoc = await getDoc(userDocRef);
-        
+
+        if (!isActive) return;
+
         if (userDoc.exists()) {
           const data = userDoc.data();
-          
+
           if (data.settings?.calendarView) {
             const view = data.settings.calendarView;
             setCalendarView(view);
             localStorage.setItem("calendarView", view);
           }
-          
+
           if (data.settings?.fiscalYear) {
             const year = data.settings.fiscalYear;
             setFiscalYear(year);
@@ -59,11 +57,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (error) {
-        console.error("Error fetching user settings:", error);
+        if (isActive) console.error("Error fetching user settings:", error);
       }
     };
 
     fetchSettings();
+
+    return () => {
+      isActive = false;
+    };
   }, [user]);
 
   return (

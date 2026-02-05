@@ -18,11 +18,15 @@ export function useRecentSetLists(churchId: string | null) {
 
     const cutoff = dayjs().subtract(4, 'week').toDate();
 
-    const unsubscribe = listenToSetLists(churchId, (all) => {
-      const recent = all.filter((l) => l.date >= cutoff);
-      setLists(recent);
-      setLoading(false);
-    });
+    const unsubscribe = listenToSetLists(
+      churchId,
+      (all) => {
+        const recent = all.filter((l) => l.date >= cutoff);
+        setLists(recent);
+        setLoading(false);
+      },
+      "recent-setlists"
+    );
 
     return () => unsubscribe();
   }, [churchId]);

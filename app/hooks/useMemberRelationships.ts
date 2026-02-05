@@ -19,9 +19,13 @@ export function useMemberRelationships(
 
   useEffect(() => {
     if (!churchId) return;
-    const unsubscribe = listenToMembers(churchId, (members) => {
-      setAllMembers(members);
-    });
+
+    const unsubscribe = listenToMembers(
+      churchId,
+      (members) => setAllMembers(members),
+      "member-relationships"
+    );
+
     return () => unsubscribe();
   }, [churchId]);
 

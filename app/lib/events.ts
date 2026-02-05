@@ -32,19 +32,25 @@ import {
     updatedAt: Date;
   };
   
-  export function listenToEvents(
-    churchId: string,
-    callback: (events: Event[]) => void
-  ) {
-    const q = query(
-      collection(db, "churches", churchId, "events"),
-      orderBy("start", "asc")
-    );
-  
-    return onSnapshot(q, (snapshot) => {
+export function listenToEvents(
+  churchId: string,
+  callback: (events: Event[]) => void,
+  userId?: string
+) {
+  // Prevent listener from attaching during logout or unstable auth
+  if (!churchId || !userId) return () => {};
+
+  const q = query(
+    collection(db, "churches", churchId, "events"),
+    orderBy("start", "asc")
+  );
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
       const events: Event[] = snapshot.docs.map((docSnap) => {
         const data = docSnap.data() as EventRecord;
-  
+
         return {
           id: docSnap.id,
           title: data.title,
@@ -56,7 +62,14 @@ import {
           updatedAt: data.updatedAt.toDate(),
         };
       });
-  
+
       callback(events);
-    });
-  }
+    },
+    (error) => {
+      // Swallow the expected logout error
+      if (error.code !== "permission-denied") {
+        console.error("listenToEvents error:", error);
+      }
+    }
+  );
+}

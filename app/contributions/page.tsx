@@ -77,9 +77,9 @@ export default function ContributionsPage() {
   const summaryText = getContributionSummaryText(filteredContributions, fiscalYear);
   
   async function handleFiscalYearChange(value: string) {
-    if (!user?.uid) return;
+    if (!user?.id) return;
   
-    await updateDoc(doc(db, "users", user.uid), {
+    await updateDoc(doc(db, "users", user.id), {
       "settings.fiscalYear": value,
       updatedAt: serverTimestamp(),
     });
@@ -92,14 +92,25 @@ export default function ContributionsPage() {
   // Listen to contributions
   React.useEffect(() => {
     if (!churchId) return;
-    const unsubscribe = listenToContributions(churchId, setContributions);
+
+    const unsubscribe = listenToContributions(
+      churchId,
+      setContributions,
+      "use-contributions-in-page"
+    );
+
     return () => unsubscribe();
   }, [churchId]);
 
-  // Listen to members
   React.useEffect(() => {
     if (!churchId) return;
-    const unsubscribe = listenToMembers(churchId, setMembers);
+
+    const unsubscribe = listenToMembers(
+      churchId,
+      setMembers,
+      "use-members-in-page"
+    );
+
     return () => unsubscribe();
   }, [churchId]);
 

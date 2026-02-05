@@ -18,36 +18,47 @@ import type { Contribution, ContributionRecord } from "./types";
 // ------------------------------
 export function listenToContributions(
   churchId: string,
-  callback: (contributions: Contribution[]) => void
+  callback: (contributions: Contribution[]) => void,
+  userId?: string
 ) {
+  // Prevent listener from attaching during logout or unstable auth
+  if (!churchId || !userId) return () => {};
+
   const q = query(
     collection(db, "churches", churchId, "contributions"),
     orderBy("date", "desc")
   );
 
-  return onSnapshot(q, (snapshot) => {
-    const data: Contribution[] = snapshot.docs.map((docSnap) => {
-      const raw = docSnap.data() as ContributionRecord;
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const data: Contribution[] = snapshot.docs.map((docSnap) => {
+        const raw = docSnap.data() as ContributionRecord;
 
-      return {
-        id: docSnap.id,
-        memberId: raw.memberId,
-        memberName: raw.memberName,
-        amount: raw.amount,
-        category: raw.category as Contribution["category"],
-        contributionType: raw.contributionType as Contribution["contributionType"],
+        return {
+          id: docSnap.id,
+          memberId: raw.memberId,
+          memberName: raw.memberName,
+          amount: raw.amount,
+          category: raw.category as Contribution["category"],
+          contributionType: raw.contributionType as Contribution["contributionType"],
+          date:
+            raw.date instanceof Timestamp
+              ? raw.date.toDate().toISOString().substring(0, 10)
+              : raw.date ?? "",
+          notes: raw.notes,
+        };
+      });
 
-        // 🔥 FIX: Firestore now stores date as a string, not Timestamp
-        date: raw.date instanceof Timestamp
-        ? raw.date.toDate().toISOString().substring(0, 10)
-        : (raw.date ?? ""),      
-
-        notes: raw.notes,
-      };
-    });
-
-    callback(data);
-  });
+      callback(data);
+    },
+    (error) => {
+      // Swallow the expected logout error
+      if (error.code !== "permission-denied") {
+        console.error("listenToContributions error:", error);
+      }
+    }
+  );
 }
 
 // ------------------------------

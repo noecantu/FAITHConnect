@@ -22,13 +22,13 @@ import { Skeleton } from '@/app/components/ui/skeleton';
 import { useToast } from '@/app/hooks/use-toast';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { ROLE_MAP, ALL_ROLES, Role } from '@/app/lib/roles';
-import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { Fab } from '@/app/components/ui/fab';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { PageHeader } from '../components/page-header';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
 import { Database, UserRoundPlus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/app/hooks/useAuth';
 
 export interface User {
   id: string;
@@ -61,28 +61,41 @@ export default function AccessManagementPage() {
   const [isCreating, setIsCreating] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
-  const { roles, isAdmin } = useUserRoles(churchId);
   const [storageUsed, setStorageUsed] = useState<number | null>(null);
   const [hasLoadedUsage, setHasLoadedUsage] = useState(false);
-    
+  const { user } = useAuth();
+
   // Load users
   React.useEffect(() => {
-    if (!churchId) return;
+    if (!churchId || !user?.id) {
+      setUsers([]);
+      setLoading(false);
+      return;
+    }
 
     const usersRef = collection(db, 'users');
     const q = query(usersRef, where('churchId', '==', churchId));
 
-    const unsub = onSnapshot(q, (snap) => {
-      const list = snap.docs.map((d) => ({
-        ...(d.data() as User),
-        id: d.id,
-      }));
-      setUsers(list);
-      setLoading(false);
-    });
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const list = snap.docs.map((d) => ({
+          ...(d.data() as User),
+          id: d.id,
+        }));
+        setUsers(list);
+        setLoading(false);
+      },
+      (error) => {
+        // Swallow the expected logout error
+        if (error.code !== 'permission-denied') {
+          console.error('listenToUsers error:', error);
+        }
+      }
+    );
 
     return () => unsub();
-  }, [churchId]);
+  }, [churchId, user?.id]);
 
   useEffect(() => {
     const fetchUsage = async () => {

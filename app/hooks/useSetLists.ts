@@ -9,18 +9,20 @@ export function useSetLists(churchId: string | null) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // If churchId is still loading, stay in loading state
     if (!churchId) {
       return;
     }
 
-    // Now we have a valid churchId — start loading
     setLoading(true);
 
-    const unsubscribe = listenToSetLists(churchId, (data) => {
-      setLists(data);
-      setLoading(false);
-    });
+    const unsubscribe = listenToSetLists(
+      churchId,
+      (data) => {
+        setLists(data);
+        setLoading(false);
+      },
+      "use-setlists-hook"
+    );
 
     return () => unsubscribe();
   }, [churchId]);

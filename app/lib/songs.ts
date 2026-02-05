@@ -29,28 +29,36 @@ import {
   // -----------------------------------------------------
   export function listenToSongs(
     churchId: string | null,
-    callback: (songs: Song[]) => void
+    callback: (songs: Song[]) => void,
+    userId?: string
   ) {
-    if (!churchId) {
-      // Return a no-op unsubscribe function
-      return () => {};
-    }
-  
+    // Prevent listener from attaching during logout or unstable auth
+    if (!churchId || !userId) return () => {};
+
     const q = query(songsCollection(churchId), orderBy('title'));
-  
-    return onSnapshot(q, (snapshot) => {
-      const songs: Song[] = snapshot.docs.map((docSnap) => {
-        const data = docSnap.data();
-        return {
-          id: docSnap.id,
-          ...(data as any),
-          createdAt: data.createdAt?.toDate?.() ?? new Date(),
-          updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
-        };
-      });
-  
-      callback(songs);
-    });
+
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const songs: Song[] = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            ...(data as any),
+            createdAt: data.createdAt?.toDate?.() ?? new Date(),
+            updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
+          };
+        });
+
+        callback(songs);
+      },
+      (error) => {
+        // Swallow the expected logout error
+        if (error.code !== "permission-denied") {
+          console.error("listenToSongs error:", error);
+        }
+      }
+    );
   }
   
   // -----------------------------------------------------

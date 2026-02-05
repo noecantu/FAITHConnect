@@ -238,39 +238,52 @@ export async function deleteMember(churchId: string, memberId: string) {
     transaction.delete(memberRef);
   });
 }
+
 export function listenToMembers(
-  
-  churchId: string,
-  callback: (members: Member[]) => void
-) {
+churchId: string, callback: (members: Member[]) => void, id: string) {
+  if (!churchId) {
+    // No listener if churchId is missing
+    return () => {};
+  }
+
   const q = query(
     collection(db, "churches", churchId, "members"),
     orderBy("lastName", "asc")
   );
 
-  return onSnapshot(q, (snapshot) => {
-    const members: Member[] = snapshot.docs.map((doc) => {
-      const raw = doc.data();
-      const rawPhone = raw.phoneNumber?.replace(/\D/g, "") || "";
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const members: Member[] = snapshot.docs.map((docSnap) => {
+        const raw = docSnap.data();
+        const rawPhone = raw.phoneNumber?.replace(/\D/g, "") || "";
 
-      return {
-        id: doc.id,
-        userId: raw.userId ?? null,
-        firstName: raw.firstName,
-        lastName: raw.lastName,
-        email: raw.email,
-        phoneNumber: rawPhone,
-        profilePhotoUrl: raw.profilePhotoUrl ?? "",
-        status: raw.status,
-        address: raw.address,
-        birthday: raw.birthday?.toDate?.()?.toISOString().split("T")[0] ?? undefined,
-        baptismDate: raw.baptismDate?.toDate?.()?.toISOString().split("T")[0] ?? undefined,
-        familyId: raw.familyId,
-        notes: raw.notes ?? "",
-        relationships: raw.relationships,
-        anniversary: raw.anniversary?.toDate?.()?.toISOString().split("T")[0] ?? undefined,
-      };
-    });
-    callback(members);
-  });
+        return {
+          id: docSnap.id,
+          userId: raw.userId ?? null,
+          firstName: raw.firstName,
+          lastName: raw.lastName,
+          email: raw.email,
+          phoneNumber: rawPhone,
+          profilePhotoUrl: raw.profilePhotoUrl ?? "",
+          status: raw.status,
+          address: raw.address,
+          birthday: raw.birthday?.toDate?.()?.toISOString().split("T")[0] ?? undefined,
+          baptismDate: raw.baptismDate?.toDate?.()?.toISOString().split("T")[0] ?? undefined,
+          familyId: raw.familyId,
+          notes: raw.notes ?? "",
+          relationships: raw.relationships,
+          anniversary: raw.anniversary?.toDate?.()?.toISOString().split("T")[0] ?? undefined,
+        };
+      });
+      callback(members);
+    },
+    (error) => {
+      // Ignore the expected logout case to avoid noisy console errors
+      if (error.code !== "permission-denied") {
+        console.error("listenToMembers error:", error);
+      }
+    }
+  );
 }
+

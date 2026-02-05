@@ -108,30 +108,39 @@ export default function CalendarPage() {
   
   // Firestore listener
   useEffect(() => {
-    if (!churchId) return;
+    if (!churchId || !user?.id) return;
 
     const q = query(
       collection(db, 'churches', churchId, 'events'),
       orderBy('date', 'asc')
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data: EventType[] = snapshot.docs.map((docSnap) => {
-        const raw = docSnap.data();
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data: EventType[] = snapshot.docs.map((docSnap) => {
+          const raw = docSnap.data();
 
-        return {
-          id: docSnap.id,
-          title: raw.title,
-          description: raw.description,
-          date: raw.date?.toDate?.() ?? new Date(),
-        };
-      });
+          return {
+            id: docSnap.id,
+            title: raw.title,
+            description: raw.description,
+            date: raw.date?.toDate?.() ?? new Date(),
+          };
+        });
 
-      setEvents(data);
-    });
+        setEvents(data);
+      },
+      (error) => {
+        // Swallow the expected logout error
+        if (error.code !== 'permission-denied') {
+          console.error('Events listener error:', error);
+        }
+      }
+    );
 
     return () => unsubscribe();
-  }, [churchId]);
+  }, [churchId, user?.id]);
 
   useEffect(() => {
     setView(calendarView);
@@ -461,9 +470,9 @@ export default function CalendarPage() {
                 const v = value as "calendar" | "list";
                 setView(v);
               
-                if (!user?.uid) return; // ⭐ prevents the TS error AND runtime crash
+                if (!user?.id) return; // ⭐ prevents the TS error AND runtime crash
               
-                await updateDoc(doc(db, "users", user.uid), {
+                await updateDoc(doc(db, "users", user.id), {
                   "settings.calendarView": v,
                   updatedAt: serverTimestamp(),
                 });

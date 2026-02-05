@@ -150,11 +150,11 @@ export interface SongInput {
 
 export interface User {
   id: string;
-  churchId: string;
+  email: string;
+  churchId?: string | null;
+  roles: string[];
   firstName?: string;
   lastName?: string;
-  email: string;
-  roles: string[];
   settings?: {
     calendarView?: 'calendar' | 'list';
     cardView?: 'show' | 'hide';

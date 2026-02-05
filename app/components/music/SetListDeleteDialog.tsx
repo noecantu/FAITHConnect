@@ -6,14 +6,16 @@ import { Button } from '../ui/button';
 import { deleteSetList } from '../../lib/setlists';
 import { useChurchId } from '../../hooks/useChurchId';
 import { SetList } from '../../lib/types';
+import { useRouter } from "next/navigation";
 
 export function SetListDeleteDialog({ setList }: { setList: SetList }) {
   const [open, setOpen] = useState(false);
   const churchId = useChurchId();
+  const router = useRouter();
 
   const handleDelete = async () => {
     if (!churchId) return;
-    await deleteSetList(churchId, setList.id);
+    await deleteSetList(churchId, setList.id, router);
     setOpen(false);
   };
 

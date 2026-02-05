@@ -47,23 +47,29 @@ service cloud.firestore {
     }
 
     // ---------------------------
-    // ROOT ADMIN FULL ACCESS
-    // ---------------------------
-    match /{document=**} {
-      allow read, write: if isRootAdmin();
-    }
-
-    // ---------------------------
     // USERS COLLECTION
     // ---------------------------
     match /users/{uid} {
-      allow read, write: if true;
+      // User can read/write their own profile
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      // Root Admin full access
+      allow read, write: if isRootAdmin();
+
+      // Church Admins can read users in their own church
+      allow read: if isUserSignedIn() &&
+                  getUserDoc().data.churchId == resource.data.churchId &&
+                  hasChurchRole(resource.data.churchId, ["Admin"]);
     }
 
     // ---------------------------
     // CHURCHES COLLECTION
     // ---------------------------
     match /churches/{churchId} {
+
+      // CHURCH DOCUMENT ITSELF
+      allow read: if isChurchMember(churchId);
+      allow update: if hasChurchRole(churchId, ["Admin"]);
 
       // MEMBERS
       match /members/{memberId} {
@@ -99,6 +105,19 @@ service cloud.firestore {
         allow read: if isChurchMember(churchId);
         allow create, update, delete: if hasChurchRole(churchId, ["Admin", "MusicManager"]);
       }
+    }
+
+    // Allow Admins and Members to read any subcollection under their church
+    match /{sub=**} {
+      allow read: if isChurchMember(churchId);
+      allow write: if hasChurchRole(churchId, ["Admin"]);
+    }
+
+    // ---------------------------
+    // ROOT ADMIN FALLBACK ACCESS
+    // ---------------------------
+    match /{document=**} {
+      allow read, write: if isRootAdmin();
     }
   }
 }

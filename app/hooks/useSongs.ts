@@ -9,7 +9,6 @@ export function useSongs(churchId: string | null) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Prevent early listener
     if (!churchId) {
       setSongs([]);
       return;
@@ -17,10 +16,14 @@ export function useSongs(churchId: string | null) {
 
     setLoading(true);
 
-    const unsubscribe = listenToSongs(churchId, (list) => {
-      setSongs(list);
-      setLoading(false);
-    });
+    const unsubscribe = listenToSongs(
+      churchId,
+      (list) => {
+        setSongs(list);
+        setLoading(false);
+      },
+      "use-songs-hook"
+    );
 
     return () => unsubscribe();
   }, [churchId]);
