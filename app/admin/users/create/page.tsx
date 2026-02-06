@@ -14,12 +14,15 @@ import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/app/components/ui/select";
 import { useToast } from "@/app/hooks/use-toast";
+import { createUserAction } from "./actions";
+import { useAuth } from "@/app/hooks/useAuth";
 
 import { ALL_ROLES, ROLE_MAP, Role } from "@/app/lib/roles";
 
 export default function CreateUserPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user: currentUser } = useAuth();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -68,30 +71,38 @@ export default function CreateUserPage() {
         return;
       }
 
-      // 1. Create Firebase Auth user
-      const { user } = await createUserWithEmailAndPassword(
-        auth,
-        email.trim(),
-        password
-      );
+      if (!currentUser) {
+        toast({
+          title: "Not Authorized",
+          description: "You must be logged in as an admin to create users.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
 
-      // 2. Create Firestore user document
-      await setDoc(doc(db, "users", user.uid), {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        displayName: `${firstName.trim()} ${lastName.trim()}`.trim(),
-        email: email.trim(),
+      const actorUid = currentUser.id;
+      const actorName = `${currentUser.firstName} ${currentUser.lastName}`.trim();
+
+      const result = await createUserAction({
+        firstName,
+        lastName,
+        email,
+        password,
         roles: selectedRoles,
         churchId: selectedChurch,
-        createdAt: new Date().toISOString(),
+        actorUid,
+        actorName,
       });
 
-      toast({
-        title: "User Created",
-        description: "The new user has been added successfully.",
-      });
+      if (result.success) {
+        toast({
+          title: "User Created",
+          description: "The new user has been added successfully.",
+        });
 
-      router.push("/admin/users");
+        router.push("/admin/users");
+      }
     } catch (err: any) {
       console.error("Failed to create user:", err);
 
