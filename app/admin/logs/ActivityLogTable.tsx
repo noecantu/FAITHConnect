@@ -28,38 +28,14 @@ export default function ActivityLogTable({ logs }: { logs: any[] }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left border-b">
-                <th className="p-2">Type</th>
-                <th className="p-2">Message</th>
-                <th className="p-2">Actor</th>
-                <th className="p-2">Target</th>
-                <th className="p-2">Timestamp</th>
-                <th className="p-2">Details</th> {/* ⭐ NEW */}
+                <th className="p-2">Type</th><th className="p-2">Message</th><th className="p-2">Actor</th><th className="p-2">Target</th><th className="p-2">Timestamp</th><th className="p-2">Details</th>
               </tr>
             </thead>
 
             <tbody>
               {filtered.map((log) => (
                 <tr key={log.id} className="border-b">
-                  <td className="p-2 font-medium">{log.type}</td>
-                  <td className="p-2">{log.message}</td>
-                  <td className="p-2">
-                    {log.actorName || log.actorUid || "Unknown"}
-                  </td>
-                  <td className="p-2">{log.targetId}</td>
-                  <td className="p-2">
-                    {new Date(log.timestamp).toLocaleString()}
-                  </td>
-
-                  {/* ⭐ NEW: View Details link */}
-                  <td className="p-2">
-                    <a
-                      href={`/admin/logs/${log.id}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      View
-                    </a>
-                  </td>
-
+                  <td className="p-2 font-medium">{log.type}</td><td className="p-2">{log.message}</td><td className="p-2">{log.actorName || log.actorUid || "Unknown"}</td><td className="p-2">{log.targetId}</td><td className="p-2">{new Date(log.timestamp).toLocaleString()}</td><td className="p-2"><a href={`/admin/logs/${log.id}`} className="text-blue-600 hover:underline">View</a></td>
                 </tr>
               ))}
             </tbody>
