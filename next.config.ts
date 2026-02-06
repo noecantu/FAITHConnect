@@ -4,9 +4,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+
   images: {
     remotePatterns: [
       {
@@ -30,7 +28,7 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // ⭐ This is the correct place in Next.js 15
+  // Required for Firebase Studio preview
   allowedDevOrigins: ["https://*.cloudworkstations.dev"],
 };
 
