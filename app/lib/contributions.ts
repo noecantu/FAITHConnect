@@ -17,12 +17,8 @@ import type { Contribution, ContributionRecord } from "./types";
 // Real-time listener
 // ------------------------------
 export function listenToContributions(
-  churchId: string,
-  callback: (contributions: Contribution[]) => void,
-  userId?: string
-) {
-  // Prevent listener from attaching during logout or unstable auth
-  if (!churchId || !userId) return () => {};
+churchId: string, callback: (contributions: Contribution[]) => void, p0: string) {
+  if (!churchId) return () => {};
 
   const q = query(
     collection(db, "churches", churchId, "contributions"),
@@ -35,25 +31,28 @@ export function listenToContributions(
       const data: Contribution[] = snapshot.docs.map((docSnap) => {
         const raw = docSnap.data() as ContributionRecord;
 
+        let dateString = "";
+        if (raw.date instanceof Timestamp) {
+          dateString = raw.date.toDate().toISOString().slice(0, 10);
+        } else if (typeof raw.date === "string") {
+          dateString = raw.date;
+        }
+
         return {
           id: docSnap.id,
           memberId: raw.memberId,
           memberName: raw.memberName,
           amount: raw.amount,
-          category: raw.category as Contribution["category"],
-          contributionType: raw.contributionType as Contribution["contributionType"],
-          date:
-            raw.date instanceof Timestamp
-              ? raw.date.toDate().toISOString().substring(0, 10)
-              : raw.date ?? "",
-          notes: raw.notes,
+          category: raw.category,
+          contributionType: raw.contributionType,
+          date: dateString,
+          notes: raw.notes ?? "",
         };
       });
 
       callback(data);
     },
     (error) => {
-      // Swallow the expected logout error
       if (error.code !== "permission-denied") {
         console.error("listenToContributions error:", error);
       }
@@ -66,19 +65,19 @@ export function listenToContributions(
 // ------------------------------
 export async function addContribution(
   churchId: string,
-  data: Omit<Contribution, "id"> // 🔥 FIX: date is already a string in Contribution
+  data: Omit<Contribution, "id">
 ) {
+  if (!churchId) throw new Error("Missing churchId");
+
   const colRef = collection(db, "churches", churchId, "contributions");
+
   await addDoc(colRef, {
     memberId: data.memberId,
     memberName: data.memberName,
     amount: data.amount,
     category: data.category,
     contributionType: data.contributionType,
-
-    // 🔥 FIX: store string directly
     date: data.date,
-
     notes: data.notes ?? "",
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -91,19 +90,34 @@ export async function addContribution(
 export async function updateContribution(
   churchId: string,
   id: string,
-  data: Partial<Omit<Contribution, "id">> // 🔥 FIX: date is string, not Date
+  data: Partial<Omit<Contribution, "id">>
 ) {
+  if (!churchId) throw new Error("Missing churchId");
+
   const ref = doc(db, "churches", churchId, "contributions", id);
-  await updateDoc(ref, {
-    ...data,
+
+  const updatePayload: Record<string, any> = {
     updatedAt: serverTimestamp(),
-  });
+  };
+
+  if (data.memberId !== undefined) updatePayload.memberId = data.memberId;
+  if (data.memberName !== undefined) updatePayload.memberName = data.memberName;
+  if (data.amount !== undefined) updatePayload.amount = data.amount;
+  if (data.category !== undefined) updatePayload.category = data.category;
+  if (data.contributionType !== undefined)
+    updatePayload.contributionType = data.contributionType;
+  if (data.date !== undefined) updatePayload.date = data.date;
+  if (data.notes !== undefined) updatePayload.notes = data.notes;
+
+  await updateDoc(ref, updatePayload);
 }
 
 // ------------------------------
 // Delete
 // ------------------------------
 export async function deleteContribution(churchId: string, id: string) {
+  if (!churchId) throw new Error("Missing churchId");
+
   const ref = doc(db, "churches", churchId, "contributions", id);
   await deleteDoc(ref);
 }

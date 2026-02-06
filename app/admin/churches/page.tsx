@@ -21,7 +21,13 @@ import {
   CardContent,
 } from "@/app/components/ui/card";
 import { PageHeader } from "@/app/components/page-header";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/app/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/app/components/ui/select";
 
 export default function GlobalChurchListPage() {
   const PAGE_SIZE = 10;
@@ -106,7 +112,6 @@ export default function GlobalChurchListPage() {
       {/* Search + Sort */}
       <div className="flex flex-col md:flex-row md:items-center gap-4 w-full">
 
-        {/* Search bar — full width */}
         <div className="flex-1">
           <Input
             placeholder="Search churches..."
@@ -116,7 +121,6 @@ export default function GlobalChurchListPage() {
           />
         </div>
 
-        {/* Sort dropdown — fixed width, right side */}
         <div className="w-full md:w-48">
           <Select
             value={sortField}
@@ -174,6 +178,15 @@ export default function GlobalChurchListPage() {
         </div>
       )}
 
+      {/* Pagination */}
+      <div className="flex justify-between pt-4">
+        <Button variant="secondary" onClick={loadPrevious} disabled={!firstDoc}>
+          Previous
+        </Button>
+        <Button onClick={loadNext} disabled={!lastDoc}>
+          Next
+        </Button>
+      </div>
     </div>
   );
 }

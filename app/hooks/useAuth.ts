@@ -13,8 +13,7 @@ export function useAuth(): { user: User | null; loading: boolean } {
   useEffect(() => {
     let isActive = true;
 
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      // User logged out
+    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       if (!firebaseUser) {
         if (isActive) {
           setUser(null);
@@ -25,7 +24,7 @@ export function useAuth(): { user: User | null; loading: boolean } {
 
       const userRef = doc(db, "users", firebaseUser.uid);
 
-      const unsubUserDoc = onSnapshot(
+      const unsubscribeUserDoc = onSnapshot(
         userRef,
         (snap) => {
           if (!isActive) return;
@@ -36,35 +35,34 @@ export function useAuth(): { user: User | null; loading: boolean } {
             return;
           }
 
-          const data = snap.data();
+          const data = snap.data() as Partial<User>;
 
           const mergedUser: User = {
             id: firebaseUser.uid,
             email: firebaseUser.email ?? "",
             roles: Array.isArray(data.roles) ? data.roles : [],
             churchId: data.churchId ?? null,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            settings: data.settings,
+            firstName: data.firstName ?? null,
+            lastName: data.lastName ?? null,
+            settings: data.settings ?? {},
           };
 
           setUser(mergedUser);
           setLoading(false);
         },
         (error) => {
-          // Swallow expected logout error
           if (error.code !== "permission-denied") {
             console.error("useAuth userDoc listener error:", error);
           }
         }
       );
 
-      return () => unsubUserDoc();
+      return () => unsubscribeUserDoc();
     });
 
     return () => {
       isActive = false;
-      unsubscribe();
+      unsubscribeAuth();
     };
   }, []);
 

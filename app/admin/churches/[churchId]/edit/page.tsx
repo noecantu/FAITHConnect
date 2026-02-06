@@ -43,8 +43,10 @@ export default function EditChurchPage() {
   const [description, setDescription] = useState("");
 
   useEffect(() => {
-    async function load() {
-      const ref = doc(db, "churches", churchIdSafe); // churchIdStr is now guaranteed string
+    if (!churchIdSafe) return;
+
+    const load = async () => {
+      const ref = doc(db, "churches", churchIdSafe);
       const snap = await getDoc(ref);
 
       if (!snap.exists()) {
@@ -64,7 +66,7 @@ export default function EditChurchPage() {
     }
 
     load();
-  }, [churchIdStr]);
+  }, [churchIdSafe]);
 
   async function handleSave() {
     try {

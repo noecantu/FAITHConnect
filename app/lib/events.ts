@@ -1,44 +1,42 @@
 import {
-    collection,
-    query,
-    orderBy,
-    onSnapshot,
-    Timestamp,
-    addDoc,
-    updateDoc,
-    deleteDoc,
-    doc,
-  } from "firebase/firestore";
-  import { db } from "./firebase";
-  
-  export type EventRecord = {
-    title: string;
-    description?: string;
-    start: Timestamp;
-    end: Timestamp;
-    location?: string;
-    createdAt: Timestamp;
-    updatedAt: Timestamp;
-  };
-  
-  export type Event = {
-    id: string;
-    title: string;
-    description?: string;
-    start: Date;
-    end: Date;
-    location?: string;
-    createdAt: Date;
-    updatedAt: Date;
-  };
-  
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  Timestamp,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
+import { db } from "./firebase";
+
+export type EventRecord = {
+  title: string;
+  description?: string | null;
+  start: Timestamp;
+  end: Timestamp;
+  location?: string | null;
+  createdAt?: Timestamp | null;
+  updatedAt?: Timestamp | null;
+};
+
+export type Event = {
+  id: string;
+  title: string;
+  description?: string | null;
+  start: Date;
+  end: Date;
+  location?: string | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+};
+
 export function listenToEvents(
   churchId: string,
-  callback: (events: Event[]) => void,
-  userId?: string
+  callback: (events: Event[]) => void
 ) {
-  // Prevent listener from attaching during logout or unstable auth
-  if (!churchId || !userId) return () => {};
+  if (!churchId) return () => {};
 
   const q = query(
     collection(db, "churches", churchId, "events"),
@@ -54,19 +52,18 @@ export function listenToEvents(
         return {
           id: docSnap.id,
           title: data.title,
-          description: data.description,
+          description: data.description ?? null,
           start: data.start.toDate(),
           end: data.end.toDate(),
-          location: data.location,
-          createdAt: data.createdAt.toDate(),
-          updatedAt: data.updatedAt.toDate(),
+          location: data.location ?? null,
+          createdAt: data.createdAt ? data.createdAt.toDate() : null,
+          updatedAt: data.updatedAt ? data.updatedAt.toDate() : null,
         };
       });
 
       callback(events);
     },
     (error) => {
-      // Swallow the expected logout error
       if (error.code !== "permission-denied") {
         console.error("listenToEvents error:", error);
       }

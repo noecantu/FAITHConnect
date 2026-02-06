@@ -153,8 +153,8 @@ export interface User {
   email: string;
   churchId?: string | null;
   roles: string[];
-  firstName?: string;
-  lastName?: string;
+  firstName?: string | null;
+  lastName?: string | null;
   settings?: {
     calendarView?: 'calendar' | 'list';
     cardView?: 'show' | 'hide';

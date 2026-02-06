@@ -36,12 +36,7 @@ export default function MembersPage() {
   useEffect(() => {
     if (!churchId || !user) return;
 
-    const unsubscribe = listenToMembers(
-      churchId,
-      setMembers,
-      "members-page-listener"
-    );
-
+    const unsubscribe = listenToMembers(churchId, setMembers);
     return () => unsubscribe();
   }, [churchId, user]);
 
@@ -86,8 +81,6 @@ export default function MembersPage() {
   
     return `Active: ${active} | Prospects: ${prospect} | Archived: ${archived}`;
   }
-  console.log("churchId:", churchId);
-  console.log("user:", user);
 
   return (
     <>

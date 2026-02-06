@@ -1,7 +1,5 @@
 'use client';
 
-import * as React from 'react';
-
 import { PageHeader } from '../components/page-header';
 import {
   Card,
@@ -9,7 +7,6 @@ import {
   CardTitle,
   CardContent,
 } from '../components/ui/card';
-import { Button } from '../components/ui/button';
 
 import { useToast } from '../hooks/use-toast';
 import { ContributionChart } from './contribution-chart';
@@ -54,14 +51,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 // Page Component
 // ------------------------------
 export default function ContributionsPage() {
-  const [isClient, setIsClient] = React.useState(false);
+  const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
   const churchId = useChurchId();
-  const [contributions, setContributions] = React.useState<Contribution[]>([]);
-  const [members, setMembers] = React.useState<Member[]>([]);
-  const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
-  const [editingContribution, setEditingContribution] = React.useState<Contribution | null>(null);
-  const [deletingContribution, setDeletingContribution] = React.useState<Contribution | null>(null);
+  const [contributions, setContributions] = useState<Contribution[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingContribution, setEditingContribution] = useState<Contribution | null>(null);
+  const [deletingContribution, setDeletingContribution] = useState<Contribution | null>(null);
   const { isFinance } = useUserRoles(churchId);
   const { fiscalYear } = useSettings();
   const { user } = useAuth();
@@ -85,12 +82,12 @@ export default function ContributionsPage() {
     });
   }
   
-  React.useEffect(() => {
+  useEffect(() => {
     setIsClient(true);
   }, []);
 
   // Listen to contributions
-  React.useEffect(() => {
+  useEffect(() => {
     if (!churchId) return;
 
     const unsubscribe = listenToContributions(
@@ -102,7 +99,7 @@ export default function ContributionsPage() {
     return () => unsubscribe();
   }, [churchId]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!churchId) return;
 
     const unsubscribe = listenToMembers(
@@ -134,7 +131,7 @@ export default function ContributionsPage() {
     }
   };
 
-  const columns = React.useMemo(
+  const columns = useMemo(
     () => getColumns(setEditingContribution, setDeletingContribution),
     []
   );

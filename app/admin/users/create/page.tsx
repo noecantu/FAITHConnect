@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { auth, db } from "@/app/lib/firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { collection, getDocs, doc, setDoc } from "firebase/firestore";
+import { db } from "@/app/lib/firebase";
+import { collection, getDocs } from "firebase/firestore";
 
 import { PageHeader } from "@/app/components/page-header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
@@ -12,12 +11,24 @@ import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/app/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/app/components/ui/select";
+
 import { useToast } from "@/app/hooks/use-toast";
-import { createUserAction } from "./actions";
 import { useAuth } from "@/app/hooks/useAuth";
+import { createUserAction } from "./actions";
 
 import { ALL_ROLES, ROLE_MAP, Role } from "@/app/lib/roles";
+
+type ChurchRecord = {
+  id: string;
+  name: string;
+};
 
 export default function CreateUserPage() {
   const router = useRouter();
@@ -30,19 +41,22 @@ export default function CreateUserPage() {
   const [password, setPassword] = useState("");
 
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([]);
-  const [churches, setChurches] = useState<{ id: string; name: string }[]>([]);
-  const [selectedChurch, setSelectedChurch] = useState<string>("");
+  const [churches, setChurches] = useState<ChurchRecord[]>([]);
+  const [selectedChurch, setSelectedChurch] = useState("");
 
   const [loading, setLoading] = useState(false);
 
-  // Load churches for dropdown
+  // Load churches
   useEffect(() => {
     async function loadChurches() {
       const snap = await getDocs(collection(db, "churches"));
-      const list = snap.docs.map((d) => ({
-        id: d.id,
-        name: (d.data() as any).name ?? "(Unnamed Church)",
-      }));
+      const list: ChurchRecord[] = snap.docs.map((d) => {
+        const data = d.data() as { name?: string };
+        return {
+          id: d.id,
+          name: data.name ?? "(Unnamed Church)",
+        };
+      });
       setChurches(list);
     }
 
@@ -50,11 +64,9 @@ export default function CreateUserPage() {
   }, []);
 
   function handleRoleChange(role: Role, checked: boolean) {
-    if (checked) {
-      setSelectedRoles((prev) => [...prev, role]);
-    } else {
-      setSelectedRoles((prev) => prev.filter((r) => r !== role));
-    }
+    setSelectedRoles((prev) =>
+      checked ? [...prev, role] : prev.filter((r) => r !== role)
+    );
   }
 
   async function handleCreateUser() {
@@ -67,7 +79,6 @@ export default function CreateUserPage() {
           description: "Please select a church for this user.",
           variant: "destructive",
         });
-        setLoading(false);
         return;
       }
 
@@ -77,12 +88,13 @@ export default function CreateUserPage() {
           description: "You must be logged in as an admin to create users.",
           variant: "destructive",
         });
-        setLoading(false);
         return;
       }
 
       const actorUid = currentUser.id;
-      const actorName = `${currentUser.firstName} ${currentUser.lastName}`.trim();
+      const actorName =
+        `${currentUser.firstName ?? ""} ${currentUser.lastName ?? ""}`.trim() ||
+        "System Admin";
 
       const result = await createUserAction({
         firstName,
@@ -129,7 +141,6 @@ export default function CreateUserPage() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-
           {/* First Name */}
           <div className="space-y-2">
             <Label>First Name</Label>
@@ -201,7 +212,7 @@ export default function CreateUserPage() {
                   <Checkbox
                     checked={selectedRoles.includes(role)}
                     onCheckedChange={(checked) =>
-                      handleRoleChange(role, !!checked)
+                      handleRoleChange(role, Boolean(checked))
                     }
                   />
                   <Label>{ROLE_MAP[role]}</Label>
@@ -218,7 +229,6 @@ export default function CreateUserPage() {
           >
             {loading ? "Creating..." : "Create User"}
           </Button>
-
         </CardContent>
       </Card>
     </div>

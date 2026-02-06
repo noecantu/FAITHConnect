@@ -14,7 +14,7 @@ export default async function ActivityLogsPage() {
     id: d.id,
     ...d.data(),
   }));
-
+console.log("LOGS RECEIVED:", logs);
   return (
     <div className="p-6 space-y-8">
       <h1 className="text-2xl font-bold">Activity Logs</h1>
