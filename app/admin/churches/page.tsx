@@ -174,16 +174,6 @@ export default function GlobalChurchListPage() {
         </div>
       )}
 
-      {/* Pagination */}
-      {/* <div className="flex justify-between pt-4">
-        <Button variant="outline" onClick={loadPrevious} disabled={loading}>
-          Previous
-        </Button>
-
-        <Button variant="outline" onClick={loadNext} disabled={loading}>
-          Next
-        </Button>
-      </div> */}
     </div>
   );
 }

@@ -45,15 +45,16 @@ service cloud.firestore {
       // User can read/write their own document
       allow read, write: if request.auth != null && request.auth.uid == uid;
 
-      // Root Admin full access
+      // Root Admin full access (MUST short-circuit other rules)
       allow read, write: if isRootAdmin();
 
       // Church Admins can READ users in their church
-      allow read: if isUserSignedIn() &&
+      allow read: if !isRootAdmin() && isUserSignedIn() &&
+                  resource.data != null &&
                   hasChurchRole(resource.data.churchId, ["Admin"]);
 
       // Church Admins can WRITE users in their church
-      allow write: if isUserSignedIn() &&
+      allow write: if !isRootAdmin() && isUserSignedIn() &&
                    (
                      // Updating existing user
                      (resource.data != null &&
