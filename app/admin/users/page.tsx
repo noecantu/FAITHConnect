@@ -1,6 +1,36 @@
 import { adminDb } from "@/lib/firebase/firebaseAdmin";
 import UsersClient from "./UsersClient";
 
+function normalizeUser(doc: FirebaseFirestore.QueryDocumentSnapshot) {
+  const data = doc.data();
+
+  return {
+    id: doc.id,
+    email: data.email ?? "",
+    firstName: data.firstName ?? null,
+    lastName: data.lastName ?? null,
+    churchId: data.churchId ?? null,
+    roles: data.roles ?? [],
+
+    createdAt: data.createdAt
+      ? data.createdAt.toDate().toISOString()
+      : null,
+
+    updatedAt: data.updatedAt
+      ? data.updatedAt.toDate().toISOString()
+      : null,
+  };
+}
+
+function normalizeChurch(doc: FirebaseFirestore.QueryDocumentSnapshot) {
+  const data = doc.data();
+
+  return {
+    id: doc.id,
+    name: data.name ?? "",
+  };
+}
+
 export default async function UsersPage() {
   // Load users
   const usersSnap = await adminDb
@@ -8,17 +38,11 @@ export default async function UsersPage() {
     .orderBy("createdAt", "desc")
     .get();
 
-  const users = usersSnap.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
+  const users = usersSnap.docs.map(normalizeUser);
 
   // Load churches
   const churchesSnap = await adminDb.collection("churches").get();
-  const churches = churchesSnap.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
+  const churches = churchesSnap.docs.map(normalizeChurch);
 
   return <UsersClient users={users} churches={churches} />;
 }
