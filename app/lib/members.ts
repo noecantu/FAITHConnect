@@ -20,6 +20,7 @@ const RECIPROCAL_TYPES: Record<string, string> = {
   Guardian: "Ward",
   Ward: "Guardian",
 };
+import type { DocumentSnapshot, DocumentData } from "firebase/firestore";
 
 function getReciprocalType(type: string): string {
   return RECIPROCAL_TYPES[type] || type;
@@ -153,7 +154,7 @@ export async function updateMember(
       relatedRefs.map((ref) => transaction.get(ref))
     );
 
-    const relatedDocsMap = new Map<string, FirebaseFirestore.DocumentSnapshot>();
+    const relatedDocsMap = new Map<string, DocumentSnapshot<DocumentData>>();
     relatedDocs.forEach((d, i) => {
       if (d.exists()) relatedDocsMap.set(allRelatedIds[i], d);
     });

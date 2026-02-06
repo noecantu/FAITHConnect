@@ -84,7 +84,7 @@ export function NavMenu() {
       });
     }
   };
-console.log("roles from hook:", roles);
+
   return (
     <>
       <DropdownMenu modal={false}>
