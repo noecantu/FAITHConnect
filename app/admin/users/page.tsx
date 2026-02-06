@@ -1,7 +1,7 @@
 import { adminDb } from "@/lib/firebase/firebaseAdmin";
 import UsersClient from "./UsersClient";
 
-function normalizeUser(doc: FirebaseFirestore.QueryDocumentSnapshot) {
+function normalizeUser(doc: { data: () => any; id: any; }) {
   const data = doc.data();
 
   return {
@@ -22,7 +22,7 @@ function normalizeUser(doc: FirebaseFirestore.QueryDocumentSnapshot) {
   };
 }
 
-function normalizeChurch(doc: FirebaseFirestore.QueryDocumentSnapshot) {
+function normalizeChurch(doc: { data: () => any; id: any; }) {
   const data = doc.data();
 
   return {
@@ -32,7 +32,6 @@ function normalizeChurch(doc: FirebaseFirestore.QueryDocumentSnapshot) {
 }
 
 export default async function UsersPage() {
-  // Load users
   const usersSnap = await adminDb
     .collection("users")
     .orderBy("createdAt", "desc")
@@ -40,7 +39,6 @@ export default async function UsersPage() {
 
   const users = usersSnap.docs.map(normalizeUser);
 
-  // Load churches
   const churchesSnap = await adminDb.collection("churches").get();
   const churches = churchesSnap.docs.map(normalizeChurch);
 
