@@ -158,6 +158,15 @@ export default function AdminHomePage() {
             </Card>
           </Link>
 
+          <Link href="/admin/settings/health">
+            <Card className="p-6 hover:shadow-md transition cursor-pointer">
+              <CardTitle className="text-xl mb-2">Platform Health</CardTitle>
+              <CardDescription>
+                System performance, usage metrics, and operational health.
+              </CardDescription>
+            </Card>
+          </Link>
+
         </div>
       </section>
     </div>
