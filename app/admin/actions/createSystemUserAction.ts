@@ -1,27 +1,26 @@
+// app/admin/actions/createSystemUserAction.ts
 "use server";
 
 import { adminAuth, adminDb } from "@/lib/firebase/firebaseAdmin";
 import { logSystemEvent } from "@/lib/system/logging";
 
-export interface CreateUserInput {
+export interface CreateSystemUserInput {
   firstName: string;
   lastName: string;
   email: string;
   password: string;
-  roles: string[];
-  churchId: string;
+  accountType: string;
   actorUid: string;
   actorName?: string | null;
 }
 
-export async function createUserAction(input: CreateUserInput) {
+export async function createSystemUserAction(input: CreateSystemUserInput) {
   const {
     firstName,
     lastName,
     email,
     password,
-    roles,
-    churchId,
+    accountType,
     actorUid,
     actorName,
   } = input;
@@ -39,24 +38,24 @@ export async function createUserAction(input: CreateUserInput) {
     lastName,
     displayName: `${firstName} ${lastName}`.trim(),
     email,
-    roles,
-    churchId,
+    accountType,
+    churchId: null,
+    roles: [],
     createdAt: new Date().toISOString(),
   });
 
   // 3. Log system event
   await logSystemEvent({
-    type: "USER_CREATED",
+    type: "SYSTEM_USER_CREATED",
     actorUid,
     actorName,
     targetId: userRecord.uid,
-    targetType: "USER",
-    message: `Created user: ${email}`,
+    targetType: "SYSTEM_USER",
+    message: `Created system-level user: ${email}`,
     metadata: {
-      roles,
-      churchId,
+      accountType,
     },
   });
-  console.log("🔥 createUserAction executed");
+
   return { success: true, userId: userRecord.uid };
 }

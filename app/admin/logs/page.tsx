@@ -2,6 +2,7 @@
 
 import { adminDb } from "@/lib/firebase/firebaseAdmin";
 import ActivityLogTable from "./ActivityLogTable";
+import { normalizeFirestore } from "@/lib/normalize";
 
 export default async function ActivityLogsPage() {
   const snap = await adminDb
@@ -12,9 +13,11 @@ export default async function ActivityLogsPage() {
 
   const logs = snap.docs.map((d) => ({
     id: d.id,
-    ...d.data(),
+    ...normalizeFirestore(d.data()),
   }));
-console.log("LOGS RECEIVED:", logs);
+
+  console.log("LOGS RECEIVED:", logs);
+
   return (
     <div className="p-6 space-y-8">
       <h1 className="text-2xl font-bold">Activity Logs</h1>

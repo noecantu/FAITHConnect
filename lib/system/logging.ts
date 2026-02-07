@@ -11,7 +11,15 @@ export type SystemLogType =
   | "ROLE_UPDATED"
   | "SETTINGS_UPDATED"
   | "ERROR"
-  | "SYSTEM_EVENT";
+  | "SYSTEM_EVENT"
+  | "SYSTEM_USER_CREATED"; // ← NEW
+
+export type SystemLogTargetType =
+  | "USER"
+  | "CHURCH"
+  | "SYSTEM"
+  | "SYSTEM_USER" // ← NEW
+  | null;
 
 export interface SystemLogEvent {
   type: SystemLogType;
@@ -19,7 +27,7 @@ export interface SystemLogEvent {
   actorName?: string | null;
 
   targetId?: string | null;
-  targetType?: "USER" | "CHURCH" | "SYSTEM" | null;
+  targetType?: SystemLogTargetType;
 
   message: string;
 
@@ -37,7 +45,6 @@ export async function logSystemEvent(event: SystemLogEvent) {
     timestamp: FieldValue.serverTimestamp(),
   };
 
-  // Only include diffs if provided
   if (before !== undefined) payload.before = before;
   if (after !== undefined) payload.after = after;
 
