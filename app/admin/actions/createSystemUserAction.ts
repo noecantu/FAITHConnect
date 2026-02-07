@@ -3,13 +3,14 @@
 
 import { adminAuth, adminDb } from "@/lib/firebase/firebaseAdmin";
 import { logSystemEvent } from "@/lib/system/logging";
+import { SystemRole } from "@/app/lib/system-roles";
 
 export interface CreateSystemUserInput {
   firstName: string;
   lastName: string;
   email: string;
   password: string;
-  accountType: string;
+  accountType: SystemRole; // ← strongly typed system role
   actorUid: string;
   actorName?: string | null;
 }
@@ -38,9 +39,8 @@ export async function createSystemUserAction(input: CreateSystemUserInput) {
     lastName,
     displayName: `${firstName} ${lastName}`.trim(),
     email,
-    accountType,
-    churchId: null,
-    roles: [],
+    churchId: null,          // system users never belong to a church
+    roles: [accountType],    // ⭐ FIX: system role stored correctly
     createdAt: new Date().toISOString(),
   });
 
