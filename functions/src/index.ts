@@ -3,7 +3,7 @@
  */
 
 import { setGlobalOptions } from "firebase-functions/v2/options";
-import { HttpsError, onCall, onRequest } from "firebase-functions/v2/https";
+import { HttpsError, onCall } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
 setGlobalOptions({ maxInstances: 10 });
@@ -199,48 +199,4 @@ export const createRootAdmin = onCall(async (request) => {
   return { resetLink };
 });
 
-export const getFirestoreUsage = onRequest(async (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
-  res.set("Access-Control-Allow-Headers", "Content-Type");
-
-  try {
-    const projectId = process.env.GCP_PROJECT || process.env.GCLOUD_PROJECT;
-
-    const end = new Date().toISOString();
-    const start = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
-
-    const url =
-      `https://monitoring.googleapis.com/v3/projects/${projectId}/timeSeries` +
-      "?filter=metric.type='firestore.googleapis.com/database/disk/usage'" +
-      `&interval.endTime=${end}` +
-      `&interval.startTime=${start}`;
-
-    const token = await getAccessToken();
-
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await response.json();
-
-    const usageBytes =
-      data.timeSeries?.[0]?.points?.[0]?.value?.int64Value ?? null;
-
-    res.json({ usageBytes });
-  } catch (err) {
-    console.error("Error fetching Firestore usage:", err);
-    res.status(500).json({ error: "Failed to fetch Firestore usage" });
-  }
-});
-
-async function getAccessToken() {
-  const { GoogleAuth } = await import("google-auth-library");
-  const auth = new GoogleAuth({
-    scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-  });
-  const client = await auth.getClient();
-  const token = await client.getAccessToken();
-  return token.token;
-}
+export * from "./usage";
