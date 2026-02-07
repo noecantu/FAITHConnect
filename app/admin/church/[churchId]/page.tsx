@@ -14,6 +14,7 @@ import {
   where,
 } from "firebase/firestore";
 
+import { PageHeader } from "@/app/components/page-header";
 import {
   Card,
   CardHeader,
@@ -21,8 +22,9 @@ import {
   CardDescription,
   CardContent,
 } from "@/app/components/ui/card";
-
 import { Button } from "@/app/components/ui/button";
+import { CalendarHeart, Calendar, Music, UserPlus } from "lucide-react";
+import Link from "next/link";
 
 export default function ChurchAdminDashboard() {
   const { churchId } = useParams();
@@ -61,14 +63,18 @@ export default function ChurchAdminDashboard() {
       const churchData = churchSnap.data();
       setChurch(churchData);
 
-      // Stop early if disabled
       if (churchData.status === "disabled") {
         setLoading(false);
         return;
       }
 
-      // 2. Members count (no getCountFromServer)
-      const membersRef = collection(db, "churches", churchId as string, "members");
+      // 2. Members count
+      const membersRef = collection(
+        db,
+        "churches",
+        churchId as string,
+        "members"
+      );
       const membersSnap = await getDocs(membersRef);
       setMemberCount(membersSnap.size);
 
@@ -172,63 +178,101 @@ export default function ChurchAdminDashboard() {
   return (
     <div className="p-6 space-y-8">
 
-      {/* Identity Card */}
+      {/* Page Header */}
+      <PageHeader
+        title="Church Admin Dashboard"
+        subtitle="Manage your church’s people, events, and ministries."
+      />
+
+      {/* Large Identity Header */}
       <Card>
-        <CardContent className="flex items-center gap-6 p-6">
+        <CardContent className="flex items-center gap-8 p-8">
           {church.logoUrl ? (
             <img
               src={church.logoUrl}
               alt="Church Logo"
-              className="w-20 h-20 rounded-lg object-cover"
+              className="w-28 h-28 rounded-xl object-cover shadow-sm"
             />
           ) : (
-            <div className="w-20 h-20 rounded-lg bg-muted flex items-center justify-center text-xl font-bold">
+            <div className="w-28 h-28 rounded-xl bg-muted flex items-center justify-center text-3xl font-bold">
               {initials}
             </div>
           )}
 
-          <div>
-            <h1 className="text-3xl font-bold">{church.name}</h1>
-            <p className="text-muted-foreground">{church.timezone}</p>
+          <div className="space-y-1">
+            <h1 className="text-4xl font-bold tracking-tight">{church.name}</h1>
+            <p className="text-muted-foreground text-lg">{church.timezone}</p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Two-Column Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        {/* Stats Card */}
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Church Stats</CardTitle>
-            <CardDescription>Overview of church activity</CardDescription>
+            <CardTitle>Members</CardTitle>
+            <CardDescription>Total registered members</CardDescription>
           </CardHeader>
-
-          <CardContent className="space-y-2">
-            <p><strong>Members:</strong> {memberCount}</p>
-            <p><strong>Upcoming Services:</strong> {serviceCount}</p>
-            <p><strong>Events This Week:</strong> {eventCount}</p>
-          </CardContent>
+          <CardContent className="text-3xl font-bold">{memberCount}</CardContent>
         </Card>
 
-        {/* Quick Actions Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Manage your church</CardDescription>
+            <CardTitle>Upcoming Services</CardTitle>
+            <CardDescription>Scheduled from today forward</CardDescription>
           </CardHeader>
-
-          <CardContent className="space-y-3">
-            <Button className="w-full">Add Member</Button>
-            <Button className="w-full">Add Event</Button>
-            <Button className="w-full">Add Service Plan</Button>
-            <Button variant="secondary" className="w-full">
-              Manage Settings
-            </Button>
-          </CardContent>
+          <CardContent className="text-3xl font-bold">{serviceCount}</CardContent>
         </Card>
 
+        <Card>
+          <CardHeader>
+            <CardTitle>Events This Week</CardTitle>
+            <CardDescription>Monday through Sunday</CardDescription>
+          </CardHeader>
+          <CardContent className="text-3xl font-bold">{eventCount}</CardContent>
+        </Card>
       </div>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+          <CardDescription>Manage your church</CardDescription>
+        </CardHeader>
+
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <Button asChild className="w-full flex items-center gap-2">
+            <Link href="/members">
+              <UserPlus className="h-4 w-4 text-foreground/70" />
+              <span>Add Member</span>
+            </Link>
+          </Button>
+
+          <Button asChild className="w-full flex items-center gap-2">
+            <Link href="/calendar">
+              <Calendar className="h-4 w-4 text-foreground/70" />
+              <span>Add Event</span>
+            </Link>
+          </Button>
+
+          <Button asChild className="w-full flex items-center gap-2">
+            <Link href="/music/setlists">
+              <Music className="h-4 w-4 text-foreground/70" />
+              <span>Add Set List</span>
+            </Link>
+          </Button>
+
+          <Button asChild className="w-full flex items-center gap-2">
+            <Link href="/service-plan">
+              <CalendarHeart className="h-4 w-4 text-foreground/70" />
+              <span>Add Service Plan</span>
+            </Link>
+          </Button>
+
+        </CardContent>
+      </Card>
+
     </div>
   );
 }
