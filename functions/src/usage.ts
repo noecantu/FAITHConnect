@@ -14,6 +14,9 @@ interface MonitoringResponse {
 }
 
 export const getFirestoreUsage = onRequest(async (_req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
+
   try {
     const firebaseConfig = process.env.FIREBASE_CONFIG
       ? JSON.parse(process.env.FIREBASE_CONFIG)
@@ -31,7 +34,7 @@ export const getFirestoreUsage = onRequest(async (_req, res) => {
 
     // Time window: last 24 hours
     const end = new Date().toISOString();
-    const start = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+    const start = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
 
     const url =
       `https://monitoring.googleapis.com/v3/projects/${projectId}/timeSeries` +
