@@ -155,10 +155,10 @@ export default function MasterChurchDetailsClient({
           <Button
             className="w-full"
             onClick={() => {
-              window.location.href = `/admin/churches/${churchId}/add-admin`;
+              window.location.href = `/admin/churches/${churchId}/add-user`;
             }}
           >
-            Add Admin
+            Add User
           </Button>
 
           {localChurch.status === "disabled" ? (

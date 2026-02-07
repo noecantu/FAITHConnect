@@ -17,7 +17,7 @@ import { useToast } from "@/app/hooks/use-toast";
 // Reuse your existing role definitions
 import { ROLE_MAP, ALL_ROLES, Role } from '@/app/lib/roles';
 
-export default function AddAdminPage() {
+export default function AddUserPage() {
   const params = useParams();
   const churchIdRaw = params?.churchId;
 
@@ -74,12 +74,12 @@ export default function AddAdminPage() {
 
       toast({
         title: "Admin Created",
-        description: "The new admin has been added successfully.",
+        description: "The new user has been added successfully.",
       });
 
       router.push(`/admin/churches/${churchIdSafe}`);
     } catch (err: any) {
-      console.error("Failed to create admin:", err);
+      console.error("Failed to create user:", err);
 
       toast({
         title: "Error",
@@ -94,13 +94,13 @@ export default function AddAdminPage() {
   return (
     <div className="p-6 space-y-8">
       <PageHeader
-        title="Add Church Admin"
-        subtitle="Create a new admin for this church"
+        title="Add Church User"
+        subtitle="Create a new user for this church"
       />
 
       <Card>
         <CardHeader>
-          <CardTitle>Admin Information</CardTitle>
+          <CardTitle>User Information</CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-4">
@@ -171,7 +171,7 @@ export default function AddAdminPage() {
             onClick={handleCreateAdmin}
             disabled={loading}
           >
-            {loading ? "Creating..." : "Create Admin"}
+            {loading ? "Creating..." : "Create User"}
           </Button>
 
         </CardContent>
