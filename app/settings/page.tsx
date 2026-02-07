@@ -260,7 +260,7 @@ export default function AccessManagementPage() {
     <>
       <PageHeader
         title="Settings"
-        subtitle="Manage user accounts and roles for your organization."
+        subtitle="Manage settings for your organization."
         className="mb-2"
       />
   
