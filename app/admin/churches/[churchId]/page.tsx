@@ -1,6 +1,7 @@
 import MasterChurchDetailsClient from "./MasterChurchDetailsClient";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import { normalizeFirestore } from "@/lib/normalize";
 
 if (!getApps().length) {
   initializeApp({
@@ -14,16 +15,24 @@ if (!getApps().length) {
 
 export const adminDb = getFirestore();
 
-export default async function MasterChurchDetailsPage({ params }: { params: { churchId: string } }) {
-  const churchId = params.churchId;
+export default async function MasterChurchDetailsPage({
+  params,
+}: {
+  params: Promise<{ churchId: string }>;
+}) {
+  const { churchId } = await params;
 
   // 1. Load church document
   const churchSnap = await adminDb.collection("churches").doc(churchId).get();
-  const church = churchSnap.exists ? { id: churchSnap.id, ...churchSnap.data() } : null;
 
-  if (!church) {
+  if (!churchSnap.exists) {
     return <div className="p-6">Church not found.</div>;
   }
+
+  const church = {
+    id: churchSnap.id,
+    ...normalizeFirestore(churchSnap.data()),
+  };
 
   // 2. Members count
   const membersSnap = await adminDb
@@ -80,7 +89,10 @@ export default async function MasterChurchDetailsPage({ params }: { params: { ch
     .where("roles", "array-contains", "Admin")
     .get();
 
-  const admins = adminsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const admins = adminsSnap.docs.map((d) => ({
+    id: d.id,
+    ...normalizeFirestore(d.data()),
+  }));
 
   return (
     <MasterChurchDetailsClient

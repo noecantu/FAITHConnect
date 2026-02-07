@@ -21,7 +21,7 @@ import {
 
 import { useToast } from "@/app/hooks/use-toast";
 import { useAuth } from "@/app/hooks/useAuth";
-import { createUserAction } from "./actions";
+import { createUserAction } from "@/app/admin/actions/createUserAction";
 
 import { ALL_ROLES, ROLE_MAP, Role } from "@/app/lib/roles";
 

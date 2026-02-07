@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useToast } from "@/app/hooks/use-toast";
-import { updateUserAction } from "./actions";
+import { updateUserAction } from "@/app/admin/actions/updateUserAction";
 
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";

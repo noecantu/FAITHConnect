@@ -1,33 +1,18 @@
 import { adminDb } from "@/lib/firebase/firebaseAdmin";
 import UsersClient from "./UsersClient";
+import { normalizeFirestore } from "@/lib/normalize";
 
-function normalizeUser(doc: { data: () => any; id: any; }) {
-  const data = doc.data();
-
+function normalizeUser(doc: { data: () => any; id: any }) {
   return {
     id: doc.id,
-    email: data.email ?? "",
-    firstName: data.firstName ?? null,
-    lastName: data.lastName ?? null,
-    churchId: data.churchId ?? null,
-    roles: data.roles ?? [],
-
-    createdAt: data.createdAt
-      ? data.createdAt.toDate().toISOString()
-      : null,
-
-    updatedAt: data.updatedAt
-      ? data.updatedAt.toDate().toISOString()
-      : null,
+    ...normalizeFirestore(doc.data()),
   };
 }
 
-function normalizeChurch(doc: { data: () => any; id: any; }) {
-  const data = doc.data();
-
+function normalizeChurch(doc: { data: () => any; id: any }) {
   return {
     id: doc.id,
-    name: data.name ?? "",
+    ...normalizeFirestore(doc.data()),
   };
 }
 
