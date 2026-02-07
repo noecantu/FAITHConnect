@@ -63,7 +63,7 @@ export default function HealthDashboard({ metrics }: { metrics: any }) {
               <XAxis dataKey="type" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="count" fill="#4f46e5" />
+                <Bar dataKey="count" fill="hsl(var(--chart-1))" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -73,7 +73,13 @@ export default function HealthDashboard({ metrics }: { metrics: any }) {
   );
 }
 
-const COLORS = ["#4f46e5", "#10b981", "#f59e0b", "#ef4444", "#6366f1"];
+const COLORS = [
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+];
 
 function countLogTypes(logs: any[]) {
   const counts: Record<string, number> = {};

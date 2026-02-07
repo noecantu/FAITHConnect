@@ -2,6 +2,7 @@
 
 import { adminDb, adminAuth } from "@/lib/firebase/firebaseAdmin";
 import HealthDashboard from "./HealthDashboard";
+import { normalizeFirestore } from "@/lib/normalize";
 
 export default async function HealthPage() {
   // Firestore stats
@@ -12,6 +13,12 @@ export default async function HealthPage() {
   // Auth stats
   const authUsers = await adminAuth.listUsers(1000);
   const totalUsers = authUsers.users.length;
+
+  // Normalize logs to avoid Timestamp serialization errors
+  const normalizedLogs = logsSnap.docs.map((d) => ({
+    id: d.id,
+    ...normalizeFirestore(d.data()),
+  }));
 
   // Build metrics object
   const metrics = {
@@ -24,7 +31,7 @@ export default async function HealthPage() {
       totalUsers,
       providers: countProviders(authUsers.users),
     },
-    logs: logsSnap.docs.map((d) => d.data()),
+    logs: normalizedLogs, // ← SAFE
   };
 
   return (
