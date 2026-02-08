@@ -20,7 +20,7 @@ export async function POST(req: Request) {
 
     response.cookies.set("session", sessionCookie, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: expiresIn / 1000,
     });
