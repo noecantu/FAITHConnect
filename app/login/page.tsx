@@ -38,9 +38,9 @@ export default function LoginPage() {
         body: JSON.stringify({ idToken }),
       });
 
-      // 3. Redirect — middleware will handle routing logic
+      // 3. Redirect — middleware will handle ALL routing logic
       toast({ title: 'Login Successful', description: 'Welcome back!' });
-      router.push('/dashboard');
+      router.replace('/'); // ← THIS IS THE FIX
 
     } catch (error) {
       console.error('Login error:', error);
