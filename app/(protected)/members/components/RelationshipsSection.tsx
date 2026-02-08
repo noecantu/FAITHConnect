@@ -6,28 +6,28 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "../../components/ui/card";
+} from "../../../components/ui/card";
 import {
   FormItem,
   FormLabel,
   FormControl,
   FormField,
   FormMessage,
-} from "../../components/ui/form";
+} from "../../../components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../components/ui/select";
-import { Input } from "../../components/ui/input";
-import { Button } from "../../components/ui/button";
+} from "../../../components/ui/select";
+import { Input } from "../../../components/ui/input";
+import { Button } from "../../../components/ui/button";
 import { Trash2 } from "lucide-react";
-import { useToast } from "../../hooks/use-toast";
+import { useToast } from "../../../hooks/use-toast";
 import type { UseFormReturn, FieldArrayWithId } from "react-hook-form";
-import type { MemberFormValues } from "../../lib/memberForm.schema";
-import type { Member } from "../../lib/types";
+import type { MemberFormValues } from "../../../lib/memberForm.schema";
+import type { Member } from "../../../lib/types";
 
 type Props = {
   form: UseFormReturn<MemberFormValues>;

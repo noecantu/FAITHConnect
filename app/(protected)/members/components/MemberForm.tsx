@@ -1,21 +1,21 @@
 
-import { Form } from "../../components/ui/form";
+import { Form } from "../../../components/ui/form";
 import type { UseFormReturn } from "react-hook-form";
-import type { MemberFormValues } from "../../lib/memberForm.schema";
-import type { Member } from "../../lib/types";
+import type { MemberFormValues } from "../../../lib/memberForm.schema";
+import type { Member } from "../../../lib/types";
 
 import { MemberInfoSection } from "./MemberInfoSection";
 import { StatusSection } from "./StatusSection";
 import { RelationshipsSection } from "./RelationshipsSection";
 import { PhotoSection } from "./PhotoSection";
-import { RolesSection } from "../roles-section";
+// import { RolesSection } from "../../roles-section";
 import { LoginAccessSection } from "./LoginAccessSection";
 
-import { useUserRoles } from "../../hooks/useUserRoles";
+import { useUserRoles } from "../../../hooks/useUserRoles";
 import type { FieldArrayWithId } from "react-hook-form";
 
 import { getFunctions, httpsCallable } from "firebase/functions";
-import { app } from "../../lib/firebase";
+import { app } from "../../../lib/firebase";
 import { useState } from "react";
 import { toast } from "@/app/hooks/use-toast";
 
@@ -119,12 +119,12 @@ export function MemberForm({
         <StatusSection form={form} />
         <RelationshipsSection form={form} {...relationships} />
 
-        {isAdmin && member && (
+        {/* {isAdmin && member && (
           <RolesSection
             member={member}
             onChange={(updatedRoles) => form.setValue("roles", updatedRoles)}
           />
-        )}
+        )} */}
 
         <LoginAccessSection
           hasUserAccount={!!member?.userId}

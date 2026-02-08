@@ -1,23 +1,23 @@
 'use client';
 
 import Image from "next/image";
-import { Button } from "../../components/ui/button";
+import { Button } from "../../../components/ui/button";
 import {
   FormField,
   FormItem,
   FormControl,
   FormMessage,
-} from "../../components/ui/form";
-import { Input } from "../../components/ui/input";
+} from "../../../components/ui/form";
+import { Input } from "../../../components/ui/input";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
-} from "../../components/ui/card";
+} from "../../../components/ui/card";
 import { Camera, Upload } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
-import type { MemberFormValues } from "../../lib/memberForm.schema";
+import type { MemberFormValues } from "../../../lib/memberForm.schema";
 
 type Props = {
   form: UseFormReturn<MemberFormValues>;

@@ -10,7 +10,7 @@ export interface CreateSystemUserInput {
   lastName: string;
   email: string;
   password: string;
-  accountType: SystemRole; // ← strongly typed system role
+  // accountType: SystemRole;
   actorUid: string;
   actorName?: string | null;
 }
@@ -21,7 +21,7 @@ export async function createSystemUserAction(input: CreateSystemUserInput) {
     lastName,
     email,
     password,
-    accountType,
+    // accountType,
     actorUid,
     actorName,
   } = input;
@@ -40,7 +40,7 @@ export async function createSystemUserAction(input: CreateSystemUserInput) {
     displayName: `${firstName} ${lastName}`.trim(),
     email,
     churchId: null,          // system users never belong to a church
-    roles: [accountType],    // ⭐ FIX: system role stored correctly
+    // roles: [accountType],    // ⭐ FIX: system role stored correctly
     createdAt: new Date().toISOString(),
   });
 
@@ -53,7 +53,7 @@ export async function createSystemUserAction(input: CreateSystemUserInput) {
     targetType: "SYSTEM_USER",
     message: `Created system-level user: ${email}`,
     metadata: {
-      accountType,
+      // accountType,
     },
   });
 

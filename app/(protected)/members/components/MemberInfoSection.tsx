@@ -5,19 +5,19 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../../components/ui/card";
+} from "../../../components/ui/card";
 import {
   FormField,
   FormItem,
   FormLabel,
   FormControl,
   FormMessage,
-} from "../../components/ui/form";
-import { Input } from "../../components/ui/input";
-import { Textarea } from "../../components/ui/textarea";
+} from "../../../components/ui/form";
+import { Input } from "../../../components/ui/input";
+import { Textarea } from "../../../components/ui/textarea";
 import type { UseFormReturn } from "react-hook-form";
-import type { MemberFormValues } from "../../lib/memberForm.schema";
-import { formatPhone } from '../../lib/formatters';
+import type { MemberFormValues } from "../../../lib/memberForm.schema";
+import { formatPhone } from '../../../lib/formatters';
 
 type Props = {
   form: UseFormReturn<MemberFormValues>;

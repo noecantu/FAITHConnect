@@ -18,18 +18,18 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { Separator } from '../components/ui/separator';
+} from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Separator } from '../../components/ui/separator';
 
 import { MemberFormSheet } from './member-form-sheet';
-import type { Member } from '../lib/types';
-import { cn } from '../lib/utils';
-import { listenToMembers } from '../lib/members';
-import { useChurchId } from '../hooks/useChurchId';
+import type { Member } from '../../lib/types';
+import { cn } from '../../lib/utils';
+import { listenToMembers } from '../../lib/members';
+import { useChurchId } from '../../hooks/useChurchId';
 import { useState, useEffect } from 'react';
-import { formatPhone } from '../lib/formatters';
-import { useUserRoles } from "../hooks/useUserRoles";
+import { formatPhone } from '../../lib/formatters';
+import { useUserRoles } from "../../hooks/useUserRoles";
 
 const StatusBadge = ({ status }: { status: Member['status'] }) => {
   if (status === 'Active') return null;

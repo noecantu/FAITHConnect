@@ -1,20 +1,20 @@
 'use client';
 
-import { listenToMembers } from "../lib/members";
-import { Member } from "../lib/types";
-import { PageHeader } from "../components/page-header";
+import { listenToMembers } from "../../lib/members";
+import { Member } from "../../lib/types";
+import { PageHeader } from "../../components/page-header";
 import { MemberCard } from "./member-card";
 import { MemberFormSheet } from "./member-form-sheet";
-import { useChurchId } from "../hooks/useChurchId";
-import { useUserRoles } from "../hooks/useUserRoles";
-import { useSettings } from "../hooks/use-settings";
-import { useAuth } from "../hooks/useAuth";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Fab } from "../components/ui/fab";
-import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
+import { useChurchId } from "../../hooks/useChurchId";
+import { useUserRoles } from "../../hooks/useUserRoles";
+import { useSettings } from "../../hooks/use-settings";
+import { useAuth } from "../../hooks/useAuth";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Fab } from "../../components/ui/fab";
+import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { updateDoc, doc, serverTimestamp } from "firebase/firestore";
-import { db } from "../lib/firebase";
+import { db } from "../../lib/firebase";
 import { useEffect, useMemo, useState } from "react";
 
 export default function MembersPage() {

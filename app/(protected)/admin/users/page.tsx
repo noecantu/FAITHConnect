@@ -27,5 +27,5 @@ export default async function UsersPage() {
   const churchesSnap = await adminDb.collection("churches").get();
   const churches = churchesSnap.docs.map(normalizeChurch);
 
-  return <UsersClient users={users} churches={churches} />;
+  return <UsersClient users={users} />;
 }

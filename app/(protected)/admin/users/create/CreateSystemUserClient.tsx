@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createSystemUserAction } from "@/app/admin/actions/createSystemUserAction";
+import { createSystemUserAction } from "@/app/(protected)/admin/actions/createSystemUserAction";
 import { useToast } from "@/app/hooks/use-toast";
 import { useAuth } from "@/app/hooks/useAuth";
 
@@ -71,7 +71,7 @@ export default function CreateSystemUserClient() {
         lastName,
         email,
         password,
-        accountType,
+        // accountType,
         actorUid,
         actorName,
       });

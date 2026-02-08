@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createUserAction } from "@/app/admin/actions/createUserAction";
+import { createUserAction } from "@/app/(protected)/admin/actions/createUserAction";
 import { useToast } from "@/app/hooks/use-toast";
 import { useAuth } from "@/app/hooks/useAuth";
 

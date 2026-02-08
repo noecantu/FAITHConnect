@@ -5,10 +5,12 @@ import { adminAuth, adminDb } from "@/lib/firebase/server";
 export async function proxy(req: NextRequest) {
   const url = req.nextUrl.clone();
   const { pathname } = req.nextUrl;
-console.log("PATHNAME:", pathname);
+
+  console.log("PATHNAME:", pathname);
+
   // PUBLIC ROUTES
-  const publicPaths = ["/login", "/signup", "/api"];
-  if (publicPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+  const publicPatterns = [/^\/login/, /^\/signup/, /^\/api/];
+  if (publicPatterns.some((pattern) => pattern.test(pathname))) {
     return NextResponse.next();
   }
 
@@ -51,16 +53,45 @@ console.log("PATHNAME:", pathname);
     roles.includes("MusicManager") ||
     roles.includes("MusicMember");
 
-  // ROOT ADMIN
+  //
+  // ROOT ADMIN LOGIC
+  //
   if (isRootAdmin) {
-    if (!pathname.startsWith("/admin")) {
+    // Redirect only when hitting "/"
+    if (pathname === "/") {
       url.pathname = "/admin";
       return NextResponse.redirect(url);
     }
+
+    // Root Admin can access anything
     return NextResponse.next();
   }
 
+  //
+  // CHURCH ADMIN LOGIC
+  //
+  if (isChurchAdmin && churchId) {
+    const adminRoot = `/admin/church/${churchId}`;
+
+    // Redirect only when hitting "/"
+    if (pathname === "/") {
+      url.pathname = adminRoot;
+      return NextResponse.redirect(url);
+    }
+
+    // Block access to ROOT ADMIN area
+    if (pathname.startsWith("/admin") && !pathname.startsWith(adminRoot)) {
+      url.pathname = adminRoot;
+      return NextResponse.redirect(url);
+    }
+
+    // Church Admins can access everything else
+    return NextResponse.next();
+  }
+
+  //
   // CHURCH ADMIN WITHOUT CHURCH → ONBOARDING
+  //
   if (isChurchAdmin && !churchId) {
     if (!pathname.startsWith("/onboarding")) {
       url.pathname = "/onboarding/create-church";
@@ -69,26 +100,29 @@ console.log("PATHNAME:", pathname);
     return NextResponse.next();
   }
 
-  // CHURCH ADMIN WITH CHURCH
-  if (isChurchAdmin && churchId) {
-    const adminPath = `/admin/church/${churchId}`;
-    if (!pathname.startsWith(adminPath)) {
-      url.pathname = adminPath;
-      return NextResponse.redirect(url);
-    }
-    return NextResponse.next();
-  }
-
-  // MEMBER
+  //
+  // MEMBER LOGIC
+  //
   if (isMember) {
-    if (!pathname.startsWith("/members")) {
+    // Redirect only when hitting "/"
+    if (pathname === "/") {
       url.pathname = "/members";
       return NextResponse.redirect(url);
     }
+
+    // Block access to Admin area
+    if (pathname.startsWith("/admin")) {
+      url.pathname = "/members";
+      return NextResponse.redirect(url);
+    }
+
+    // Allow navigation inside member area
     return NextResponse.next();
   }
 
-  // UNKNOWN ROLE
+  //
+  // UNKNOWN ROLE → LOGIN
+  //
   url.pathname = "/login";
   return NextResponse.redirect(url);
 }

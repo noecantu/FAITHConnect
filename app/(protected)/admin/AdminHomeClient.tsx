@@ -7,7 +7,7 @@ import {
   CardDescription,
   CardHeader,
   CardContent,
-} from "../components/ui/card";
+} from "../../components/ui/card";
 
 export default function AdminHomeClient({
   churchCount,

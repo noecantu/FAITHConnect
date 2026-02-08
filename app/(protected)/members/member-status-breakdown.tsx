@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { Member } from '../lib/types';
+import type { Member } from '../../lib/types';
 
 interface MemberStatusBreakdownProps {
   members: Member[];
