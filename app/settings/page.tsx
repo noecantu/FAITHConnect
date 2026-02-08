@@ -277,6 +277,18 @@ export default function AccessManagementPage() {
                       Assign access and roles here.
                     </CardDescription>
                   </div>
+
+                  {/* ADD ACCOUNT BUTTON */}
+                  <button
+                    onClick={() => startCreate()}
+                    className="
+                      p-2 rounded-md border
+                      bg-muted/20 hover:bg-muted transition
+                      focus:outline-none focus:ring-2 focus:ring-primary
+                    "
+                  >
+                    <UserRoundPlus className="h-4 w-4" />
+                  </button>
                 </div>
               </CardHeader>
 
@@ -522,7 +534,7 @@ export default function AccessManagementPage() {
       )}
 
       {/* Floating FAB Menu */}
-      <DropdownMenu>
+      {/* <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Fab type="menu" />
         </DropdownMenuTrigger>
@@ -546,7 +558,7 @@ export default function AccessManagementPage() {
             <Database className="h-4 w-4" />
           </DropdownMenuItem>
         </DropdownMenuContent>
-      </DropdownMenu>
+      </DropdownMenu> */}
 
     </>
   );
