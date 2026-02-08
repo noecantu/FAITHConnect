@@ -3,8 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth, db } from '../lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { auth } from '../lib/firebase';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -23,83 +22,25 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // 1. Sign in
-      const { user } = await signInWithEmailAndPassword(auth, email.trim(), password);
+      // 1. Sign in with Firebase Auth
+      const { user } = await signInWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
 
-      // 2. Load Firestore user document
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
+      // 2. Create Firebase session cookie
+      const idToken = await user.getIdToken(true);
 
-      if (!userSnap.exists()) {
-        await auth.signOut();
-        toast({
-          title: 'Login Error',
-          description: 'Your account is missing required data.',
-          variant: 'destructive',
-        });
-        return;
-      }
+      await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
 
-      const data = userSnap.data();
-      const roles = data.roles || [];
-      const isRootAdmin = roles.includes("RootAdmin");
-      const isAdmin = roles.includes("Admin");
-
-      const churchId = data.churchId;
-
-      // 3. ROOT ADMIN — bypass church lookup entirely
-      if (isRootAdmin) {
-        router.push('/admin');
-        return;
-      }
-
-      // 4. Admins MUST have a churchId
-      if (!churchId) {
-        await auth.signOut();
-        toast({
-          title: 'Login Error',
-          description: 'Your account is missing a church assignment.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // 5. Load church document (safe now)
-      const churchRef = doc(db, 'churches', churchId);
-      const churchSnap = await getDoc(churchRef);
-
-      if (!churchSnap.exists()) {
-        await auth.signOut();
-        toast({
-          title: 'Login Error',
-          description: 'Your church record is missing.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      const church = churchSnap.data();
-
-      // 6. HARD BLOCK — disabled church
-      if (church.status === 'disabled') {
-        await auth.signOut();
-        toast({
-          title: 'Access Denied',
-          description: 'Your church has been disabled. Please contact your administrator.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // 7. Admin redirect
-      if (isAdmin && churchId) {
-        router.push(`/admin/church/${churchId}`);
-        return;
-      }
-
-      // 8. Default fallback
+      // 3. Redirect — middleware will handle routing logic
       toast({ title: 'Login Successful', description: 'Welcome back!' });
-      router.push('/');
+      router.push('/dashboard');
 
     } catch (error) {
       console.error('Login error:', error);

@@ -69,12 +69,24 @@ export function NavMenu() {
 
   const handleLogout = async () => {
     try {
+      // 1. Sign out from Firebase Auth (client)
       await signOut(auth);
+
+      // 2. Clear the session cookie (server)
+      await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+
       setIsLogoutAlertOpen(false);
+
       toast({
         title: "Logged Out",
         description: "You have been successfully logged out.",
       });
+
+      // 3. Redirect to login
+      window.location.href = "/login";
+
     } catch (error) {
       console.error("Logout error:", error);
       toast({
