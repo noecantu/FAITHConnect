@@ -32,11 +32,9 @@ export default function RootLayout({
           "min-h-screen bg-background font-sans antialiased flex flex-col"
         )}
       >
-        <AuthGuard>
-          <SettingsProvider>
-            <ConditionalLayout>{children}</ConditionalLayout>
-          </SettingsProvider>
-        </AuthGuard>
+        <SettingsProvider>
+          <ConditionalLayout>{children}</ConditionalLayout>
+        </SettingsProvider>
 
         <AppFooter />
         <Toaster />

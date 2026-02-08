@@ -5,22 +5,21 @@ import { adminAuth, adminDb } from "@/lib/firebase/server";
 export async function proxy(req: NextRequest) {
   const url = req.nextUrl.clone();
   const { pathname } = req.nextUrl;
-
-  // Public routes
+console.log("PATHNAME:", pathname);
+  // PUBLIC ROUTES
   const publicPaths = ["/login", "/signup", "/api"];
-  if (publicPaths.some((p) => pathname.startsWith(p))) {
+  if (publicPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     return NextResponse.next();
   }
 
-  // Read Firebase session cookie
+  // SESSION COOKIE
   const sessionCookie = req.cookies.get("session")?.value;
-
   if (!sessionCookie) {
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // Verify session cookie
+  // VERIFY SESSION
   let decoded;
   try {
     decoded = await adminAuth.verifySessionCookie(sessionCookie, true);
@@ -31,7 +30,7 @@ export async function proxy(req: NextRequest) {
 
   const uid = decoded.uid;
 
-  // Fetch user profile
+  // FETCH USER PROFILE
   const userSnap = await adminDb.collection("users").doc(uid).get();
   const user = userSnap.data();
 
@@ -40,14 +39,11 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Firestore uses "roles" (array)
   const roles: string[] = user.roles || [];
   const churchId: string | null = user.churchId || null;
 
   const isRootAdmin = roles.includes("root");
-  const isChurchAdmin = roles.includes("ChurchAdmin") || roles.includes("Admin");
-
-  // Treat MusicManager, MusicMember, and no-role users as Members
+  const isChurchAdmin = roles.includes("Admin") || roles.includes("ChurchAdmin");
   const isBasicMember = roles.length === 0;
   const isMember =
     isBasicMember ||
@@ -55,9 +51,7 @@ export async function proxy(req: NextRequest) {
     roles.includes("MusicManager") ||
     roles.includes("MusicMember");
 
-  //
-  // ROOT ADMIN → always allowed into /admin
-  //
+  // ROOT ADMIN
   if (isRootAdmin) {
     if (!pathname.startsWith("/admin")) {
       url.pathname = "/admin";
@@ -66,9 +60,7 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  //
-  // CHURCH ADMIN with NO church → onboarding
-  //
+  // CHURCH ADMIN WITHOUT CHURCH → ONBOARDING
   if (isChurchAdmin && !churchId) {
     if (!pathname.startsWith("/onboarding")) {
       url.pathname = "/onboarding/create-church";
@@ -77,17 +69,17 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  //
-  // CHURCH ADMIN with church → block onboarding
-  //
-  if (isChurchAdmin && churchId && pathname.startsWith("/onboarding")) {
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
+  // CHURCH ADMIN WITH CHURCH
+  if (isChurchAdmin && churchId) {
+    const adminPath = `/admin/church/${churchId}`;
+    if (!pathname.startsWith(adminPath)) {
+      url.pathname = adminPath;
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
   }
 
-  //
-  // MEMBER (including MusicManager, MusicMember, and no-role users)
-  //
+  // MEMBER
   if (isMember) {
     if (!pathname.startsWith("/members")) {
       url.pathname = "/members";
@@ -96,19 +88,11 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  //
-  // If user has roles but none match known categories → send to login
-  //
-  if (!roles.length) {
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
-
-  return NextResponse.next();
+  // UNKNOWN ROLE
+  url.pathname = "/login";
+  return NextResponse.redirect(url);
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next|favicon.ico).*)",
-  ],
+  matcher: ["/((?!_next|favicon.ico).*)"],
 };
