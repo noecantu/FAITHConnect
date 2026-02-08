@@ -28,10 +28,11 @@ export function SongForm({ mode, initialData, onSave, saving }: SongFormProps) {
   const [artist, setArtist] = useState('');
   const [key, setKey] = useState('');
   const [bpm, setBpm] = useState('');
-  const [timeSignature, setTimeSignature] = useState('');
+  const [timeSignature, setTimeSignature] = useState('4/4');
   const [lyrics, setLyrics] = useState('');
   const [chords, setChords] = useState('');
   const [tags, setTags] = useState('');
+  const COMMON_TIME_SIGNATURES = ["1/2", "2/4", "3/4", "4/4", "6/8"];
 
   useEffect(() => {
     if (initialData) {
@@ -85,11 +86,51 @@ export function SongForm({ mode, initialData, onSave, saving }: SongFormProps) {
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">BPM</label>
-          <Input value={bpm} onChange={(e) => setBpm(e.target.value)} />
+          <Input
+            value={bpm}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (/^\d*$/.test(val)) {
+                setBpm(val);
+              }
+            }}
+            inputMode="numeric"
+            pattern="\d*"
+          />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Time Signature</label>
-          <Input value={timeSignature} onChange={(e) => setTimeSignature(e.target.value)} />
+
+          {/* Dropdown */}
+          <select
+            className="w-full rounded-md border bg-background p-2 text-sm"
+            value={COMMON_TIME_SIGNATURES.includes(timeSignature) ? timeSignature : "custom"}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === "custom") {
+                setTimeSignature(""); // allow typing
+              } else {
+                setTimeSignature(val);
+              }
+            }}
+          >
+            {COMMON_TIME_SIGNATURES.map((sig) => (
+              <option key={sig} value={sig}>
+                {sig}
+              </option>
+            ))}
+            <option value="custom">Custom</option>
+          </select>
+
+          {/* Custom Input */}
+          {!COMMON_TIME_SIGNATURES.includes(timeSignature) && (
+            <Input
+              className="mt-2"
+              placeholder="Enter custom time signature"
+              value={timeSignature}
+              onChange={(e) => setTimeSignature(e.target.value)}
+            />
+          )}
         </div>
       </div>
 
