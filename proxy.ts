@@ -6,8 +6,6 @@ export async function proxy(req: NextRequest) {
   const url = req.nextUrl.clone();
   const { pathname } = req.nextUrl;
 
-  console.log("PATHNAME:", pathname);
-
   // PUBLIC ROUTES
   const publicPatterns = [/^\/login/, /^\/signup/, /^\/api/];
   if (publicPatterns.some((pattern) => pattern.test(pathname))) {
@@ -44,7 +42,7 @@ export async function proxy(req: NextRequest) {
   const roles: string[] = user.roles || [];
   const churchId: string | null = user.churchId || null;
 
-  const isRootAdmin = roles.includes("root");
+  const isRootAdmin = roles.includes("RootAdmin");
   const isChurchAdmin = roles.includes("Admin") || roles.includes("ChurchAdmin");
   const isBasicMember = roles.length === 0;
   const isMember =
@@ -57,13 +55,10 @@ export async function proxy(req: NextRequest) {
   // ROOT ADMIN LOGIC
   //
   if (isRootAdmin) {
-    // Redirect only when hitting "/"
     if (pathname === "/") {
       url.pathname = "/admin";
       return NextResponse.redirect(url);
     }
-
-    // Root Admin can access anything
     return NextResponse.next();
   }
 
@@ -73,19 +68,16 @@ export async function proxy(req: NextRequest) {
   if (isChurchAdmin && churchId) {
     const adminRoot = `/admin/church/${churchId}`;
 
-    // Redirect only when hitting "/"
     if (pathname === "/") {
       url.pathname = adminRoot;
       return NextResponse.redirect(url);
     }
 
-    // Block access to ROOT ADMIN area
     if (pathname.startsWith("/admin") && !pathname.startsWith(adminRoot)) {
       url.pathname = adminRoot;
       return NextResponse.redirect(url);
     }
 
-    // Church Admins can access everything else
     return NextResponse.next();
   }
 
@@ -104,19 +96,16 @@ export async function proxy(req: NextRequest) {
   // MEMBER LOGIC
   //
   if (isMember) {
-    // Redirect only when hitting "/"
     if (pathname === "/") {
       url.pathname = "/members";
       return NextResponse.redirect(url);
     }
 
-    // Block access to Admin area
     if (pathname.startsWith("/admin")) {
       url.pathname = "/members";
       return NextResponse.redirect(url);
     }
 
-    // Allow navigation inside member area
     return NextResponse.next();
   }
 

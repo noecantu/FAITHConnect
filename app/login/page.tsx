@@ -38,9 +38,34 @@ export default function LoginPage() {
         body: JSON.stringify({ idToken }),
       });
 
-      // 3. Redirect — middleware will handle ALL routing logic
-      toast({ title: 'Login Successful', description: 'Welcome back!' });
-      router.replace('/'); // ← THIS IS THE FIX
+      // 3. Fetch user profile so we know where to redirect
+      const profileRes = await fetch("/api/users/me");
+      const profile = await profileRes.json();
+
+      toast({ title: "Login Successful", description: "Welcome back!" });
+
+      // 4. Redirect based on role
+      if (profile.roles.includes("root")) {
+        router.replace("/admin");
+        return;
+      }
+
+      if (profile.roles.includes("Admin") || profile.roles.includes("ChurchAdmin")) {
+        if (profile.churchId) {
+          router.replace(`/admin/church/${profile.churchId}`);
+        } else {
+          router.replace("/onboarding/create-church");
+        }
+        return;
+      }
+
+      if (profile.roles.includes("Member")) {
+        router.replace("/members");
+        return;
+      }
+
+      // fallback
+      router.replace("/");
 
     } catch (error) {
       console.error('Login error:', error);

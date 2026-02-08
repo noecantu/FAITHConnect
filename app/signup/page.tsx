@@ -57,8 +57,34 @@ export default function SignupPage() {
 
       toast({ title: 'Account Created', description: 'Welcome to FAITH Connect!' });
 
-      // 4. Redirect — middleware handles routing
-      router.replace('/');
+      // 4. Fetch user profile so we know where to redirect
+      const profileRes = await fetch("/api/users/me");
+      const profile = await profileRes.json();
+
+      toast({ title: "Account Created", description: "Welcome to FAITH Connect!" });
+
+      // 5. Redirect based on role
+      if (profile.roles.includes("root")) {
+        router.replace("/admin");
+        return;
+      }
+
+      if (profile.roles.includes("Admin") || profile.roles.includes("ChurchAdmin")) {
+        if (profile.churchId) {
+          router.replace(`/admin/church/${profile.churchId}`);
+        } else {
+          router.replace("/onboarding/create-church");
+        }
+        return;
+      }
+
+      if (profile.roles.includes("Member")) {
+        router.replace("/members");
+        return;
+      }
+
+      // fallback
+      router.replace("/");
 
     } catch (error) {
       console.error('Signup error:', error);
