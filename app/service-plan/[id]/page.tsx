@@ -19,6 +19,17 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogTitle, 
 import { Pencil, Copy, Trash } from 'lucide-react';
 import { useRouter } from "next/navigation";
 
+const normalize = (str: string) =>
+  str.replace(/\s+/g, "").toLowerCase();
+
+const sectionBgColors: Record<string, string> = {
+  praise: "rgba(59, 130, 246, 0.05)",      // Blue
+  worship: "rgba(251, 146, 60, 0.05)",     // Orange
+  offering: "rgba(239, 68, 68, 0.05)",     // Red
+  altarcall: "rgba(34, 197, 94, 0.05)",    // Green
+  custom: "rgba(234, 179, 8, 0.05)",       // Yellow
+};
+
 export default function ServicePlanDetailPage() {
   const { id } = useParams();
   const churchId = useChurchId();
@@ -99,7 +110,15 @@ export default function ServicePlanDetailPage() {
           const hasNotes = section.notes.trim().length > 0;
 
           return (
-            <Card key={section.id} className="p-5 space-y-2">
+            <Card
+              key={section.id}
+              className="p-5 space-y-2"
+              style={{
+                backgroundColor:
+                  sectionBgColors[normalize(section.title)] ?? "transparent",
+              }}
+            >
+
               <h2 className="text-lg font-semibold tracking-tight">
                 {section.title}
               </h2>

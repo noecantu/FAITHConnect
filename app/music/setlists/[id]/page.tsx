@@ -68,6 +68,16 @@ export default function SetListDetailPage() {
   }
 
   const formattedDate = format(new Date(setList.date), 'M/d/yy, h:mm a');
+  const normalize = (str: string) =>
+    str.replace(/\s+/g, '').toLowerCase();
+
+  const sectionBgColors: Record<string, string> = {
+    praise: "rgba(59, 130, 246, 0.05)",      // Blue
+    worship: "rgba(251, 146, 60, 0.05)",     // Orange
+    offering: "rgba(239, 68, 68, 0.05)",     // Red
+    altarcall: "rgba(34, 197, 94, 0.05)",    // Green
+    custom: "rgba(234, 179, 8, 0.05)",       // Yellow
+  };
 
   return (
     <div className="space-y-6">
@@ -77,7 +87,14 @@ export default function SetListDetailPage() {
       {/* Sections */}
       <div className="space-y-6">
         {setList.sections.map((section) => (
-          <Card key={section.id} className="p-4 space-y-4">
+          <Card
+            key={section.id}
+            className="p-4 space-y-4"
+            style={{
+              backgroundColor:
+                sectionBgColors[normalize(section.title)] ?? "transparent",
+            }}
+          >
             {/* Section Header */}
             <h2 className="text-lg font-semibold">
               {section.title}{' '}

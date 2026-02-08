@@ -17,6 +17,17 @@ import {
   FormControl,
 } from "../ui/form";
 
+const normalize = (str: string) =>
+  str.replace(/\s+/g, "").toLowerCase();
+
+const sectionBgColors: Record<string, string> = {
+  praise: "rgba(59, 130, 246, 0.05)",      // Blue
+  worship: "rgba(251, 146, 60, 0.05)",     // Orange
+  offering: "rgba(239, 68, 68, 0.05)",     // Red
+  altarcall: "rgba(34, 197, 94, 0.05)",    // Green
+  custom: "rgba(234, 179, 8, 0.05)",       // Yellow
+};
+
 type SectionEditorProps = {
     index: number;
     members: { id: string; firstName: string; lastName: string }[];
@@ -33,7 +44,18 @@ type SectionEditorProps = {
   const { control } = useFormContext();
 
   return (
-    <div className="border rounded-md p-4 space-y-4 bg-muted/30">
+    <div
+      className="border rounded-md p-4 space-y-4"
+      style={{
+        backgroundColor:
+          sectionBgColors[
+            normalize(
+              // We read the current title value from react-hook-form
+              (control._formValues?.sections?.[index]?.title ?? "")
+            )
+          ] ?? "transparent",
+      }}
+    >
 
       {/* Section Title */}
       <FormField

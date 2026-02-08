@@ -28,6 +28,17 @@ import { CSS } from '@dnd-kit/utilities';
 import { SectionSongList } from './SectionSongList';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 
+const normalize = (str: string) =>
+  str.replace(/\s+/g, "").toLowerCase();
+
+const sectionBgColors: Record<string, string> = {
+  praise: "rgba(59, 130, 246, 0.05)",      // Blue
+  worship: "rgba(251, 146, 60, 0.05)",     // Orange
+  offering: "rgba(239, 68, 68, 0.05)",     // Red
+  altarcall: "rgba(34, 197, 94, 0.05)",    // Green
+  custom: "rgba(234, 179, 8, 0.05)",       // Yellow
+};
+
 interface Props {
   sections: SetListSection[];
   onChange: (sections: SetListSection[]) => void;
@@ -200,7 +211,15 @@ function SortableSectionItem({
   };
 
   return (
-    <Card ref={setNodeRef} style={style} className="p-4 space-y-4">
+    <Card
+      ref={setNodeRef}
+      style={{
+        ...style,
+        backgroundColor:
+          sectionBgColors[normalize(section.title)] ?? "transparent",
+      }}
+      className="p-4 space-y-4"
+    >
 
       {/* Section Header */}
       <div className="flex items-center gap-3">
