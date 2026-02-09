@@ -10,21 +10,25 @@ import { useToast } from '@/app/hooks/use-toast';
 import { db } from '@/app/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import TimezoneSelect from '@/app/components/settings/TimezoneSelect';
+import { formatPhone } from '@/app/lib/formatters';
 
 interface Props {
   churchId: string;
-  onNameChange?: (name: string) => void; // for fallback initials
 }
 
-export default function ChurchProfileCard({ churchId, onNameChange }: Props) {
+export default function ChurchProfileCard({ churchId }: Props) {
   const { toast } = useToast();
-  const [name, setName] = useState('');
+  const [name, setName] = useState(''); // display only, not editable
   const [timezone, setTimezone] = useState('');
   const [address, setAddress] = useState('');
+  const [phone, setPhone] = useState('');       // raw digits
+  const [phoneDisplay, setPhoneDisplay] = useState(''); // formatted
+  const [originalTimezone, setOriginalTimezone] = useState('');
+  const [originalAddress, setOriginalAddress] = useState('');
+  const [originalPhone, setOriginalPhone] = useState('');
+
   const [saving, setSaving] = useState(false);
-  const [originalName, setOriginalName] = useState("");
-  const [originalTimezone, setOriginalTimezone] = useState("");
-  const [originalAddress, setOriginalAddress] = useState("");
+
 
   // Load church profile
   useEffect(() => {
@@ -32,43 +36,61 @@ export default function ChurchProfileCard({ churchId, onNameChange }: Props) {
 
     const load = async () => {
       const snap = await getDoc(doc(db, 'churches', churchId));
-      if (snap.exists()) {
-        const data = snap.data();
-        setName(data.name ?? '');
-        setTimezone(data.timezone ?? '');
-        setAddress(data.address ?? '');
+      if (!snap.exists()) return;
 
-        setOriginalName(data.name ?? "");
-        setOriginalTimezone(data.timezone ?? "");
-        setOriginalAddress(data.address ?? "");
+      const data = snap.data();
 
-        onNameChange?.(data.name ?? '');
-      }
+      // Identity
+      setName(data.name ?? '');
+
+      // Editable fields
+      setTimezone(data.timezone ?? '');
+      setAddress(data.address ?? '');
+      setPhone(data.phone ?? '');
+      setPhoneDisplay(formatPhone(data.phone ?? ''));
+
+      // Originals
+      setOriginalTimezone(data.timezone ?? '');
+      setOriginalAddress(data.address ?? '');
+      setOriginalPhone(data.phone ?? '');
     };
 
     load();
-  }, [churchId, onNameChange]);
+  }, [churchId]);
 
+  // Detect unsaved changes
   const hasChanges =
-    name !== originalName ||
     timezone !== originalTimezone ||
-    address !== originalAddress;
+    address !== originalAddress ||
+    phone !== originalPhone;
 
+  // Phone input handler
+  const handlePhoneChange = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    setPhone(digits);
+    setPhoneDisplay(formatPhone(digits));
+  };
+
+  // Save handler
   const handleSave = async () => {
-    if (!churchId) return;
+    if (!hasChanges || saving) return;
 
     setSaving(true);
 
     try {
       await updateDoc(doc(db, 'churches', churchId), {
-        name,
         timezone,
         address,
+        phone,
         updatedAt: new Date(),
       });
 
+      // Update originals
+      setOriginalTimezone(timezone);
+      setOriginalAddress(address);
+      setOriginalPhone(phone);
+
       toast({ title: 'Saved', description: 'Church profile updated.' });
-      onNameChange?.(name);
     } catch (err: any) {
       toast({ title: 'Error', description: err.message });
     } finally {
@@ -79,25 +101,34 @@ export default function ChurchProfileCard({ churchId, onNameChange }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Church Profile</CardTitle>
+        <CardTitle>{name || "Church Profile"}</CardTitle>
         <CardDescription>Manage your church’s identity and details.</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <div className="grid gap-1">
-          <Label>Church Name</Label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} />
-        </div>
 
-        <div className="grid gap-1">
-          <TimezoneSelect value={timezone} onChange={setTimezone} />
-        </div>
-
+        {/* Address */}
         <div className="grid gap-1">
           <Label>Address</Label>
           <Input value={address} onChange={(e) => setAddress(e.target.value)} />
         </div>
 
+        {/* Phone */}
+        <div className="grid gap-1">
+          <Label>Phone Number</Label>
+          <Input
+            value={phoneDisplay}
+            onChange={(e) => handlePhoneChange(e.target.value)}
+            placeholder="(555) 123‑4567"
+          />
+        </div>
+
+        {/* Timezone */}
+        <div className="grid gap-1">
+          <TimezoneSelect value={timezone} onChange={setTimezone} />
+        </div>
+
+        {/* Save Button */}
         <Button
           onClick={handleSave}
           disabled={!hasChanges || saving}
