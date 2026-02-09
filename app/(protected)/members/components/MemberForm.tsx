@@ -8,7 +8,6 @@ import { MemberInfoSection } from "./MemberInfoSection";
 import { StatusSection } from "./StatusSection";
 import { RelationshipsSection } from "./RelationshipsSection";
 import { PhotoSection } from "./PhotoSection";
-// import { RolesSection } from "../../roles-section";
 import { LoginAccessSection } from "./LoginAccessSection";
 
 import { useUserRoles } from "../../../hooks/useUserRoles";
