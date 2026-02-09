@@ -133,7 +133,7 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
           <img
             src={logoUrl}
             alt="Church Logo"
-            className="h-20 w-20 rounded object-cover border"
+            className="w-36 h-36 rounded-xl border border-slate-700 p-2 object-contain"
           />
         ) : (
           <div

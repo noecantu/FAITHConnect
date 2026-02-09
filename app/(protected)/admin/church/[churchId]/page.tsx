@@ -186,23 +186,32 @@ export default function ChurchAdminDashboard() {
 
       {/* Large Identity Header */}
       <Card>
-        <CardContent className="flex items-center gap-8 p-8">
+        <CardContent className="flex flex-col items-center gap-4 p-8">
+
+          {/* Logo */}
           {church.logoUrl ? (
             <img
               src={church.logoUrl}
               alt="Church Logo"
-              className="w-28 h-28 rounded-xl object-cover shadow-sm"
+              className="w-36 h-36 rounded-xl border border-slate-700 p-2 object-contain"
             />
           ) : (
-            <div className="w-28 h-28 rounded-xl bg-muted flex items-center justify-center text-3xl font-bold">
+            <div className="w-80 h-80 rounded-xl bg-muted flex items-center justify-center text-3xl font-bold">
               {initials}
             </div>
           )}
 
-          <div className="space-y-1">
-            <h1 className="text-4xl font-bold tracking-tight">{church.name}</h1>
-            <p className="text-muted-foreground text-lg">{church.timezone}</p>
+          {/* Name + Timezone beneath logo */}
+          <div className="text-center space-y-1">
+            <h1 className="text-4xl font-bold tracking-tight">
+              {church.name}
+            </h1>
+
+            <p className="text-muted-foreground text-lg">
+              {church.timezone}
+            </p>
           </div>
+
         </CardContent>
       </Card>
 
@@ -245,28 +254,28 @@ export default function ChurchAdminDashboard() {
           <Button asChild className="w-full flex items-center gap-2">
             <Link href="/members">
               <UserPlus className="h-4 w-4 text-foreground/70" />
-              <span>Add Member</span>
+              <span>Members</span>
             </Link>
           </Button>
 
           <Button asChild className="w-full flex items-center gap-2">
             <Link href="/calendar">
               <Calendar className="h-4 w-4 text-foreground/70" />
-              <span>Add Event</span>
+              <span>Events</span>
             </Link>
           </Button>
 
           <Button asChild className="w-full flex items-center gap-2">
             <Link href="/music/setlists">
               <Music className="h-4 w-4 text-foreground/70" />
-              <span>Add Set List</span>
+              <span>Set Lists</span>
             </Link>
           </Button>
 
           <Button asChild className="w-full flex items-center gap-2">
             <Link href="/service-plan">
               <CalendarHeart className="h-4 w-4 text-foreground/70" />
-              <span>Add Service Plan</span>
+              <span>Service Plans</span>
             </Link>
           </Button>
 
