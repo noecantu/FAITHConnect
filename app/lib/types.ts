@@ -1,5 +1,6 @@
 
 import { Timestamp } from 'firebase/firestore';
+import type { Role } from '@/app/lib/roles';
 
 export type Address = {
   street?: string;
@@ -60,6 +61,8 @@ export type Member = {
   relationships?: Relationship[];
   anniversary?: string;
 };
+
+export type Mode = 'list' | 'create' | 'edit' | 'confirm-delete';
 
 export type Relationship = {
   id?: string;
@@ -152,7 +155,7 @@ export interface User {
   id: string;
   email: string;
   churchId?: string | null;
-  roles: string[];
+  roles: Role[];
   firstName?: string | null;
   lastName?: string | null;
   settings?: {

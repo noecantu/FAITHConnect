@@ -10,7 +10,6 @@ import { RelationshipsSection } from "./RelationshipsSection";
 import { PhotoSection } from "./PhotoSection";
 import { LoginAccessSection } from "./LoginAccessSection";
 
-import { useUserRoles } from "../../../hooks/useUserRoles";
 import type { FieldArrayWithId } from "react-hook-form";
 
 import { getFunctions, httpsCallable } from "firebase/functions";
@@ -51,12 +50,11 @@ export function MemberForm({
   member,
 }: MemberFormProps) {
 
-  const { isAdmin } = useUserRoles(churchId);
   const [isLoading, setIsLoading] = useState(false);
 
   const functions = getFunctions(app, "us-central1");
   const createMemberLogin = httpsCallable(functions, "createMemberLogin");
-  const sendPasswordReset = httpsCallable(functions, "sendPasswordReset"); // you'll add this next
+  const sendPasswordReset = httpsCallable(functions, "sendPasswordReset");
 
   async function handleCreateLogin() {
     if (!member || !churchId) return;
@@ -117,14 +115,6 @@ export function MemberForm({
         <MemberInfoSection form={form} />
         <StatusSection form={form} />
         <RelationshipsSection form={form} {...relationships} />
-
-        {/* {isAdmin && member && (
-          <RolesSection
-            member={member}
-            onChange={(updatedRoles) => form.setValue("roles", updatedRoles)}
-          />
-        )} */}
-
         <LoginAccessSection
           hasUserAccount={!!member?.userId}
           email={form.watch("email")}

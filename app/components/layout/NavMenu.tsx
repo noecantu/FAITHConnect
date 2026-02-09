@@ -224,9 +224,13 @@ export function NavMenu() {
 
           {/* Settings */}
           {canSeeSettings && (
-            <Link href="/settings">
+            <Link href="/settings/access-management">
               <DropdownMenuItem
-                className={pathname === "/settings" ? "bg-accent" : ""}
+                className={
+                  pathname.startsWith("/settings/access-management")
+                    ? "bg-accent"
+                    : ""
+                }
               >
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
