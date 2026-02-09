@@ -16,6 +16,7 @@ import {
   FormMessage,
   FormControl,
 } from "../ui/form";
+import { ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 
 const normalize = (str: string) =>
   str.replace(/\s+/g, "").toLowerCase();
@@ -29,18 +30,28 @@ const sectionBgColors: Record<string, string> = {
 };
 
 type SectionEditorProps = {
-    index: number;
-    members: { id: string; firstName: string; lastName: string }[];
-    songs: { id: string; title: string }[];
-    remove: () => void;
-  };
-  
-  export function SectionEditor({
-    index,
-    members,
-    songs,
-    remove,
-  }: SectionEditorProps) {
+  index: number;
+  members: { id: string; firstName: string; lastName: string }[];
+  songs: { id: string; title: string }[];
+  remove: () => void;
+
+  // NEW props
+  moveUp: () => void;
+  moveDown: () => void;
+  isFirst: boolean;
+  isLast: boolean;
+};
+
+export function SectionEditor({
+  index,
+  members,
+  songs,
+  remove,
+  moveUp,
+  moveDown,
+  isFirst,
+  isLast,
+}: SectionEditorProps) {
   const { control } = useFormContext();
 
   return (
@@ -50,12 +61,49 @@ type SectionEditorProps = {
         backgroundColor:
           sectionBgColors[
             normalize(
-              // We read the current title value from react-hook-form
               (control._formValues?.sections?.[index]?.title ?? "")
             )
           ] ?? "transparent",
       }}
     >
+
+      {/* Header Row: Move Up / Down / Delete */}
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-sm font-medium text-muted-foreground">
+          Section {index + 1}
+        </span>
+
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            disabled={isFirst}
+            onClick={moveUp}
+          >
+            <ChevronUp className="h-4 w-4" />
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            disabled={isLast}
+            onClick={moveDown}
+          >
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={remove}
+          >
+            <Trash2 className="h-4 w-4 text-red-500" />
+          </Button>
+        </div>
+      </div>
 
       {/* Section Title */}
       <FormField
@@ -108,7 +156,6 @@ type SectionEditorProps = {
 
             <div className="space-y-2">
 
-              {/* Add Song Button */}
               {!field.value?.includes("") && (
                 <Button
                   type="button"
@@ -120,7 +167,6 @@ type SectionEditorProps = {
                 </Button>
               )}
 
-              {/* Song Rows or Empty State */}
               {(field.value ?? []).map((songId: string, songIndex: number) => (
                 <div key={songIndex} className="flex items-center gap-2">
 
@@ -149,7 +195,7 @@ type SectionEditorProps = {
 
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     onClick={() => {
                       const updated = [...field.value];
@@ -184,12 +230,6 @@ type SectionEditorProps = {
         )}
       />
 
-      {/* Remove Section */}
-      <div className="flex justify-end">
-        <Button variant="destructive" size="sm" type="button" onClick={remove}>
-          Delete Section
-        </Button>
-      </div>
     </div>
   );
 }

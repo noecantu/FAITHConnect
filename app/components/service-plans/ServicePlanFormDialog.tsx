@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -26,13 +25,6 @@ import {
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Button } from '../ui/button';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '../ui/select';
 
 import { createServicePlan, updateServicePlan } from '../../lib/servicePlans';
 import type { ServicePlan, ServicePlanSection } from '../../lib/types';
@@ -108,7 +100,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, move } = useFieldArray({
     control: form.control,
     name: 'sections',
   });
@@ -269,8 +261,13 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                       members={members}
                       songs={songs}
                       remove={() => remove(index)}
+                      moveUp={() => index > 0 && move(index, index - 1)}
+                      moveDown={() => index < fields.length - 1 && move(index, index + 1)}
+                      isFirst={index === 0}
+                      isLast={index === fields.length - 1}
                     />
                   ))}
+
                 </div>
 
             </form>
