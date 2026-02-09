@@ -16,6 +16,7 @@ import UserListCard from './components/UserListCard';
 import StorageUsageCard from './components/StorageUsageCard';
 import UserFormCard from './components/UserFormCard';
 import DeleteUserDialog from './components/DeleteUserDialog';
+import ChurchLogoCard from './components/ChurchLogoCard';
 
 export default function AccessManagementPage() {
   const churchId = useChurchId();
@@ -156,6 +157,8 @@ export default function AccessManagementPage() {
             onCreate={startCreate}
             onSelectUser={startEdit}
           />
+
+          <ChurchLogoCard churchId={churchId!} />
 
           <StorageUsageCard
             storageUsed={storageUsed}
