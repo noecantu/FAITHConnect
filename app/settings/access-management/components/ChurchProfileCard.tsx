@@ -9,6 +9,7 @@ import { useToast } from '@/app/hooks/use-toast';
 
 import { db } from '@/app/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import TimezoneSelect from '@/app/components/settings/TimezoneSelect';
 
 interface Props {
   churchId: string;
@@ -17,11 +18,13 @@ interface Props {
 
 export default function ChurchProfileCard({ churchId, onNameChange }: Props) {
   const { toast } = useToast();
-
   const [name, setName] = useState('');
   const [timezone, setTimezone] = useState('');
   const [address, setAddress] = useState('');
   const [saving, setSaving] = useState(false);
+  const [originalName, setOriginalName] = useState("");
+  const [originalTimezone, setOriginalTimezone] = useState("");
+  const [originalAddress, setOriginalAddress] = useState("");
 
   // Load church profile
   useEffect(() => {
@@ -35,12 +38,21 @@ export default function ChurchProfileCard({ churchId, onNameChange }: Props) {
         setTimezone(data.timezone ?? '');
         setAddress(data.address ?? '');
 
+        setOriginalName(data.name ?? "");
+        setOriginalTimezone(data.timezone ?? "");
+        setOriginalAddress(data.address ?? "");
+
         onNameChange?.(data.name ?? '');
       }
     };
 
     load();
   }, [churchId, onNameChange]);
+
+  const hasChanges =
+    name !== originalName ||
+    timezone !== originalTimezone ||
+    address !== originalAddress;
 
   const handleSave = async () => {
     if (!churchId) return;
@@ -78,8 +90,7 @@ export default function ChurchProfileCard({ churchId, onNameChange }: Props) {
         </div>
 
         <div className="grid gap-1">
-          <Label>Timezone</Label>
-          <Input value={timezone} onChange={(e) => setTimezone(e.target.value)} />
+          <TimezoneSelect value={timezone} onChange={setTimezone} />
         </div>
 
         <div className="grid gap-1">
@@ -87,9 +98,14 @@ export default function ChurchProfileCard({ churchId, onNameChange }: Props) {
           <Input value={address} onChange={(e) => setAddress(e.target.value)} />
         </div>
 
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? 'Saving...' : 'Save Changes'}
+        <Button
+          onClick={handleSave}
+          disabled={!hasChanges || saving}
+          className="w-full sm:w-auto"
+        >
+          {saving ? "Saving..." : "Save Changes"}
         </Button>
+
       </CardContent>
     </Card>
   );

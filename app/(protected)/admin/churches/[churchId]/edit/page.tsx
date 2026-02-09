@@ -13,22 +13,21 @@ import { Button } from "@/app/components/ui/button";
 import { Textarea } from "@/app/components/ui/textarea";
 import { useToast } from "@/app/hooks/use-toast";
 
+import TimezoneSelect from "@/app/components/settings/TimezoneSelect";
+
 export default function EditChurchPage() {
   const params = useParams();
   const churchIdRaw = params?.churchId;
 
-  // Normalize
   const churchIdStr = Array.isArray(churchIdRaw)
     ? churchIdRaw[0]
     : churchIdRaw;
 
-  // Hard guard
   if (!churchIdStr || typeof churchIdStr !== "string") {
     console.error("Invalid churchId param");
     return null;
   }
 
-  // ⭐ Create a NEW constant that TS knows is ALWAYS a string
   const churchIdSafe: string = churchIdStr;
 
   const router = useRouter();
@@ -63,7 +62,7 @@ export default function EditChurchPage() {
       setDescription(data.description || "");
 
       setLoading(false);
-    }
+    };
 
     load();
   }, [churchIdSafe]);
@@ -128,36 +127,8 @@ export default function EditChurchPage() {
             />
           </div>
 
-          {/* Timezone */}
-          <div className="space-y-2">
-            <Label>Timezone</Label>
-            <select
-              value={timezone}
-              onChange={(e) => setTimezone(e.target.value)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="">Select a timezone</option>
-
-              <optgroup label="United States">
-                <option value="America/New_York">Eastern (ET)</option>
-                <option value="America/Chicago">Central (CT)</option>
-                <option value="America/Denver">Mountain (MT)</option>
-                <option value="America/Los_Angeles">Pacific (PT)</option>
-                <option value="America/Phoenix">Arizona (No DST)</option>
-                <option value="America/Anchorage">Alaska</option>
-                <option value="Pacific/Honolulu">Hawaii</option>
-              </optgroup>
-
-              <optgroup label="International">
-                <option value="Europe/London">London (UK)</option>
-                <option value="Europe/Paris">Paris (France)</option>
-                <option value="Europe/Berlin">Berlin (Germany)</option>
-                <option value="Asia/Tokyo">Tokyo (Japan)</option>
-                <option value="Asia/Singapore">Singapore</option>
-                <option value="Australia/Sydney">Sydney (Australia)</option>
-              </optgroup>
-            </select>
-          </div>
+          {/* Timezone (reusable component) */}
+          <TimezoneSelect value={timezone} onChange={setTimezone} />
 
           {/* Logo URL */}
           <div className="space-y-2">
