@@ -12,15 +12,30 @@ import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage
 
 interface Props {
   churchId: string;
+  churchName: string;
 }
 
-export default function ChurchLogoCard({ churchId }: Props) {
+export default function ChurchLogoCard({ churchId, churchName }: Props) {
   const { toast } = useToast();
 
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [originalLogoUrl, setOriginalLogoUrl] = useState<string | null>(null);
+
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [removing, setRemoving] = useState(false);
+
+  const hasChanges = logoUrl !== originalLogoUrl;
+  const [showConfirmRemove, setShowConfirmRemove] = useState(false);
+
+  function getInitials(name: string | null | undefined) {
+    if (!name) return "??";
+    return name
+      .split(" ")
+      .map((w) => w[0]?.toUpperCase())
+      .join("")
+      .slice(0, 2);
+  }
 
   // Load existing logo
   useEffect(() => {
@@ -29,7 +44,9 @@ export default function ChurchLogoCard({ churchId }: Props) {
     const load = async () => {
       const snap = await getDoc(doc(db, 'churches', churchId));
       if (snap.exists()) {
-        setLogoUrl(snap.data().logoUrl ?? null);
+        const url = snap.data().logoUrl ?? null;
+        setLogoUrl(url);
+        setOriginalLogoUrl(url);
       }
     };
 
@@ -58,7 +75,7 @@ export default function ChurchLogoCard({ churchId }: Props) {
 
   // Save handler
   const handleSave = async () => {
-    if (!churchId) return;
+    if (!churchId || !hasChanges) return;
 
     setSaving(true);
 
@@ -67,6 +84,8 @@ export default function ChurchLogoCard({ churchId }: Props) {
         logoUrl,
         updatedAt: new Date(),
       });
+
+      setOriginalLogoUrl(logoUrl);
 
       toast({ title: 'Saved', description: 'Church logo updated.' });
     } catch (err: any) {
@@ -78,7 +97,7 @@ export default function ChurchLogoCard({ churchId }: Props) {
 
   // Remove logo handler
   const handleRemove = async () => {
-    if (!churchId) return;
+    if (!churchId || !logoUrl) return;
 
     setRemoving(true);
 
@@ -117,9 +136,16 @@ export default function ChurchLogoCard({ churchId }: Props) {
             className="h-20 w-20 rounded object-cover border"
           />
         ) : (
-          <p className="text-sm text-muted-foreground italic">
-            No logo uploaded yet.
-          </p>
+          <div
+            className="
+              h-20 w-20 rounded-full
+              bg-muted flex items-center justify-center
+              text-xl font-semibold text-muted-foreground
+              border
+            "
+          >
+            {getInitials(churchName)}
+          </div>
         )}
 
         {/* Upload */}
@@ -132,23 +158,53 @@ export default function ChurchLogoCard({ churchId }: Props) {
           }}
         />
 
-        <div className="flex gap-2">
-          {/* Save */}
-          <Button onClick={handleSave} disabled={saving || uploading}>
+        {/* Buttons */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button
+            onClick={handleSave}
+            disabled={!hasChanges || saving || uploading}
+            className="w-full sm:w-auto"
+          >
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>
 
-          {/* Remove */}
-          {logoUrl && (
-            <Button
-              variant="destructive"
-              onClick={handleRemove}
-              disabled={removing}
-            >
-              {removing ? 'Removing...' : 'Remove Logo'}
-            </Button>
-          )}
+          <Button
+            variant="destructive"
+            onClick={() => setShowConfirmRemove(true)}
+            disabled={!logoUrl || removing}
+            className="w-full sm:w-auto"
+          >
+            Remove Logo
+          </Button>
         </div>
+
+        {showConfirmRemove && (
+          <div className="border border-red-300 bg-red-50 rounded-md p-4 space-y-3">
+            <p className="text-sm text-red-800">
+              Are you sure you want to remove the church logo? This action cannot be undone.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowConfirmRemove(false)}
+                className="w-full sm:w-auto"
+              >
+                Cancel
+              </Button>
+
+              <Button
+                variant="destructive"
+                onClick={handleRemove}
+                disabled={removing}
+                className="w-full sm:w-auto"
+              >
+                {removing ? 'Removing...' : 'Confirm Remove'}
+              </Button>
+            </div>
+          </div>
+        )}
+
       </CardContent>
     </Card>
   );

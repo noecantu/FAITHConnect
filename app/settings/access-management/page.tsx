@@ -17,11 +17,13 @@ import StorageUsageCard from './components/StorageUsageCard';
 import UserFormCard from './components/UserFormCard';
 import DeleteUserDialog from './components/DeleteUserDialog';
 import ChurchLogoCard from './components/ChurchLogoCard';
+import ChurchProfileCard from './components/ChurchProfileCard';
 
 export default function AccessManagementPage() {
   const churchId = useChurchId();
   const { user } = useAuth();
   const { toast } = useToast();
+  const [churchName, setChurchName] = useState('');
 
   // -----------------------------
   // USERS LIST
@@ -158,8 +160,18 @@ export default function AccessManagementPage() {
             onSelectUser={startEdit}
           />
 
-          <ChurchLogoCard churchId={churchId!} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ChurchLogoCard
+              churchId={churchId!}
+              churchName={churchName}
+            />
 
+            <ChurchProfileCard
+              churchId={churchId!}
+              onNameChange={setChurchName}
+            />
+          </div>
+            
           <StorageUsageCard
             storageUsed={storageUsed}
             hasLoaded={hasLoadedUsage}
