@@ -69,7 +69,8 @@ export function CalendarControls({
       {/* TOP CONTROLS — ONLY SHOW IN CALENDAR VIEW */}
       {view.view === "calendar" && (
         <div className="flex justify-end w-full">
-          <div className="flex items-center gap-2 min-w-[320px]">
+          {/* This container stays right‑aligned but wide enough to prevent wrapping */}
+          <div className="flex items-center gap-2 min-w-[360px] justify-end">
 
             {/* Month */}
             <Select
@@ -78,7 +79,7 @@ export function CalendarControls({
                 month.setMonth(setMonthDate(month.month, Number(value)))
               }
             >
-              <SelectTrigger className="w-28">
+              <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
