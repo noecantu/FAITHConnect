@@ -79,7 +79,7 @@ export function CalendarControls({
                 month.setMonth(setMonthDate(month.month, Number(value)))
               }
             >
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-30">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -98,7 +98,7 @@ export function CalendarControls({
                 month.setMonth(setYearDate(month.month, Number(value)))
               }
             >
-              <SelectTrigger className="w-24">
+              <SelectTrigger className="w-20">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -111,7 +111,7 @@ export function CalendarControls({
             </Select>
 
             {/* Today */}
-            <Button variant="outline" onClick={month.goToday} className="w-20">
+            <Button variant="outline" onClick={month.goToday} className="w-15">
               Today
             </Button>
           </div>
