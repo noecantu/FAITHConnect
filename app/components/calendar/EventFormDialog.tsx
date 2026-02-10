@@ -43,7 +43,7 @@ export function EventFormDialog({
 }) {
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
       <StandardDialogLayout
         title={isEditing ? "Edit Event" : "Add New Event"}
         description={
@@ -82,9 +82,21 @@ export function EventFormDialog({
                             if (!next) return;
                             field.onChange(next.toDate());
                           }}
+                          onAccept={(next) => {
+                            if (!next) return;
+                            field.onChange(next.toDate());
+                          }}
+                          onClose={() => {
+                            // Force the picker to close on iPhone
+                            const el = document.activeElement;
+                            if (el instanceof HTMLElement) {
+                              el.blur();
+                            }
+                          }}
                           closeOnSelect
                           reduceAnimations
                         />
+
                       </LocalizationProvider>
                     </ThemeProvider>
                   </FormControl>

@@ -10,8 +10,7 @@ import { db } from "./firebase";
 export type EventRecord = {
   title: string;
   description?: string | null;
-  start: Timestamp;
-  end: Timestamp;
+  date: Timestamp;
   location?: string | null;
   createdAt?: Timestamp | null;
   updatedAt?: Timestamp | null;
@@ -21,8 +20,7 @@ export type Event = {
   id: string;
   title: string;
   description?: string | null;
-  start: Date;
-  end: Date;
+  date: Date;
   location?: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
@@ -36,7 +34,7 @@ export function listenToEvents(
 
   const q = query(
     collection(db, "churches", churchId, "events"),
-    orderBy("start", "asc")
+    orderBy("date", "asc")
   );
 
   return onSnapshot(
@@ -49,8 +47,7 @@ export function listenToEvents(
           id: docSnap.id,
           title: data.title,
           description: data.description ?? null,
-          start: data.start.toDate(),
-          end: data.end.toDate(),
+          date: data.date.toDate(),
           location: data.location ?? null,
           createdAt: data.createdAt ? data.createdAt.toDate() : null,
           updatedAt: data.updatedAt ? data.updatedAt.toDate() : null,
@@ -66,3 +63,4 @@ export function listenToEvents(
     }
   );
 }
+

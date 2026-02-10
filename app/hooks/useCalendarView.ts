@@ -1,15 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function useCalendarView(defaultView: 'calendar' | 'list') {
   const [view, setView] = useState<'calendar' | 'list'>(defaultView);
+
+  // Keep a ref to the latest view to avoid dependency loops
+  const viewRef = useRef(view);
+  useEffect(() => {
+    viewRef.current = view;
+  }, [view]);
 
   // Load from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('calendarView');
     if (saved === 'calendar' || saved === 'list') {
-      setView(saved);
+      if (saved !== viewRef.current) setView(saved);
     }
   }, []);
 
@@ -18,10 +24,14 @@ export function useCalendarView(defaultView: 'calendar' | 'list') {
     localStorage.setItem('calendarView', view);
   }, [view]);
 
-  // Sync changes across tabs
+  // Sync changes across OTHER tabs only
   useEffect(() => {
     const handler = (e: StorageEvent) => {
-      if (e.key === 'calendarView' && (e.newValue === 'calendar' || e.newValue === 'list')) {
+      if (
+        e.key === 'calendarView' &&
+        (e.newValue === 'calendar' || e.newValue === 'list') &&
+        e.newValue !== viewRef.current
+      ) {
         setView(e.newValue);
       }
     };
