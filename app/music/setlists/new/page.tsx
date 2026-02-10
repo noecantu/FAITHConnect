@@ -117,16 +117,17 @@ export default function NewSetListPage() {
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Event Time</label>
+        <div>
+          <label className="block text-sm font-medium mb-1">Event Time</label>
           <Input
             type="time"
             value={time}
             onChange={(e) => setTime(e.target.value)}
             className="w-full"
+            style={{ width: '100%' }}
           />
         </div>
-        
+                
         {/* Sections */}
         <div className="space-y-2">
           <label className="block text-sm font-medium">Sections & Songs</label>

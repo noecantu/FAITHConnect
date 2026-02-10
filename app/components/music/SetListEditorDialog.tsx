@@ -91,7 +91,6 @@ export function SetListEditorDialog({
                     setDate(d.toISOString().substring(0, 10));
                     setOpenCalendar(false);
                   }}
-                  initialFocus
                 />
               </PopoverContent>
             </Popover>
