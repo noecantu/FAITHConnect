@@ -165,3 +165,21 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   padding: 0;
   margin: 0;
 }
+
+/* ===== iOS Safari TIME input sanity fixes ===== */
+input[type="time"] {
+  min-width: 0;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 2.5rem; /* matches h-10 */
+  padding: 0.5rem; /* matches shadcn Input padding */
+  line-height: normal;
+  box-sizing: border-box;
+}
+
+/* Prevent iOS from adding extra padding around the clock icon */
+input[type="time"]::-webkit-calendar-picker-indicator {
+  padding: 0;
+  margin: 0;
+}
