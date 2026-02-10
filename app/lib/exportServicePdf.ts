@@ -12,7 +12,7 @@ export function exportServiceToPdf(
   doc.text(setList.title, 14, 20);
 
   doc.setFontSize(12);
-  doc.text(`Date: ${setList.date.toLocaleDateString()}`, 14, 30);
+  doc.text(`Date: ${setList.dateTime.toLocaleString()}`, 14, 30);
 
   if (setList.serviceNotes?.theme) {
     doc.text(`Theme: ${setList.serviceNotes.theme}`, 14, 38);

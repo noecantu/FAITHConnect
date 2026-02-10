@@ -47,16 +47,16 @@ export default function SetListsPage() {
     today.setHours(0, 0, 0, 0);
 
     if (filter === 'future') {
-      result = result.filter((l) => l.date.getTime() >= today.getTime());
+      result = result.filter((l) => l.dateTime.getTime() >= today.getTime());
     } else if (filter === 'past') {
-      result = result.filter((l) => l.date.getTime() < today.getTime());
+      result = result.filter((l) => l.dateTime.getTime() < today.getTime());
     }
 
     // SORT
     if (sort === 'date-desc') {
-      result = [...result].sort((a, b) => b.date.getTime() - a.date.getTime());
+      result = [...result].sort((a, b) => b.dateTime.getTime() - a.dateTime.getTime());
     } else if (sort === 'date-asc') {
-      result = [...result].sort((a, b) => a.date.getTime() - b.date.getTime());
+      result = [...result].sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
     } else if (sort === 'title-asc') {
       result = [...result].sort((a, b) => a.title.localeCompare(b.title));
     }
@@ -97,7 +97,7 @@ export default function SetListsPage() {
     return {
       id: setList.id,
       title: setList.title,
-      date: setList.date,
+      date: setList.dateTime,
       totalSets,
       totalSongs,
     };
@@ -143,7 +143,7 @@ export default function SetListsPage() {
 
               <select
                 value={filter}
-                onChange={(e) => setFilter(e.target.value as any)}
+                onChange={(e) => setFilter(e.target.value as 'all' | 'future' | 'past')}
                 className="border rounded px-2 py-1 text-sm bg-background"
               >
                 <option value="all">All</option>
@@ -158,7 +158,7 @@ export default function SetListsPage() {
 
               <select
                 value={sort}
-                onChange={(e) => setSort(e.target.value as any)}
+                onChange={(e) => setSort(e.target.value as 'date-desc' | 'date-asc' | 'title-asc')}
                 className="border rounded px-2 py-1 text-sm bg-background"
               >
                 <option value="date-desc">Newest</option>
@@ -193,7 +193,7 @@ export default function SetListsPage() {
               <td className="py-2 px-2">{row.title}</td>
 
               <td className="py-2 px-2">
-                {row.date ? format(new Date(row.date), 'M/d/yy, h:mm a') : '—'}
+                {row.date ? format(row.date, 'M/d/yy, h:mm a') : '—'}
               </td>
 
               <td className="py-2 px-2">{row.totalSets}</td>
