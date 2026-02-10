@@ -2,6 +2,7 @@
 
 import { adminAuth, adminDb } from "@/lib/firebase/firebaseAdmin";
 import { logSystemEvent } from "@/lib/system/logging";
+import { serverTimestamp } from "firebase/firestore";
 
 export interface CreateUserInput {
   firstName: string;
@@ -41,7 +42,7 @@ export async function createUserAction(input: CreateUserInput) {
     email,
     roles,
     churchId,
-    createdAt: new Date().toISOString(),
+    createdAt: serverTimestamp(),
   });
 
   // 3. Log system event

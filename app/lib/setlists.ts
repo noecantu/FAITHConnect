@@ -11,17 +11,29 @@ import {
   orderBy,
   serverTimestamp,
   onSnapshot,
+  CollectionReference,
+  Timestamp,
 } from 'firebase/firestore';
 
 import { db } from './firebase';
-import type { SetList, SetListSection } from './types';
+import type { SetList, SetListFirestore, SetListSection } from './types';
 import { nanoid } from 'nanoid';
+import { fromDateString, toDateString, toDateTime } from './date-utils';
+
+export function setListDoc(churchId: string, setListId: string) {
+  return doc(db, `churches/${churchId}/setlists/${setListId}`);
+}
 
 // -----------------------------------------------------
 // Collection reference
 // -----------------------------------------------------
 export function setListsCollection(churchId: string) {
-  return collection(db, 'churches', churchId, 'setlists');
+  return collection(
+    db,
+    'churches',
+    churchId,
+    'setlists'
+  ) as CollectionReference<SetListFirestore>;
 }
 
 // -----------------------------------------------------
@@ -32,10 +44,10 @@ export function listenToSetLists(
   callback: (lists: SetList[]) => void,
   userId?: string
 ) {
-  // Prevent listener from attaching during logout or unstable auth
   if (!churchId || !userId) return () => {};
 
-  const q = query(setListsCollection(churchId), orderBy('date', 'desc'));
+  // IMPORTANT: sort by dateString, not Timestamp
+  const q = query(setListsCollection(churchId), orderBy('dateString', 'desc'));
 
   return onSnapshot(
     q,
@@ -45,17 +57,28 @@ export function listenToSetLists(
 
         return {
           id: docSnap.id,
-          ...(data as any),
-          date: data.date?.toDate?.() ?? new Date(),
-          createdAt: data.createdAt?.toDate?.() ?? new Date(),
-          updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
-        } as SetList;
+          churchId: data.churchId,
+          title: data.title,
+
+          dateString: data.dateString,
+          timeString: data.timeString,
+
+          date: fromDateString(data.dateString),
+          dateTime: toDateTime(data.dateString, data.timeString),
+
+          sections: data.sections ?? [],
+          createdBy: data.createdBy,
+          createdAt: data.createdAt?.toMillis?.() ?? Date.now(),
+          updatedAt: data.updatedAt?.toMillis?.() ?? Date.now(),
+
+          serviceType: data.serviceType,
+          serviceNotes: data.serviceNotes,
+        };
       });
 
       callback(lists);
     },
     (error) => {
-      // Swallow the expected logout error
       if (error.code !== "permission-denied") {
         console.error("listenToSetLists error:", error);
       }
@@ -68,29 +91,66 @@ export function listenToSetLists(
 // -----------------------------------------------------
 export async function createSetList(
   churchId: string | null,
-  data: Omit<SetList, 'id' | 'churchId' | 'createdAt' | 'updatedAt'>
+  data: {
+    title: string;
+    date: Date;
+    time: string;
+    sections: SetListSection[];
+    createdBy: string;
+    serviceType: 'Sunday' | 'Midweek' | 'Special' | null;
+    serviceNotes?: {
+      theme?: string | null;
+      scripture?: string | null;
+      notes?: string | null;
+    } | null;
+  }
 ) {
   if (!churchId) throw new Error("churchId is required");
 
-  // Shadow the variable so TS narrows it to string
-  const cid: string = churchId;
+  const cid = churchId;
 
   const ref = await addDoc(setListsCollection(cid), {
-    ...data,
+    title: data.title,
+    dateString: toDateString(data.date),
+    timeString: data.time,
+    sections: data.sections,
+    createdBy: data.createdBy,
+    serviceType: data.serviceType,
+    ...(data.serviceNotes !== undefined && { serviceNotes: data.serviceNotes }),
     churchId: cid,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
 
   const snap = await getDoc(ref);
-  const docData = snap.data();
+  const docData = snap.data() as SetListFirestore;
 
   return {
     id: ref.id,
-    ...(docData as any),
-    date: docData?.date?.toDate?.() ?? new Date(),
-    createdAt: docData?.createdAt?.toDate?.() ?? new Date(),
-    updatedAt: docData?.updatedAt?.toDate?.() ?? new Date(),
+    churchId: cid,
+    title: docData.title,
+
+    dateString: docData.dateString,
+    timeString: docData.timeString,
+
+    date: fromDateString(docData.dateString),
+    dateTime: toDateTime(docData.dateString, docData.timeString),
+
+    sections: docData.sections ?? [],
+    createdBy: docData.createdBy,
+
+    createdAt:
+      docData.createdAt instanceof Timestamp
+        ? docData.createdAt.toMillis()
+        : Date.now(),
+
+    updatedAt:
+      docData.updatedAt instanceof Timestamp
+        ? docData.updatedAt.toMillis()
+        : Date.now(),
+
+    serviceType: docData.serviceType,
+    serviceNotes: docData.serviceNotes ?? null,
   } as SetList;
 }
 
@@ -100,14 +160,53 @@ export async function createSetList(
 export async function updateSetList(
   churchId: string,
   setListId: string,
-  data: Partial<Omit<SetList, 'id' | 'churchId' | 'createdAt' | 'updatedAt'>>
+  data: {
+    title?: string;
+    date?: Date;
+    time?: string;
+    sections?: SetListSection[];
+    serviceType?: 'Sunday' | 'Midweek' | 'Special' | null;
+    serviceNotes?: {
+      theme?: string | null;
+      scripture?: string | null;
+      notes?: string | null;
+    } | null;
+  }
 ) {
-  const ref = doc(db, 'churches', churchId, 'setlists', setListId);
+  if (!churchId) throw new Error("churchId is required");
 
-  await updateDoc(ref, {
-    ...data,
+  const cid = churchId;
+
+  // Build payload in a type-safe way
+  const payload: Record<string, unknown> = {
     updatedAt: serverTimestamp(),
-  });
+  };
+
+  if (data.title !== undefined) {
+    payload.title = data.title;
+  }
+
+  if (data.date !== undefined) {
+    payload.dateString = toDateString(data.date); // safe, local-time formatter
+  }
+
+  if (data.time !== undefined) {
+    payload.timeString = data.time;
+  }
+
+  if (data.sections !== undefined) {
+    payload.sections = data.sections;
+  }
+
+  if (data.serviceType !== undefined) {
+    payload.serviceType = data.serviceType;
+  }
+
+  if (data.serviceNotes !== undefined) {
+    payload.serviceNotes = data.serviceNotes;
+  }
+
+  await updateDoc(setListDoc(cid, setListId), payload);
 }
 
 // -----------------------------------------------------
@@ -116,7 +215,7 @@ export async function updateSetList(
 export async function deleteSetList(
   churchId: string | null,
   setListId: string,
-  router: any
+  router: { push: (path: string) => void }
 ) {
   if (!churchId) return;
 
@@ -125,7 +224,7 @@ export async function deleteSetList(
 }
 
 // -----------------------------------------------------
-// Get Set List by ID (with migration)
+// Get Set List by ID
 // -----------------------------------------------------
 export async function getSetListById(
   churchId: string,
@@ -138,13 +237,15 @@ export async function getSetListById(
 
   const data = snap.data();
 
-  // MIGRATION: normalize section titles
-  let sections: SetListSection[] = (data.sections || []).map((s: any) => ({
-    ...s,
-    title: s.title || s.name || "Untitled Section",
-  }));
+  let sections: SetListSection[] = (data.sections || []).map((s: unknown) => {
+    const section = s as Partial<SetListSection> & { name?: string };
 
-  // MIGRATION: old set lists had `songs` instead of `sections`
+    return {
+      ...section,
+      title: section.title || section.name || "Untitled Section",
+    } as SetListSection;
+  });
+
   if ((!sections || sections.length === 0) && data.songs) {
     sections = [
       {
@@ -159,12 +260,19 @@ export async function getSetListById(
     id: snap.id,
     churchId,
     title: data.title,
-    date: data.date.toDate(),
+
+    dateString: data.dateString,
+    timeString: data.timeString,
+
+    date: fromDateString(data.dateString),
+    dateTime: toDateTime(data.dateString, data.timeString),
+
+    sections,
     createdBy: data.createdBy,
-    createdAt: data.createdAt.toDate(),
-    updatedAt: data.updatedAt.toDate(),
+    createdAt: data.createdAt?.toMillis?.() ?? Date.now(),
+    updatedAt: data.updatedAt?.toMillis?.() ?? Date.now(),
+
     serviceType: data.serviceType,
     serviceNotes: data.serviceNotes,
-    sections,
   };
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { db } from "@/app/lib/firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 
 import { PageHeader } from "@/app/components/page-header";
 import {
@@ -167,7 +167,7 @@ export default function MasterChurchDetailsClient({
               onClick={async () => {
                 await updateDoc(doc(db, "churches", churchId), {
                   status: "active",
-                  enabledAt: new Date().toISOString(),
+                  enabledAt: serverTimestamp(),
                 });
                 setLocalChurch((prev: any) => ({ ...prev, status: "active" }));
               }}
@@ -204,7 +204,7 @@ export default function MasterChurchDetailsClient({
               onClick={async () => {
                 await updateDoc(doc(db, "churches", churchId), {
                   status: "disabled",
-                  disabledAt: new Date().toISOString(),
+                  disabledAt: serverTimestamp(),
                 });
                 setLocalChurch((prev: any) => ({ ...prev, status: "disabled" }));
                 setShowDisableDialog(false);

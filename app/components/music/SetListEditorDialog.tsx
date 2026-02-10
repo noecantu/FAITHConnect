@@ -41,7 +41,9 @@ export function SetListEditorDialog({
         title,
         date: new Date(date),
         createdBy: 'system',
-        sections: []
+        sections: [],
+        time: '',
+        serviceType: null
       });
     } else {
       await updateSetList(churchId, setList!.id, {
@@ -88,7 +90,7 @@ export function SetListEditorDialog({
                   selected={parsedDate}
                   onSelect={(d) => {
                     if (!d) return;
-                    setDate(d.toISOString().substring(0, 10));
+                    setDate(format(d, "yyyy-MM-dd"));
                     setOpenCalendar(false);
                   }}
                 />

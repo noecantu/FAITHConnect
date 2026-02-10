@@ -9,6 +9,15 @@ export type Address = {
   zip?: string;
 };
 
+export interface Church {
+  name: string;
+  timezone: string;
+  logoUrl?: string | null;
+  description?: string | null;
+  createdAt?: Date | null;
+  updatedAt?: Date | null;
+}
+
 export type Contribution = {
   id: string;
   memberId: string;
@@ -35,7 +44,8 @@ export type ContributionRecord = {
 export type Event = {
   id: string;
   title: string;
-  date: Date;
+  dateString: string; // "YYYY-MM-DD"
+  date: Date;         // derived
   description?: string;
 };
 
@@ -90,6 +100,52 @@ export interface ServicePlanSection {
   notes: string;
 }
 
+export interface SetList {
+  id: string;
+  churchId: string;
+  title: string;
+
+  dateString: string;
+  timeString: string;
+
+  date: Date;
+  dateTime: Date;
+
+  sections: SetListSection[];
+  createdBy: string;
+  createdAt: number;
+  updatedAt: number;
+
+  serviceType: 'Sunday' | 'Midweek' | 'Special' | null;
+
+  serviceNotes?: {
+    theme?: string | null;
+    scripture?: string | null;
+    notes?: string | null;
+  } | null;
+}
+
+export interface SetListFirestore {
+  title: string;
+  churchId: string;
+  dateString: string;
+  timeString: string;
+  sections: SetListSection[];
+  createdBy: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+
+  // REQUIRED — Firestore cannot handle optional + null union
+  serviceType: 'Sunday' | 'Midweek' | 'Special' | null;
+
+  // OPTIONAL — but inner fields must allow null
+  serviceNotes?: {
+    theme?: string | null;
+    scripture?: string | null;
+    notes?: string | null;
+  } | null;
+}
+
 export interface SetListSongEntry {
   songId: string;
   title: string;
@@ -103,23 +159,6 @@ export interface SetListSection {
   id: string;
   title: string;
   songs: SetListSongEntry[];
-}
-
-export interface SetList {
-  id: string;
-  churchId: string;
-  title: string;
-  date: Date;
-  sections: SetListSection[];
-  createdBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-  serviceType?: 'Sunday' | 'Midweek' | 'Special';
-  serviceNotes?: {
-    theme?: string;
-    scripture?: string;
-    notes?: string;
-  };
 }
 
 export type SongTag = 'worship' | 'fast' | 'slow' | 'praise' | 'altar' | 'special' | string;

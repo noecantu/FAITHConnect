@@ -15,14 +15,66 @@ import { useToast } from '../hooks/use-toast';
 import type { Event as EventType } from '../lib/types';
 import type { UseFormReturn } from "react-hook-form";
 
-// 1. Define the form values type
+// -------------------------------
+// UTILITIES
+// -------------------------------
+
+// Normalize Firestore Timestamp / string / Date
+type FirestoreTimestamp = {
+  seconds: number;
+  nanoseconds: number;
+  toDate: () => Date;
+};
+
+type NormalizableDate =
+  | Date
+  | string
+  | FirestoreTimestamp
+  | null
+  | undefined;
+
+function normalizeDate(value: NormalizableDate): Date {
+  if (!value) return new Date();
+
+  if (value instanceof Date) return value;
+
+  // Firestore Timestamp
+  if (typeof value === "object" && "toDate" in value) {
+    return value.toDate();
+  }
+
+  // ISO string
+  if (typeof value === "string") {
+    const d = new Date(value);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  // Fallback
+  return new Date();
+}
+
+// Store dates at noon to avoid UTC rollover
+function safeDateOnly(date: Date): Date {
+  return new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    12, 0, 0 // noon = no timezone drift
+  );
+}
+
+// -------------------------------
+// FORM VALUES TYPE
+// -------------------------------
 export type EventFormValues = {
   title: string;
   description?: string;
   date: Date;
 };
 
-// 2. Type the hook correctly
+// -------------------------------
+// MAIN HOOK
+// -------------------------------
 export function useCalendarDialogs(
   churchId: string | null,
   isEventManager: boolean,
@@ -38,6 +90,9 @@ export function useCalendarDialogs(
 
   const isEditing = editEvent !== null;
 
+  // -------------------------------
+  // EDIT EVENT
+  // -------------------------------
   function handleEdit(event: EventType) {
     if (!isEventManager) {
       toast({
@@ -48,16 +103,22 @@ export function useCalendarDialogs(
       return;
     }
 
+    const normalized = normalizeDate(event.date);
+
     setEditEvent(event);
     form.reset({
       title: event.title,
       description: event.description ?? '',
-      date: event.date,
+      date: normalized,
     });
+
     setIsDayEventsDialogOpen(false);
     setIsFormOpen(true);
   }
 
+  // -------------------------------
+  // ADD EVENT
+  // -------------------------------
   function handleAdd(date: Date) {
     if (!isEventManager) {
       toast({
@@ -68,16 +129,20 @@ export function useCalendarDialogs(
       return;
     }
 
-    setEditEvent(null);
     form.reset({
       title: '',
       description: '',
-      date,
+      date: normalizeDate(date),
     });
+
+    setEditEvent(null);
     setIsDayEventsDialogOpen(false);
     setIsFormOpen(true);
   }
 
+  // -------------------------------
+  // DELETE EVENT
+  // -------------------------------
   async function handleDelete(id: string) {
     if (!churchId) {
       toast({
@@ -104,7 +169,9 @@ export function useCalendarDialogs(
     }
   }
 
-  // 3. Fully typed onSubmit
+  // -------------------------------
+  // SUBMIT (ADD OR EDIT)
+  // -------------------------------
   async function onSubmit(data: EventFormValues) {
     if (!churchId) {
       toast({
@@ -124,13 +191,16 @@ export function useCalendarDialogs(
       return;
     }
 
+    const dateToStore = safeDateOnly(data.date);
+
     try {
       if (isEditing && editEvent) {
         const ref = doc(db, 'churches', churchId, 'events', editEvent.id);
+
         await updateDoc(ref, {
           title: data.title,
           description: data.description ?? '',
-          date: data.date,
+          date: dateToStore,
           updatedAt: serverTimestamp(),
         });
 
@@ -140,17 +210,18 @@ export function useCalendarDialogs(
         });
       } else {
         const colRef = collection(db, 'churches', churchId, 'events');
+
         await addDoc(colRef, {
           title: data.title,
           description: data.description ?? '',
-          date: data.date,
+          date: dateToStore,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
 
         toast({
           title: 'Event Added',
-          description: `"${data.title}" has been added to ${format(data.date, 'PPP')}.`,
+          description: `"${data.title}" has been added to ${format(dateToStore, 'PPP')}.`,
         });
       }
 
@@ -166,11 +237,17 @@ export function useCalendarDialogs(
     }
   }
 
+  // -------------------------------
+  // SELECT DATE
+  // -------------------------------
   function handleSelectDate(date: Date) {
     setSelectedDate(date);
     setIsDayEventsDialogOpen(true);
   }
 
+  // -------------------------------
+  // RETURN API
+  // -------------------------------
   return {
     isFormOpen,
     editEvent,

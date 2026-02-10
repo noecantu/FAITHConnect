@@ -2,6 +2,7 @@
 
 import { adminDb } from "@/lib/firebase/firebaseAdmin";
 import { logSystemEvent } from "@/lib/system/logging";
+import { serverTimestamp } from "firebase/firestore";
 
 export interface CreateChurchInput {
   name: string;
@@ -17,7 +18,7 @@ export async function createChurchAction(input: CreateChurchInput) {
   const ref = await adminDb.collection("churches").add({
     name,
     address: address ?? null,
-    createdAt: new Date().toISOString(),
+    createdAt: serverTimestamp(),
   });
 
   // 2. Log system event

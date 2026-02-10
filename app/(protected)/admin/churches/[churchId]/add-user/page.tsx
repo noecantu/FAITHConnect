@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { auth, db } from "@/app/lib/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 
 import { PageHeader } from "@/app/components/page-header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
@@ -15,7 +15,7 @@ import { Checkbox } from "@/app/components/ui/checkbox";
 import { useToast } from "@/app/hooks/use-toast";
 
 // Reuse your existing role definitions
-import { ROLE_MAP, ALL_ROLES, Role } from '@/app/lib/roles';
+import { ROLE_MAP, ALL_ROLES } from '@/app/lib/roles';
 
 export default function AddUserPage() {
   const params = useParams();
@@ -25,13 +25,7 @@ export default function AddUserPage() {
     ? churchIdRaw[0]
     : churchIdRaw;
 
-  if (!churchIdStr || typeof churchIdStr !== "string") {
-    console.error("Invalid churchId param");
-    return null;
-  }
-
-  const churchIdSafe: string = churchIdStr;
-
+  // ❗ Hooks must come BEFORE any return
   const router = useRouter();
   const { toast } = useToast();
 
@@ -41,6 +35,14 @@ export default function AddUserPage() {
   const [password, setPassword] = useState("");
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // ❗ Now we can safely check params
+  if (!churchIdStr || typeof churchIdStr !== "string") {
+    console.error("Invalid churchId param");
+    return <div>Invalid church ID</div>;
+  }
+
+  const churchIdSafe: string = churchIdStr;
 
   function handleRoleChange(role: string, checked: boolean) {
     if (checked) {
@@ -54,14 +56,12 @@ export default function AddUserPage() {
     try {
       setLoading(true);
 
-      // 1. Create Firebase Auth user
       const { user } = await createUserWithEmailAndPassword(
         auth,
         email.trim(),
         password
       );
 
-      // 2. Create Firestore user document
       await setDoc(doc(db, "users", user.uid), {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -69,7 +69,7 @@ export default function AddUserPage() {
         email: email.trim(),
         roles: selectedRoles,
         churchId: churchIdSafe,
-        createdAt: new Date().toISOString(),
+        enabledAt: serverTimestamp(),
       });
 
       toast({
@@ -78,12 +78,14 @@ export default function AddUserPage() {
       });
 
       router.push(`/admin/churches/${churchIdSafe}`);
-    } catch (err: any) {
-      console.error("Failed to create user:", err);
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error("Unknown error");
+
+      console.error("Failed to create user:", error);
 
       toast({
         title: "Error",
-        description: err.message || "Could not create admin.",
+        description: error.message,
         variant: "destructive",
       });
     } finally {

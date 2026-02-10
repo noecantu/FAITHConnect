@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { db } from "@/app/lib/firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 
 import { PageHeader } from "@/app/components/page-header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
@@ -14,6 +14,7 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { useToast } from "@/app/hooks/use-toast";
 
 import TimezoneSelect from "@/app/components/settings/TimezoneSelect";
+import { Church } from "@/app/lib/types";
 
 export default function EditChurchPage() {
   const params = useParams();
@@ -23,17 +24,10 @@ export default function EditChurchPage() {
     ? churchIdRaw[0]
     : churchIdRaw;
 
-  if (!churchIdStr || typeof churchIdStr !== "string") {
-    console.error("Invalid churchId param");
-    return null;
-  }
-
-  const churchIdSafe: string = churchIdStr;
-
   const router = useRouter();
   const { toast } = useToast();
 
-  const [church, setChurch] = useState<any>(null);
+  const [church, setChurch] = useState<Church | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [name, setName] = useState("");
@@ -42,65 +36,79 @@ export default function EditChurchPage() {
   const [description, setDescription] = useState("");
 
   useEffect(() => {
-    if (!churchIdSafe) return;
+    if (!churchIdStr || typeof churchIdStr !== "string") return;
 
     const load = async () => {
-      const ref = doc(db, "churches", churchIdSafe);
+      const ref = doc(db, "churches", churchIdStr);
       const snap = await getDoc(ref);
 
       if (!snap.exists()) {
         console.error("Church not found");
+        setLoading(false);
         return;
       }
 
-      const data = snap.data();
-      setChurch(data);
+      const raw = snap.data();
+      const churchData = raw as Church;
+      setChurch(churchData);
 
-      setName(data.name || "");
-      setTimezone(data.timezone || "");
-      setLogoUrl(data.logoUrl || "");
-      setDescription(data.description || "");
+      setName(churchData.name ?? "");
+      setTimezone(churchData.timezone ?? "");
+      setLogoUrl(churchData.logoUrl ?? "");
+      setDescription(churchData.description ?? "");
 
       setLoading(false);
     };
 
     load();
-  }, [churchIdSafe]);
+  }, [churchIdStr]);
 
-  async function handleSave() {
+  const handleSave = async () => {
+    if (!churchIdStr || typeof churchIdStr !== "string") {
+      toast({
+        title: "Invalid church ID",
+        description: "Unable to save changes.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      const ref = doc(db, "churches", churchIdSafe);
-
+      const ref = doc(db, "churches", churchIdStr);
       await updateDoc(ref, {
         name,
         timezone,
         logoUrl,
         description,
-        updatedAt: new Date().toISOString(),
+        updatedAt: serverTimestamp(),
       });
 
       toast({
-        title: "Church Updated",
-        description: "The church details have been saved successfully.",
+        title: "Church updated",
+        description: "Your changes have been saved.",
       });
 
-      router.push(`/admin/churches/${churchIdStr}`);
-    } catch (err) {
-      console.error("Failed to update church:", err);
+      router.refresh();
+    } catch (error) {
+      console.error(error);
       toast({
-        title: "Error",
-        description: "Could not update church.",
+        title: "Error updating church",
+        description: (error as Error).message || "Please try again.",
         variant: "destructive",
       });
     }
+  };
+
+  if (!churchIdStr || typeof churchIdStr !== "string") {
+    return <div>Invalid church ID</div>;
   }
 
-  if (loading || !church) {
-    return (
-      <div className="flex justify-center items-center min-h-screen text-foreground">
-        Loading church…
-      </div>
-    );
+  if (loading) {
+    return <div>Loading…</div>;
+  }
+
+  if (!church) {
+    return <div>Church not found</div>;
   }
 
   return (

@@ -24,10 +24,11 @@ export default function NewSetListPage() {
   // Form state
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [time, setTime] = useState('10:30');
   const [notes, setNotes] = useState('');
   const [sections, setSections] = useState<SetListSection[]>([]);
   const [saving, setSaving] = useState(false);
+  const [serviceType, setServiceType] = useState<"Sunday" | "Midweek" | "Special" | null>(null);
 
   if (!churchId) {
     return (
@@ -50,19 +51,15 @@ export default function NewSetListPage() {
   }
   
   const handleSave = async () => {
-    console.log("Saving…", { churchId, title, date, time, sections });
-  
     if (!title.trim()) return;
-  
+
     setSaving(true);
-  
-    // Default date = today if none selected
+
     const baseDate = date ? new Date(date) : new Date();
-  
-    // Default time = 10:30 AM if none selected
+
     let hours = 10;
     let minutes = 30;
-  
+
     if (time) {
       const parts = time.split(':').map(Number);
       if (parts.length === 2) {
@@ -70,25 +67,22 @@ export default function NewSetListPage() {
         minutes = parts[1];
       }
     }
-  
-    baseDate.setHours(hours);
-    baseDate.setMinutes(minutes);
-    baseDate.setSeconds(0);
-    baseDate.setMilliseconds(0);
-  
+
+    baseDate.setHours(hours, minutes, 0, 0);
+
     const newSetList = {
       title: title.trim(),
       date: baseDate,
+      time,
       sections,
+      createdBy: "system",
+      serviceType: serviceType ?? null,
       serviceNotes: { notes: notes.trim() },
-      createdBy: 'system',
     };
-  
-    if (!churchId) return; // safety
-  
+
     const created = await createSetList(churchId, newSetList);
     router.push(`/music/setlists/${created.id}`);
-  };   
+  }; 
 
   return (
     <div className="space-y-6">
@@ -136,6 +130,24 @@ export default function NewSetListPage() {
             onChange={setSections}
             allSongs={allSongs}
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Service Type</label>
+          <select
+            value={serviceType ?? ""}
+            onChange={(e) =>
+              setServiceType(
+                e.target.value === "" ? null : (e.target.value as "Sunday" | "Midweek" | "Special")
+              )
+            }
+            className="w-full border rounded p-2"
+          >
+            <option value="">Select service type</option>
+            <option value="Sunday">Sunday</option>
+            <option value="Midweek">Midweek</option>
+            <option value="Special">Special</option>
+          </select>
         </div>
 
         {/* Notes */}
