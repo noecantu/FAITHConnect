@@ -31,15 +31,28 @@ export default function SetListsPage() {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<'date-desc' | 'date-asc' | 'title-asc'>('date-desc');
   const router = useRouter();
+  const [filter, setFilter] = useState<'all' | 'future' | 'past'>('all');
 
   const filtered = useMemo(() => {
     let result = lists;
 
+    // SEARCH
     if (search.trim()) {
       const s = search.toLowerCase();
       result = result.filter((l) => l.title.toLowerCase().includes(s));
     }
 
+    // FILTER
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (filter === 'future') {
+      result = result.filter((l) => l.date.getTime() >= today.getTime());
+    } else if (filter === 'past') {
+      result = result.filter((l) => l.date.getTime() < today.getTime());
+    }
+
+    // SORT
     if (sort === 'date-desc') {
       result = [...result].sort((a, b) => b.date.getTime() - a.date.getTime());
     } else if (sort === 'date-asc') {
@@ -49,7 +62,7 @@ export default function SetListsPage() {
     }
 
     return result;
-  }, [lists, search, sort]);
+  }, [lists, search, sort, filter]);
 
   // -----------------------------
   // CONDITIONAL RETURNS AFTER HOOKS
@@ -122,18 +135,38 @@ export default function SetListsPage() {
             </Button>
           )}
 
-          <div className="flex items-center gap-1 shrink-0">
-            <span className="text-sm text-muted-foreground"> Sort: </span>
+          <div className="flex items-center gap-3 shrink-0">
 
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value as any)}
-              className="border rounded px-2 py-1 text-sm bg-background"
-            >
-              <option value="date-desc">Newest</option>
-              <option value="date-asc">Oldest</option>
-              <option value="title-asc">Title A–Z</option>
-            </select>
+            {/* Filter */}
+            <div className="flex items-center gap-1">
+              <span className="text-sm text-muted-foreground"> Filter: </span>
+
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value as any)}
+                className="border rounded px-2 py-1 text-sm bg-background"
+              >
+                <option value="all">All</option>
+                <option value="future">Future</option>
+                <option value="past">Past</option>
+              </select>
+            </div>
+
+            {/* Sort */}
+            <div className="flex items-center gap-1">
+              <span className="text-sm text-muted-foreground"> Sort: </span>
+
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as any)}
+                className="border rounded px-2 py-1 text-sm bg-background"
+              >
+                <option value="date-desc">Newest</option>
+                <option value="date-asc">Oldest</option>
+                <option value="title-asc">Title A–Z</option>
+              </select>
+            </div>
+
           </div>
 
         </div>
