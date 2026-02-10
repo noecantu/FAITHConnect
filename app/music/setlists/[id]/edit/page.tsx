@@ -166,7 +166,7 @@ export default function EditSetListPage() {
             type="time"
             value={time}
             onChange={(e) => setTime(e.target.value)}
-            className="w-full"
+            className="w-full h-10"
             style={{ width: '100%' }}
           />
         </div>
