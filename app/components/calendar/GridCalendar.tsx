@@ -5,6 +5,7 @@ import {
   startOfMonth,
   endOfMonth,
   eachDayOfInterval,
+  getDay,
   isPast,
   isToday,
 } from 'date-fns';
@@ -37,11 +38,23 @@ export function GridCalendar({
     return acc;
   }, {} as Record<string, Event[]>);
 
-  // Only real days of the month — no padding
-  const days = eachDayOfInterval({
-    start: startOfMonth(month),
-    end: endOfMonth(month),
-  });
+  // Real days of the month
+  const monthStart = startOfMonth(month);
+  const monthEnd = endOfMonth(month);
+  const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  // How many blanks before the 1st (0 = Sunday, 6 = Saturday)
+  const leadingBlanks = getDay(monthStart); // number of empty cells before day 1
+
+  // How many blanks after the last day to complete the final week
+  const trailingBlanks = 6 - getDay(monthEnd); // 0–6
+
+  // Build the full grid: null = blank cell, Date = real day
+  const cells: (Date | null)[] = [
+    ...Array.from({ length: leadingBlanks }).map(() => null),
+    ...monthDays,
+    ...Array.from({ length: trailingBlanks }).map(() => null),
+  ];
 
   return (
     <Card>
@@ -69,9 +82,19 @@ export function GridCalendar({
           ))}
         </div>
 
-        {/* Calendar days */}
+        {/* Calendar grid */}
         <div className="grid grid-cols-7 border-t border-l">
-          {days.map((day) => {
+          {cells.map((day, index) => {
+            if (!day) {
+              // Blank cell (padding before/after the month)
+              return (
+                <div
+                  key={`blank-${index}`}
+                  className="border-r border-b aspect-square"
+                />
+              );
+            }
+
             const dayEvents = eventsByDay[dateKey(day)] || [];
             const count = dayEvents.length;
 
