@@ -74,22 +74,27 @@ export function CalendarControls({
             {/* Month + Year */}
             <div className="grid grid-cols-2 gap-2">
 
-              {/* Month */}
+              {/* Month (01–12) */}
               <Select
-                value={String(month.month.getMonth())}
+                value={String(month.month.getMonth() + 1).padStart(2, "0")}
                 onValueChange={(value) =>
-                  month.setMonth(setMonthDate(month.month, Number(value)))
+                  month.setMonth(
+                    setMonthDate(month.month, Number(value) - 1)
+                  )
                 }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {months.map((m) => (
-                    <SelectItem key={m.value} value={String(m.value)}>
-                      {m.label}
-                    </SelectItem>
-                  ))}
+                  {Array.from({ length: 12 }).map((_, i) => {
+                    const num = String(i + 1).padStart(2, "0")
+                    return (
+                      <SelectItem key={num} value={num}>
+                        {num}
+                      </SelectItem>
+                    )
+                  })}
                 </SelectContent>
               </Select>
 
