@@ -14,11 +14,11 @@ const normalize = (str: string) =>
   str.replace(/\s+/g, "").toLowerCase();
 
 const sectionBgColors: Record<string, string> = {
-  praise: "rgba(59, 130, 246, 0.05)",
-  worship: "rgba(251, 146, 60, 0.05)",
-  offering: "rgba(239, 68, 68, 0.05)",
-  altarcall: "rgba(34, 197, 94, 0.05)",
-  custom: "rgba(234, 179, 8, 0.05)",
+  praise: "rgba(59, 130, 246, 0.08)",
+  worship: "rgba(251, 146, 60, 0.08)",
+  offering: "rgba(239, 68, 68, 0.08)",
+  altarcall: "rgba(34, 197, 94, 0.08)",
+  custom: "rgba(234, 179, 8, 0.08)",
 };
 
 interface Props {
