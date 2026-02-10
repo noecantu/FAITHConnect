@@ -24,6 +24,11 @@ import { CalendarDialogs } from '../components/calendar/CalendarDialogs';
 
 import { dateKey } from '../lib/calendar/utils';
 import { createTheme } from '@mui/material/styles';
+import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { format } from "date-fns";
 
 // ------------------------------
 // Schema
@@ -99,11 +104,32 @@ export default function CalendarPage() {
   return (
     <div className="space-y-6 p-6">
 
+      {/* PAGE HEADER — unchanged except for radio buttons */}
       <PageHeader
         title="Calendar of Events"
         subtitle="Select a date to view or add events."
-      />
+      >
+        {/* View Selector — added back here, Members-style */}
+        <div className="flex items-center gap-4">
+          <RadioGroup
+            value={view.view}
+            onValueChange={(v) => view.setView(v as any)}
+            className="flex items-center gap-4"
+          >
+            <div className="flex items-center gap-1">
+              <RadioGroupItem value="calendar" id="view-calendar" />
+              <label htmlFor="view-calendar" className="text-sm">Calendar</label>
+            </div>
 
+            <div className="flex items-center gap-1">
+              <RadioGroupItem value="list" id="view-list" />
+              <label htmlFor="view-list" className="text-sm">List</label>
+            </div>
+          </RadioGroup>
+        </div>
+      </PageHeader>
+
+      {/* ORIGINAL CONTROLS — fully restored */}
       <CalendarControls
         month={month}
         view={view}
@@ -111,6 +137,7 @@ export default function CalendarPage() {
         user={user}
       />
 
+      {/* ORIGINAL VIEW SWITCHER — unchanged */}
       <CalendarViewSwitcher
         view={view.view}
         month={month.month}
@@ -124,6 +151,7 @@ export default function CalendarPage() {
         onDeleteRequest={dialogs.setDeleteId}
       />
 
+      {/* ORIGINAL DIALOGS — unchanged */}
       <CalendarDialogs
         dialogs={dialogs}
         selectedDayEvents={selectedDayEvents}
@@ -132,6 +160,7 @@ export default function CalendarPage() {
         canManage={isEventManager}
       />
 
+      {/* ORIGINAL FAB — unchanged */}
       {isEventManager && (
         <Fab type="add" onClick={() => dialogs.handleAdd(new Date())} />
       )}

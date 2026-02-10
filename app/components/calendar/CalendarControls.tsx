@@ -66,103 +66,72 @@ export function CalendarControls({
   return (
     <div className="space-y-4">
 
-      {/* TOP CONTROLS — RIGHT‑ALIGNED */}
-      <div className="flex justify-end w-full">
-        <div className="flex flex-col sm:flex-row items-center gap-2">
+      {/* TOP CONTROLS — ONLY SHOW IN CALENDAR VIEW */}
+      {view.view === "calendar" && (
+        <div className="flex justify-end w-full">
+          <div className="flex flex-col sm:flex-row items-center gap-2">
 
-          {/* Month + Year */}
-          <div className="grid grid-cols-2 gap-2">
+            {/* Month + Year */}
+            <div className="grid grid-cols-2 gap-2">
 
-            {/* Month */}
-            <Select
-              value={String(month.month.getMonth())}
-              onValueChange={(value) =>
-                month.setMonth(setMonthDate(month.month, Number(value)))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {months.map((m) => (
-                  <SelectItem key={m.value} value={String(m.value)}>
-                    {m.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {/* Month */}
+              <Select
+                value={String(month.month.getMonth())}
+                onValueChange={(value) =>
+                  month.setMonth(setMonthDate(month.month, Number(value)))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map((m) => (
+                    <SelectItem key={m.value} value={String(m.value)}>
+                      {m.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            {/* Year */}
-            <Select
-              value={String(month.month.getFullYear())}
-              onValueChange={(value) =>
-                month.setMonth(setYearDate(month.month, Number(value)))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {years.map((y) => (
-                  <SelectItem key={y} value={String(y)}>
-                    {y}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              {/* Year */}
+              <Select
+                value={String(month.month.getFullYear())}
+                onValueChange={(value) =>
+                  month.setMonth(setYearDate(month.month, Number(value)))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map((y) => (
+                    <SelectItem key={y} value={String(y)}>
+                      {y}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Today + View */}
-          <div className="flex items-center gap-4">
-
-            <Button variant="outline" onClick={month.goToday}>
-              Today
-            </Button>
-
-            <div className="h-6 w-px bg-white/20" />
-
-            <RadioGroup
-              value={view.view}
-              onValueChange={async (value) => {
-                const v = value as 'calendar' | 'list';
-                view.setView(v);
-
-                if (!user?.id) return;
-
-                await updateDoc(doc(db, 'users', user.id), {
-                  'settings.calendarView': v,
-                  updatedAt: serverTimestamp(),
-                });
-              }}
-              className="flex items-center gap-4"
-            >
-              <div className="flex items-center gap-1">
-                <RadioGroupItem value="calendar" id="view-calendar" />
-                <label htmlFor="view-calendar" className="text-sm">
-                  Calendar
-                </label>
-              </div>
-
-              <div className="flex items-center gap-1">
-                <RadioGroupItem value="list" id="view-list" />
-                <label htmlFor="view-list" className="text-sm">
-                  List
-                </label>
-              </div>
-            </RadioGroup>
+            {/* Today button */}
+            <div className="flex items-center gap-4">
+              <Button variant="outline" onClick={month.goToday}>
+                Today
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* LIST VIEW CONTROLS — SEARCH LEFT, DROPDOWNS RIGHT */}
+      {/* LIST VIEW CONTROLS — unchanged */}
       {view.view === 'list' && (
         <div className="flex flex-col gap-4 w-full">
 
-          {/* Row: Search (left) + Dropdowns (right) */}
-          <div className="flex flex-col md:flex-row md:items-center w-full gap-4">
+          {/* Row: Search + Dropdowns */}
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-4 w-full">
 
-            {/* SEARCH — LEFT, FLEX-GROW */}
-            <div className="flex-1">
+            {/* SEARCH — ALWAYS FULL WIDTH ON MOBILE */}
+            <div className="w-full md:flex-1">
               <Input
                 placeholder="Search events…"
                 value={filters.search}
@@ -171,15 +140,15 @@ export function CalendarControls({
               />
             </div>
 
-            {/* DROPDOWNS — RIGHT, FIXED WIDTH */}
-            <div className="flex gap-4 justify-end">
+            {/* DROPDOWNS — STACK ON MOBILE, INLINE ON DESKTOP */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 md:justify-end">
 
               {/* Filter */}
               <Select
                 value={filters.filter}
                 onValueChange={(v) => filters.setFilter(v as any)}
               >
-                <SelectTrigger className="w-36">
+                <SelectTrigger className="w-full sm:w-36">
                   <SelectValue placeholder="Filter" />
                 </SelectTrigger>
                 <SelectContent>
@@ -194,7 +163,7 @@ export function CalendarControls({
                 value={filters.sort}
                 onValueChange={(v) => filters.setSort(v as any)}
               >
-                <SelectTrigger className="w-36">
+                <SelectTrigger className="w-full sm:w-36">
                   <SelectValue placeholder="Sort" />
                 </SelectTrigger>
                 <SelectContent>
