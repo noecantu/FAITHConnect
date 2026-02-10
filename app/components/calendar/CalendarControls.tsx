@@ -69,32 +69,26 @@ export function CalendarControls({
       {/* TOP CONTROLS — ONLY SHOW IN CALENDAR VIEW */}
       {view.view === "calendar" && (
         <div className="flex justify-end w-full">
-          <div className="flex flex-col sm:flex-row items-center gap-2">
-
+          <div className="flex flex-col sm:flex-row items-center gap-2 min-w-[260px]">
             {/* Month + Year */}
             <div className="grid grid-cols-2 gap-2">
 
-              {/* Month (01–12) */}
+              {/* Month (full names) */}
               <Select
-                value={String(month.month.getMonth() + 1).padStart(2, "0")}
+                value={String(month.month.getMonth())}
                 onValueChange={(value) =>
-                  month.setMonth(
-                    setMonthDate(month.month, Number(value) - 1)
-                  )
+                  month.setMonth(setMonthDate(month.month, Number(value)))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-28">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Array.from({ length: 12 }).map((_, i) => {
-                    const num = String(i + 1).padStart(2, "0")
-                    return (
-                      <SelectItem key={num} value={num}>
-                        {num}
-                      </SelectItem>
-                    )
-                  })}
+                  {months.map((m) => (
+                    <SelectItem key={m.value} value={String(m.value)}>
+                      {m.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
@@ -105,7 +99,7 @@ export function CalendarControls({
                   month.setMonth(setYearDate(month.month, Number(value)))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-24">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -118,12 +112,10 @@ export function CalendarControls({
               </Select>
             </div>
 
-            {/* Today button */}
-            <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={month.goToday}>
-                Today
-              </Button>
-            </div>
+            {/* Today */}
+            <Button variant="outline" onClick={month.goToday} className="w-20">
+              Today
+            </Button>
           </div>
         </div>
       )}
