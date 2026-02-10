@@ -4,26 +4,8 @@ import { useState } from 'react';
 import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { GripVertical, X } from 'lucide-react';
+import { ChevronUp, ChevronDown, X } from 'lucide-react';
 import { Song, SetListSongEntry } from '../../lib/types';
-
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragOverlay,
-} from '@dnd-kit/core';
-
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-  arrayMove,
-} from '@dnd-kit/sortable';
-
-import { CSS } from '@dnd-kit/utilities';
 
 interface Props {
   sectionId: string;
@@ -39,14 +21,7 @@ export function SectionSongList({
   allSongs,
 }: Props) {
   const [search, setSearch] = useState('');
-  const [activeId, setActiveId] = useState<string | null>(null);
   const [showList, setShowList] = useState(false);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 5 },
-    })
-  );
 
   const filtered = allSongs.filter((s) =>
     s.title.toLowerCase().includes(search.toLowerCase())
@@ -77,20 +52,12 @@ export function SectionSongList({
     );
   };
 
-  const handleDragStart = (event: any) => {
-    setActiveId(event.active.id);
-  };
-
-  const handleDragEnd = (event: any) => {
-    const { active, over } = event;
-    setActiveId(null);
-
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = songs.findIndex((s) => s.songId === active.id);
-    const newIndex = songs.findIndex((s) => s.songId === over.id);
-
-    onChange(arrayMove(songs, oldIndex, newIndex));
+  const moveSong = (from: number, to: number) => {
+    if (to < 0 || to >= songs.length) return;
+    const updated = [...songs];
+    const item = updated.splice(from, 1)[0];
+    updated.splice(to, 0, item);
+    onChange(updated);
   };
 
   return (
@@ -102,7 +69,7 @@ export function SectionSongList({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onFocus={() => setShowList(true)}
-          onBlur={() => setTimeout(() => setShowList(false), 150)} // allow clicking
+          onBlur={() => setTimeout(() => setShowList(false), 150)}
           placeholder="Add song to this section…"
         />
 
@@ -122,78 +89,73 @@ export function SectionSongList({
       </div>
 
       {/* Song list */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext
-          items={songs.map((s) => s.songId)}
-          strategy={verticalListSortingStrategy}
-        >
-          <div className="space-y-3">
-            {songs.map((entry) => (
-              <SortableSongItem
-                key={entry.songId}
-                entry={entry}
-                onRemove={() => removeSong(entry.songId)}
-                onUpdate={(updated) => updateSong(entry.songId, updated)}
-              />
-            ))}
-          </div>
-        </SortableContext>
-
-        <DragOverlay>
-          {activeId ? (
-            <Card className="p-3 flex items-start gap-3 opacity-80">
-              <GripVertical className="cursor-grabbing" />
-              <div className="flex-1 space-y-2">
-                <p className="font-medium">
-                  {songs.find((s) => s.songId === activeId)?.title}
-                </p>
-              </div>
-            </Card>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+      <div className="space-y-3">
+        {songs.map((entry, index) => (
+          <SongItem
+            key={entry.songId}
+            entry={entry}
+            index={index}
+            isFirst={index === 0}
+            isLast={index === songs.length - 1}
+            onRemove={() => removeSong(entry.songId)}
+            onUpdate={(updated) => updateSong(entry.songId, updated)}
+            onMoveUp={() => moveSong(index, index - 1)}
+            onMoveDown={() => moveSong(index, index + 1)}
+          />
+        ))}
+      </div>
     </div>
   );
 }
 
 /* ---------------------------------------------
-   Sortable Song Item
+   Song Item (Up/Down arrows, no DnD)
 ---------------------------------------------- */
 
-function SortableSongItem({
+function SongItem({
   entry,
+  index,
+  isFirst,
+  isLast,
   onRemove,
   onUpdate,
+  onMoveUp,
+  onMoveDown,
 }: {
   entry: SetListSongEntry;
+  index: number;
+  isFirst: boolean;
+  isLast: boolean;
   onRemove: () => void;
   onUpdate: (updated: Partial<SetListSongEntry>) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: entry.songId });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
   return (
-    <Card
-      ref={setNodeRef}
-      style={style}
-      className="p-3 flex items-start gap-3"
-    >
-      {/* Drag handle */}
-      <GripVertical
-        {...attributes}
-        {...listeners}
-        className="cursor-grab mt-1 text-muted-foreground"
-      />
+    <Card className="p-3 flex items-start gap-3">
+
+      {/* Move Up/Down */}
+      <div className="flex flex-col gap-1 pt-1">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          disabled={isFirst}
+          onClick={onMoveUp}
+        >
+          <ChevronUp className="h-4 w-4" />
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          disabled={isLast}
+          onClick={onMoveDown}
+        >
+          <ChevronDown className="h-4 w-4" />
+        </Button>
+      </div>
 
       {/* Song content */}
       <div className="flex-1 space-y-2">
@@ -221,7 +183,7 @@ function SortableSongItem({
       </div>
 
       {/* Remove */}
-      <Button variant="ghost" size="icon" onClick={onRemove}>
+      <Button variant="outline" size="icon" onClick={onRemove}>
         <X />
       </Button>
     </Card>

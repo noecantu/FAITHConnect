@@ -5,26 +5,8 @@ import { nanoid } from 'nanoid';
 import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { GripVertical, Trash2 } from 'lucide-react';
+import { ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
 import { SetListSection, Song, SetListSongEntry } from '../../lib/types';
-
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragOverlay,
-} from '@dnd-kit/core';
-
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-  arrayMove,
-} from '@dnd-kit/sortable';
-
-import { CSS } from '@dnd-kit/utilities';
 import { SectionSongList } from './SectionSongList';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 
@@ -32,11 +14,11 @@ const normalize = (str: string) =>
   str.replace(/\s+/g, "").toLowerCase();
 
 const sectionBgColors: Record<string, string> = {
-  praise: "rgba(59, 130, 246, 0.05)",      // Blue
-  worship: "rgba(251, 146, 60, 0.05)",     // Orange
-  offering: "rgba(239, 68, 68, 0.05)",     // Red
-  altarcall: "rgba(34, 197, 94, 0.05)",    // Green
-  custom: "rgba(234, 179, 8, 0.05)",       // Yellow
+  praise: "rgba(59, 130, 246, 0.05)",
+  worship: "rgba(251, 146, 60, 0.05)",
+  offering: "rgba(239, 68, 68, 0.05)",
+  altarcall: "rgba(34, 197, 94, 0.05)",
+  custom: "rgba(234, 179, 8, 0.05)",
 };
 
 interface Props {
@@ -46,13 +28,6 @@ interface Props {
 }
 
 export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
-  const [activeId, setActiveId] = useState<string | null>(null);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 5 },
-    })
-  );
 
   const updateSection = (id: string, updated: Partial<SetListSection>) => {
     onChange(sections.map((s) => (s.id === id ? { ...s, ...updated } : s)));
@@ -62,20 +37,12 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
     onChange(sections.filter((s) => s.id !== id));
   };
 
-  const handleDragStart = (event: any) => {
-    setActiveId(event.active.id);
-  };
-
-  const handleDragEnd = (event: any) => {
-    const { active, over } = event;
-    setActiveId(null);
-
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = sections.findIndex((s) => s.id === active.id);
-    const newIndex = sections.findIndex((s) => s.id === over.id);
-
-    onChange(arrayMove(sections, oldIndex, newIndex));
+  const moveSection = (from: number, to: number) => {
+    if (to < 0 || to >= sections.length) return;
+    const updated = [...sections];
+    const item = updated.splice(from, 1)[0];
+    updated.splice(to, 0, item);
+    onChange(updated);
   };
 
   /* ---------------------------------------------
@@ -141,117 +108,75 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
   return (
     <div className="space-y-4">
 
-      {/* Add Section Dropdown */}
       <AddSectionDropdown />
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext
-          items={sections.map((s) => s.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          <div className="space-y-4">
-            {sections.map((section) => (
-              <SortableSectionItem
-                key={section.id}
-                section={section}
-                onRename={(title) => updateSection(section.id, { title })}
-                onDelete={() => removeSection(section.id)}
-                onUpdateSongs={(songs) =>
-                  updateSection(section.id, { songs })
-                }
-                allSongs={allSongs}
-              />
-            ))}
-          </div>
-        </SortableContext>
+      <div className="space-y-4">
+        {sections.map((section, index) => (
+          <Card
+            key={section.id}
+            className="p-4 space-y-4"
+            style={{
+              backgroundColor:
+                sectionBgColors[normalize(section.title)] ?? "transparent",
+            }}
+          >
 
-        <DragOverlay>
-          {activeId ? (
-            <Card className="p-4 opacity-80 flex items-center gap-3">
-              <GripVertical className="text-muted-foreground" />
-              <p className="font-medium">
-                {sections.find((s) => s.id === activeId)?.title}
-              </p>
-            </Card>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
-    </div>
-  );
-}
+            {/* Header Row */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">
+                Section {index + 1}
+              </span>
 
-/* ---------------------------------------------
-   Sortable Section Item
----------------------------------------------- */
+              <div className="flex items-center gap-1 ml-auto">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  disabled={index === 0}
+                  onClick={() => moveSection(index, index - 1)}
+                >
+                  <ChevronUp className="h-4 w-4" />
+                </Button>
 
-function SortableSectionItem({
-  section,
-  onRename,
-  onDelete,
-  onUpdateSongs,
-  allSongs,
-}: {
-  section: SetListSection;
-  onRename: (title: string) => void;
-  onDelete: () => void;
-  onUpdateSongs: (songs: SetListSongEntry[]) => void;
-  allSongs: Song[];
-}) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: section.id });
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  disabled={index === sections.length - 1}
+                  onClick={() => moveSection(index, index + 1)}
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => removeSection(section.id)}
+                >
+                  <Trash2 className="h-4 w-4 text-red-500" />
+                </Button>
+              </div>
+            </div>
 
-  return (
-    <Card
-      ref={setNodeRef}
-      style={{
-        ...style,
-        backgroundColor:
-          sectionBgColors[normalize(section.title)] ?? "transparent",
-      }}
-      className="p-4 space-y-4"
-    >
+            {/* Title */}
+            <Input
+              value={section.title}
+              onChange={(e) => updateSection(section.id, { title: e.target.value })}
+              className="font-medium"
+            />
 
-      {/* Section Header */}
-      <div className="flex items-center gap-3">
-        <GripVertical
-          {...attributes}
-          {...listeners}
-          className="cursor-grab text-muted-foreground"
-        />
+            {/* Songs */}
+            <SectionSongList
+              sectionId={section.id}
+              songs={section.songs}
+              onChange={(songs) => updateSection(section.id, { songs })}
+              allSongs={allSongs}
+            />
 
-        <Input
-          value={section.title}
-          onChange={(e) => onRename(e.target.value)}
-          className="font-medium"
-        />
-
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onDelete}
-          className="ml-auto"
-        >
-          <Trash2 />
-        </Button>
+          </Card>
+        ))}
       </div>
-
-      {/* Songs inside this section */}
-      <SectionSongList
-        sectionId={section.id}
-        songs={section.songs}
-        onChange={onUpdateSongs}
-        allSongs={allSongs}
-      />
-    </Card>
+    </div>
   );
 }
