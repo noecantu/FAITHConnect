@@ -1,8 +1,18 @@
+/* -------------------------------------------------------
+   External styles
+------------------------------------------------------- */
 @import "react-day-picker/dist/style.css";
+
+/* -------------------------------------------------------
+   Tailwind layers
+------------------------------------------------------- */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* -------------------------------------------------------
+   Base theme variables
+------------------------------------------------------- */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -15,11 +25,11 @@
     --popover-foreground: 222.2 84% 4.9%;
 
     /* Calm slate primary */
-    --primary: 215 20% 34%; /* slate-600 */
+    --primary: 215 20% 34%;
     --primary-foreground: 0 0% 100%;
 
     /* Soft neutrals */
-    --secondary: 215 15% 85%; /* slate-200 */
+    --secondary: 215 15% 85%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 215 15% 85%;
@@ -87,6 +97,9 @@
   }
 }
 
+/* -------------------------------------------------------
+   Base element styling
+------------------------------------------------------- */
 @layer base {
   * {
     @apply border-border;
@@ -96,41 +109,54 @@
   }
 }
 
-/* ===== iOS Safari date input sanity fixes ===== */
+/* -------------------------------------------------------
+   iOS Safari input sanity fixes (date + time)
+------------------------------------------------------- */
 
-/* Allow shrinking inside flex/grid parents and fill the line width */
-input[type="date"] {
+/* Generic input shrink fix */
+input {
   min-width: 0;
   width: 100%;
+  box-sizing: border-box;
+}
+
+/* ----- DATE input ----- */
+input[type="date"] {
   -webkit-appearance: none;
   appearance: none;
 }
 
-/* Prevent truncation of the date text */
 input[type="date"]::-webkit-datetime-edit {
-  text-align: left; /* iOS default can clip/truncate */
+  text-align: left;
 }
 
-/* Ensure the calendar indicator doesn't add unexpected spacing */
 input[type="date"]::-webkit-calendar-picker-indicator {
   padding: 0;
   margin: 0;
 }
 
-/* Optional: make all inputs shrinkable by default (useful if your Input wraps native input) */
-input {
-  min-width: 0;
-  width: 100%;
+/* ----- TIME input ----- */
+input[type="time"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 2.5rem; /* matches h-10 */
+  padding: 0.5rem; /* matches shadcn Input */
+  line-height: normal;
 }
 
+input[type="time"]::-webkit-calendar-picker-indicator {
+  padding: 0;
+  margin: 0;
+}
 
-/* Viewport height utilities that work across iOS variants */
+/* -------------------------------------------------------
+   Viewport height utilities (iOS-safe)
+------------------------------------------------------- */
 .vh-100 {
   height: 100vh;
   max-height: 100vh;
 }
 
-/* Use small viewport height when supported (accounts for browser chrome) */
 @supports (height: 100svh) {
   .vh-100 {
     height: 100svh;
@@ -138,7 +164,6 @@ input {
   }
 }
 
-/* Dynamic viewport height (best on iOS 16+ Safari) */
 @supports (height: 100dvh) {
   .vh-100 {
     height: 100dvh;
@@ -146,40 +171,7 @@ input {
   }
 }
 
-/* Full-width utility for tricky iOS inputs in flex/grid contexts */
+/* Utility for flex/grid shrink issues */
 .min-w-0 {
   min-width: 0;
-}
-
-/* iOS Safari date input sanity fixes */
-input[type="date"] {
-  min-width: 0;
-  width: 100%;
-  -webkit-appearance: none;
-  appearance: none;
-}
-input[type="date"]::-webkit-datetime-edit {
-  text-align: left;
-}
-input[type="date"]::-webkit-calendar-picker-indicator {
-  padding: 0;
-  margin: 0;
-}
-
-/* ===== iOS Safari TIME input sanity fixes ===== */
-input[type="time"] {
-  min-width: 0;
-  width: 100%;
-  -webkit-appearance: none;
-  appearance: none;
-  height: 2.5rem; /* matches h-10 */
-  padding: 0.5rem; /* matches shadcn Input padding */
-  line-height: normal;
-  box-sizing: border-box;
-}
-
-/* Prevent iOS from adding extra padding around the clock icon */
-input[type="time"]::-webkit-calendar-picker-indicator {
-  padding: 0;
-  margin: 0;
 }

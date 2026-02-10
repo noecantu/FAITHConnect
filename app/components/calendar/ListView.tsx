@@ -15,14 +15,19 @@ export function ListView({
   onDeleteRequest?: (id: string) => void;
 }) {
   const grouped = React.useMemo(() => {
+    // Events are already sorted by the filter hook.
+    // We simply group them in the order they arrive.
     const map = new Map<string, Event[]>();
+
     for (const e of events) {
       const key = format(e.date, "yyyy-MM-dd");
       const arr = map.get(key) ?? [];
       arr.push(e);
       map.set(key, arr);
     }
-    return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
+
+    // DO NOT re-sort the keys — preserve the sorted order
+    return Array.from(map.entries());
   }, [events]);
 
   return (

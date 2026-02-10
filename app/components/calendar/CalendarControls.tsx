@@ -32,8 +32,8 @@ interface FilterControls {
   setSearch: (v: string) => void;
   filter: 'all' | 'future' | 'past';
   setFilter: (v: 'all' | 'future' | 'past') => void;
-  sort: 'newest' | 'oldest' | 'title';
-  setSort: (v: 'newest' | 'oldest' | 'title') => void;
+  sort: 'newest' | 'oldest';
+  setSort: (v: 'newest' | 'oldest') => void;
 }
 
 interface CalendarControlsProps {
@@ -171,7 +171,6 @@ export function CalendarControls({
                 <SelectContent>
                   <SelectItem value="newest">Newest</SelectItem>
                   <SelectItem value="oldest">Oldest</SelectItem>
-                  <SelectItem value="title">Title A–Z</SelectItem>
                 </SelectContent>
               </Select>
 

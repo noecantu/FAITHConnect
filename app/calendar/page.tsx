@@ -25,6 +25,8 @@ import { CalendarDialogs } from '../components/calendar/CalendarDialogs';
 import { dateKey } from '../lib/calendar/utils';
 import { createTheme } from '@mui/material/styles';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
+import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 // ------------------------------
 // Schema
@@ -107,11 +109,21 @@ export default function CalendarPage() {
       >
         {/* View Selector — added back here, Members-style */}
         <div className="flex items-center gap-4">
-          <RadioGroup
-            value={view.view}
-            onValueChange={(v: "calendar" | "list") => view.setView(v)}
-            className="flex items-center gap-4"
-          >
+            <RadioGroup
+              value={view.view}
+              onValueChange={async (v: "calendar" | "list") => {
+                view.setView(v);
+
+                // Save to Firestore
+                if (user?.id) {
+                  await updateDoc(doc(db, "users", user.id), {
+                    "settings.calendarView": v,
+                    updatedAt: serverTimestamp(),
+                  });
+                }
+              }}
+              className="flex items-center gap-4"
+            >
             <div className="flex items-center gap-1">
               <RadioGroupItem value="calendar" id="view-calendar" />
               <label htmlFor="view-calendar" className="text-sm">Calendar</label>

@@ -6,10 +6,14 @@ import type { Event as EventType } from '../lib/types';
 export function useCalendarFilters(events: EventType[]) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'future' | 'past'>('all');
-  const [sort, setSort] = useState<'newest' | 'oldest' | 'title'>('newest');
+  const [sort, setSort] = useState<'newest' | 'oldest'>('newest');
 
   const filtered = useMemo(() => {
-    let result = [...events];
+    // Normalize dates so sorting ALWAYS works
+    let result = events.map(e => ({
+      ...e,
+      date: e.date instanceof Date ? e.date : new Date(e.date)
+    }));
 
     // SEARCH
     if (search.trim()) {
@@ -27,11 +31,10 @@ export function useCalendarFilters(events: EventType[]) {
       result = result.filter((e) => e.date.getTime() < today.getTime());
     }
 
-    // SORT
+    // SORT (only newest/oldest now)
     result.sort((a, b) => {
       if (sort === 'newest') return b.date.getTime() - a.date.getTime();
       if (sort === 'oldest') return a.date.getTime() - b.date.getTime();
-      if (sort === 'title') return a.title.localeCompare(b.title);
       return 0;
     });
 
