@@ -5,7 +5,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from './useAuth';
 
-export function useUserRoles(churchId: string | null) {
+export function useUserRoles(_churchId: string | null) {
   const { user } = useAuth();
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);

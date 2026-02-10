@@ -13,8 +13,21 @@ import {
 } from 'firebase/firestore';
 import { useToast } from '../hooks/use-toast';
 import type { Event as EventType } from '../lib/types';
+import type { UseFormReturn } from "react-hook-form";
 
-export function useCalendarDialogs(churchId: string | null, isEventManager: boolean, form: any) {
+// 1. Define the form values type
+export type EventFormValues = {
+  title: string;
+  description?: string;
+  date: Date;
+};
+
+// 2. Type the hook correctly
+export function useCalendarDialogs(
+  churchId: string | null,
+  isEventManager: boolean,
+  form: UseFormReturn<EventFormValues>
+) {
   const { toast } = useToast();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -91,7 +104,8 @@ export function useCalendarDialogs(churchId: string | null, isEventManager: bool
     }
   }
 
-  async function onSubmit(data: any) {
+  // 3. Fully typed onSubmit
+  async function onSubmit(data: EventFormValues) {
     if (!churchId) {
       toast({
         title: 'No church selected',

@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from './lib/utils';
 import { Toaster } from './components/ui/toaster';
-import { AuthGuard } from './components/auth/auth-guard';
 import { ConditionalLayout } from './conditional-layout';
 import { SettingsProvider } from './components/settings-provider';
 import { AppFooter } from './components/layout/AppFooter';

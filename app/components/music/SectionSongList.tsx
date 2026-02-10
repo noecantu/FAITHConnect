@@ -15,7 +15,6 @@ interface Props {
 }
 
 export function SectionSongList({
-  sectionId,
   songs,
   onChange,
   allSongs,
@@ -114,7 +113,6 @@ export function SectionSongList({
 
 function SongItem({
   entry,
-  index,
   isFirst,
   isLast,
   onRemove,

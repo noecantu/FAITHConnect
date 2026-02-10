@@ -12,13 +12,20 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { ThemeProvider } from "@mui/material/styles";
 import dayjs from "dayjs";
 
-import type { Event } from "../../lib/types";
 import { format } from "date-fns";
+import { UseFormReturn } from "react-hook-form";
+import { Theme } from "@mui/material/styles";
+import type { Event } from "@/app/lib/types";
+
+interface EventFormValues {
+  date: Date;
+  title: string;
+  description?: string;
+}
 
 export function EventFormDialog({
   open,
   isEditing,
-  event,
   selectedDate,
   form,
   onSubmit,
@@ -29,11 +36,12 @@ export function EventFormDialog({
   isEditing: boolean;
   event: Event | null;
   selectedDate: Date;
-  form: any;
-  onSubmit: (data: any) => void;
+  form: UseFormReturn<EventFormValues>;
+  onSubmit: (data: EventFormValues) => void;
   onOpenChange: (open: boolean) => void;
-  muiTheme: any;
+  muiTheme: Theme;
 }) {
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <StandardDialogLayout

@@ -7,7 +7,7 @@ import { Label } from '@/app/components/ui/label';
 import { X } from 'lucide-react';
 
 import RoleSelector from './RoleSelector';
-import type { Mode, User } from '@/app/lib/types';
+import type { Mode } from '@/app/lib/types';
 import type { Role } from '@/app/lib/roles';
 
 interface Props {

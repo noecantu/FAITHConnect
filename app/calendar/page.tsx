@@ -25,10 +25,6 @@ import { CalendarDialogs } from '../components/calendar/CalendarDialogs';
 import { dateKey } from '../lib/calendar/utils';
 import { createTheme } from '@mui/material/styles';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { format } from "date-fns";
 
 // ------------------------------
 // Schema
@@ -70,7 +66,7 @@ export default function CalendarPage() {
   const { calendarView } = useSettings();
 
   // Data
-  const { events, loading } = useCalendarEvents(churchId, user?.id ?? null);
+  const { events } = useCalendarEvents(churchId, user?.id ?? null);
 
   // Month navigation
   const month = useCalendarMonth();
@@ -113,7 +109,7 @@ export default function CalendarPage() {
         <div className="flex items-center gap-4">
           <RadioGroup
             value={view.view}
-            onValueChange={(v) => view.setView(v as any)}
+            onValueChange={(v: "calendar" | "list") => view.setView(v)}
             className="flex items-center gap-4"
           >
             <div className="flex items-center gap-1">

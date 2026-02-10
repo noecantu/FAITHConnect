@@ -13,7 +13,7 @@ import { useMembers } from '@/app/hooks/useMembers';
 import { useSongs } from '@/app/hooks/useSongs';
 import { Separator } from '@/app/components/ui/separator';
 import { Fab } from "@/app/components/ui/fab";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu';
 import { AlertDialogHeader, AlertDialogFooter } from '@/app/components/ui/alert-dialog';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from '@radix-ui/react-alert-dialog';
 import { Pencil, Copy, Trash } from 'lucide-react';

@@ -3,6 +3,8 @@
 import { GridCalendar } from './GridCalendar';
 import { ListView } from './ListView';
 
+import type { Event } from "@/app/lib/types";
+
 export function CalendarViewSwitcher({
   view,
   month,
@@ -10,20 +12,19 @@ export function CalendarViewSwitcher({
   onSelectDate,
   onPrevMonth,
   onNextMonth,
-  onToday,
   canManage,
   onEdit,
   onDeleteRequest,
 }: {
-  view: 'calendar' | 'list';
+  view: "calendar" | "list";
   month: Date;
-  events: any[];
+  events: Event[];
   onSelectDate: (d: Date) => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
   onToday: () => void;
   canManage: boolean;
-  onEdit?: (e: any) => void;
+  onEdit?: (e: Event) => void;
   onDeleteRequest?: (id: string) => void;
 }) {
   if (view === 'calendar') {

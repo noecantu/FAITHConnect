@@ -23,7 +23,6 @@ export function useMemberRelationships(
     const unsubscribe = listenToMembers(
       churchId,
       (members) => setAllMembers(members),
-      "member-relationships"
     );
 
     return () => unsubscribe();

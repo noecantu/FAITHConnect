@@ -8,9 +8,6 @@ import { useChurchId } from '../../../../hooks/useChurchId';
 import { useUserRoles } from '../../../../hooks/useUserRoles';
 import { getSongById, updateSong } from '../../../../lib/songs';
 import type { Song, SongInput } from '../../../../lib/types';
-import { Button } from '../../../../components/ui/button';
-import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
 import { Fab } from '../../../../components/ui/fab';
 
 export default function EditSongPage() {

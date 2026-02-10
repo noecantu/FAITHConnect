@@ -21,9 +21,6 @@ export default function SongsPage() {
   const canManage = isAdmin || isMusicManager;
   
   const canView = isAdmin || isMusicMember || isMusicManager;
-  const canEdit = isAdmin || isMusicManager;
-  const canCreate = isAdmin || isMusicManager;
-  const canDelete = isAdmin || isMusicManager;
 
   const [sortBy, setSortBy] = useState<'title' | 'key' | 'bpm' | 'artist'>('title');
   const [search, setSearch] = useState('');

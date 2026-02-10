@@ -93,7 +93,6 @@ export default function ContributionsPage() {
     const unsubscribe = listenToContributions(
       churchId,
       setContributions,
-      "use-contributions-in-page"
     );
 
     return () => unsubscribe();
@@ -105,7 +104,6 @@ export default function ContributionsPage() {
     const unsubscribe = listenToMembers(
       churchId,
       setMembers,
-      "use-members-in-page"
     );
 
     return () => unsubscribe();

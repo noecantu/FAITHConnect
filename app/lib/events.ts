@@ -4,10 +4,6 @@ import {
   orderBy,
   onSnapshot,
   Timestamp,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
 } from "firebase/firestore";
 import { db } from "./firebase";
 

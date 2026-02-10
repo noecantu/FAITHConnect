@@ -28,7 +28,7 @@ export function SongDeleteDialog({ song }: { song: Song }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Song</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{song.title}"? This action cannot be undone.
+              Are you sure you want to delete {`"${song.title}"`}? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
 

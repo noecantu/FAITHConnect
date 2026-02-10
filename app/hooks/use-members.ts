@@ -25,7 +25,6 @@ export function useMembers() {
         setMembers(data);
         setLoading(false);
       },
-      user.id
     );
 
     return () => unsubscribe();

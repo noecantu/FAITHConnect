@@ -17,7 +17,7 @@ import type { Contribution, ContributionRecord } from "./types";
 // Real-time listener
 // ------------------------------
 export function listenToContributions(
-churchId: string, callback: (contributions: Contribution[]) => void, p0: string) {
+churchId: string, callback: (contributions: Contribution[]) => void) {
   if (!churchId) return () => {};
 
   const q = query(

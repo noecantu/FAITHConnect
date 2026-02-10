@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
-import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import type { Song } from '../../lib/types';
 
@@ -23,7 +22,7 @@ interface SongFormProps {
   saving: boolean;
 }
 
-export function SongForm({ mode, initialData, onSave, saving }: SongFormProps) {
+export function SongForm({ initialData, onSave }: SongFormProps) {
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
   const [key, setKey] = useState('');

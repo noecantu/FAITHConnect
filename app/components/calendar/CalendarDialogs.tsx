@@ -4,30 +4,41 @@ import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
 import { EventFormDialog } from './EventFormDialog';
 import { DayEventsDialog } from './DayEventsDialog';
 
+import type { Event } from "@/app/lib/types";
+import type { Theme } from "@mui/material/styles";
+import type { UseFormReturn } from "react-hook-form";
+
+interface EventFormValues {
+  title: string;
+  description?: string;
+  date: Date;
+}
+
+interface CalendarDialogsState {
+  isFormOpen: boolean;
+  isEditing: boolean;
+  editEvent: Event | null;
+  deleteId: string | null;
+  selectedDate: Date | null;
+  isDayEventsDialogOpen: boolean;
+
+  setIsFormOpen: (v: boolean) => void;
+  setEditEvent: (v: Event | null) => void;
+  setDeleteId: (v: string | null) => void;
+  setSelectedDate: (v: Date | null) => void;
+  setIsDayEventsDialogOpen: (v: boolean) => void;
+
+  handleEdit: (event: Event) => void;
+  handleAdd: (date: Date) => void;
+  handleDelete: (id: string) => Promise<void>;
+  onSubmit: (data: EventFormValues) => Promise<void>;
+}
+
 interface CalendarDialogsProps {
-  dialogs: {
-    isFormOpen: boolean;
-    isEditing: boolean;
-    editEvent: any;
-    deleteId: string | null;
-    selectedDate: Date | null;
-    isDayEventsDialogOpen: boolean;
-
-    setIsFormOpen: (v: boolean) => void;
-    setEditEvent: (v: any) => void;
-    setDeleteId: (v: string | null) => void;
-    setSelectedDate: (v: Date | null) => void;
-    setIsDayEventsDialogOpen: (v: boolean) => void;
-
-    handleEdit: (event: any) => void;
-    handleAdd: (date: Date) => void;
-    handleDelete: (id: string) => Promise<void>;
-    onSubmit: (data: any) => Promise<void>;
-  };
-
-  selectedDayEvents: any[];
-  form: any;
-  muiTheme: any;
+  dialogs: CalendarDialogsState;
+  selectedDayEvents: Event[];
+  form: UseFormReturn<EventFormValues>;
+  muiTheme: Theme;
   canManage: boolean;
 }
 
@@ -48,6 +59,7 @@ export function CalendarDialogs({
     setDeleteId,
     setIsFormOpen,
     setIsDayEventsDialogOpen,
+    setEditEvent,
     handleDelete,
     handleAdd,
     handleEdit,
@@ -76,7 +88,7 @@ export function CalendarDialogs({
         onSubmit={onSubmit}
         onOpenChange={(open) => {
           setIsFormOpen(open);
-          if (!open) editEvent(null);
+          if (!open) setEditEvent(null);
         }}
         muiTheme={muiTheme}
       />

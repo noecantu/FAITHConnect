@@ -51,7 +51,7 @@ const darkTheme = createTheme({
 // ZOD SCHEMAS
 // ------------------------------------------------------
 const sectionSchema = z.object({
-  id: z.string().optional(), // added optional id for editing
+  id: z.string().optional(),
   title: z.string().min(1, 'Section title is required'),
   personId: z.string().nullable(),
   songIds: z.array(z.string()).default([]),
@@ -66,6 +66,44 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+// ------------------------------------------------------
+// EXTERNAL SUBMIT HANDLER (PURITY-SAFE)
+// ------------------------------------------------------
+async function handleServicePlanSubmit(
+  values: FormValues,
+  plan: ServicePlan | null,
+  churchId: string,
+  onClose: () => void
+) {
+  const now = Date.now();
+
+  const normalizedSections: ServicePlanSection[] = values.sections.map((s) => ({
+    id: s.id ?? crypto.randomUUID(),
+    title: s.title,
+    personId: s.personId ?? null,
+    notes: s.notes ?? '',
+    songIds: Array.isArray(s.songIds) ? s.songIds : [],
+  }));
+
+  const payload = {
+    title: values.title.trim(),
+    date: new Date(values.date).toISOString(),
+    notes: values.notes?.trim() ?? '',
+    sections: normalizedSections,
+    createdBy: plan?.createdBy ?? 'system',
+    createdAt: plan?.createdAt ?? now,
+    updatedAt: now,
+  };
+
+  if (plan) {
+    await updateServicePlan(churchId, plan.id, payload);
+  } else {
+    await createServicePlan(churchId, payload);
+  }
+
+  onClose();
+}
 
 // ------------------------------------------------------
 // COMPONENT
@@ -105,37 +143,6 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
     name: 'sections',
   });
 
-  // ------------------------------------------------------
-  // SUBMIT HANDLER
-  // ------------------------------------------------------
-  async function onSubmit(values: FormValues) {
-    const normalizedSections: ServicePlanSection[] = values.sections.map((s) => ({
-      id: s.id ?? crypto.randomUUID(),
-      title: s.title,
-      personId: s.personId ?? null,
-      notes: s.notes ?? '',
-      songIds: Array.isArray(s.songIds) ? s.songIds : [],
-    }));
-
-    const payload = {
-      title: values.title.trim(),
-      date: new Date(values.date).toISOString(),
-      notes: values.notes?.trim() ?? '',
-      sections: normalizedSections,
-      createdBy: plan?.createdBy ?? 'system',
-      createdAt: plan?.createdAt ?? Date.now(),
-      updatedAt: Date.now(),
-    };
-
-    if (isEdit && plan) {
-      await updateServicePlan(churchId, plan.id, payload);
-    } else {
-      await createServicePlan(churchId, payload);
-    }
-
-    onClose();
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
@@ -151,8 +158,13 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
 
         <div className="flex-grow overflow-y-auto px-6 py-4">
           <Form {...form}>
-            <form id="service-plan-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-
+            <form
+              id="service-plan-form"
+              onSubmit={form.handleSubmit((values) =>
+                handleServicePlanSubmit(values, plan, churchId, onClose)
+              )}
+              className="space-y-6"
+            >
               {/* Title */}
               <FormField
                 control={form.control}
@@ -168,7 +180,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                 )}
               />
 
-              {/* DATE */}
+              {/* Date */}
               <FormField
                 control={form.control}
                 name="date"
@@ -235,41 +247,39 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
               />
 
               {/* Sections */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-semibold text-lg">Sections</h3>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() =>
-                        append({
-                          title: '',
-                          personId: null,
-                          songIds: [],
-                          notes: '',
-                        })
-                      }
-                    >
-                      Add Section
-                    </Button>
-                  </div>
-
-                  {fields.map((field, index) => (
-                    <SectionEditor
-                      key={field.id}
-                      index={index}
-                      members={members}
-                      songs={songs}
-                      remove={() => remove(index)}
-                      moveUp={() => index > 0 && move(index, index - 1)}
-                      moveDown={() => index < fields.length - 1 && move(index, index + 1)}
-                      isFirst={index === 0}
-                      isLast={index === fields.length - 1}
-                    />
-                  ))}
-
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-semibold text-lg">Sections</h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      append({
+                        title: '',
+                        personId: null,
+                        songIds: [],
+                        notes: '',
+                      })
+                    }
+                  >
+                    Add Section
+                  </Button>
                 </div>
 
+                {fields.map((field, index) => (
+                  <SectionEditor
+                    key={field.id}
+                    index={index}
+                    members={members}
+                    songs={songs}
+                    remove={() => remove(index)}
+                    moveUp={() => index > 0 && move(index, index - 1)}
+                    moveDown={() => index < fields.length - 1 && move(index, index + 1)}
+                    isFirst={index === 0}
+                    isLast={index === fields.length - 1}
+                  />
+                ))}
+              </div>
             </form>
           </Form>
         </div>

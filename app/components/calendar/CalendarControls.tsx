@@ -10,9 +10,6 @@ import {
   SelectContent,
   SelectItem,
 } from '../ui/select';
-import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
-import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
 
 // ---------------------------------------------
 // TYPES
@@ -53,7 +50,6 @@ export function CalendarControls({
   month,
   view,
   filters,
-  user,
 }: CalendarControlsProps) {
   const months = Array.from({ length: 12 }, (_, i) => ({
     value: i,
@@ -152,7 +148,7 @@ export function CalendarControls({
               {/* Filter */}
               <Select
                 value={filters.filter}
-                onValueChange={(v) => filters.setFilter(v as any)}
+                onValueChange={(v: FilterControls["filter"]) => filters.setFilter(v)}
               >
                 <SelectTrigger className="w-full sm:w-36">
                   <SelectValue placeholder="Filter" />
@@ -167,7 +163,7 @@ export function CalendarControls({
               {/* Sort */}
               <Select
                 value={filters.sort}
-                onValueChange={(v) => filters.setSort(v as any)}
+                onValueChange={(v: FilterControls["sort"]) => filters.setSort(v)}
               >
                 <SelectTrigger className="w-full sm:w-36">
                   <SelectValue placeholder="Sort" />

@@ -11,7 +11,7 @@ import { getSongById, deleteSong, createSong } from '../../../lib/songs';
 import { useRecentSetLists } from '../../../hooks/useRecentSetLists';
 import type { Song, SetList } from '../../../lib/types';
 import { Separator } from '../../../components/ui/separator';
-import { ChevronLeft, Copy, Pencil, Trash } from 'lucide-react';
+import { Copy, Pencil, Trash } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +24,7 @@ import {
   AlertDialogTrigger,
 } from '../../../components/ui/alert-dialog';
 import { useToast } from '../../../hooks/use-toast';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../../../components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../../../components/ui/dropdown-menu';
 import { Fab } from '../../../components/ui/fab';
 
 export default function SongDetailPage() {

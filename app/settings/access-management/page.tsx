@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/app/components/page-header';
-import { useToast } from '@/app/hooks/use-toast';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useAuth } from '@/app/hooks/useAuth';
 
@@ -22,7 +21,6 @@ import ChurchProfileCard from './components/ChurchProfileCard';
 export default function AccessManagementPage() {
   const churchId = useChurchId();
   const { user } = useAuth();
-  const { toast } = useToast();
   const [churchName, setChurchName] = useState('');
 
   // -----------------------------
@@ -168,7 +166,6 @@ export default function AccessManagementPage() {
 
             <ChurchProfileCard
               churchId={churchId!}
-              onNameChange={setChurchName}
             />
           </div>
             

@@ -5,7 +5,6 @@ import {
   startOfWeek,
   addDays,
   isSameMonth,
-  isSameDay,
   isPast,
   isToday,
 } from 'date-fns';

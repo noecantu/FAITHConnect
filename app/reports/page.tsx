@@ -26,8 +26,8 @@ export default function ReportsPage() {
   const [reportType, setReportType] =
     useState<'members' | 'contributions'>('members');
 
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedContributionTypes, setSelectedContributionTypes] = useState<string[]>([]);
+  const [selectedCategories] = useState<string[]>([]);
+  const [selectedContributionTypes] = useState<string[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [selectedFY, setSelectedFY] = useState<string[]>([]);

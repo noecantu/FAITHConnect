@@ -30,7 +30,7 @@ export function SetListDeleteDialog({ setList }: { setList: SetList }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Set List</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{setList.title}"? This action cannot be undone.
+              Are you sure you want to delete {`"${setList.title}"`}? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
 

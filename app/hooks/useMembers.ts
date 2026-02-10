@@ -8,20 +8,24 @@ export function useMembers(churchId: string | null) {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Effect 1 — handle synchronous state resets (React-approved)
   useEffect(() => {
     if (!churchId) {
+      setMembers([]);
       setLoading(false);
-      return;
+    } else {
+      setLoading(true);
     }
+  }, [churchId]);
 
-    const unsubscribe = listenToMembersFromLib(
-      churchId,
-      (data) => {
-        setMembers(data);
-        setLoading(false);
-      },
-      "use-members-hook"
-    );
+  // Effect 2 — Firestore subscription only (no synchronous setState)
+  useEffect(() => {
+    if (!churchId) return;
+
+    const unsubscribe = listenToMembersFromLib(churchId, (data) => {
+      setMembers(data);
+      setLoading(false);
+    });
 
     return () => unsubscribe();
   }, [churchId]);

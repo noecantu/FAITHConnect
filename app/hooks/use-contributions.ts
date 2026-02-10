@@ -25,7 +25,6 @@ export function useContributions() {
         setContributions(data);
         setLoading(false);
       },
-      user.id
     );
 
     return () => unsubscribe();
