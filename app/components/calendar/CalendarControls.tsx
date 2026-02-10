@@ -69,8 +69,15 @@ export function CalendarControls({
       {/* TOP CONTROLS — ONLY SHOW IN CALENDAR VIEW */}
       {view.view === "calendar" && (
         <div className="flex justify-end w-full">
-          {/* This container stays right‑aligned but wide enough to prevent wrapping */}
-          <div className="flex items-center gap-2 min-w-[360px] justify-end">
+          <div className="
+            flex flex-col 
+            sm:flex-row 
+            sm:items-center 
+            sm:justify-end 
+            gap-2 
+            w-full 
+            sm:w-auto
+          ">
 
             {/* Month */}
             <Select
@@ -79,7 +86,7 @@ export function CalendarControls({
                 month.setMonth(setMonthDate(month.month, Number(value)))
               }
             >
-              <SelectTrigger className="w-30">
+              <SelectTrigger className="w-full sm:w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -98,7 +105,7 @@ export function CalendarControls({
                 month.setMonth(setYearDate(month.month, Number(value)))
               }
             >
-              <SelectTrigger className="w-20">
+              <SelectTrigger className="w-full sm:w-24">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -111,7 +118,11 @@ export function CalendarControls({
             </Select>
 
             {/* Today */}
-            <Button variant="outline" onClick={month.goToday} className="w-15">
+            <Button
+              variant="outline"
+              onClick={month.goToday}
+              className="w-full sm:w-20"
+            >
               Today
             </Button>
           </div>
