@@ -154,49 +154,57 @@ export function CalendarControls({
         </div>
       </div>
 
-      {/* LIST VIEW CONTROLS — RIGHT‑ALIGNED */}
+      {/* LIST VIEW CONTROLS — SEARCH LEFT, DROPDOWNS RIGHT */}
       {view.view === 'list' && (
-        <div className="flex justify-end w-full">
-          <div className="flex flex-col md:flex-row gap-4 md:items-center">
+        <div className="flex flex-col gap-4 w-full">
 
-            {/* Search */}
-            <Input
-              placeholder="Search events…"
-              value={filters.search}
-              onChange={(e) => filters.setSearch(e.target.value)}
-              className="md:w-64"
-            />
+          {/* Row: Search (left) + Dropdowns (right) */}
+          <div className="flex flex-col md:flex-row md:items-center w-full gap-4">
 
-            {/* Filter */}
-            <Select
-              value={filters.filter}
-              onValueChange={(v) => filters.setFilter(v as any)}
-            >
-              <SelectTrigger className="w-36">
-                <SelectValue placeholder="Filter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="future">Future</SelectItem>
-                <SelectItem value="past">Past</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* SEARCH — LEFT, FLEX-GROW */}
+            <div className="flex-1">
+              <Input
+                placeholder="Search events…"
+                value={filters.search}
+                onChange={(e) => filters.setSearch(e.target.value)}
+                className="w-full"
+              />
+            </div>
 
-            {/* Sort */}
-            <Select
-              value={filters.sort}
-              onValueChange={(v) => filters.setSort(v as any)}
-            >
-              <SelectTrigger className="w-36">
-                <SelectValue placeholder="Sort" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="oldest">Oldest</SelectItem>
-                <SelectItem value="title">Title A–Z</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* DROPDOWNS — RIGHT, FIXED WIDTH */}
+            <div className="flex gap-4 justify-end">
 
+              {/* Filter */}
+              <Select
+                value={filters.filter}
+                onValueChange={(v) => filters.setFilter(v as any)}
+              >
+                <SelectTrigger className="w-36">
+                  <SelectValue placeholder="Filter" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="future">Future</SelectItem>
+                  <SelectItem value="past">Past</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Sort */}
+              <Select
+                value={filters.sort}
+                onValueChange={(v) => filters.setSort(v as any)}
+              >
+                <SelectTrigger className="w-36">
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="oldest">Oldest</SelectItem>
+                  <SelectItem value="title">Title A–Z</SelectItem>
+                </SelectContent>
+              </Select>
+
+            </div>
           </div>
         </div>
       )}
