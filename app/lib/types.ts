@@ -147,6 +147,7 @@ export interface SetListFirestore {
 }
 
 export interface SetListSongEntry {
+  id: string;
   songId: string;
   title: string;
   key?: string;

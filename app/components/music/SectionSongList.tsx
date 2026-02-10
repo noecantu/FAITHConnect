@@ -6,6 +6,7 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { ChevronUp, ChevronDown, X } from 'lucide-react';
 import { Song, SetListSongEntry } from '../../lib/types';
+import { ensureSongEntryIds, generateId } from '../../lib/utils/id';
 
 interface Props {
   sectionId: string;
@@ -22,14 +23,18 @@ export function SectionSongList({
   const [search, setSearch] = useState('');
   const [showList, setShowList] = useState(false);
 
+  // Normalize incoming songs to ensure stable IDs
+  const normalized = ensureSongEntryIds(songs);
+
   const filtered = allSongs.filter((s) =>
     s.title.toLowerCase().includes(search.toLowerCase())
   );
 
   const addSong = (song: Song) => {
     onChange([
-      ...songs,
+      ...normalized,
       {
+        id: generateId(),
         songId: song.id,
         title: song.title,
         key: song.key,
@@ -41,19 +46,19 @@ export function SectionSongList({
     setSearch('');
   };
 
-  const removeSong = (songId: string) => {
-    onChange(songs.filter((s) => s.songId !== songId));
+  const removeSong = (id: string) => {
+    onChange(normalized.filter((s) => s.id !== id));
   };
 
-  const updateSong = (songId: string, updated: Partial<SetListSongEntry>) => {
+  const updateSong = (id: string, updated: Partial<SetListSongEntry>) => {
     onChange(
-      songs.map((s) => (s.songId === songId ? { ...s, ...updated } : s))
+      normalized.map((s) => (s.id === id ? { ...s, ...updated } : s))
     );
   };
 
   const moveSong = (from: number, to: number) => {
-    if (to < 0 || to >= songs.length) return;
-    const updated = [...songs];
+    if (to < 0 || to >= normalized.length) return;
+    const updated = [...normalized];
     const item = updated.splice(from, 1)[0];
     updated.splice(to, 0, item);
     onChange(updated);
@@ -89,15 +94,15 @@ export function SectionSongList({
 
       {/* Song list */}
       <div className="space-y-3">
-        {songs.map((entry, index) => (
+        {normalized.map((entry, index) => (
           <SongItem
-            key={entry.songId}
+            key={entry.id}
             entry={entry}
             index={index}
             isFirst={index === 0}
-            isLast={index === songs.length - 1}
-            onRemove={() => removeSong(entry.songId)}
-            onUpdate={(updated) => updateSong(entry.songId, updated)}
+            isLast={index === normalized.length - 1}
+            onRemove={() => removeSong(entry.id)}
+            onUpdate={(updated) => updateSong(entry.id, updated)}
             onMoveUp={() => moveSong(index, index - 1)}
             onMoveDown={() => moveSong(index, index + 1)}
           />
