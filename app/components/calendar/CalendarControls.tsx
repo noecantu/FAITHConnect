@@ -69,48 +69,45 @@ export function CalendarControls({
       {/* TOP CONTROLS — ONLY SHOW IN CALENDAR VIEW */}
       {view.view === "calendar" && (
         <div className="flex justify-end w-full">
-          <div className="flex flex-col sm:flex-row items-center gap-2 min-w-[260px]">
-            {/* Month + Year */}
-            <div className="grid grid-cols-2 gap-2">
+          <div className="flex items-center gap-2 min-w-[320px]">
 
-              {/* Month (full names) */}
-              <Select
-                value={String(month.month.getMonth())}
-                onValueChange={(value) =>
-                  month.setMonth(setMonthDate(month.month, Number(value)))
-                }
-              >
-                <SelectTrigger className="w-28">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {months.map((m) => (
-                    <SelectItem key={m.value} value={String(m.value)}>
-                      {m.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Month */}
+            <Select
+              value={String(month.month.getMonth())}
+              onValueChange={(value) =>
+                month.setMonth(setMonthDate(month.month, Number(value)))
+              }
+            >
+              <SelectTrigger className="w-28">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map((m) => (
+                  <SelectItem key={m.value} value={String(m.value)}>
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-              {/* Year */}
-              <Select
-                value={String(month.month.getFullYear())}
-                onValueChange={(value) =>
-                  month.setMonth(setYearDate(month.month, Number(value)))
-                }
-              >
-                <SelectTrigger className="w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {years.map((y) => (
-                    <SelectItem key={y} value={String(y)}>
-                      {y}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Year */}
+            <Select
+              value={String(month.month.getFullYear())}
+              onValueChange={(value) =>
+                month.setMonth(setYearDate(month.month, Number(value)))
+              }
+            >
+              <SelectTrigger className="w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {years.map((y) => (
+                  <SelectItem key={y} value={String(y)}>
+                    {y}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             {/* Today */}
             <Button variant="outline" onClick={month.goToday} className="w-20">
