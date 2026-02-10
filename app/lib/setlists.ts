@@ -18,7 +18,7 @@ import {
 import { db } from './firebase';
 import type { SetList, SetListFirestore, SetListSection } from './types';
 import { nanoid } from 'nanoid';
-import { fromDateString, toDateString, toDateTime } from './date-utils';
+import { fromDateString, toDateTime } from './date-utils';
 
 export function setListDoc(churchId: string, setListId: string) {
   return doc(db, `churches/${churchId}/setlists/${setListId}`);
@@ -93,8 +93,8 @@ export async function createSetList(
   churchId: string | null,
   data: {
     title: string;
-    date: Date;
-    time: string;
+    dateString: string;   // NEW
+    timeString: string;   // NEW
     sections: SetListSection[];
     createdBy: string;
     serviceType: 'Sunday' | 'Midweek' | 'Special' | null;
@@ -111,8 +111,8 @@ export async function createSetList(
 
   const ref = await addDoc(setListsCollection(cid), {
     title: data.title,
-    dateString: toDateString(data.date),
-    timeString: data.time,
+    dateString: data.dateString,     // ✔ stored directly
+    timeString: data.timeString,     // ✔ stored directly
     sections: data.sections,
     createdBy: data.createdBy,
     serviceType: data.serviceType,
@@ -162,8 +162,8 @@ export async function updateSetList(
   setListId: string,
   data: {
     title?: string;
-    date?: Date;
-    time?: string;
+    dateString?: string;   // NEW
+    timeString?: string;   // NEW
     sections?: SetListSection[];
     serviceType?: 'Sunday' | 'Midweek' | 'Special' | null;
     serviceNotes?: {
@@ -177,34 +177,16 @@ export async function updateSetList(
 
   const cid = churchId;
 
-  // Build payload in a type-safe way
   const payload: Record<string, unknown> = {
     updatedAt: serverTimestamp(),
   };
 
-  if (data.title !== undefined) {
-    payload.title = data.title;
-  }
-
-  if (data.date !== undefined) {
-    payload.dateString = toDateString(data.date); // safe, local-time formatter
-  }
-
-  if (data.time !== undefined) {
-    payload.timeString = data.time;
-  }
-
-  if (data.sections !== undefined) {
-    payload.sections = data.sections;
-  }
-
-  if (data.serviceType !== undefined) {
-    payload.serviceType = data.serviceType;
-  }
-
-  if (data.serviceNotes !== undefined) {
-    payload.serviceNotes = data.serviceNotes;
-  }
+  if (data.title !== undefined) payload.title = data.title;
+  if (data.dateString !== undefined) payload.dateString = data.dateString;
+  if (data.timeString !== undefined) payload.timeString = data.timeString;
+  if (data.sections !== undefined) payload.sections = data.sections;
+  if (data.serviceType !== undefined) payload.serviceType = data.serviceType;
+  if (data.serviceNotes !== undefined) payload.serviceNotes = data.serviceNotes;
 
   await updateDoc(setListDoc(cid, setListId), payload);
 }

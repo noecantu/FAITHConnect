@@ -25,30 +25,41 @@ export function SetListEditorDialog({
   const churchId = useChurchId();
   const [open, setOpen] = useState(false);
 
+  // Title
   const [title, setTitle] = useState(setList?.title ?? '');
-  const [date, setDate] = useState(
-    setList?.date.toISOString().substring(0, 10) ??
-      new Date().toISOString().substring(0, 10)
+
+  // Canonical date/time strings
+  const [dateString, setDateString] = useState(
+    setList?.dateString ?? new Date().toISOString().substring(0, 10)
   );
+
+  const [timeString, setTimeString] = useState(
+    setList?.timeString ?? "09:00"
+  );
+
+  // Calendar popover
   const [openCalendar, setOpenCalendar] = useState(false);
-  const parsedDate = new Date(date);
-  
+
+  // Convert dateString → Date for the calendar UI only
+  const parsedDate = new Date(`${dateString}T00:00:00`);
+
   const handleSave = async () => {
     if (!churchId) return;
 
     if (mode === 'create') {
       await createSetList(churchId, {
         title,
-        date: new Date(date),
+        dateString,
+        timeString,
         createdBy: 'system',
         sections: [],
-        time: '',
-        serviceType: null
+        serviceType: null,
       });
     } else {
       await updateSetList(churchId, setList!.id, {
         title,
-        date: new Date(date),
+        dateString,
+        timeString,
       });
     }
 
@@ -63,14 +74,21 @@ export function SetListEditorDialog({
         title={mode === 'create' ? 'Create Set List' : 'Edit Set List'}
         description="Manage set list details."
         onClose={() => setOpen(false)}
-        footer={<Button onClick={handleSave}>{mode === 'create' ? 'Create' : 'Save'}</Button>}
+        footer={
+          <Button onClick={handleSave}>
+            {mode === 'create' ? 'Create' : 'Save'}
+          </Button>
+        }
       >
         <div className="space-y-4">
+
+          {/* Title */}
           <div>
             <Label>Title</Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
 
+          {/* Date */}
           <div>
             <Label>Date</Label>
 
@@ -90,12 +108,22 @@ export function SetListEditorDialog({
                   selected={parsedDate}
                   onSelect={(d) => {
                     if (!d) return;
-                    setDate(format(d, "yyyy-MM-dd"));
+                    setDateString(format(d, "yyyy-MM-dd"));
                     setOpenCalendar(false);
                   }}
                 />
               </PopoverContent>
             </Popover>
+          </div>
+
+          {/* Time */}
+          <div>
+            <Label>Time</Label>
+            <Input
+              type="time"
+              value={timeString}
+              onChange={(e) => setTimeString(e.target.value)}
+            />
           </div>
 
         </div>

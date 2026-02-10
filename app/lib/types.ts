@@ -108,16 +108,17 @@ export interface SetList {
   dateString: string;
   timeString: string;
 
+  // Derived (not stored)
   date: Date;
   dateTime: Date;
 
   sections: SetListSection[];
+
   createdBy: string;
   createdAt: number;
   updatedAt: number;
 
   serviceType: 'Sunday' | 'Midweek' | 'Special' | null;
-
   serviceNotes?: {
     theme?: string | null;
     scripture?: string | null;
@@ -127,23 +128,25 @@ export interface SetList {
 
 export interface SetListFirestore {
   title: string;
-  churchId: string;
-  dateString: string;
-  timeString: string;
+
+  // Canonical date/time fields stored in Firestore
+  dateString: string;   // "2026-02-10"
+  timeString: string;   // "18:30"
+
   sections: SetListSection[];
+
   createdBy: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 
-  // REQUIRED — Firestore cannot handle optional + null union
   serviceType: 'Sunday' | 'Midweek' | 'Special' | null;
-
-  // OPTIONAL — but inner fields must allow null
   serviceNotes?: {
     theme?: string | null;
     scripture?: string | null;
     notes?: string | null;
   } | null;
+
+  churchId: string;
 }
 
 export interface SetListSongEntry {

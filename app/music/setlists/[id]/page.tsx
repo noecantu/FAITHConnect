@@ -67,16 +67,16 @@ export default function SetListDetailPage() {
     );
   }
 
-  const formattedDate = format(new Date(setList.date), 'M/d/yy, h:mm a');
+  const formattedDate = format(setList.dateTime, 'M/d/yy, h:mm a');
   const normalize = (str: string) =>
     str.replace(/\s+/g, '').toLowerCase();
 
   const sectionBgColors: Record<string, string> = {
-    praise: "rgba(59, 130, 246, 0.05)",      // Blue
-    worship: "rgba(251, 146, 60, 0.05)",     // Orange
-    offering: "rgba(239, 68, 68, 0.05)",     // Red
-    altarcall: "rgba(34, 197, 94, 0.05)",    // Green
-    custom: "rgba(234, 179, 8, 0.05)",       // Yellow
+    praise: "rgba(59, 130, 246, 0.10)",      // Blue
+    worship: "rgba(251, 146, 60, 0.10)",     // Orange
+    offering: "rgba(239, 68, 68, 0.10)",     // Red
+    altarcall: "rgba(34, 197, 94, 0.10)",    // Green
+    custom: "rgba(234, 179, 8, 0.10)",       // Yellow
   };
 
   return (

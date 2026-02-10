@@ -43,9 +43,7 @@ export default function EditSetListPage() {
 
       if (data) {
         setTitle(data.title);
-        const d = new Date(data.date);
-        const localDate = d.toISOString().split("T")[0];
-        setDate(localDate);
+        setDate(data.dateString);
         setSections(data.sections ?? []);
         setNotes(data.serviceNotes?.notes ?? '');
       }
@@ -56,14 +54,7 @@ export default function EditSetListPage() {
   
   useEffect(() => {
     if (setList?.date) {
-      const d = new Date(setList.date);
-  
-      // Local time in HH:mm (24-hour) format
-      const localTime = d
-        .toLocaleTimeString("en-US", { hour12: false })
-        .slice(0, 5);
-  
-      setTime(localTime);
+      setTime(setList.timeString);
     }
   }, [setList]);    
   
@@ -110,24 +101,16 @@ export default function EditSetListPage() {
   
     setSaving(true);
   
-    // Combine date + time into a single Date object
-    const [hours, minutes] = time.split(':').map(Number);
-  
-    const finalDate = new Date(date);
-    finalDate.setHours(hours);
-    finalDate.setMinutes(minutes);
-    finalDate.setSeconds(0);
-    finalDate.setMilliseconds(0);
-  
-    const updated: Partial<SetList> = {
+    const updated = {
       title: title.trim(),
-      date: finalDate,
+      dateString: date,
+      timeString: time,
       sections,
       serviceNotes: {
         ...setList.serviceNotes,
         notes: notes.trim(),
       },
-      updatedAt: new Date(),
+      updatedAt: Date.now(),
     };
   
     await updateSetList(churchId, setList.id, updated);
