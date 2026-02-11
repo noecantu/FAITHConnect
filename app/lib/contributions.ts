@@ -96,7 +96,7 @@ export async function updateContribution(
 
   const ref = doc(db, "churches", churchId, "contributions", id);
 
-  const updatePayload: Record<string, any> = {
+  const updatePayload: Record<string, unknown> = {
     updatedAt: serverTimestamp(),
   };
 

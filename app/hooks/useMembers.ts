@@ -8,7 +8,7 @@ export function useMembers(churchId: string | null) {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Effect 1 — handle synchronous state resets (React-approved)
+  // Effect 1 — handle synchronous state resets
   useEffect(() => {
     if (!churchId) {
       setMembers([]);
@@ -18,7 +18,7 @@ export function useMembers(churchId: string | null) {
     }
   }, [churchId]);
 
-  // Effect 2 — Firestore subscription only (no synchronous setState)
+  // Effect 2 — Firestore subscription
   useEffect(() => {
     if (!churchId) return;
 

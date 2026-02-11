@@ -48,10 +48,10 @@ import { useUserRoles } from "../../hooks/useUserRoles";
 import { useChurchId } from "../../hooks/useChurchId";
 
 const navItems = [
-  { href: "/members", label: "Members", icon: Users },
   { href: "/attendance", label: "Attendance", icon: CalendarCheck },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/contributions", label: "Contributions", icon: DollarSign },
+  { href: "/members", label: "Members", icon: Users },
   { href: "/music", label: "Music", icon: Music },
   { href: "/service-plan", label: "Service Plans", icon: CalendarHeart },
 ];
@@ -208,23 +208,6 @@ export function NavMenu() {
                   );
                 })}
             </>
-          )}
-
-          {/* Attendance (Admin or Attendance Manager) */}
-          {(isAdmin || roles.includes("AttendanceManager")) && (
-            <Link href="/attendance">
-              <DropdownMenuItem
-                className={
-                  pathname === "/attendance" ||
-                  pathname.startsWith("/attendance/")
-                    ? "bg-accent"
-                    : ""
-                }
-              >
-                <CalendarCheck className="mr-2 h-4 w-4" />
-                <span>Attendance</span>
-              </DropdownMenuItem>
-            </Link>
           )}
 
           {/* Reports (Admin Only) */}

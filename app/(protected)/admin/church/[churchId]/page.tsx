@@ -253,9 +253,9 @@ export default function ChurchAdminDashboard() {
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
           <Button asChild className="w-full flex items-center gap-2">
-            <Link href="/members">
-              <UserPlus className="h-4 w-4 text-foreground/70" />
-              <span>Members</span>
+            <Link href="/attendance">
+              <CalendarCheck className="h-4 w-4 text-foreground/70" />
+              <span>Attendance</span>
             </Link>
           </Button>
 
@@ -266,6 +266,13 @@ export default function ChurchAdminDashboard() {
             </Link>
           </Button>
 
+          <Button asChild className="w-full flex items-center gap-2">
+            <Link href="/members">
+              <UserPlus className="h-4 w-4 text-foreground/70" />
+              <span>Members</span>
+            </Link>
+          </Button>
+          
           <Button asChild className="w-full flex items-center gap-2">
             <Link href="/music/setlists">
               <Music className="h-4 w-4 text-foreground/70" />
@@ -279,13 +286,6 @@ export default function ChurchAdminDashboard() {
               <span>Service Plans</span>
             </Link>
           </Button>
-
-            <Button asChild className="w-full flex items-center gap-2">
-              <Link href="/attendance">
-                <CalendarCheck className="h-4 w-4 text-foreground/70" />
-                <span>Record Attendance</span>
-              </Link>
-            </Button>
 
         </CardContent>
       </Card>

@@ -9,6 +9,14 @@ export type Address = {
   zip?: string;
 };
 
+export interface AttendanceSummaryItem {
+  dateString: string;
+  present: number;
+  absent: number;
+  total: number;
+  percentage: number;
+}
+
 export interface Church {
   name: string;
   timezone: string;
