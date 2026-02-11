@@ -6,6 +6,7 @@ import { useChurchId } from '@/app/hooks/useChurchId';
 import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { useAttendance } from '@/app/hooks/useAttendance';
 import { getTodayDateString } from '@/app/lib/utils/dates';
+import Image from "next/image";
 
 export default function AttendancePage() {
   const churchId = useChurchId();
@@ -57,34 +58,31 @@ export default function AttendancePage() {
             return (
                 <Card
                     key={m.id}
-                    className="p-3 flex items-center gap-3 cursor-pointer"
+                    className="p-4 flex flex-col items-center text-center gap-2 cursor-pointer"
                     onClick={() => toggle(m.id)}
                     >
-                    {/* Member Photo */}
-                    <img
-                        src={m.profilePhotoUrl || "/placeholder.png"}
+                    <div className="w-16 h-16 relative">
+                    <Image
+                        src={m.profilePhotoUrl ?? "/placeholder.png"}
                         alt={`${m.firstName} ${m.lastName}`}
-                        className="w-12 h-12 rounded-full object-cover border border-slate-300"
+                        fill
+                        className="object-cover rounded-md border border-slate-300"
                     />
-
-                    {/* Name + Status */}
-                    <div className="flex flex-col">
-                        <span className="font-medium leading-tight">
+                    </div>
+                    <span className="font-medium leading-tight">
                         {m.firstName} {m.lastName}
-                        </span>
+                    </span>
 
-                        <span
+                    <span
                         className={
-                            present
+                        present
                             ? "text-green-600 font-semibold text-sm"
                             : "text-red-600 font-semibold text-sm"
                         }
-                        >
+                    >
                         {present ? "Present" : "Absent"}
-                        </span>
-                    </div>
+                    </span>
                 </Card>
-
             );
         })}
     </div>
