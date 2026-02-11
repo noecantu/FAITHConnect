@@ -153,3 +153,42 @@ export async function deleteServicePlan(churchId: string, id: string): Promise<v
   const ref = doc(servicePlansCollection(churchId), id);
   await deleteDoc(ref);
 }
+
+// -----------------------------------------------------
+// Duplicate service plan
+// -----------------------------------------------------
+export async function duplicateServicePlan(
+  churchId: string,
+  plan: ServicePlan
+): Promise<ServicePlan> {
+  const now = Date.now();
+
+  // Deep copy sections
+  const copiedSections = plan.sections.map((s) => ({
+    id: crypto.randomUUID(),
+    title: s.title,
+    personId: s.personId,
+    songIds: [...s.songIds],
+    notes: s.notes,
+  }));
+
+  const payload = {
+    title: `${plan.title} (Copy)`,
+    dateString: plan.dateString,
+    timeString: plan.timeString,
+    notes: plan.notes,
+    sections: copiedSections,
+    createdBy: plan.createdBy,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const ref = await addDoc(servicePlansCollection(churchId), payload);
+
+  return {
+    id: ref.id,
+    ...payload,
+    date: new Date(`${payload.dateString}T00:00:00`),
+    dateTime: new Date(`${payload.dateString}T${payload.timeString}:00`),
+  };
+}

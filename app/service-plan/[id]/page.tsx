@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { PageHeader } from '@/app/components/page-header';
 import { Card } from '@/app/components/ui/card';
-import { getServicePlanById } from '@/app/lib/servicePlans';
+import { deleteServicePlan, duplicateServicePlan, getServicePlanById } from '@/app/lib/servicePlans';
 import type { ServicePlan } from '@/app/lib/types';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useUserRoles } from '@/app/hooks/useUserRoles';
@@ -34,6 +34,7 @@ import {
 } from '@radix-ui/react-alert-dialog';
 import { Pencil, Copy, Trash } from 'lucide-react';
 import { useRouter } from "next/navigation";
+import { toast } from '@/app/hooks/use-toast';
 
 const normalize = (str: string) =>
   str.replace(/\s+/g, "").toLowerCase();
@@ -235,8 +236,15 @@ export default function ServicePlanDetailPage() {
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
-                    onClick={() => {
-                      // TODO: implement duplicateServicePlan()
+                    onClick={async () => {
+                      const newPlan = await duplicateServicePlan(churchId, plan);
+
+                      toast({
+                        title: 'Service Plan Duplicated',
+                        description: `A copy of “${plan.title}” has been created.`,
+                      });
+
+                      router.push(`/service-plan/${newPlan.id}`);
                     }}
                   >
                     Duplicate
@@ -266,8 +274,14 @@ export default function ServicePlanDetailPage() {
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
-                    onClick={() => {
-                      // TODO: implement deleteServicePlan()
+                    onClick={async () => {
+                      await deleteServicePlan(churchId, plan.id);
+                      toast({
+                        title: 'Service Plan Deleted',
+                        description: `“${plan.title}” has been removed.`,
+                        variant: 'destructive',
+                      });
+                      router.push('/service-plan');
                     }}
                   >
                     Delete
@@ -275,6 +289,7 @@ export default function ServicePlanDetailPage() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+
           </DropdownMenuContent>
         </DropdownMenu>
       )}
