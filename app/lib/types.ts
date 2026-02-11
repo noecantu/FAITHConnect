@@ -16,6 +16,7 @@ export interface Church {
   description?: string | null;
   createdAt?: Date | null;
   updatedAt?: Date | null;
+  status?: string | null;
 }
 
 export type Contribution = {

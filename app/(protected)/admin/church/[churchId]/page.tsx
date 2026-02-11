@@ -23,15 +23,16 @@ import {
   CardContent,
 } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
-import { CalendarHeart, Calendar, Music, UserPlus } from "lucide-react";
+import { CalendarCheck, CalendarHeart, Calendar, Music, UserPlus } from "lucide-react";
 import Link from "next/link";
+import type { Church } from "@/app/lib/types";
 
 export default function ChurchAdminDashboard() {
   const { churchId } = useParams();
 
   const [user, userLoading] = useAuthState(auth);
 
-  const [church, setChurch] = useState<any>(null);
+  const [church, setChurch] = useState<Church | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [memberCount, setMemberCount] = useState(0);
@@ -60,7 +61,7 @@ export default function ChurchAdminDashboard() {
         return;
       }
 
-      const churchData = churchSnap.data();
+      const churchData = churchSnap.data() as Church;
       setChurch(churchData);
 
       if (churchData.status === "disabled") {
@@ -278,6 +279,13 @@ export default function ChurchAdminDashboard() {
               <span>Service Plans</span>
             </Link>
           </Button>
+
+            <Button asChild className="w-full flex items-center gap-2">
+              <Link href="/attendance">
+                <CalendarCheck className="h-4 w-4 text-foreground/70" />
+                <span>Record Attendance</span>
+              </Link>
+            </Button>
 
         </CardContent>
       </Card>
