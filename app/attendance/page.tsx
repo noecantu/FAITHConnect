@@ -184,12 +184,6 @@ export default function AttendancePage() {
               onClick={() => toggle(id)}
             >
               {isVisitor && (
-                <span className="absolute top-2 left-2 text-[10px] px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-white/70">
-                  Visitor
-                </span>
-              )}
-
-              {isVisitor && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -216,8 +210,8 @@ export default function AttendancePage() {
                     className="object-cover rounded-md"
                   />
                 ) : (
-                  <span className="text-white/70 text-xl font-semibold">
-                    {initials}
+                  <span className="text-white/70 text-xs font-medium tracking-wide">
+                    {isVisitor ? "Visitor" : initials}
                   </span>
                 )}
               </div>
