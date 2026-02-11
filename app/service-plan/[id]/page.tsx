@@ -19,22 +19,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/app/components/ui/dropdown-menu';
-import {
-  AlertDialogHeader,
-  AlertDialogFooter
-} from '@/app/components/ui/alert-dialog';
-import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogCancel,
-  AlertDialogAction
-} from '@radix-ui/react-alert-dialog';
+
 import { Pencil, Copy, Trash } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { toast } from '@/app/hooks/use-toast';
+import { Button } from '@/app/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 
 const normalize = (str: string) =>
   str.replace(/\s+/g, "").toLowerCase();
@@ -67,6 +57,8 @@ export default function ServicePlanDetailPage() {
 
   const [plan, setPlan] = useState<ServicePlan | null>(null);
   const [loading, setLoading] = useState(true);
+  const [duplicateOpen, setDuplicateOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   useEffect(() => {
     if (!churchId || !id) return;
@@ -114,7 +106,8 @@ export default function ServicePlanDetailPage() {
     ? format(plan.dateTime, 'M/d/yy, h:mm a')
     : '—';
 
-  return (
+return (
+  <>
     <div className="space-y-6">
       <PageHeader title={plan.title} subtitle={formattedDate} />
 
@@ -132,7 +125,7 @@ export default function ServicePlanDetailPage() {
               className="p-5 space-y-2"
               style={{
                 backgroundColor:
-                  sectionBgColors[normalize(section.title)] ?? "transparent",
+                  sectionBgColors[normalize(section.title)] ?? 'transparent',
               }}
             >
               <h2 className="text-lg font-semibold tracking-tight">
@@ -205,7 +198,7 @@ export default function ServicePlanDetailPage() {
           <DropdownMenuContent
             side="top"
             align="end"
-            className="min-w-0 w-10 bg-white/10 backdrop-blur-sm border border-white/10 p-1"
+            className="min-w-0 w-10 bg-white/10 backdrop-blur-sm border border-white/10 p-1 rounded-md"
           >
             {/* Edit */}
             <DropdownMenuItem
@@ -216,83 +209,114 @@ export default function ServicePlanDetailPage() {
             </DropdownMenuItem>
 
             {/* Duplicate */}
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <DropdownMenuItem
-                  className="flex items-center justify-center p-2"
-                  onSelect={(e) => e.preventDefault()}
-                >
-                  <Copy className="h-4 w-4" />
-                </DropdownMenuItem>
-              </AlertDialogTrigger>
-
-              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Duplicate this service plan?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    A new copy of “{plan.title}” will be created with the same sections.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={async () => {
-                      const newPlan = await duplicateServicePlan(churchId, plan);
-
-                      toast({
-                        title: 'Service Plan Duplicated',
-                        description: `A copy of “${plan.title}” has been created.`,
-                      });
-
-                      router.push(`/service-plan/${newPlan.id}`);
-                    }}
-                  >
-                    Duplicate
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <DropdownMenuItem
+              className="flex items-center justify-center p-2"
+              onSelect={(e) => e.preventDefault()}
+              onClick={() => setDuplicateOpen(true)}
+            >
+              <Copy className="h-4 w-4" />
+            </DropdownMenuItem>
 
             {/* Delete */}
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <DropdownMenuItem
-                  className="flex items-center justify-center p-2"
-                  onSelect={(e) => e.preventDefault()}
-                >
-                  <Trash className="h-4 w-4" />
-                </DropdownMenuItem>
-              </AlertDialogTrigger>
-
-              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete this service plan?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently remove “{plan.title}”.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={async () => {
-                      await deleteServicePlan(churchId, plan.id);
-                      toast({
-                        title: 'Service Plan Deleted',
-                        description: `“${plan.title}” has been removed.`,
-                        variant: 'destructive',
-                      });
-                      router.push('/service-plan');
-                    }}
-                  >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-
+            <DropdownMenuItem
+              className="flex items-center justify-center p-2"
+              onSelect={(e) => e.preventDefault()}
+              onClick={() => setDeleteOpen(true)}
+            >
+              <Trash className="h-4 w-4" />
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )}
     </div>
-  );
+
+    {/* Duplicate Dialog (uses same Dialog style as form) */}
+    <Dialog open={duplicateOpen} onOpenChange={setDuplicateOpen}>
+      <DialogContent
+        className="w-[95vw] max-w-md max-h-[85dvh] flex flex-col p-0"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <DialogHeader className="shrink-0 px-6 pt-6">
+          <DialogTitle>Duplicate this service plan?</DialogTitle>
+          <DialogDescription>
+            A new copy of “{plan.title}” will be created with the same sections.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex-grow px-6 py-4">
+          <p className="text-sm text-muted-foreground">
+            You can edit the duplicated plan after it is created.
+          </p>
+        </div>
+
+        <DialogFooter className="shrink-0 border-t px-6 pb-6 pt-4 flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setDuplicateOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={async () => {
+              const newPlan = await duplicateServicePlan(churchId, plan);
+
+              toast({
+                title: 'Service Plan Duplicated',
+                description: `A copy of “${plan.title}” has been created.`,
+              });
+
+              setDuplicateOpen(false);
+              router.push(`/service-plan/${newPlan.id}`);
+            }}
+          >
+            Duplicate
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    {/* Delete Dialog (same visual language) */}
+    <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <DialogContent
+        className="w-[95vw] max-w-md max-h-[85dvh] flex flex-col p-0"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <DialogHeader className="shrink-0 px-6 pt-6">
+          <DialogTitle>Delete this service plan?</DialogTitle>
+          <DialogDescription>
+            This action cannot be undone. This will permanently remove “
+            {plan.title}”.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex-grow px-6 py-4">
+          <p className="text-sm text-muted-foreground">
+            Any references to this plan will no longer be available.
+          </p>
+        </div>
+
+        <DialogFooter className="shrink-0 border-t px-6 pb-6 pt-4 flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setDeleteOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={async () => {
+              await deleteServicePlan(churchId, plan.id);
+
+              toast({
+                title: 'Service Plan Deleted',
+                description: `“${plan.title}” has been removed.`,
+                variant: 'destructive',
+              });
+
+              setDeleteOpen(false);
+              router.push('/service-plan');
+            }}
+          >
+            Delete
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </>
+);
+
 }

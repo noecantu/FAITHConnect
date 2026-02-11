@@ -37,6 +37,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { SectionEditor } from './SectionEditor';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { SECTION_TEMPLATES } from '@/app/lib/sectionTemplates';
 
 // ------------------------------------------------------
 // THEME
@@ -265,20 +267,42 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="font-semibold text-lg">Sections</h3>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() =>
-                      append({
-                        title: '',
-                        personId: null,
-                        songIds: [],
-                        notes: '',
-                      })
-                    }
-                  >
-                    Add Section
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline">Add Section</Button>
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent className="w-56">
+                      {SECTION_TEMPLATES.map((tpl) => (
+                        <DropdownMenuItem
+                          key={tpl.id}
+                          onClick={() =>
+                            append({
+                              title: tpl.title,
+                              personId: tpl.defaultPersonId ?? null,
+                              songIds: tpl.defaultSongIds ?? [],
+                              notes: tpl.defaultNotes ?? '',
+                            })
+                          }
+                        >
+                          {tpl.title}
+                        </DropdownMenuItem>
+                      ))}
+
+                      <DropdownMenuItem
+                        onClick={() =>
+                          append({
+                            title: '',
+                            personId: null,
+                            songIds: [],
+                            notes: '',
+                          })
+                        }
+                      >
+                        Custom Section
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 {fields.map((field, index) => (

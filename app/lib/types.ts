@@ -183,6 +183,7 @@ export interface SetListSection {
   id: string;
   title: string;
   songs: SetListSongEntry[];
+  notes?: string;
 }
 
 export type SongTag = 'worship' | 'fast' | 'slow' | 'praise' | 'altar' | 'special' | string;

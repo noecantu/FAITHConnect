@@ -9,6 +9,7 @@ import { ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
 import { SetListSection, Song } from '../../lib/types';
 import { SectionSongList } from './SectionSongList';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { SECTION_TEMPLATES } from '@/app/lib/sectionTemplates';
 
 const normalize = (str: string) =>
   str.replace(/\s+/g, "").toLowerCase();
@@ -48,24 +49,29 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
   /* ---------------------------------------------
      Add Section Dropdown
   ---------------------------------------------- */
-
-  const DEFAULT_SECTION_NAMES = [
-    'Praise',
-    'Worship',
-    'Offering',
-    'Altar Call',
-  ];
-
   function AddSectionDropdown() {
     const [open, setOpen] = useState(false);
     const [custom, setCustom] = useState('');
 
-    const handleAdd = (title: string) => {
+    const handleAdd = (title: string, notes?: string, songIds?: string[]) => {
       const newSection: SetListSection = {
         id: nanoid(),
         title,
-        songs: [],
+        songs:
+        songIds?.map((songId) => {
+          const song = allSongs.find((s) => s.id === songId);
+
+          return {
+            id: nanoid(),            // entry id
+            songId,                  // reference to Song
+            title: song?.title ?? '', 
+            key: song?.key ?? '',
+            notes: '',
+          };
+        }) ?? [],
+        notes: notes ?? '',
       };
+
       onChange([...sections, newSection]);
       setOpen(false);
       setCustom('');
@@ -77,19 +83,22 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
           <Button variant="outline">+ Add Section</Button>
         </PopoverTrigger>
 
-        <PopoverContent className="w-48 p-2 space-y-1">
-          {DEFAULT_SECTION_NAMES.map((name) => (
+        <PopoverContent className="w-56 p-2 space-y-1">
+
+          {/* Shared templates */}
+          {SECTION_TEMPLATES.map((tpl) => (
             <button
-              key={name}
+              key={tpl.id}
               className="w-full text-left px-2 py-1 hover:bg-accent rounded"
-              onClick={() => handleAdd(name)}
+              onClick={() => handleAdd(tpl.title, tpl.defaultNotes, tpl.defaultSongIds)}
             >
-              {name}
+              {tpl.title}
             </button>
           ))}
 
           <div className="border-t my-2" />
 
+          {/* Custom section */}
           <Input
             placeholder="Custom section…"
             value={custom}
