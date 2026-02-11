@@ -177,7 +177,7 @@ export default function ChurchAdminDashboard() {
     .toUpperCase();
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-4 space-y-4">
 
       {/* Page Header */}
       <PageHeader
@@ -187,7 +187,7 @@ export default function ChurchAdminDashboard() {
 
       {/* Large Identity Header */}
       <Card>
-        <CardContent className="flex flex-col items-center gap-4 p-8">
+        <CardContent className="flex flex-col items-center gap-4 p-4">
 
           {/* Logo */}
           {church.logoUrl ? (
