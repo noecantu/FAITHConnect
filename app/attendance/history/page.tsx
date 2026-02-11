@@ -45,59 +45,71 @@ export default function AttendanceHistoryPage() {
       <AttendanceChart data={summary} />
 
       <div className="space-y-2">
+
+        {/* Table Header */}
+        <div className="grid grid-cols-5 font-medium text-sm text-white/70 border-b border-white/10 pb-2">
+          <span>Date</span>
+          <span>Present</span>
+          <span>Absent</span>
+          <span>Percent</span>
+          <span className="text-right">Action</span>
+        </div>
+
+        {/* Table Rows */}
         {summary.map((s) => (
           <div
             key={s.dateString}
-            className="flex items-center justify-between border-b py-2"
+            className="grid grid-cols-5 items-center border-b border-white/5 py-2 text-sm"
           >
-            <div className="flex gap-6">
-              <span>{s.dateString}</span>
-              <span>{s.present} present</span>
-              <span>{s.absent} absent</span>
-              <span>{Math.round(s.percentage * 100)}%</span>
-            </div>
+            <span>{s.dateString}</span>
+            <span>{s.present}</span>
+            <span>{s.absent}</span>
+            <span>{Math.round(s.percentage * 100)}%</span>
 
-            {/* Delete Button */}
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="h-8 px-3 border-white/20 text-white/80 hover:text-white hover:bg-white/10"
-                  onClick={() => setDeleteTarget(s.dateString)}
-                >
-                  Delete
-                </Button>
-              </AlertDialogTrigger>
-
-              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
-                <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    Delete attendance for {deleteTarget}?
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently remove all attendance records for this date.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-
-                  <AlertDialogAction
-                    onClick={async () => {
-                      if (!deleteTarget || !churchId) return;
-                      await deleteAttendanceDay(churchId, deleteTarget);
-                      setDeleteTarget(null);
-                      refresh();
-                    }}
+            <div className="flex justify-end">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="h-8 px-3 border-white/20 text-white/80 hover:text-white hover:bg-white/10"
+                    onClick={() => setDeleteTarget(s.dateString)}
                   >
                     Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                  </Button>
+                </AlertDialogTrigger>
+
+                <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Delete attendance for {deleteTarget}?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently remove all
+                      attendance records for this date.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                    <AlertDialogAction
+                      onClick={async () => {
+                        if (!deleteTarget || !churchId) return;
+                        await deleteAttendanceDay(churchId, deleteTarget);
+                        setDeleteTarget(null);
+                        refresh();
+                      }}
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
         ))}
       </div>
+
     </div>
   );
 }
