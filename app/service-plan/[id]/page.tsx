@@ -13,9 +13,25 @@ import { useMembers } from '@/app/hooks/useMembers';
 import { useSongs } from '@/app/hooks/useSongs';
 import { Separator } from '@/app/components/ui/separator';
 import { Fab } from "@/app/components/ui/fab";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu';
-import { AlertDialogHeader, AlertDialogFooter } from '@/app/components/ui/alert-dialog';
-import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from '@radix-ui/react-alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/app/components/ui/dropdown-menu';
+import {
+  AlertDialogHeader,
+  AlertDialogFooter
+} from '@/app/components/ui/alert-dialog';
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction
+} from '@radix-ui/react-alert-dialog';
 import { Pencil, Copy, Trash } from 'lucide-react';
 import { useRouter } from "next/navigation";
 
@@ -92,14 +108,14 @@ export default function ServicePlanDetailPage() {
     );
   }
 
-  const formattedDate = plan.date
-    ? format(new Date(plan.date), 'M/d/yy, h:mm a')
+  // ⭐ NEW — use canonical derived field
+  const formattedDate = plan.dateTime
+    ? format(plan.dateTime, 'M/d/yy, h:mm a')
     : '—';
 
   return (
     <div className="space-y-6">
-      <PageHeader title={plan.title} subtitle={formattedDate}>
-      </PageHeader>
+      <PageHeader title={plan.title} subtitle={formattedDate} />
 
       {/* Sections */}
       <div className="space-y-6">
@@ -118,13 +134,13 @@ export default function ServicePlanDetailPage() {
                   sectionBgColors[normalize(section.title)] ?? "transparent",
               }}
             >
-
               <h2 className="text-lg font-semibold tracking-tight">
                 {section.title}
               </h2>
-              <Separator />
-              <div className="space-y-4">
 
+              <Separator />
+
+              <div className="space-y-4">
                 {hasPerson && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-foreground">Person</p>
@@ -177,7 +193,7 @@ export default function ServicePlanDetailPage() {
           );
         })}
       </div>
-      
+
       {/* Menu FAB */}
       {canEdit && (
         <DropdownMenu>
@@ -262,7 +278,6 @@ export default function ServicePlanDetailPage() {
           </DropdownMenuContent>
         </DropdownMenu>
       )}
-
     </div>
   );
 }

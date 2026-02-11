@@ -84,13 +84,33 @@ export type Relationship = {
 export interface ServicePlan {
   id: string;
   title: string;
-  date: string;
+
+  // Canonical stored fields
+  dateString: string;   // "2026-02-10"
+  timeString: string;   // "18:30"
+
+  // Derived fields (not stored)
+  date: Date;           // from dateString
+  dateTime: Date;       // from dateString + timeString
+
+  notes: string;
+  sections: ServicePlanSection[];
+
+  createdBy: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type ServicePlanFirestore = {
+  title: string;
+  dateString: string;
+  timeString: string;
   notes: string;
   sections: ServicePlanSection[];
   createdBy: string;
   createdAt: number;
   updatedAt: number;
-}
+};
 
 export interface ServicePlanSection {
   id: string;

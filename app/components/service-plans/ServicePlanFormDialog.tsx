@@ -48,7 +48,7 @@ const darkTheme = createTheme({
 });
 
 // ------------------------------------------------------
-// ZOD SCHEMAS
+// ZOD SCHEMAS — NEW ARCHITECTURE
 // ------------------------------------------------------
 const sectionSchema = z.object({
   id: z.string().optional(),
@@ -60,7 +60,11 @@ const sectionSchema = z.object({
 
 const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  date: z.date(),
+
+  // NEW: canonical string fields
+  dateString: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date'),
+  timeString: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time'),
+
   notes: z.string().optional(),
   sections: z.array(sectionSchema),
 });
@@ -68,7 +72,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 // ------------------------------------------------------
-// EXTERNAL SUBMIT HANDLER (PURITY-SAFE)
+// SUBMIT HANDLER — NEW ARCHITECTURE
 // ------------------------------------------------------
 async function handleServicePlanSubmit(
   values: FormValues,
@@ -76,7 +80,6 @@ async function handleServicePlanSubmit(
   churchId: string,
   onClose: () => void
 ) {
-  const now = Date.now();
 
   const normalizedSections: ServicePlanSection[] = values.sections.map((s) => ({
     id: s.id ?? crypto.randomUUID(),
@@ -88,12 +91,11 @@ async function handleServicePlanSubmit(
 
   const payload = {
     title: values.title.trim(),
-    date: new Date(values.date).toISOString(),
+    dateString: values.dateString,
+    timeString: values.timeString,
     notes: values.notes?.trim() ?? '',
     sections: normalizedSections,
     createdBy: plan?.createdBy ?? 'system',
-    createdAt: plan?.createdAt ?? now,
-    updatedAt: now,
   };
 
   if (plan) {
@@ -125,7 +127,11 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: plan?.title ?? '',
-      date: plan?.date ? new Date(plan.date) : new Date(),
+
+      // NEW: canonical string fields
+      dateString: plan?.dateString ?? dayjs().format('YYYY-MM-DD'),
+      timeString: plan?.timeString ?? '10:00',
+
       notes: plan?.notes ?? '',
       sections:
         plan?.sections?.map((s) => ({
@@ -183,48 +189,57 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
               {/* Date */}
               <FormField
                 control={form.control}
-                name="date"
+                name="dateString"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Date</FormLabel>
                     <FormControl>
-                      <div className="w-full">
-                        <ThemeProvider theme={darkTheme}>
-                          <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <MobileDatePicker
-                              slotProps={{
-                                textField: {
-                                  fullWidth: true,
-                                  sx: {
-                                    '& .MuiInputBase-root': {
-                                      backgroundColor: 'transparent',
-                                      color: 'text.primary',
-                                      fontSize: '0.875rem',
-                                      borderRadius: '0.5rem',
-                                      border: '1px solid hsl(var(--input))',
-                                    },
-                                    '& .MuiInputBase-root:hover': {
-                                      borderColor: 'hsl(var(--input))',
-                                    },
-                                    '& .MuiOutlinedInput-notchedOutline': {
-                                      border: 'none',
-                                    },
-                                    '& .MuiInputBase-input': {
-                                      padding: '0.5rem 0.75rem',
-                                      height: 'auto',
-                                    },
+                      <ThemeProvider theme={darkTheme}>
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                          <MobileDatePicker
+                            value={dayjs(field.value)}
+                            onChange={(next) => {
+                              if (!next) return;
+                              field.onChange(next.format('YYYY-MM-DD'));
+                            }}
+                            slotProps={{
+                              textField: {
+                                fullWidth: true,
+                                sx: {
+                                  '& .MuiInputBase-root': {
+                                    backgroundColor: 'transparent',
+                                    color: 'text.primary',
+                                    fontSize: '0.875rem',
+                                    borderRadius: '0.5rem',
+                                    border: '1px solid hsl(var(--input))',
+                                  },
+                                  '& .MuiOutlinedInput-notchedOutline': {
+                                    border: 'none',
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    padding: '0.5rem 0.75rem',
                                   },
                                 },
-                              }}
-                              value={dayjs(field.value)}
-                              onChange={(next) => {
-                                if (!next) return;
-                                field.onChange(next.toDate());
-                              }}
-                            />
-                          </LocalizationProvider>
-                        </ThemeProvider>
-                      </div>
+                              },
+                            }}
+                          />
+                        </LocalizationProvider>
+                      </ThemeProvider>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Time */}
+              <FormField
+                control={form.control}
+                name="timeString"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Time</FormLabel>
+                    <FormControl>
+                      <Input type="time" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

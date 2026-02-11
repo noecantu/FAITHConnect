@@ -2,7 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Input } from '../components/ui/input';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../components/ui/select';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '../components/ui/select';
 
 import { getServicePlans } from '../lib/servicePlans';
 import type { ServicePlan } from '../lib/types';
@@ -35,32 +41,33 @@ export default function ServicePlanPage() {
     loadPlans();
   }, []);
 
-  const today = new Date();
-
   const filteredAndSorted = useMemo(() => {
+    // Move `today` inside the memo so it doesn't need to be a dependency
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     let result = [...plans];
 
     // SEARCH
     if (search.trim()) {
-      result = result.filter((p) =>
-        p.title.toLowerCase().includes(search.toLowerCase())
-      );
+      const s = search.toLowerCase();
+      result = result.filter((p) => p.title.toLowerCase().includes(s));
     }
 
     // FILTER
     if (filter === 'future') {
-      result = result.filter((p) => new Date(p.date) >= today);
+      result = result.filter((p) => p.dateTime.getTime() >= today.getTime());
     } else if (filter === 'past') {
-      result = result.filter((p) => new Date(p.date) < today);
+      result = result.filter((p) => p.dateTime.getTime() < today.getTime());
     }
 
     // SORT
     result.sort((a, b) => {
       if (sort === 'newest') {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
+        return b.dateTime.getTime() - a.dateTime.getTime();
       }
       if (sort === 'oldest') {
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
+        return a.dateTime.getTime() - b.dateTime.getTime();
       }
       if (sort === 'title') {
         return a.title.localeCompare(b.title);
@@ -92,7 +99,10 @@ export default function ServicePlanPage() {
         <div className="flex gap-4">
 
           {/* Filter */}
-          <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
+          <Select
+            value={filter}
+            onValueChange={(v) => setFilter(v as 'all' | 'future' | 'past')}
+          >
             <SelectTrigger className="w-36">
               <SelectValue placeholder="Filter" />
             </SelectTrigger>
@@ -104,7 +114,10 @@ export default function ServicePlanPage() {
           </Select>
 
           {/* Sort */}
-          <Select value={sort} onValueChange={(v) => setSort(v as any)}>
+          <Select
+            value={sort}
+            onValueChange={(v) => setSort(v as 'newest' | 'oldest' | 'title')}
+          >
             <SelectTrigger className="w-36">
               <SelectValue placeholder="Sort" />
             </SelectTrigger>
@@ -150,9 +163,7 @@ export default function ServicePlanPage() {
                   <td className="py-2 px-2">{plan.title}</td>
 
                   <td className="py-2 px-2">
-                    {plan.date
-                      ? format(new Date(plan.date), 'M/d/yy, h:mm a')
-                      : '—'}
+                    {format(plan.dateTime, 'M/d/yy, h:mm a')}
                   </td>
 
                   <td className="py-2 px-2">{totalSections}</td>
@@ -163,10 +174,7 @@ export default function ServicePlanPage() {
         </table>
       )}
 
-      <Fab
-        type="add"
-        onClick={() => router.push('/service-plan/new')}
-      />
+      <Fab type="add" onClick={() => router.push('/service-plan/new')} />
     </div>
   );
 }
