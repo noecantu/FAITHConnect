@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "@/app/lib/firebase";
-
+import Image from "next/image";
 import {
   doc,
   getDoc,
@@ -191,10 +191,12 @@ export default function ChurchAdminDashboard() {
 
           {/* Logo */}
           {church.logoUrl ? (
-            <img
+            <Image
               src={church.logoUrl}
               alt="Church Logo"
-              className="w-36 h-36 rounded-xl border border-slate-700 p-2 object-contain"
+              width={144}
+              height={144}
+              className="w-80 h-80 p-0 object-contain"
             />
           ) : (
             <div className="w-80 h-80 rounded-xl bg-muted flex items-center justify-center text-3xl font-bold">
