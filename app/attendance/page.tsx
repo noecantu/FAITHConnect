@@ -55,25 +55,36 @@ export default function AttendancePage() {
             const present = records[m.id] !== false;
 
             return (
-            <Card
-                key={m.id}
-                className="p-4 flex flex-col items-center justify-center text-center cursor-pointer"
-                onClick={() => toggle(m.id)}
-            >
-                <span className="font-medium">
-                {m.firstName} {m.lastName}
-                </span>
+                <Card
+                    key={m.id}
+                    className="p-3 flex items-center gap-3 cursor-pointer"
+                    onClick={() => toggle(m.id)}
+                    >
+                    {/* Member Photo */}
+                    <img
+                        src={m.profilePhotoUrl || "/placeholder.png"}
+                        alt={`${m.firstName} ${m.lastName}`}
+                        className="w-12 h-12 rounded-full object-cover border border-slate-300"
+                    />
 
-                <span
-                className={
-                    present
-                    ? "text-green-600 font-semibold"
-                    : "text-red-600 font-semibold"
-                }
-                >
-                {present ? "Present" : "Absent"}
-                </span>
-            </Card>
+                    {/* Name + Status */}
+                    <div className="flex flex-col">
+                        <span className="font-medium leading-tight">
+                        {m.firstName} {m.lastName}
+                        </span>
+
+                        <span
+                        className={
+                            present
+                            ? "text-green-600 font-semibold text-sm"
+                            : "text-red-600 font-semibold text-sm"
+                        }
+                        >
+                        {present ? "Present" : "Absent"}
+                        </span>
+                    </div>
+                </Card>
+
             );
         })}
     </div>
