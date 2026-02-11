@@ -46,68 +46,77 @@ export default function AttendanceHistoryPage() {
 
       <div className="space-y-2">
 
-        {/* Table Header */}
-        <div className="grid grid-cols-5 font-medium text-sm text-white/70 border-b border-white/10 pb-2">
-          <span>Date</span>
-          <span>Present</span>
-          <span>Absent</span>
-          <span>Percent</span>
-          <span className="text-right">Action</span>
-        </div>
+        {/* Table */}
+        {summary.length > 0 && (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b text-muted-foreground">
+                <th className="text-left py-2 px-2">Date</th>
+                <th className="text-left py-2 px-2">Present</th>
+                <th className="text-left py-2 px-2">Absent</th>
+                <th className="text-left py-2 px-2">Percent</th>
+                <th className="text-left py-2 px-2">Action</th>
+              </tr>
+            </thead>
 
-        {/* Table Rows */}
-        {summary.map((s) => (
-          <div
-            key={s.dateString}
-            className="grid grid-cols-5 items-center border-b border-white/5 py-2 text-sm"
-          >
-            <span>{s.dateString}</span>
-            <span>{s.present}</span>
-            <span>{s.absent}</span>
-            <span>{Math.round(s.percentage * 100)}%</span>
+            <tbody>
+              {summary.map((s) => (
+                <tr
+                  key={s.dateString}
+                  className="border-b hover:bg-accent"
+                >
+                  <td className="py-2 px-2">{s.dateString}</td>
+                  <td className="py-2 px-2">{s.present}</td>
+                  <td className="py-2 px-2">{s.absent}</td>
+                  <td className="py-2 px-2">
+                    {Math.round(s.percentage * 100)}%
+                  </td>
 
-            <div className="flex justify-end">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="h-8 px-3 border-white/20 text-white/80 hover:text-white hover:bg-white/10"
-                    onClick={() => setDeleteTarget(s.dateString)}
-                  >
-                    Delete
-                  </Button>
-                </AlertDialogTrigger>
+                  <td className="py-2 px-2">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="h-8 px-3 border-white/20 text-white/80 hover:text-white hover:bg-white/10"
+                          onClick={() => setDeleteTarget(s.dateString)}
+                        >
+                          Delete
+                        </Button>
+                      </AlertDialogTrigger>
 
-                <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Delete attendance for {deleteTarget}?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently remove all
-                      attendance records for this date.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
+                      <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Delete attendance for {deleteTarget}?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently remove all attendance records for this date.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
 
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
 
-                    <AlertDialogAction
-                      onClick={async () => {
-                        if (!deleteTarget || !churchId) return;
-                        await deleteAttendanceDay(churchId, deleteTarget);
-                        setDeleteTarget(null);
-                        refresh();
-                      }}
-                    >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </div>
-        ))}
+                          <AlertDialogAction
+                            onClick={async () => {
+                              if (!deleteTarget || !churchId) return;
+                              await deleteAttendanceDay(churchId, deleteTarget);
+                              setDeleteTarget(null);
+                              refresh();
+                            }}
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
       </div>
 
     </div>
