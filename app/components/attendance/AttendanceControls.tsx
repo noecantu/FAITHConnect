@@ -29,7 +29,7 @@ export function AttendanceControls({ date, setDate, onHistory }: AttendanceContr
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
+  const years = Array.from({ length: 5 }, (_, i) => currentYear - 0 + i);
 
   const clampDay = (d: Date) => {
     const max = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
