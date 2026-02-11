@@ -3,8 +3,10 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import type { Member, Contribution } from './types';
 import { format } from 'date-fns';
+import { FieldValue } from '../lib/report-types';
+import { Address } from '../lib/types';
 
-function formatField(value: any): string {
+function formatField(value: FieldValue): string {
   if (value == null) return "—";
 
   // Arrays of primitives
@@ -14,7 +16,7 @@ function formatField(value: any): string {
 
   // Address object
   if (typeof value === "object" && "street" in value) {
-    const addr = value as any;
+    const addr = value as Address;
     return [
       addr.street,
       addr.city,
@@ -144,12 +146,15 @@ export function generateMembersExcel(
 
   const worksheet = XLSX.utils.json_to_sheet(
     members.map(m => {
-      const row: any = {
+      const row: Record<string, string> = {
         Name: `${m.firstName} ${m.lastName}`,
       };
 
       selectedFields.forEach(f => {
-        row[fieldLabelMap[f]] = m[f as keyof Member] ?? "";
+        const label = fieldLabelMap[f];
+        const value = m[f as keyof Member];
+
+        row[label] = value != null ? String(value) : "";
       });
 
       return row;
