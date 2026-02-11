@@ -20,6 +20,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction
 } from '@/app/components/ui/alert-dialog';
+import { Trash } from 'lucide-react';
 
 export default function AttendanceHistoryPage() {
   const churchId = useChurchId();
@@ -76,11 +77,11 @@ export default function AttendanceHistoryPage() {
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
-                          variant="outline"
+                          variant="destructive"
                           className="h-8 px-3 border-white/20 text-white/80 hover:text-white hover:bg-white/10"
                           onClick={() => setDeleteTarget(s.dateString)}
                         >
-                          Delete
+                          <Trash className="h-4 w-4" />
                         </Button>
                       </AlertDialogTrigger>
 
