@@ -61,7 +61,7 @@ export function AttendanceControls({ date, setDate, onHistory }: AttendanceContr
               <SelectValue placeholder="Month" />
             </SelectTrigger>
 
-            <SelectContent position="popper" className="z-50 max-h-48 overflow-y-auto">
+            <SelectContent position="popper" className="max-h-48 overflow-y-auto">
               {months.map((m) => (
                 <SelectItem key={m.value} value={String(m.value)}>
                   {m.label}
@@ -83,7 +83,7 @@ export function AttendanceControls({ date, setDate, onHistory }: AttendanceContr
               <SelectValue placeholder="Day" />
             </SelectTrigger>
 
-            <SelectContent position="popper" className="z-50 max-h-48 overflow-y-auto">
+            <SelectContent position="popper" className="max-h-48 overflow-y-auto">
               {days.map((d) => (
                 <SelectItem key={d} value={String(d)}>
                   {d}
@@ -106,7 +106,7 @@ export function AttendanceControls({ date, setDate, onHistory }: AttendanceContr
               <SelectValue placeholder="Year" />
             </SelectTrigger>
 
-            <SelectContent position="popper" className="z-50 max-h-48 overflow-y-auto">
+            <SelectContent position="popper" className="max-h-48 overflow-y-auto">
               {years.map((y) => (
                 <SelectItem key={y} value={String(y)}>
                   {y}
