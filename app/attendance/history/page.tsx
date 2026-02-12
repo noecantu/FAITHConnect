@@ -20,11 +20,23 @@ import {
   AlertDialogCancel,
   AlertDialogAction
 } from '@/app/components/ui/alert-dialog';
-import { Trash } from 'lucide-react';
 
+import { Trash } from 'lucide-react';
+import { useAttendanceFilters } from '@/app/hooks/useAttendanceFilters';
+import { AttendanceHistoryControls } from '@/app/components/attendance/AttendanceHistoryControls';
+
+// --------------------------------------------------
+// Page Component
+// --------------------------------------------------
 export default function AttendanceHistoryPage() {
   const churchId = useChurchId();
   const { data, loading, refresh } = useAttendanceHistory(churchId);
+
+  // Summaries (one per date)
+  const summary = summarizeAttendance(data);
+
+  // MUST be above any conditional return
+  const filters = useAttendanceFilters(summary);
 
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
@@ -37,18 +49,19 @@ export default function AttendanceHistoryPage() {
     );
   }
 
-  const summary = summarizeAttendance(data);
-
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Attendance History" />
 
+      {/* ⭐ Controls identical to Calendar List View */}
+      <AttendanceHistoryControls filters={filters} />
+
+      {/* CHART */}
       <AttendanceChart data={summary} />
 
+      {/* TABLE */}
       <div className="space-y-2">
-
-        {/* Table */}
-        {summary.length > 0 && (
+        {filters.filtered.length > 0 && (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-muted-foreground">
@@ -61,7 +74,7 @@ export default function AttendanceHistoryPage() {
             </thead>
 
             <tbody>
-              {summary.map((s) => (
+              {filters.filtered.map((s) => (
                 <tr
                   key={s.dateString}
                   className="border-b hover:bg-accent"
@@ -117,9 +130,7 @@ export default function AttendanceHistoryPage() {
             </tbody>
           </table>
         )}
-
       </div>
-
     </div>
   );
 }

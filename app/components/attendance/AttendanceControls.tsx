@@ -41,7 +41,7 @@ export function AttendanceControls({ date, setDate, onHistory }: AttendanceContr
     <div className="relative z-50">
 
       {/* ⭐ Blur is applied INSIDE, not on the positioned container */}
-      <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
+      <div className="flex items-center justify-between">
 
         <div />
 
@@ -57,15 +57,11 @@ export function AttendanceControls({ date, setDate, onHistory }: AttendanceContr
               setDate(newDate);
             }}
           >
-            <SelectTrigger className="w-full sm:w-32 h-10 bg-black/40 border-white/10 text-white">
+            <SelectTrigger className="h-10 px-3 bg-transparent border border-white/10 text-white rounded-md w-full sm:w-32">
               <SelectValue placeholder="Month" />
             </SelectTrigger>
 
-            {/* ⭐ popper + high z-index */}
-            <SelectContent
-              position="popper"
-              className="z-50 max-h-48 overflow-y-auto"
-            >
+            <SelectContent position="popper" className="z-50 max-h-48 overflow-y-auto">
               {months.map((m) => (
                 <SelectItem key={m.value} value={String(m.value)}>
                   {m.label}
@@ -83,14 +79,11 @@ export function AttendanceControls({ date, setDate, onHistory }: AttendanceContr
               setDate(newDate);
             }}
           >
-            <SelectTrigger className="w-full sm:w-20 h-10 bg-black/40 border-white/10 text-white">
+            <SelectTrigger className="h-10 px-3 bg-transparent border border-white/10 text-white rounded-md w-full sm:w-20">
               <SelectValue placeholder="Day" />
             </SelectTrigger>
 
-            <SelectContent
-              position="popper"
-              className="z-50 max-h-48 overflow-y-auto"
-            >
+            <SelectContent position="popper" className="z-50 max-h-48 overflow-y-auto">
               {days.map((d) => (
                 <SelectItem key={d} value={String(d)}>
                   {d}
@@ -109,14 +102,11 @@ export function AttendanceControls({ date, setDate, onHistory }: AttendanceContr
               setDate(newDate);
             }}
           >
-            <SelectTrigger className="w-full sm:w-24 h-10 bg-black/40 border-white/10 text-white">
+            <SelectTrigger className="h-10 px-3 bg-transparent border border-white/10 text-white rounded-md w-full sm:w-24">
               <SelectValue placeholder="Year" />
             </SelectTrigger>
 
-            <SelectContent
-              position="popper"
-              className="z-50 max-h-48 overflow-y-auto"
-            >
+            <SelectContent position="popper" className="z-50 max-h-48 overflow-y-auto">
               {years.map((y) => (
                 <SelectItem key={y} value={String(y)}>
                   {y}
