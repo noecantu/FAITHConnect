@@ -26,9 +26,12 @@ export function ContributionChart({ data }: ContributionChartProps) {
         .reduce((acc, curr) => acc + Number(curr.amount), 0),
     }));
 
-    // Remove categories with total = 0
-    return summary.filter((item) => item.total > 0);
-  }, [data]);
+    const filtered = summary.filter((item) => item.total > 0);
+
+    return filtered.length > 0
+      ? filtered
+      : [{ name: "No Data", total: 0 }];
+}, [data]);
 
   return (
     <div className="h-[400px] w-full">
