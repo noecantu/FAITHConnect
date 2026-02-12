@@ -213,7 +213,7 @@ export default function AttendancePage() {
       {/* CARDS VIEW */}
       {/* ----------------------------- */}
       {attendanceView === "cards" && (
-        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-3">
           {[...activeMembers, ...visitors].map((m) => {
             const isVisitor = !("firstName" in m);
             const id = m.id;

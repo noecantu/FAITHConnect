@@ -1,6 +1,10 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApp, getApps, deleteApp, FirebaseApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import {
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
@@ -17,7 +21,15 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app: FirebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-export const db = getFirestore(app);
+
+// 🔥 Offline-first Firestore
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager(),
+  }),
+});
+
+// Storage + Auth stay the same
 export const storage = getStorage(app);
 export const auth = getAuth(app);
 
