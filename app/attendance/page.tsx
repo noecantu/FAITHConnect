@@ -152,7 +152,7 @@ export default function AttendancePage() {
       </Dialog>
 
       {/* Members + Visitors Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-10 gap-3">
         {[...activeMembers, ...visitors].map((m) => {
           const isVisitor = !("firstName" in m);
           const id = m.id;
