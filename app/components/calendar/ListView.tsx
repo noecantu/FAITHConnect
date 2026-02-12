@@ -59,18 +59,18 @@ export function ListView({
                   {(onEdit || onDeleteRequest) && (
                     <div className="flex items-center gap-2">
                       {onEdit && (
-                        <Button variant="outline" size="sm" onClick={() => onEdit(e)}>
+                        <Button variant="ghost" size="icon" onClick={() => onEdit(e)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                       )}
 
                       {onDeleteRequest && (
                         <Button
-                          variant="destructive"
-                          size="sm"
+                          variant="ghost"
+                          size="icon"
                           onClick={() => onDeleteRequest(e.id)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
                       )}
                     </div>
