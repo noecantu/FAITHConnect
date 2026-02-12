@@ -13,6 +13,7 @@ import type { Song } from '../../lib/types';
 import { useUserRoles } from '../../hooks/useUserRoles';
 import { useRouter } from "next/navigation";
 import { Fab } from '../../components/ui/fab';
+import { FileText, Music } from "lucide-react";
 
 export default function SongsPage() {
   const churchId = useChurchId();
@@ -189,10 +190,31 @@ export default function SongsPage() {
                     <li key={song.id}>
                       <Link href={`/music/songs/${song.id}`}>
                         <Card className="p-4 hover:bg-accent cursor-pointer">
-                          <h3 className="font-medium">{song.title}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Key: {song.key || '—'} • Tempo: {song.bpm ?? '—'}
-                          </p>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="font-medium">{song.title}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Key: {song.key || '—'} • Tempo: {song.bpm ?? '—'}
+                              </p>
+                            </div>
+
+                            {/* Transparent Blue & Green Pills */}
+                            <div className="flex items-center gap-2 ml-2">
+                              {song.lyrics && (
+                                <span className="flex items-center justify-center rounded-full 
+                                                bg-blue-500/20 px-2 py-1">
+                                  <FileText size={14} className="text-slate-300" />
+                                </span>
+                              )}
+
+                              {song.chords && (
+                                <span className="flex items-center justify-center rounded-full 
+                                                bg-green-500/20 px-2 py-1">
+                                  <Music size={14} className="text-slate-300" />
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </Card>
                       </Link>
                     </li>
