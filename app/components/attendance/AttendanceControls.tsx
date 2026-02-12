@@ -1,13 +1,13 @@
 'use client';
 
-import { Button } from "@/app/components/ui/button";
+import { Button } from '../ui/button';
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/app/components/ui/select";
+} from '../ui/select';
 
 interface AttendanceControlsProps {
   date: Date;
@@ -22,46 +22,42 @@ export function AttendanceControls({ date, setDate, onHistory }: AttendanceContr
 
   const months = Array.from({ length: 12 }, (_, i) => ({
     value: i,
-    label: new Date(0, i).toLocaleString("default", { month: "long" }),
+    label: new Date(0, i).toLocaleString('default', { month: 'long' }),
   }));
 
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 5 }, (_, i) => currentYear - 0 + i);
-
-  const clampDay = (d: Date) => {
-    const max = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-    if (d.getDate() > max) d.setDate(max);
-  };
+  const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
 
   return (
-    // ⭐ This wrapper is clean — no blur, no transform, no opacity
-    <div className="relative z-10">
+    <div className="space-y-4">
 
-      {/* ⭐ Blur is applied INSIDE, not on the positioned container */}
-      <div className="flex items-center justify-between">
+      {/* TOP CONTROLS — MATCHES CALENDAR EXACTLY */}
+      <div className="flex justify-end w-full">
+        <div className="
+          flex flex-col 
+          sm:flex-row 
+          sm:items-center 
+          sm:justify-end 
+          gap-2 
+          w-full 
+          sm:w-auto
+        ">
 
-        <div />
-
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 w-full sm:w-auto">
-
-          {/* MONTH */}
+          {/* Month */}
           <Select
             value={String(month)}
             onValueChange={(value) => {
-              const newDate = new Date(date);
-              newDate.setMonth(Number(value));
-              clampDay(newDate);
-              setDate(newDate);
+              const d = new Date(date);
+              d.setMonth(Number(value));
+              setDate(d);
             }}
           >
-            <SelectTrigger className="h-10 px-3 bg-transparent border border-white/10 text-white rounded-md w-full sm:w-32">
+            <SelectTrigger className="w-full sm:w-32">
               <SelectValue placeholder="Month" />
             </SelectTrigger>
-
-            <SelectContent position="popper" className="max-h-48 overflow-y-auto">
+            <SelectContent>
               {months.map((m) => (
                 <SelectItem key={m.value} value={String(m.value)}>
                   {m.label}
@@ -70,20 +66,19 @@ export function AttendanceControls({ date, setDate, onHistory }: AttendanceContr
             </SelectContent>
           </Select>
 
-          {/* DAY */}
+          {/* Day */}
           <Select
             value={String(day)}
             onValueChange={(value) => {
-              const newDate = new Date(date);
-              newDate.setDate(Number(value));
-              setDate(newDate);
+              const d = new Date(date);
+              d.setDate(Number(value));
+              setDate(d);
             }}
           >
-            <SelectTrigger className="h-10 px-3 bg-transparent border border-white/10 text-white rounded-md w-full sm:w-20">
+            <SelectTrigger className="w-full sm:w-20">
               <SelectValue placeholder="Day" />
             </SelectTrigger>
-
-            <SelectContent position="popper" className="max-h-48 overflow-y-auto">
+            <SelectContent>
               {days.map((d) => (
                 <SelectItem key={d} value={String(d)}>
                   {d}
@@ -92,21 +87,19 @@ export function AttendanceControls({ date, setDate, onHistory }: AttendanceContr
             </SelectContent>
           </Select>
 
-          {/* YEAR */}
+          {/* Year */}
           <Select
             value={String(year)}
             onValueChange={(value) => {
-              const newDate = new Date(date);
-              newDate.setFullYear(Number(value));
-              clampDay(newDate);
-              setDate(newDate);
+              const d = new Date(date);
+              d.setFullYear(Number(value));
+              setDate(d);
             }}
           >
-            <SelectTrigger className="h-10 px-3 bg-transparent border border-white/10 text-white rounded-md w-full sm:w-24">
+            <SelectTrigger className="w-full sm:w-24">
               <SelectValue placeholder="Year" />
             </SelectTrigger>
-
-            <SelectContent position="popper" className="max-h-48 overflow-y-auto">
+            <SelectContent>
               {years.map((y) => (
                 <SelectItem key={y} value={String(y)}>
                   {y}
@@ -115,23 +108,24 @@ export function AttendanceControls({ date, setDate, onHistory }: AttendanceContr
             </SelectContent>
           </Select>
 
+          {/* Today */}
           <Button
             variant="outline"
             onClick={() => setDate(new Date())}
-            className="h-10 px-4 border-white/20 text-white/80 hover:text-white hover:bg-white/10 w-full sm:w-auto"
+            className="w-full sm:w-20"
           >
             Today
           </Button>
 
-          <span className="text-white/30 select-none hidden sm:block">|</span>
-
+          {/* History */}
           <Button
             variant="outline"
             onClick={onHistory}
-            className="h-10 px-4 border-white/20 text-white/80 hover:text-white hover:bg-white/10 w-full sm:w-auto"
+            className="w-full sm:w-24"
           >
             History
           </Button>
+
         </div>
       </div>
     </div>

@@ -104,16 +104,15 @@ export default function AttendancePage() {
   return (
     <div className="p-6 space-y-6">
 
+      {/* Page Header */}
       <PageHeader title="Attendance" subtitle={dateString} />
 
-      {/* ⭐ Controls must sit ABOVE the grid */}
-      <div className="relative z-50">
-        <AttendanceControls
-          date={date}
-          setDate={setDate}
-          onHistory={() => router.push("/attendance/history")}
-        />
-      </div>
+      {/* Attendance Controls — matches CalendarControls layout */}
+      <AttendanceControls
+        date={date}
+        setDate={setDate}
+        onHistory={() => router.push("/attendance/history")}
+      />
 
       {/* Add Visitor Card */}
       <Dialog>
