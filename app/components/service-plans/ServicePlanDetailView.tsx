@@ -13,6 +13,7 @@ import {
 import { Pencil, Copy, Trash } from 'lucide-react';
 import type { ServicePlan, Member, Song } from '@/app/lib/types';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import { getSectionColor } from '@/app/lib/sectionColors';
 
 export interface ServicePlanDetailViewProps {
   plan: ServicePlan;
@@ -24,17 +25,6 @@ export interface ServicePlanDetailViewProps {
   onDelete: () => void;
   router: AppRouterInstance;
 }
-
-const normalize = (str: string) =>
-  str.replace(/\s+/g, "").toLowerCase();
-
-const sectionBgColors: Record<string, string> = {
-  praise: "rgba(59, 130, 246, 0.10)",
-  worship: "rgba(251, 146, 60, 0.10)",
-  offering: "rgba(239, 68, 68, 0.10)",
-  altarcall: "rgba(34, 197, 94, 0.10)",
-  custom: "rgba(234, 179, 8, 0.10)",
-};
 
 export function ServicePlanDetailView({
   plan,
@@ -62,8 +52,7 @@ export function ServicePlanDetailView({
               key={section.id}
               className="p-5 space-y-2"
               style={{
-                backgroundColor:
-                  sectionBgColors[normalize(section.title)] ?? 'transparent',
+                backgroundColor: getSectionColor(section.title),
               }}
             >
               <h2 className="text-lg font-semibold tracking-tight">

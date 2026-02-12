@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu';
 import { Copy, Pencil, Trash } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../../../components/ui/alert-dialog';
+import { getSectionColor } from '@/app/lib/sectionColors';
 
 export default function SetListDetailPage() {
   const { id } = useParams();
@@ -68,16 +69,6 @@ export default function SetListDetailPage() {
   }
 
   const formattedDate = format(setList.dateTime, 'M/d/yy, h:mm a');
-  const normalize = (str: string) =>
-    str.replace(/\s+/g, '').toLowerCase();
-
-  const sectionBgColors: Record<string, string> = {
-    praise: "rgba(59, 130, 246, 0.10)",      // Blue
-    worship: "rgba(251, 146, 60, 0.10)",     // Orange
-    offering: "rgba(239, 68, 68, 0.10)",     // Red
-    altarcall: "rgba(34, 197, 94, 0.10)",    // Green
-    custom: "rgba(234, 179, 8, 0.10)",       // Yellow
-  };
 
   return (
     <div className="space-y-6">
@@ -91,8 +82,7 @@ export default function SetListDetailPage() {
             key={section.id}
             className="p-4 space-y-4"
             style={{
-              backgroundColor:
-                sectionBgColors[normalize(section.title)] ?? "transparent",
+              backgroundColor: getSectionColor(section.title),
             }}
           >
             {/* Section Header */}

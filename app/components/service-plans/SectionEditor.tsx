@@ -18,16 +18,10 @@ import {
 } from "../ui/form";
 import { ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 
-const normalize = (str: string) =>
-  str.replace(/\s+/g, "").toLowerCase();
+import { SECTION_TEMPLATES } from "@/app/lib/sectionTemplates";
+import { getSectionColor } from "@/app/lib/sectionColors";
 
-const sectionBgColors: Record<string, string> = {
-  praise: "rgba(59, 130, 246, 0.10)",      // Blue
-  worship: "rgba(251, 146, 60, 0.10)",     // Orange
-  offering: "rgba(239, 68, 68, 0.10)",     // Red
-  altarcall: "rgba(34, 197, 94, 0.10)",    // Green
-  custom: "rgba(234, 179, 8, 0.10)",       // Yellow
-};
+const SECTION_TITLES = SECTION_TEMPLATES.map(t => t.title);
 
 type SectionEditorProps = {
   index: number;
@@ -35,7 +29,6 @@ type SectionEditorProps = {
   songs: { id: string; title: string }[];
   remove: () => void;
 
-  // NEW props
   moveUp: () => void;
   moveDown: () => void;
   isFirst: boolean;
@@ -52,22 +45,16 @@ export function SectionEditor({
   isFirst,
   isLast,
 }: SectionEditorProps) {
-  const { control } = useFormContext();
+  const { control, watch, setValue } = useFormContext();
+
+  const title = watch(`sections.${index}.title`);
 
   return (
     <div
       className="border rounded-md p-4 space-y-4"
-      style={{
-        backgroundColor:
-          sectionBgColors[
-            normalize(
-              (control._formValues?.sections?.[index]?.title ?? "")
-            )
-          ] ?? "transparent",
-      }}
+      style={{ backgroundColor: getSectionColor(title) }}
     >
-
-      {/* Header Row: Move Up / Down / Delete */}
+      {/* Header Row */}
       <div className="flex justify-between items-center mb-2">
         <span className="text-sm font-medium text-muted-foreground">
           Section {index + 1}
@@ -105,20 +92,52 @@ export function SectionEditor({
         </div>
       </div>
 
-      {/* Section Title */}
+      {/* Section Title (Dropdown) */}
       <FormField
         control={control}
         name={`sections.${index}.title`}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Section Title</FormLabel>
-            <FormControl>
-              <Input placeholder="MC, Worship, Preaching…" {...field} />
-            </FormControl>
+
+            <Select
+              value={field.value}
+              onValueChange={(value) => {
+                setValue(`sections.${index}.title`, value);
+              }}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select section" />
+                </SelectTrigger>
+              </FormControl>
+
+              <SelectContent>
+                {SECTION_TITLES.map((title) => (
+                  <SelectItem key={title} value={title}>
+                    {title}
+                  </SelectItem>
+                ))}
+                <SelectItem value="__custom">Custom…</SelectItem>
+              </SelectContent>
+            </Select>
+
             <FormMessage />
           </FormItem>
         )}
       />
+
+      {/* Custom Title Input */}
+      {title === "__custom" && (
+        <Input
+          autoFocus
+          placeholder="Custom section name"
+          onChange={(e) =>
+            setValue(`sections.${index}.title`, e.target.value)
+          }
+          className="font-medium"
+        />
+      )}
 
       {/* Person */}
       <FormField
@@ -155,21 +174,17 @@ export function SectionEditor({
             <FormLabel>Songs</FormLabel>
 
             <div className="space-y-2">
-
-              {!field.value?.includes("") && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => field.onChange([...(field.value ?? []), ""])}
-                >
-                  Add Song
-                </Button>
-              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => field.onChange([...(field.value ?? []), ""])}
+              >
+                Add Song
+              </Button>
 
               {(field.value ?? []).map((songId: string, songIndex: number) => (
                 <div key={songIndex} className="flex items-center gap-2">
-
                   <Select
                     value={songId}
                     onValueChange={(val) => {
@@ -207,7 +222,6 @@ export function SectionEditor({
                   </Button>
                 </div>
               ))}
-
             </div>
 
             <FormMessage />
@@ -229,7 +243,6 @@ export function SectionEditor({
           </FormItem>
         )}
       />
-
     </div>
   );
 }

@@ -11,19 +11,9 @@ import { SectionSongList } from './SectionSongList';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { SECTION_TEMPLATES } from '@/app/lib/sectionTemplates';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { getSectionColor } from '@/app/lib/sectionColors';
 
 const SECTION_TITLES = SECTION_TEMPLATES.map(t => t.title);
-
-const normalize = (str: string) =>
-  str.replace(/\s+/g, "").toLowerCase();
-
-const sectionBgColors: Record<string, string> = {
-  praise: "rgba(59, 130, 246, 0.10)",
-  worship: "rgba(251, 146, 60, 0.10)",
-  offering: "rgba(239, 68, 68, 0.10)",
-  altarcall: "rgba(34, 197, 94, 0.10)",
-  custom: "rgba(234, 179, 8, 0.10)",
-};
 
 interface Props {
   sections: SetListSection[];
@@ -127,12 +117,8 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
           <Card
             key={section.id}
             className="p-4 space-y-4"
-            style={{
-              backgroundColor:
-                sectionBgColors[normalize(section.title)] ?? "transparent",
-            }}
+            style={{ backgroundColor: getSectionColor(section.title) }}
           >
-
             {/* Header Row */}
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-muted-foreground">
