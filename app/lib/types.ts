@@ -233,6 +233,7 @@ export interface User {
   firstName?: string | null;
   lastName?: string | null;
   settings?: {
+    attendanceView: "cards" | "list";
     calendarView?: 'calendar' | 'list';
     cardView?: 'show' | 'hide';
     fiscalYear?: string;
