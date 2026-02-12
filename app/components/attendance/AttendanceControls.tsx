@@ -119,7 +119,7 @@ export function AttendanceControls({ date, setDate, onHistory }: AttendanceContr
 
           {/* History */}
           <Button
-            variant="outline"
+            variant="default"
             onClick={onHistory}
             className="w-full sm:w-24"
           >
