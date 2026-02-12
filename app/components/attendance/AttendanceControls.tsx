@@ -38,7 +38,7 @@ export function AttendanceControls({ date, setDate, onHistory }: AttendanceContr
 
   return (
     // ⭐ This wrapper is clean — no blur, no transform, no opacity
-    <div className="relative z-50">
+    <div>
 
       {/* ⭐ Blur is applied INSIDE, not on the positioned container */}
       <div className="flex items-center justify-between">
