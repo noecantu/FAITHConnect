@@ -33,17 +33,22 @@ import {
 
 import { useToast } from '../hooks/use-toast';
 import { addContribution } from '../lib/contributions';
-import type { Member } from '../lib/types';
+import type { Contribution, Member } from '../lib/types';
 
 const contributionSchema = z.object({
-  memberId: z.string().min(1, 'Member is required'),
+  memberId: z.string().optional(),
+  customContributorName: z.string().optional(),
   amount: z.coerce.number().positive('Amount must be positive'),
   category: z.enum(['Tithes', 'Offering', 'Donation', 'Other']),
-  contributionType: z.enum(['Digital Transfer', 'Cash', 'Check', 'Other'], {
-    required_error: 'Contribution Type is required',
-  }),
+  contributionType: z.enum(['Digital Transfer', 'Cash', 'Check', 'Other']),
   date: z.string().min(1, 'Date is required'),
-});
+}).refine(
+  (data) => data.memberId || data.customContributorName,
+  {
+    message: "Select a member or enter a contributor name",
+    path: ["memberId"],
+  }
+);
 
 type ContributionFormValues = z.infer<typeof contributionSchema>;
 
@@ -66,6 +71,7 @@ export function AddContributionDialog({
     resolver: zodResolver(contributionSchema),
     defaultValues: {
       memberId: '',
+      customContributorName: "",
       amount: 0,
       category: 'Tithes',
       contributionType: 'Digital Transfer',
@@ -76,31 +82,48 @@ export function AddContributionDialog({
   async function onSubmit(values: ContributionFormValues) {
     if (!churchId) return;
 
-    const member = members.find((m) => m.id === values.memberId);
-    const memberName = member
-      ? `${member.firstName} ${member.lastName}`
-      : 'Unknown Member';
+    let memberId: string | undefined = undefined;
+    let memberName: string;
+
+    // Determine member or custom contributor
+    if (values.memberId && values.memberId !== "custom") {
+      const member = members.find((m) => m.id === values.memberId);
+      memberId = values.memberId;
+      memberName = member
+        ? `${member.firstName} ${member.lastName}`
+        : "Unknown Member";
+    } else {
+      memberName = values.customContributorName || "Unknown Contributor";
+    }
+
+    // Build Firestore-safe payload (no undefined fields)
+    const payload: Omit<Contribution, "id"> = {
+      memberName,
+      amount: values.amount,
+      category: values.category,
+      contributionType: values.contributionType,
+      date: values.date,
+    };
+
+    // Only include memberId if it is a REAL member ID
+    if (memberId) {
+      payload.memberId = memberId;
+    }
 
     try {
-      await addContribution(churchId, {
-        memberId: values.memberId,
-        memberName,
-        amount: values.amount,
-        category: values.category,
-        contributionType: values.contributionType,
-        date: values.date,
-      });
+      await addContribution(churchId, payload);
 
       toast({
-        title: 'Contribution Added',
+        title: "Contribution Added",
         description: `Added ${values.amount} (${values.contributionType}) for ${memberName}.`,
       });
 
       form.reset({
-        memberId: '',
+        memberId: "",
+        customContributorName: "",
         amount: 0,
-        category: 'Tithes',
-        contributionType: 'Digital Transfer',
+        category: "Tithes",
+        contributionType: "Digital Transfer",
         date: "",
       });
 
@@ -108,9 +131,9 @@ export function AddContributionDialog({
     } catch (error) {
       console.error(error);
       toast({
-        title: 'Error adding contribution',
-        description: (error as Error).message || 'Please try again.',
-        variant: 'destructive',
+        title: "Error adding contribution",
+        description: (error as Error).message || "Please try again.",
+        variant: "destructive",
       });
     }
   }
@@ -171,7 +194,15 @@ export function AddContributionDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Member</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select
+                      value={field.value}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        if (value !== "custom") {
+                          form.setValue("customContributorName", "");
+                        }
+                      }}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a member" />
@@ -185,12 +216,30 @@ export function AddContributionDialog({
                               {member.lastName}, {member.firstName}
                             </SelectItem>
                           ))}
+
+                        <SelectItem value="custom">Not a member</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {form.watch("memberId") === "custom" && (
+                <FormField
+                  control={form.control}
+                  name="customContributorName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contributor Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter contributor name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               {/* Amount */}
               <FormField

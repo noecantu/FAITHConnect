@@ -71,8 +71,7 @@ export async function addContribution(
 
   const colRef = collection(db, "churches", churchId, "contributions");
 
-  await addDoc(colRef, {
-    memberId: data.memberId,
+  const payload: any = {
     memberName: data.memberName,
     amount: data.amount,
     category: data.category,
@@ -81,7 +80,14 @@ export async function addContribution(
     notes: data.notes ?? "",
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-  });
+  };
+
+  // Only include memberId if it is defined
+  if (data.memberId) {
+    payload.memberId = data.memberId;
+  }
+
+  await addDoc(colRef, payload);
 }
 
 // ------------------------------

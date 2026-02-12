@@ -29,7 +29,7 @@ export interface Church {
 
 export type Contribution = {
   id: string;
-  memberId: string;
+  memberId?: string;
   memberName: string;
   amount: number;
   category: 'Tithes' | 'Offering' | 'Donation' | 'Other';

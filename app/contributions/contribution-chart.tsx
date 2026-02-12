@@ -18,13 +18,16 @@ interface ContributionChartProps {
 export function ContributionChart({ data }: ContributionChartProps) {
   const chartData = React.useMemo(() => {
     const categories = ['Tithes', 'Offering', 'Donation', 'Other'];
+
     const summary = categories.map((category) => ({
       name: category,
       total: data
         .filter((c) => c.category === category)
         .reduce((acc, curr) => acc + Number(curr.amount), 0),
     }));
-    return summary;
+
+    // Remove categories with total = 0
+    return summary.filter((item) => item.total > 0);
   }, [data]);
 
   return (
