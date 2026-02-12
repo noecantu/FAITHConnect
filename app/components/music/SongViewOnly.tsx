@@ -7,14 +7,14 @@ import type { Song } from "../../lib/types";
 import { useChurchId } from "../../hooks/useChurchId";
 
 export default function SongViewOnly({ songId }: { songId: string }) {
-  const churchId = useChurchId();               // <-- ADD THIS
+  const churchId = useChurchId();
   const [song, setSong] = useState<Song | null>(null);
   const [showLyrics, setShowLyrics] = useState(false);
   const [showChords, setShowChords] = useState(false);
 
   useEffect(() => {
-    if (!churchId) return;                      // <-- WAIT FOR CHURCH ID
-    getSongById(churchId, songId).then(setSong); // <-- PASS BOTH ARGS
+    if (!churchId) return;
+    getSongById(churchId, songId).then(setSong);
   }, [churchId, songId]);
 
   if (!song) return null;
@@ -61,14 +61,18 @@ export default function SongViewOnly({ songId }: { songId: string }) {
       <section>
         <h2 className="text-xl font-medium mb-2">Lyrics</h2>
         <pre className="whitespace-pre-wrap text-foreground">
-          {song.lyrics}
+          {song.lyrics?.trim()
+            ? song.lyrics
+            : "Not provided…"}
         </pre>
       </section>
 
       <section>
         <h2 className="text-xl font-medium mb-2">Chords</h2>
         <pre className="whitespace-pre-wrap text-foreground">
-          {song.chords}
+          {song.chords?.trim()
+            ? song.chords
+            : "Not provided…"}
         </pre>
       </section>
 

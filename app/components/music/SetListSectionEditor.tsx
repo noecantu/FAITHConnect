@@ -55,8 +55,8 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
           const song = allSongs.find((s) => s.id === songId);
 
           return {
-            id: nanoid(),            // entry id
-            songId,                  // reference to Song
+            id: nanoid(),
+            songId,
             title: song?.title ?? '', 
             key: song?.key ?? '',
             notes: '',
