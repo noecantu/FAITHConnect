@@ -215,7 +215,7 @@ export default function AttendancePage() {
                 )}
               </div>
 
-              <span className="font-medium leading-tight">
+              <span className="font-medium leading-tight truncate w-full">
                 {name}
               </span>
 
