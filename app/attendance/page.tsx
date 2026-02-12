@@ -215,7 +215,16 @@ export default function AttendancePage() {
                 )}
               </div>
 
-              <span className="font-medium leading-tight line-clamp-2 text-center w-full">
+              <span
+                className="
+                  font-medium leading-tight
+                  line-clamp-2
+                  text-center
+                  w-full
+                  max-w-[80px]
+                  h-[2.5rem]
+                "
+              >
                 {name}
               </span>
 
