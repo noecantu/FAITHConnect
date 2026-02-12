@@ -9,7 +9,7 @@ export default function Header() {
         <img
           src="/FAITH_CONNECT_FLAME_LOGO.svg"
           alt="Faith Connect Logo"
-          className="h-28 w-28"
+          className="h-10 w-10"   // or h-12 w-12
         />
       </Link>
       <div className="ml-auto">
