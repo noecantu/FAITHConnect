@@ -10,6 +10,9 @@ import { SetListSection, Song } from '../../lib/types';
 import { SectionSongList } from './SectionSongList';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { SECTION_TEMPLATES } from '@/app/lib/sectionTemplates';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+
+const SECTION_TITLES = SECTION_TEMPLATES.map(t => t.title);
 
 const normalize = (str: string) =>
   str.replace(/\s+/g, "").toLowerCase();
@@ -169,11 +172,41 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
             </div>
 
             {/* Title */}
-            <Input
+            <Select
               value={section.title}
-              onChange={(e) => updateSection(section.id, { title: e.target.value })}
-              className="font-medium"
-            />
+              onValueChange={(value) => {
+                if (value === "__custom") {
+                  updateSection(section.id, { title: "__custom" });
+                } else {
+                  updateSection(section.id, { title: value });
+                }
+              }}
+            >
+              <SelectTrigger className="font-medium">
+                <SelectValue placeholder="Select section" />
+              </SelectTrigger>
+
+              <SelectContent>
+                {SECTION_TITLES.map((title) => (
+                  <SelectItem key={title} value={title}>
+                    {title}
+                  </SelectItem>
+                ))}
+                <SelectItem value="__custom">Custom…</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {section.title === "__custom" && (
+              <Input
+                autoFocus
+                placeholder="Custom section name"
+                value={section.title === "__custom" ? "" : section.title}
+                onChange={(e) =>
+                  updateSection(section.id, { title: e.target.value })
+                }
+                className="font-medium mt-2"
+              />
+            )}
 
             {/* Songs */}
             <SectionSongList

@@ -8,6 +8,11 @@ export interface SectionTemplate {
 
 export const SECTION_TEMPLATES: SectionTemplate[] = [
   {
+    id: 'opening',
+    title: 'Opening',
+    defaultNotes: 'Service start or commencement.',
+  },
+  {
     id: 'praise',
     title: 'Praise',
     defaultNotes: 'Upbeat songs to open the service.',
@@ -25,7 +30,7 @@ export const SECTION_TEMPLATES: SectionTemplate[] = [
   {
     id: 'message',
     title: 'Message',
-    defaultNotes: 'Sermon or teaching time.',
+    defaultNotes: 'Sermon or preaching time.',
   },
   {
     id: 'altar-call',
@@ -38,3 +43,5 @@ export const SECTION_TEMPLATES: SectionTemplate[] = [
     defaultNotes: 'Solo or featured performance.',
   },
 ];
+
+export const SECTION_TITLES = SECTION_TEMPLATES.map(t => t.title);
