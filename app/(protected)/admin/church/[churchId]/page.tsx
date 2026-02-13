@@ -23,13 +23,19 @@ import {
   CardContent,
 } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
-import { CalendarCheck, CalendarHeart, Calendar, Music, UserPlus } from "lucide-react";
+import {
+  CalendarCheck,
+  CalendarHeart,
+  Calendar,
+  Music,
+  UserPlus,
+  LayoutDashboard,
+} from "lucide-react";
 import Link from "next/link";
 import type { Church } from "@/app/lib/types";
 
 export default function ChurchAdminDashboard() {
   const { churchId } = useParams();
-
   const [user, userLoading] = useAuthState(auth);
 
   const [church, setChurch] = useState<Church | null>(null);
@@ -38,6 +44,7 @@ export default function ChurchAdminDashboard() {
   const [memberCount, setMemberCount] = useState(0);
   const [serviceCount, setServiceCount] = useState(0);
   const [eventCount, setEventCount] = useState(0);
+  const [attendanceThisWeek, setAttendanceThisWeek] = useState(0);
 
   useEffect(() => {
     async function load() {
@@ -123,6 +130,34 @@ export default function ChurchAdminDashboard() {
       const eventsSnap = await getDocs(eventsQuery);
       setEventCount(eventsSnap.size);
 
+      // 5. Attendance This Week (CORRECT LOCATION)
+      const attendanceRef = collection(
+        db,
+        "churches",
+        churchId as string,
+        "attendance"
+      );
+
+      const startIso = startOfWeek.toISOString().slice(0, 10);
+      const endIso = endOfWeek.toISOString().slice(0, 10);
+
+      const attendanceQuery = query(
+        attendanceRef,
+        where("date", ">=", startIso),
+        where("date", "<=", endIso)
+      );
+
+      const attendanceSnap = await getDocs(attendanceQuery);
+
+      let totalPresent = 0;
+
+      attendanceSnap.forEach(doc => {
+        const data = doc.data();
+        totalPresent += data.presentCount || 0;
+      });
+
+      setAttendanceThisWeek(totalPresent);
+
       setLoading(false);
     }
 
@@ -177,121 +212,195 @@ export default function ChurchAdminDashboard() {
     .toUpperCase();
 
   return (
-    <div className="p-4 space-y-4">
-
-      {/* Page Header */}
-      <PageHeader
-        title="Church Admin Dashboard"
-        subtitle="Manage your church’s people, events, and ministries."
-      />
-
-      {/* Large Identity Header */}
-      <Card>
-        <CardContent className="flex flex-col items-center gap-4 p-4">
-
-          {/* Logo */}
-          {church.logoUrl ? (
-            <Image
-              src={church.logoUrl}
-              alt="Church Logo"
-              width={144}
-              height={144}
-              className="w-80 h-80 p-0 object-contain"
-            />
-          ) : (
-            <div className="w-80 h-80 rounded-xl bg-muted flex items-center justify-center text-3xl font-bold">
-              {initials}
-            </div>
-          )}
-
-          {/* Name + Timezone beneath logo */}
-          <div className="text-center space-y-1">
-            <h1 className="text-4xl font-bold tracking-tight">
+    <div className="flex min-h-screen bg-background">
+      {/* Sidebar */}
+      <aside className="hidden md:flex md:w-64 lg:w-72 flex-col border-r border-border bg-muted/20">
+        <div className="flex items-center gap-3 px-6 py-5 border-b border-border">
+          <div className="w-10 h-10 rounded-xl bg-muted/60 border border-border flex items-center justify-center overflow-hidden">
+            {church.logoUrl ? (
+              <Image
+                src={church.logoUrl}
+                alt="Church Logo"
+                width={40}
+                height={40}
+                className="object-contain w-full h-full p-1.5"
+              />
+            ) : (
+              <span className="text-sm font-semibold text-muted-foreground">
+                {initials}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold truncate">
               {church.name}
-            </h1>
-
-            <p className="text-muted-foreground text-lg">
+            </span>
+            <span className="text-xs text-muted-foreground">
               {church.timezone}
-            </p>
+            </span>
+          </div>
+        </div>
+
+        <nav className="flex-1 px-3 py-4 space-y-1 text-sm">
+          <SidebarLink href={`/church/${churchId}/admin`} icon={LayoutDashboard} label="Dashboard" active />
+          <SidebarLink href="/members" icon={UserPlus} label="Members" />
+          <SidebarLink href="/attendance" icon={CalendarCheck} label="Attendance" />
+          <SidebarLink href="/calendar" icon={Calendar} label="Events" />
+          <SidebarLink href="/service-plan" icon={CalendarHeart} label="Service Plans" />
+          <SidebarLink href="/music/setlists" icon={Music} label="Set Lists" />
+        </nav>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col">
+        <div className="border-b border-border bg-background/80 backdrop-blur">
+          <div className="px-4 md:px-8 py-4">
+            <PageHeader
+              title="Church Admin Dashboard"
+              subtitle="Manage your church’s people, events, and ministries."
+            />
+          </div>
+        </div>
+
+        <div className="flex-1 px-4 md:px-8 py-6 space-y-6">
+          {/* Identity Header */}
+          <Card className="border border-border bg-card/80">
+            <CardContent className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 md:p-6">
+              <div className="space-y-1">
+                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+                  {church.name}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Timezone: {church.timezone}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground">
+                  Status: {church.status === "active" ? "Active" : "Disabled"}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <StatCard
+              title="Members"
+              description="Total registered members"
+              value={memberCount}
+            />
+            <StatCard
+              title="Upcoming Services"
+              description="Scheduled from today forward"
+              value={serviceCount}
+            />
+            <StatCard
+              title="Events This Week"
+              description="Monday through Sunday"
+              value={eventCount}
+            />
+            <StatCard
+              title="Attendance This Week"
+              description="Total present Monday–Sunday"
+              value={attendanceThisWeek}
+            />
           </div>
 
-        </CardContent>
-      </Card>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Members</CardTitle>
-            <CardDescription>Total registered members</CardDescription>
-          </CardHeader>
-          <CardContent className="text-3xl font-bold">{memberCount}</CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Upcoming Services</CardTitle>
-            <CardDescription>Scheduled from today forward</CardDescription>
-          </CardHeader>
-          <CardContent className="text-3xl font-bold">{serviceCount}</CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Events This Week</CardTitle>
-            <CardDescription>Monday through Sunday</CardDescription>
-          </CardHeader>
-          <CardContent className="text-3xl font-bold">{eventCount}</CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Manage your church</CardDescription>
-        </CardHeader>
-
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-          <Button asChild className="w-full flex items-center gap-2">
-            <Link href="/attendance">
-              <CalendarCheck className="h-4 w-4 text-foreground/70" />
-              <span>Attendance</span>
-            </Link>
-          </Button>
-
-          <Button asChild className="w-full flex items-center gap-2">
-            <Link href="/calendar">
-              <Calendar className="h-4 w-4 text-foreground/70" />
-              <span>Events</span>
-            </Link>
-          </Button>
-
-          <Button asChild className="w-full flex items-center gap-2">
-            <Link href="/members">
-              <UserPlus className="h-4 w-4 text-foreground/70" />
-              <span>Members</span>
-            </Link>
-          </Button>
-          
-          <Button asChild className="w-full flex items-center gap-2">
-            <Link href="/music/setlists">
-              <Music className="h-4 w-4 text-foreground/70" />
-              <span>Set Lists</span>
-            </Link>
-          </Button>
-
-          <Button asChild className="w-full flex items-center gap-2">
-            <Link href="/service-plan">
-              <CalendarHeart className="h-4 w-4 text-foreground/70" />
-              <span>Service Plans</span>
-            </Link>
-          </Button>
-
-        </CardContent>
-      </Card>
-
+          {/* Quick Actions (now more compact, secondary) */}
+          <Card className="border border-border bg-card/80">
+            <CardHeader className="pb-3">
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Jump into key areas of your church.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <QuickAction href="/attendance" icon={CalendarCheck} label="Attendance" />
+              <QuickAction href="/calendar" icon={Calendar} label="Events" />
+              <QuickAction href="/members" icon={UserPlus} label="Members" />
+              <QuickAction href="/music/setlists" icon={Music} label="Set Lists" />
+              <QuickAction href="/service-plan" icon={CalendarHeart} label="Service Plans" />
+            </CardContent>
+          </Card>
+        </div>
+      </main>
     </div>
+  );
+}
+
+// ---------------------------
+// Small Components
+// ---------------------------
+
+type IconType = React.ComponentType<React.SVGProps<SVGSVGElement>>;
+
+function SidebarLink({
+  href,
+  icon: Icon,
+  label,
+  active = false,
+}: {
+  href: string;
+  icon: IconType;
+  label: string;
+  active?: boolean;
+}) {
+  return (
+    <Link href={href}>
+      <div
+        className={[
+          "flex items-center gap-2 px-3 py-2 rounded-md transition-colors cursor-pointer",
+          active
+            ? "bg-muted text-foreground"
+            : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+        ].join(" ")}
+      >
+        <Icon className="h-4 w-4" />
+        <span className="truncate">{label}</span>
+      </div>
+    </Link>
+  );
+}
+
+function StatCard({
+  title,
+  description,
+  value,
+}: {
+  title: string;
+  description: string;
+  value: number;
+}) {
+  return (
+    <Card className="border border-border bg-card/80">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <CardDescription className="text-xs">{description}</CardDescription>
+      </CardHeader>
+      <CardContent className="pt-1">
+        <div className="text-3xl font-semibold tracking-tight">{value}</div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function QuickAction({
+  href,
+  icon: Icon,
+  label,
+}: {
+  href: string;
+  icon: IconType;
+  label: string;
+}) {
+  return (
+    <Button
+      asChild
+      variant="outline"
+      className="w-full justify-start gap-2 border-border bg-background/60 hover:bg-muted/70"
+    >
+      <Link href={href}>
+        <Icon className="h-4 w-4 text-foreground/70" />
+        <span>{label}</span>
+      </Link>
+    </Button>
   );
 }
