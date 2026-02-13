@@ -203,7 +203,7 @@ export default function SongDetailPage() {
               {song.lyrics}
             </pre>
           ) : (
-            <p className="text-muted-foreground">No lyrics provided.</p>
+            <p className="text-muted-foreground">No lyrics provided...</p>
           )}
         </div>
       </Card>
@@ -220,7 +220,7 @@ export default function SongDetailPage() {
               {song.chords}
             </pre>
           ) : (
-            <p className="text-muted-foreground">No chord chart provided.</p>
+            <p className="text-muted-foreground">No chords provided...</p>
           )}
         </div>
       </Card>

@@ -5,6 +5,7 @@ import { getSongById } from "../../lib/songs";
 import FullscreenModal from "./FullscreenModal";
 import type { Song } from "../../lib/types";
 import { useChurchId } from "../../hooks/useChurchId";
+import { getSectionColor } from "@/app/lib/sectionColors";
 
 export default function SongViewOnly({ songId }: { songId: string }) {
   const churchId = useChurchId();
@@ -31,13 +32,14 @@ export default function SongViewOnly({ songId }: { songId: string }) {
       <div className="flex gap-3">
         <button
           onClick={() => setShowLyrics(true)}
+          style={{ backgroundColor: getSectionColor("praise") }}
           className="
             px-4 py-2 rounded
             border border-white/10
-            bg-blue-600/20
             text-white
-            hover:bg-blue-600/30
+            hover:bg-white/10
             backdrop-blur-sm
+            transition
           "
         >
           Fullscreen Lyrics
@@ -45,13 +47,14 @@ export default function SongViewOnly({ songId }: { songId: string }) {
 
         <button
           onClick={() => setShowChords(true)}
+          style={{ backgroundColor: getSectionColor("altarcall") }}
           className="
             px-4 py-2 rounded
             border border-white/10
-            bg-green-600/20
             text-white
-            hover:bg-green-600/30
+            hover:bg-white/10
             backdrop-blur-sm
+            transition
           "
         >
           Fullscreen Chords
@@ -63,7 +66,7 @@ export default function SongViewOnly({ songId }: { songId: string }) {
         <pre className="whitespace-pre-wrap text-foreground">
           {song.lyrics?.trim()
             ? song.lyrics
-            : "Not provided…"}
+            : "No lyrics provided…"}
         </pre>
       </section>
 
@@ -72,7 +75,7 @@ export default function SongViewOnly({ songId }: { songId: string }) {
         <pre className="whitespace-pre-wrap text-foreground">
           {song.chords?.trim()
             ? song.chords
-            : "Not provided…"}
+            : "No chords provided…"}
         </pre>
       </section>
 
