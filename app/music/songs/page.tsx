@@ -153,7 +153,7 @@ export default function SongsPage() {
   
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
               className="border rounded px-2 py-1 text-sm bg-background"
             >
               <option value="title">Title</option>
@@ -201,19 +201,14 @@ export default function SongsPage() {
                             {/* Transparent Blue & Green Pills */}
                             <div className="flex items-center gap-2 ml-2">
                               {song.lyrics && (
-                                <span className="flex items-center justify-center rounded-full 
-                                                bg-blue-500/20 px-2 py-1">
-                                  <FileText size={14} className="text-slate-300" />
-                                </span>
+                                <FileText size={16} className="text-blue-400/40" />
                               )}
 
                               {song.chords && (
-                                <span className="flex items-center justify-center rounded-full 
-                                                bg-green-500/20 px-2 py-1">
-                                  <Music size={14} className="text-slate-300" />
-                                </span>
+                                <Music size={16} className="text-green-400/40" />
                               )}
                             </div>
+
                           </div>
                         </Card>
                       </Link>
