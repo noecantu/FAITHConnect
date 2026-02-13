@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { db } from "@/app/lib/firebase";
+
 import {
   collection,
   query,
@@ -9,6 +10,11 @@ import {
   limit,
   startAfter,
   getDocs,
+} from "firebase/firestore";
+
+import type {
+  QueryDocumentSnapshot,
+  DocumentData,
 } from "firebase/firestore";
 
 import Link from "next/link";
@@ -29,52 +35,62 @@ import {
   SelectItem,
 } from "@/app/components/ui/select";
 
+import type { Church } from "@/app/lib/types";
+
 export default function GlobalChurchListPage() {
   const PAGE_SIZE = 10;
 
-  const [churches, setChurches] = useState<any[]>([]);
-  const [lastDoc, setLastDoc] = useState<any>(null);
-  const [firstDoc, setFirstDoc] = useState<any>(null);
+  // -----------------------------
+  // STATE
+  // -----------------------------
+  const [churches, setChurches] = useState<Church[]>([]);
+
+  const [lastDoc, setLastDoc] =
+    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+
+  const [firstDoc, setFirstDoc] =
+    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
   const [sortField, setSortField] = useState<"name" | "createdAt">("name");
 
-  async function loadInitial() {
-    setLoading(true);
-
-    const ref = collection(db, "churches");
-    const q = query(ref, orderBy(sortField), limit(PAGE_SIZE));
-
-    const snap = await getDocs(q);
-    const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-
-    setChurches(docs);
-    setFirstDoc(snap.docs[0] || null);
-    setLastDoc(snap.docs[snap.docs.length - 1] || null);
-    setLoading(false);
-  }
-
+  // -----------------------------
+  // LOAD NEXT PAGE
+  // -----------------------------
   async function loadNext() {
     if (!lastDoc) return;
 
     setLoading(true);
 
     const ref = collection(db, "churches");
-    const q = query(ref, orderBy(sortField), startAfter(lastDoc), limit(PAGE_SIZE));
+    const q = query(
+      ref,
+      orderBy(sortField),
+      startAfter(lastDoc),
+      limit(PAGE_SIZE)
+    );
 
     const snap = await getDocs(q);
-    const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+    const docs = snap.docs.map((d) => {
+      const { id: _ignored, ...rest } = d.data() as Church;
+      return { id: d.id, ...rest };
+    });
 
     if (docs.length > 0) {
       setChurches(docs);
-      setFirstDoc(snap.docs[0]);
-      setLastDoc(snap.docs[snap.docs.length - 1]);
+      setFirstDoc(snap.docs[0] || null);
+      setLastDoc(snap.docs[snap.docs.length - 1] || null);
     }
 
     setLoading(false);
   }
 
+  // -----------------------------
+  // LOAD PREVIOUS PAGE
+  // -----------------------------
   async function loadPrevious() {
     if (!firstDoc) return;
 
@@ -84,24 +100,59 @@ export default function GlobalChurchListPage() {
     const q = query(ref, orderBy(sortField), limit(PAGE_SIZE));
 
     const snap = await getDocs(q);
-    const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-    setChurches(docs);
-    setFirstDoc(snap.docs[0]);
-    setLastDoc(snap.docs[snap.docs.length - 1]);
+    setChurches(
+      snap.docs.map((d) => {
+        const { id: _ignored, ...rest } = d.data() as Church;
+        return { id: d.id, ...rest };
+      })
+    );
+    setFirstDoc(snap.docs[0] || null);
+    setLastDoc(snap.docs[snap.docs.length - 1] || null);
 
     setLoading(false);
   }
 
+  // -----------------------------
+  // EFFECT — RELOAD ON SORT CHANGE
+  // -----------------------------
   useEffect(() => {
+    async function loadInitial() {
+      setLoading(true);
+
+      const ref = collection(db, "churches");
+      const q = query(ref, orderBy(sortField), limit(PAGE_SIZE));
+
+      const snap = await getDocs(q);
+
+      const docs = snap.docs.map((d) => {
+        const { id: _ignored, ...rest } = d.data() as Church;
+        return { id: d.id, ...rest };
+      });
+
+      setChurches(docs);
+      setFirstDoc(snap.docs[0] || null);
+      setLastDoc(snap.docs[snap.docs.length - 1] || null);
+
+      setLoading(false);
+    }
+
     loadInitial();
   }, [sortField]);
 
+  // -----------------------------
+  // SEARCH FILTER
+  // -----------------------------
   const filtered = useMemo(() => {
     const term = search.toLowerCase();
-    return churches.filter((c) => c.name?.toLowerCase().includes(term));
+    return churches.filter((c) =>
+      c.name?.toLowerCase().includes(term)
+    );
   }, [churches, search]);
 
+  // -----------------------------
+  // RENDER
+  // -----------------------------
   return (
     <div className="p-6 space-y-8">
       <PageHeader
@@ -111,7 +162,6 @@ export default function GlobalChurchListPage() {
 
       {/* Search + Sort */}
       <div className="flex flex-col md:flex-row md:items-center gap-4 w-full">
-
         <div className="flex-1">
           <Input
             placeholder="Search churches..."
@@ -124,7 +174,9 @@ export default function GlobalChurchListPage() {
         <div className="w-full md:w-48">
           <Select
             value={sortField}
-            onValueChange={(v) => setSortField(v as "name" | "createdAt")}
+            onValueChange={(v) =>
+              setSortField(v as "name" | "createdAt")
+            }
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Sort by" />
@@ -135,7 +187,6 @@ export default function GlobalChurchListPage() {
             </SelectContent>
           </Select>
         </div>
-
       </div>
 
       {/* Church Grid */}
@@ -160,7 +211,21 @@ export default function GlobalChurchListPage() {
                 <p>
                   <span className="font-medium">Created:</span>{" "}
                   {church.createdAt
-                    ? new Date(church.createdAt.seconds * 1000).toLocaleDateString()
+                    ? (() => {
+                        const value = church.createdAt as Date | { seconds: number } | undefined;
+
+                        // Firestore Timestamp → convert to Date
+                        if (value && "seconds" in value) {
+                          return new Date(value.seconds * 1000).toLocaleDateString();
+                        }
+
+                        // Already a JS Date
+                        if (value instanceof Date) {
+                          return value.toLocaleDateString();
+                        }
+
+                        return "—";
+                      })()
                     : "—"}
                 </p>
 
@@ -180,9 +245,14 @@ export default function GlobalChurchListPage() {
 
       {/* Pagination */}
       <div className="flex justify-between pt-4">
-        <Button variant="secondary" onClick={loadPrevious} disabled={!firstDoc}>
+        <Button
+          variant="secondary"
+          onClick={loadPrevious}
+          disabled={!firstDoc}
+        >
           Previous
         </Button>
+
         <Button onClick={loadNext} disabled={!lastDoc}>
           Next
         </Button>

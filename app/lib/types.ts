@@ -18,6 +18,7 @@ export interface AttendanceSummaryItem {
 }
 
 export interface Church {
+  id: string;
   name: string;
   timezone: string;
   logoUrl?: string | null;

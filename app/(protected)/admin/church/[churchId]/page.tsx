@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "@/app/lib/firebase";
 import Image from "next/image";
+
 import {
   doc,
   getDoc,
@@ -23,6 +24,7 @@ import {
   CardContent,
 } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
+
 import {
   CalendarCheck,
   CalendarHeart,
@@ -31,6 +33,7 @@ import {
   UserPlus,
   LayoutDashboard,
 } from "lucide-react";
+
 import Link from "next/link";
 import type { Church } from "@/app/lib/types";
 
@@ -76,6 +79,8 @@ export default function ChurchAdminDashboard() {
         return;
       }
 
+      console.log("CHURCH DOC:", churchData);
+      
       // 2. Members count
       const membersRef = collection(
         db,
@@ -130,7 +135,7 @@ export default function ChurchAdminDashboard() {
       const eventsSnap = await getDocs(eventsQuery);
       setEventCount(eventsSnap.size);
 
-      // 5. Attendance This Week (CORRECT LOCATION)
+      // 5. Attendance This Week (FULLY NORMALIZED)
       const attendanceRef = collection(
         db,
         "churches",
@@ -138,23 +143,47 @@ export default function ChurchAdminDashboard() {
         "attendance"
       );
 
+      // Convert week range to ISO strings (YYYY-MM-DD)
       const startIso = startOfWeek.toISOString().slice(0, 10);
       const endIso = endOfWeek.toISOString().slice(0, 10);
 
+      // Query by document ID (because your docs do NOT have a "date" field)
       const attendanceQuery = query(
         attendanceRef,
-        where("date", ">=", startIso),
-        where("date", "<=", endIso)
+        where("__name__", ">=", startIso),
+        where("__name__", "<=", endIso)
       );
 
       const attendanceSnap = await getDocs(attendanceQuery);
 
       let totalPresent = 0;
 
-      attendanceSnap.forEach(doc => {
-        const data = doc.data();
-        totalPresent += data.presentCount || 0;
+      attendanceSnap.forEach(docSnap => {
+        const data = docSnap.data();
+
+        // Your actual attendance data is stored in `records`
+        const recordCount =
+          data.records && typeof data.records === "object"
+            ? Object.keys(data.records).length
+            : 0;
+
+        // Visitors (if you ever add them later)
+        let visitorCount = 0;
+
+        if (typeof data.visitors === "number") {
+          visitorCount = data.visitors;
+        } else if (
+          data.visitors &&
+          typeof data.visitors === "object" &&
+          !Array.isArray(data.visitors)
+        ) {
+          visitorCount = Object.keys(data.visitors).length;
+        }
+
+        totalPresent += recordCount + visitorCount;
       });
+
+      console.log("ATTENDANCE TOTAL:", totalPresent, typeof totalPresent);
 
       setAttendanceThisWeek(totalPresent);
 
