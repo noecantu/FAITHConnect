@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { auth, db } from "@/app/lib/firebase";
+import { auth } from "@/app/lib/firebase";
 
 export default function CreateChurchPage() {
   const router = useRouter();

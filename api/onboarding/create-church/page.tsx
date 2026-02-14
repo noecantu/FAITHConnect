@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/lib/firebase/server";
 import admin from "firebase-admin";
+import slugify from "slugify";
 
 export async function POST(req: Request) {
   try {
@@ -17,14 +18,22 @@ export async function POST(req: Request) {
     const decoded = await adminAuth.verifyIdToken(token);
     const uid = decoded.uid;
 
-    const churchId = crypto.randomUUID();
+    // 1. Generate slug from church name
+    let slug = slugify(churchName, { lower: true, strict: true });
 
-    // 1. Create church
+    // 2. Ensure uniqueness
+    const existing = await adminDb.collection("churches").doc(slug).get();
+    if (existing.exists) {
+      slug = `${slug}-${Math.floor(Math.random() * 10000)}`;
+    }
+
+    // 3. Create church using slug as the document ID
     await adminDb
       .collection("churches")
-      .doc(churchId)
+      .doc(slug)
       .set({
         name: churchName,
+        slug,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         createdBy: uid,
         settings: {
@@ -33,23 +42,23 @@ export async function POST(req: Request) {
         },
       });
 
-    // 2. Update user
+    // 4. Update user with slug instead of UUID
     await adminDb
       .collection("users")
       .doc(uid)
       .set(
         {
-          churchId,
+          churchId: slug,
           role: "admin",
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
       );
 
-    // 3. Create membership record
+    // 5. Create membership record
     await adminDb
       .collection("churches")
-      .doc(churchId)
+      .doc(slug)
       .collection("members")
       .doc(uid)
       .set({
@@ -57,7 +66,7 @@ export async function POST(req: Request) {
         joinedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-    return NextResponse.json({ churchId });
+    return NextResponse.json({ slug });
   } catch (error) {
     console.error("Error creating church:", error);
     return NextResponse.json(
