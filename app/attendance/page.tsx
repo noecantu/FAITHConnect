@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = "force-dynamic";
+
 import { useEffect, useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { PageHeader } from '@/app/components/page-header';
