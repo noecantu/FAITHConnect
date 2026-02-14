@@ -52,17 +52,32 @@ export default function ChurchAdminDashboard() {
   useEffect(() => {
     async function load() {
       if (userLoading) return;
-
       if (!user) {
         setLoading(false);
         return;
       }
-
       if (!churchId) return;
 
       setLoading(true);
 
+      // ---------------------------
+      // Compute week range FIRST
+      // ---------------------------
+      const now = new Date();
+      const day = now.getDay();
+      const diffToMonday = day === 0 ? -6 : 1 - day;
+
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() + diffToMonday);
+      startOfWeek.setHours(0, 0, 0, 0);
+
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+
+      // ---------------------------
       // 1. Load church document
+      // ---------------------------
       const churchRef = doc(db, "churches", churchId as string);
       const churchSnap = await getDoc(churchRef);
 
@@ -79,9 +94,9 @@ export default function ChurchAdminDashboard() {
         return;
       }
 
-      console.log("CHURCH DOC:", churchData);
-      
+      // ---------------------------
       // 2. Members count
+      // ---------------------------
       const membersRef = collection(
         db,
         "churches",
@@ -91,9 +106,11 @@ export default function ChurchAdminDashboard() {
       const membersSnap = await getDocs(membersRef);
       setMemberCount(membersSnap.size);
 
-      // 3. Upcoming services
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      // ---------------------------
+      // 3. Upcoming Services
+      // dateString: "YYYY-MM-DD"
+      // ---------------------------
+      const todayIso = new Date().toISOString().slice(0, 10);
 
       const servicesRef = collection(
         db,
@@ -101,41 +118,39 @@ export default function ChurchAdminDashboard() {
         churchId as string,
         "servicePlans"
       );
+
       const servicesQuery = query(
         servicesRef,
-        where("date", ">=", today.toISOString())
+        where("dateString", ">=", todayIso)
       );
+
       const servicesSnap = await getDocs(servicesQuery);
       setServiceCount(servicesSnap.size);
 
-      // 4. Events this week
-      const now = new Date();
-      const day = now.getDay();
-      const diffToMonday = day === 0 ? -6 : 1 - day;
-
-      const startOfWeek = new Date(now);
-      startOfWeek.setDate(now.getDate() + diffToMonday);
-      startOfWeek.setHours(0, 0, 0, 0);
-
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-      endOfWeek.setHours(23, 59, 59, 999);
-
+      // ---------------------------
+      // 4. Events This Week
+      // date: Firestore Timestamp
+      // ---------------------------
       const eventsRef = collection(
         db,
         "churches",
         churchId as string,
         "events"
       );
+
       const eventsQuery = query(
         eventsRef,
-        where("date", ">=", startOfWeek.toISOString()),
-        where("date", "<=", endOfWeek.toISOString())
+        where("date", ">=", startOfWeek),
+        where("date", "<=", endOfWeek)
       );
+
       const eventsSnap = await getDocs(eventsQuery);
       setEventCount(eventsSnap.size);
 
-      // 5. Attendance This Week (FULLY NORMALIZED)
+      // ---------------------------
+      // 5. Attendance This Week
+      // doc IDs = "YYYY-MM-DD"
+      // ---------------------------
       const attendanceRef = collection(
         db,
         "churches",
@@ -143,11 +158,9 @@ export default function ChurchAdminDashboard() {
         "attendance"
       );
 
-      // Convert week range to ISO strings (YYYY-MM-DD)
       const startIso = startOfWeek.toISOString().slice(0, 10);
       const endIso = endOfWeek.toISOString().slice(0, 10);
 
-      // Query by document ID (because your docs do NOT have a "date" field)
       const attendanceQuery = query(
         attendanceRef,
         where("__name__", ">=", startIso),
@@ -161,13 +174,11 @@ export default function ChurchAdminDashboard() {
       attendanceSnap.forEach(docSnap => {
         const data = docSnap.data();
 
-        // Your actual attendance data is stored in `records`
         const recordCount =
           data.records && typeof data.records === "object"
-            ? Object.keys(data.records).length
+            ? Object.keys(data.records).filter(id => data.records[id] === true).length
             : 0;
 
-        // Visitors (if you ever add them later)
         let visitorCount = 0;
 
         if (typeof data.visitors === "number") {
@@ -182,8 +193,6 @@ export default function ChurchAdminDashboard() {
 
         totalPresent += recordCount + visitorCount;
       });
-
-      console.log("ATTENDANCE TOTAL:", totalPresent, typeof totalPresent);
 
       setAttendanceThisWeek(totalPresent);
 
@@ -213,7 +222,15 @@ export default function ChurchAdminDashboard() {
     );
   }
 
-  if (loading || !church) {
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-foreground">
+        Loading church dashboard…
+      </div>
+    );
+  }
+
+  if (!church) {
     return (
       <div className="flex justify-center items-center min-h-screen text-foreground">
         Loading church dashboard…
@@ -260,6 +277,7 @@ export default function ChurchAdminDashboard() {
               </span>
             )}
           </div>
+
           <div className="flex flex-col">
             <span className="text-sm font-semibold truncate">
               {church.name}
@@ -271,7 +289,12 @@ export default function ChurchAdminDashboard() {
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 text-sm">
-          <SidebarLink href={`/church/${churchId}/admin`} icon={LayoutDashboard} label="Dashboard" active />
+          <SidebarLink
+            href={`/church/${churchId}/admin`}
+            icon={LayoutDashboard}
+            label="Dashboard"
+            active
+          />
           <SidebarLink href="/members" icon={UserPlus} label="Members" />
           <SidebarLink href="/attendance" icon={CalendarCheck} label="Attendance" />
           <SidebarLink href="/calendar" icon={Calendar} label="Events" />
@@ -303,6 +326,7 @@ export default function ChurchAdminDashboard() {
                   Timezone: {church.timezone}
                 </p>
               </div>
+
               <div className="flex items-center gap-3">
                 <span className="inline-flex items-center rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground">
                   Status: {church.status === "active" ? "Active" : "Disabled"}
@@ -335,12 +359,13 @@ export default function ChurchAdminDashboard() {
             />
           </div>
 
-          {/* Quick Actions (now more compact, secondary) */}
+          {/* Quick Actions */}
           <Card className="border border-border bg-card/80">
             <CardHeader className="pb-3">
               <CardTitle>Quick Actions</CardTitle>
               <CardDescription>Jump into key areas of your church.</CardDescription>
             </CardHeader>
+
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <QuickAction href="/attendance" icon={CalendarCheck} label="Attendance" />
               <QuickAction href="/calendar" icon={Calendar} label="Events" />
@@ -404,6 +429,7 @@ function StatCard({
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <CardDescription className="text-xs">{description}</CardDescription>
       </CardHeader>
+
       <CardContent className="pt-1">
         <div className="text-3xl font-semibold tracking-tight">{value}</div>
       </CardContent>
