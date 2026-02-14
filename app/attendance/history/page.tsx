@@ -8,6 +8,7 @@ import { summarizeAttendance } from '@/app/lib/attendance-summary';
 import { AttendanceChart } from '@/app/components/attendance/attendance-chart';
 import { deleteAttendanceDay } from '@/app/lib/attendance';
 import { Button } from '@/app/components/ui/button';
+import { useRouter } from "next/navigation";
 
 import {
   AlertDialog,
@@ -31,6 +32,7 @@ import { AttendanceHistoryControls } from '@/app/components/attendance/Attendanc
 export default function AttendanceHistoryPage() {
   const churchId = useChurchId();
   const { data, loading, refresh } = useAttendanceHistory(churchId);
+  const router = useRouter();
 
   // Summaries (one per date)
   const summary = summarizeAttendance(data);
@@ -77,7 +79,8 @@ export default function AttendanceHistoryPage() {
               {filters.filtered.map((s) => (
                 <tr
                   key={s.dateString}
-                  className="border-b hover:bg-accent"
+                  className="border-b hover:bg-accent cursor-pointer"
+                  onClick={() => router.push(`/attendance?date=${s.dateString}`)}
                 >
                   <td className="py-2 px-2">{s.dateString}</td>
                   <td className="py-2 px-2">{s.present}</td>
@@ -86,7 +89,10 @@ export default function AttendanceHistoryPage() {
                     {Math.round(s.percentage * 100)}%
                   </td>
 
-                  <td className="py-2 px-2">
+                  <td
+                    className="py-2 px-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button

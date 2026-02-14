@@ -13,6 +13,7 @@ import { Fab } from '@/app/components/ui/fab';
 import { AttendanceControls } from '@/app/components/attendance/AttendanceControls';
 import { useRouter } from 'next/navigation';
 import { useToast } from "@/app/hooks/use-toast";
+import { useSearchParams } from "next/navigation";
 
 import {
   Dialog,
@@ -39,9 +40,18 @@ export default function AttendancePage() {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const [date, setDate] = useState(new Date());
-  const dateString = format(date, "yyyy-MM-dd");
+  const searchParams = useSearchParams();
+  const urlDate = searchParams.get("date");
 
+  function parseLocalDate(dateString: string) {
+    const [y, m, d] = dateString.split("-").map(Number);
+    return new Date(y, m - 1, d); // Local time, no UTC shift
+  }
+  const initialDate = urlDate ? parseLocalDate(urlDate) : new Date();
+
+  const [date, setDate] = useState(initialDate);
+  const dateString = format(date, "yyyy-MM-dd");
+  
   // -----------------------------
   // LOAD SETTINGS (PERSISTED VIEW)
   // -----------------------------
@@ -105,6 +115,12 @@ export default function AttendancePage() {
       return next;
     });
   }, [activeMembers, visitors, setRecords]);
+
+  useEffect(() => {
+    if (urlDate) {
+      setDate(parseLocalDate(urlDate));
+    }
+  }, [urlDate]);
 
   // -----------------------------
   // LOADING / PERMISSION STATES
