@@ -14,6 +14,7 @@ import { AttendanceControls } from '@/app/components/attendance/AttendanceContro
 import { useRouter } from 'next/navigation';
 import { useToast } from "@/app/hooks/use-toast";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 import {
   Dialog,
@@ -149,6 +150,8 @@ export default function AttendancePage() {
   // MAIN RENDER
   // -----------------------------
   return (
+    <Suspense fallback={<div className="p-6">Loading…</div>}>
+
     <div className="p-6 space-y-6">
 
       {/* PAGE HEADER WITH PERSISTENT VIEW SWITCH */}
@@ -283,6 +286,7 @@ export default function AttendancePage() {
                       src={photo}
                       alt={name}
                       fill
+                      sizes="(max-width: 768px) 50vw, 25vw"
                       className="object-cover rounded-md"
                     />
                   ) : (
@@ -365,5 +369,6 @@ export default function AttendancePage() {
         />
       )}
     </div>
+  </Suspense>
   );
 }
