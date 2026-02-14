@@ -1,5 +1,6 @@
 'use client';
 
+import AttendancePageContent from "./AttendancePageContent";
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState, useMemo } from 'react';
@@ -153,6 +154,7 @@ export default function AttendancePage() {
   // -----------------------------
   return (
     <Suspense fallback={<div className="p-6">Loading…</div>}>
+    <AttendancePageContent />
 
     <div className="p-6 space-y-6">
 
