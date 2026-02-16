@@ -73,9 +73,18 @@ service cloud.firestore {
       allow list: if isRootAdmin();
     }
 
-    // ---------------------------
-    // CHURCHES/{churchId}
-    // ---------------------------
+    // ---------------------------------------------------------
+    // ⭐ PUBLIC READ ACCESS FOR CHURCH DOCUMENTS (QR CHECK-IN)
+    // ---------------------------------------------------------
+    // This MUST come BEFORE the protected church rules.
+    // Allows the QR check-in page to load the church by slug.
+    match /churches/{churchId} {
+      allow read: if true;
+    }
+
+    // ---------------------------------------------------------
+    // CHURCHES/{churchId} — PROTECTED ACCESS
+    // ---------------------------------------------------------
     match /churches/{churchId} {
 
       // 1. Allow login-time read of the user's own church
@@ -100,6 +109,22 @@ service cloud.firestore {
         allow read: if isChurchMember(churchId);
         allow write: if hasChurchRole(churchId, ["Admin"]);
       }
+    }
+
+    // ---------------------------
+    // EVENTS (top-level)
+    // ---------------------------
+    match /events/{eventId} {
+      allow read: if isUserSignedIn()
+                   && resource.data != null
+                   && isChurchMember(resource.data.churchId);
+
+      allow create, update, delete: if isUserSignedIn()
+                   && resource.data != null
+                   && hasChurchRole(resource.data.churchId, ["Admin"]);
+
+      // Root Admin override
+      allow read, write: if isRootAdmin();
     }
 
     // ---------------------------

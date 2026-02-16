@@ -44,7 +44,7 @@ export async function POST(
       churchId,
       date: dateString,
       issuedAt: Date.now(),
-      exp: Date.now() + TOKEN_EXPIRATION_HOURS * 60 * 60 * 1000,
+      expiresAt: Date.now() + TOKEN_EXPIRATION_HOURS * 60 * 60 * 1000, // ✔ allowed
     };
 
     const signedToken = await adminAuth.createCustomToken(
@@ -55,7 +55,7 @@ export async function POST(
     // ------------------------------
     // RETURN TOKEN + URL
     // ------------------------------
-    const url = `${process.env.NEXT_PUBLIC_APP_URL}/${churchId}/attendance/self-checkin?d=${dateString}&t=${signedToken}`;
+    const url = `${process.env.NEXT_PUBLIC_APP_URL}/check-in/${churchId}?d=${dateString}&t=${signedToken}`;
 
     return NextResponse.json({
       token: signedToken,
