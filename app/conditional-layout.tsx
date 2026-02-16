@@ -6,8 +6,11 @@ import Header from './components/layout/Header';
 export function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  // Do not show header on login page
-  if (pathname === '/login') {
+  const hideHeader =
+    pathname === '/login' ||
+    pathname.includes('/attendance/self-checkin');
+
+  if (hideHeader) {
     return <>{children}</>;
   }
 

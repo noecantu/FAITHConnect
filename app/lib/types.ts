@@ -54,8 +54,8 @@ export type ContributionRecord = {
 export type Event = {
   id: string;
   title: string;
-  dateString: string; // "YYYY-MM-DD"
-  date: Date;         // derived
+  dateString: string;
+  date: Date;
   description?: string;
 };
 
@@ -68,6 +68,7 @@ export type Member = {
   photoUrl: string;
   id: string;
   userId?: string | null;
+  checkInCode: string;
   firstName: string;
   lastName: string;
   email?: string;
@@ -83,6 +84,14 @@ export type Member = {
   anniversary?: string;
 };
 
+export type MemberFirestore = Omit<Member, "birthday" | "baptismDate" | "anniversary"> & {
+  birthday?: Timestamp;
+  baptismDate?: Timestamp;
+  anniversary?: Timestamp;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+};
+
 export type Mode = 'list' | 'create' | 'edit' | 'confirm-delete';
 
 export type Relationship = {
@@ -95,15 +104,10 @@ export type Relationship = {
 export interface ServicePlan {
   id: string;
   title: string;
-
-  // Canonical stored fields
-  dateString: string;   // "2026-02-10"
-  timeString: string;   // "18:30"
-
-  // Derived fields (not stored)
-  date: Date;           // from dateString
-  dateTime: Date;       // from dateString + timeString
-
+  dateString: string;
+  timeString: string;
+  date: Date;
+  dateTime: Date;
   notes: string;
   sections: ServicePlanSection[];
 
@@ -135,20 +139,14 @@ export interface SetList {
   id: string;
   churchId: string;
   title: string;
-
   dateString: string;
   timeString: string;
-
-  // Derived (not stored)
   date: Date;
   dateTime: Date;
-
   sections: SetListSection[];
-
   createdBy: string;
   createdAt: number;
   updatedAt: number;
-
   serviceType: 'Sunday' | 'Midweek' | 'Special' | null;
   serviceNotes?: {
     theme?: string | null;
@@ -159,24 +157,18 @@ export interface SetList {
 
 export interface SetListFirestore {
   title: string;
-
-  // Canonical date/time fields stored in Firestore
-  dateString: string;   // "2026-02-10"
-  timeString: string;   // "18:30"
-
+  dateString: string;
+  timeString: string;
   sections: SetListSection[];
-
   createdBy: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
-
   serviceType: 'Sunday' | 'Midweek' | 'Special' | null;
   serviceNotes?: {
     theme?: string | null;
     scripture?: string | null;
     notes?: string | null;
   } | null;
-
   churchId: string;
 }
 

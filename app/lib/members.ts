@@ -6,10 +6,12 @@ import {
   query,
   serverTimestamp,
   Timestamp,
-  runTransaction
+  runTransaction,
+  getDocs,
+  where,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import type { Member, Relationship } from "./types";
+import type { Member, MemberFirestore, Relationship } from "./types";
 import { removeUndefineds } from "./utils";
 
 const RECIPROCAL_TYPES: Record<string, string> = {
@@ -26,6 +28,32 @@ function getReciprocalType(type: string): string {
   return RECIPROCAL_TYPES[type] || type;
 }
 
+function generateCheckInCode(length = 6) {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no I, O, 1, 0
+  let code = "";
+  for (let i = 0; i < length; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+async function generateUniqueCheckInCode(churchId: string): Promise<string> {
+  let code = "";
+  let exists = true;
+
+  while (exists) {
+    code = generateCheckInCode();
+
+    const membersRef = collection(db, "churches", churchId, "members");
+    const q = query(membersRef, where("checkInCode", "==", code));
+    const snap = await getDocs(q);
+
+    exists = !snap.empty;
+  }
+
+  return code;
+}
+
 // ------------------------------
 // ADD MEMBER
 // ------------------------------
@@ -33,6 +61,8 @@ export async function addMember(
   churchId: string,
   data: Partial<Omit<Member, "id">> & { id: string }
 ) {
+  const checkInCode = await generateUniqueCheckInCode(churchId);
+
   await runTransaction(db, async (transaction) => {
     const relationships = data.relationships ?? [];
 
@@ -83,19 +113,29 @@ export async function addMember(
 
     const memberRef = doc(db, "churches", churchId, "members", data.id);
 
-    const payload: any = {
-      ...data,
+    const {
+      birthday,
+      baptismDate,
+      anniversary,
+      ...rest
+    } = data;
+
+    const payload: Partial<MemberFirestore> = {
+      ...rest,
+      checkInCode,
       phoneNumber: data.phoneNumber?.replace(/\D/g, "") || undefined,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      createdAt: serverTimestamp() as Timestamp,
+      updatedAt: serverTimestamp() as Timestamp,
     };
 
-    if (data.birthday)
-      payload.birthday = Timestamp.fromDate(new Date(data.birthday));
-    if (data.baptismDate)
-      payload.baptismDate = Timestamp.fromDate(new Date(data.baptismDate));
-    if (data.anniversary)
-      payload.anniversary = Timestamp.fromDate(new Date(data.anniversary));
+    if (birthday)
+      payload.birthday = Timestamp.fromDate(new Date(birthday));
+
+    if (baptismDate)
+      payload.baptismDate = Timestamp.fromDate(new Date(baptismDate));
+
+    if (anniversary)
+      payload.anniversary = Timestamp.fromDate(new Date(anniversary));
 
     delete payload.id;
 
@@ -121,31 +161,42 @@ export async function updateMember(
     const oldRels = currentMember.relationships ?? [];
     const newRels = data.relationships;
 
-    // If relationships not provided, simple update
+    // ------------------------------
+    // SIMPLE UPDATE (no relationships)
+    // ------------------------------
     if (!newRels) {
-      const payload: any = {
-        ...data,
+      const {
+        birthday,
+        baptismDate,
+        anniversary,
+        ...rest
+      } = data;
+
+      const payload: Partial<MemberFirestore> = {
+        ...rest,
         phoneNumber: data.phoneNumber?.replace(/\D/g, "") || undefined,
-        updatedAt: serverTimestamp(),
+        updatedAt: serverTimestamp() as Timestamp,
       };
 
-      if (data.birthday)
-        payload.birthday = Timestamp.fromDate(new Date(data.birthday));
-      if (data.baptismDate)
-        payload.baptismDate = Timestamp.fromDate(new Date(data.baptismDate));
-      if (data.anniversary)
-        payload.anniversary = Timestamp.fromDate(new Date(data.anniversary));
+      if (birthday)
+        payload.birthday = Timestamp.fromDate(new Date(birthday));
+
+      if (baptismDate)
+        payload.baptismDate = Timestamp.fromDate(new Date(baptismDate));
+
+      if (anniversary)
+        payload.anniversary = Timestamp.fromDate(new Date(anniversary));
 
       transaction.update(memberRef, removeUndefineds(payload));
       return;
     }
 
-    // Identify all related members
+    // ------------------------------
+    // RELATIONSHIP UPDATE LOGIC
+    // ------------------------------
     const oldIds = oldRels.map((r) => r.memberIds[1]);
     const newIds = newRels.map((r) => r.memberIds[1]);
-    const allRelatedIds = Array.from(new Set([...oldIds, ...newIds])).filter(
-      Boolean
-    );
+    const allRelatedIds = Array.from(new Set([...oldIds, ...newIds])).filter(Boolean);
 
     const relatedRefs = allRelatedIds.map((id) =>
       doc(db, "churches", churchId, "members", id)
@@ -187,9 +238,7 @@ export async function updateMember(
       } else if (!newRel && oldRel) {
         // Remove reciprocal
         const before = relatedRels.length;
-        relatedRels = relatedRels.filter(
-          (r) => r.memberIds[1] !== memberId
-        );
+        relatedRels = relatedRels.filter((r) => r.memberIds[1] !== memberId);
         if (relatedRels.length !== before) changed = true;
       } else if (newRel && oldRel) {
         // Modify reciprocal
@@ -224,19 +273,30 @@ export async function updateMember(
       }
     });
 
-    // Update main member
-    const payload: any = {
-      ...data,
+    // ------------------------------
+    // UPDATE MAIN MEMBER
+    // ------------------------------
+    const {
+      birthday,
+      baptismDate,
+      anniversary,
+      ...rest
+    } = data;
+
+    const payload: Partial<MemberFirestore> = {
+      ...rest,
       phoneNumber: data.phoneNumber?.replace(/\D/g, "") || undefined,
-      updatedAt: serverTimestamp(),
+      updatedAt: serverTimestamp() as Timestamp,
     };
 
-    if (data.birthday)
-      payload.birthday = Timestamp.fromDate(new Date(data.birthday));
-    if (data.baptismDate)
-      payload.baptismDate = Timestamp.fromDate(new Date(data.baptismDate));
-    if (data.anniversary)
-      payload.anniversary = Timestamp.fromDate(new Date(data.anniversary));
+    if (birthday)
+      payload.birthday = Timestamp.fromDate(new Date(birthday));
+
+    if (baptismDate)
+      payload.baptismDate = Timestamp.fromDate(new Date(baptismDate));
+
+    if (anniversary)
+      payload.anniversary = Timestamp.fromDate(new Date(anniversary));
 
     transaction.update(memberRef, removeUndefineds(payload));
   });
@@ -305,11 +365,12 @@ export function listenToMembers(
         return {
           id: docSnap.id,
           userId: raw.userId ?? null,
+          checkInCode: raw.checkInCode ?? "",
           firstName: raw.firstName ?? null,
           lastName: raw.lastName ?? null,
           email: raw.email ?? "",
           phoneNumber: raw.phoneNumber?.replace(/\D/g, "") ?? "",
-          profilePhotoUrl: raw.profilePhotoUrl ?? "",
+          photoUrl: raw.profilePhotoUrl ?? "",
           status: raw.status ?? "",
           address: raw.address ?? "",
           birthday: raw.birthday
