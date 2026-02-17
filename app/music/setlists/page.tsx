@@ -107,7 +107,7 @@ export default function SetListsPage() {
   // RENDER
   // -----------------------------
   return (
-    <div className="space-y-6">
+    <>
 
       <PageHeader
         title={`Set Lists (${lists.length})`}
@@ -212,6 +212,6 @@ export default function SetListsPage() {
         />
       )}
 
-    </div>
+    </>
   );
 }

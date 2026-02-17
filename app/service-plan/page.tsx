@@ -2,13 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Input } from '../components/ui/input';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '../components/ui/select';
 
 import { getServicePlans } from '../lib/servicePlans';
 import type { ServicePlan } from '../lib/types';
@@ -17,6 +10,7 @@ import { PageHeader } from '../components/page-header';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { Fab } from '../components/ui/fab';
+import { Button } from '../components/ui/button';
 
 export default function ServicePlanPage() {
   const churchId = 'default-church';
@@ -79,55 +73,70 @@ export default function ServicePlanPage() {
   }, [plans, search, sort, filter]);
 
   return (
-    // <div className="space-y-6 p-6">
     <>
       <PageHeader
         title={`Service Plans (${plans.length})`}
         subtitle="Each row represents a full service plan."
       />
 
-      {/* Controls */}
-      <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between">
+      {/* Sticky Search + Sort Bar */}
+      <div className="sticky top-16 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="w-full flex items-center gap-2 py-2">
 
-        {/* Search */}
-        <Input
-          placeholder="Search service plans…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="md:w-1/3"
-        />
+          <Input
+            className="w-full"
+            placeholder="Search service plans..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
 
-        <div className="flex gap-4">
+          {search.length > 0 && (
+            <Button
+              variant="outline"
+              onClick={() => setSearch('')}
+              className="shrink-0"
+            >
+              Clear
+            </Button>
+          )}
 
-          {/* Filter */}
-          <Select
-            value={filter}
-            onValueChange={(v) => setFilter(v as 'all' | 'future' | 'past')}
-          >
-            <SelectTrigger className="w-36">
-              <SelectValue placeholder="Filter" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="future">Future</SelectItem>
-              <SelectItem value="past">Past</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-3 shrink-0">
 
-          {/* Sort */}
-          <Select
-            value={sort}
-            onValueChange={(v) => setSort(v as 'newest' | 'oldest' | 'title')}
-          >
-            <SelectTrigger className="w-36">
-              <SelectValue placeholder="Sort" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="oldest">Oldest</SelectItem>
-              <SelectItem value="title">Title A–Z</SelectItem>
-            </SelectContent>
-          </Select>
+            {/* Filter */}
+            <div className="flex items-center gap-1">
+              <span className="text-sm text-muted-foreground"> Filter: </span>
+
+              <select
+                value={filter}
+                onChange={(e) =>
+                  setFilter(e.target.value as 'all' | 'future' | 'past')
+                }
+                className="border rounded px-2 py-1 text-sm bg-background"
+              >
+                <option value="all">All</option>
+                <option value="future">Future</option>
+                <option value="past">Past</option>
+              </select>
+            </div>
+
+            {/* Sort */}
+            <div className="flex items-center gap-1">
+              <span className="text-sm text-muted-foreground"> Sort: </span>
+
+              <select
+                value={sort}
+                onChange={(e) =>
+                  setSort(e.target.value as 'newest' | 'oldest' | 'title')
+                }
+                className="border rounded px-2 py-1 text-sm bg-background"
+              >
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+                <option value="title">Title A–Z</option>
+              </select>
+            </div>
+
+          </div>
 
         </div>
       </div>
