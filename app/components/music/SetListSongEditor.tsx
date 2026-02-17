@@ -35,6 +35,7 @@ export function SetListSongEditor({
         bpm: song.bpm,
         timeSignature: song.timeSignature,
         notes: '',
+        id: ''
       },
     ]);
     setSearch('');
@@ -115,7 +116,6 @@ export function SetListSongEditor({
 
 function SongItem({
   entry,
-  index,
   isFirst,
   isLast,
   onRemove,

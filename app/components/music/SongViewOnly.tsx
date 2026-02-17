@@ -24,10 +24,22 @@ export default function SongViewOnly({ songId }: { songId: string }) {
     <div className="p-4 space-y-6">
       <h1 className="text-3xl font-semibold">{song.title}</h1>
 
-      <div className="text-gray-500 space-x-4">
+      <div className="text-gray-500 flex items-center gap-4">
         <span>Key: {song.key}</span>
-        <span>BPM: {song.bpm}</span>
-        <span>Time: {song.timeSignature}</span>
+
+        {song.bpm && (
+          <>
+            <span>|</span>
+            <span>BPM: {song.bpm}</span>
+          </>
+        )}
+
+        {song.timeSignature && (
+          <>
+            <span>|</span>
+            <span>Time: {song.timeSignature}</span>
+          </>
+        )}
       </div>
 
       <div className="flex gap-3">
