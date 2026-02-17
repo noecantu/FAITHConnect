@@ -27,6 +27,7 @@ export default function SongViewOnly({ songId }: { songId: string }) {
       <div className="text-gray-500 space-x-4">
         <span>Key: {song.key}</span>
         <span>BPM: {song.bpm}</span>
+        <span>Time: {song.timeSignature}</span>
       </div>
 
       <div className="flex gap-3">
