@@ -36,7 +36,7 @@ import { useMemberForm } from "../../hooks/useMemberForm";
 import { useMemberRelationships } from "../../hooks/useMemberRelationships";
 import { usePhotoCapture } from "../../hooks/usePhotoCapture";
 import { MemberForm } from "./components/MemberForm";
-import { useChurchId } from "../../hooks/useChurchId";   // ← NEW
+import { useChurchId } from "../../hooks/useChurchId";
 
 interface MemberFormSheetProps {
   member?: Member;
@@ -48,7 +48,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
 
   const titleRef = useRef<HTMLHeadingElement | null>(null);
 
-  const churchId = useChurchId();   // ← NEW
+  const churchId = useChurchId();
 
   const { form, isEditMode, onSubmit, handleDeleteMember } = useMemberForm(
     member,
@@ -112,8 +112,8 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
               fileInputRef,
               setIsTakingPhoto,
             }}
-            churchId={churchId}   // ← UPDATED
-            member={member}       // ← REQUIRED FOR RolesSection
+            churchId={churchId}
+            member={member}
           />
         </div>
 

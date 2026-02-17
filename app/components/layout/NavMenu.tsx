@@ -98,7 +98,7 @@ export function NavMenu() {
       });
     }
   };
-
+console.log("NavMenu rendered on:", typeof window === "undefined" ? "server" : "client");
   return (
     <>
       <DropdownMenu modal={false}>

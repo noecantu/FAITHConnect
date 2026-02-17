@@ -104,7 +104,7 @@ export function useMemberForm(member: Member | undefined, opts: UseMemberFormOpt
         photoFile: null,
       });
     }
-  }, [isOpen, isEditMode, member, form.reset]);
+  }, [isOpen, isEditMode, member, form]);
 
   const handleDeleteMember = async () => {
     if (!isEditMode || !member || !churchId) {

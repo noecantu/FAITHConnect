@@ -70,7 +70,6 @@ export type Family = {
 };
 
 export type Member = {
-  photoUrl: string;
   id: string;
   userId?: string | null;
   checkInCode: string;

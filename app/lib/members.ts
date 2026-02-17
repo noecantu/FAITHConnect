@@ -370,7 +370,7 @@ export function listenToMembers(
           lastName: raw.lastName ?? null,
           email: raw.email ?? "",
           phoneNumber: raw.phoneNumber?.replace(/\D/g, "") ?? "",
-          photoUrl: raw.profilePhotoUrl ?? "",
+          profilePhotoUrl: raw.profilePhotoUrl ?? "",
           status: raw.status ?? "",
           address: raw.address ?? "",
           birthday: raw.birthday
@@ -386,6 +386,7 @@ export function listenToMembers(
           notes: raw.notes ?? "",
           relationships: raw.relationships ?? [],
         };
+
       });
 
       callback(members);

@@ -1,70 +1,68 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
 import { db } from "@/app/lib/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { query, collection, where, getDocs } from "firebase/firestore";
 import SelfCheckIn from "./SelfCheckIn";
 import type { Church } from "@/app/lib/types";
+import type { DocumentData } from "firebase/firestore";
 
-export default function CheckInPage() {
-  const params = useParams();
-  const searchParams = useSearchParams();
+interface CheckInPageProps {
+  params: Promise<{ churchId: string }>;
+  searchParams: Promise<{ t?: string; d?: string }>;
+}
 
-  const churchId = params.churchId as string;
-  const token = searchParams.get("t");
-  const date = searchParams.get("d");
+export default async function CheckInPage({ params, searchParams }: CheckInPageProps) {
+  const { churchId } = await params;
+  const { t: token, d: date } = await searchParams;
 
-  const [church, setChurch] = useState<Church | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Fetch church on the server
+  const q = query(
+    collection(db, "churches"),
+    where("slug", "==", churchId)
+  );
 
-  useEffect(() => {
-    async function load() {
-      const q = query(
-        collection(db, "churches"),
-        where("slug", "==", churchId)
-      );
+  const snapshot = await getDocs(q);
 
-      const snapshot = await getDocs(q);
-
-      if (snapshot.empty) {
-        setChurch(null);
-        setLoading(false);
-        return;
-      }
-
-      const data = snapshot.docs[0].data();
-
-      const churchData: Church = {
-        id: snapshot.docs[0].id,
-        name: data.name,
-        slug: data.slug,
-        timezone: data.timezone,
-        logoUrl: data.logoUrl ?? null,
-        description: data.description ?? null,
-        status: data.status ?? null,
-        createdAt: data.createdAt ?? null,
-        updatedAt: data.updatedAt ?? null,
-      };
-
-      setChurch(churchData);
-      setLoading(false);
-    }
-
-    load();
-  }, [churchId]);
-
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center text-slate-200">Loading…</div>;
+  if (snapshot.empty) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-slate-200">
+        Church not found.
+      </div>
+    );
   }
 
-  if (!church) {
-    return <div className="min-h-screen flex items-center justify-center text-slate-200">Church not found.</div>;
-  }
+  const raw: DocumentData = snapshot.docs[0].data();
+
+  const church: Church = {
+    id: snapshot.docs[0].id,
+    name: raw.name,
+    slug: raw.slug,
+    timezone: raw.timezone,
+
+    logoUrl: raw.logoUrl ?? null,
+    description: raw.description ?? null,
+    status: raw.status ?? null,
+
+    createdAt: raw.createdAt?.toDate?.().toISOString() ?? null,
+    updatedAt: raw.updatedAt?.toDate?.().toISOString() ?? null,
+    enabledAt: raw.enabledAt ?? null,
+    disabledAt: raw.disabledAt ?? null,
+
+    address: raw.address ?? null,
+    phone: raw.phone ?? null,
+  };
 
   if (!token || !date) {
-    return <div className="min-h-screen flex items-center justify-center text-slate-200">Invalid check‑in link.</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center text-slate-200">
+        Invalid check‑in link.
+      </div>
+    );
   }
 
-  return <SelfCheckIn church={church} token={token} date={date} />;
+  return (
+    <SelfCheckIn
+      church={church}
+      token={token}
+      date={date}
+    />
+  );
 }

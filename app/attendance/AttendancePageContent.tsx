@@ -261,14 +261,14 @@ export default function AttendancePageContent() {
         onHistory={() => router.push("/attendance/history")}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
 
         {/* GENERATE QR */}
         <Button
           onClick={handleGenerateQr}
           variant="default"
           disabled={qrLoading}
-          className="h-[72px] w-full flex flex-col items-center justify-center text-center gap-1 border"
+          className="w-full flex flex-col items-center justify-center text-center gap-1 border"
         >
           <span className="text-sm text-white/80">
             {qrLoading ? "Generating..." : "Generate QR"}
@@ -280,9 +280,8 @@ export default function AttendancePageContent() {
           <DialogTrigger asChild>
             <Button
               variant="default"
-              className="h-[72px] w-full flex flex-col items-center justify-center text-center gap-1 border"
+              className="w-full flex flex-col items-center justify-center text-center gap-1 border"
             >
-              {/* <span className="text-3xl text-white/70 leading-none">+</span> */}
               <span className="text-sm text-white/80">Add Visitor</span>
             </Button>
           </DialogTrigger>
