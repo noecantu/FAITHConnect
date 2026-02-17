@@ -100,7 +100,7 @@ export default function CalendarPage() {
   })();
 
   return (
-    <div className="space-y-6 p-6">
+    <>
 
       {/* PAGE HEADER — unchanged except for radio buttons */}
       <PageHeader
@@ -172,6 +172,6 @@ export default function CalendarPage() {
       {isEventManager && (
         <Fab type="add" onClick={() => dialogs.handleAdd(new Date())} />
       )}
-    </div>
+    </>
   );
 }

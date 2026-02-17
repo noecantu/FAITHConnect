@@ -222,7 +222,7 @@ export default function AttendancePageContent() {
 
   // MAIN RENDER
   return (
-    <div className="p-6 space-y-6">
+    <>
 
       {/* PAGE HEADER */}
       <PageHeader title="Attendance" subtitle={dateString}>
@@ -475,6 +475,6 @@ export default function AttendancePageContent() {
           </DialogContent>
         </Dialog>
 
-    </div>
+    </>
   );
 }

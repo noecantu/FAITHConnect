@@ -79,7 +79,8 @@ export default function ServicePlanPage() {
   }, [plans, search, sort, filter]);
 
   return (
-    <div className="space-y-6 p-6">
+    // <div className="space-y-6 p-6">
+    <>
       <PageHeader
         title={`Service Plans (${plans.length})`}
         subtitle="Each row represents a full service plan."
@@ -175,6 +176,6 @@ export default function ServicePlanPage() {
       )}
 
       <Fab type="add" onClick={() => router.push('/service-plan/new')} />
-    </div>
+    </>
   );
 }

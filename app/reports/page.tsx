@@ -95,7 +95,7 @@ export default function ReportsPage() {
   });
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 p-4 lg:p-6">
+    <>
       
       {/* LEFT PANEL — Filters */}
       <Card className="w-full lg:w-80 h-fit">
@@ -199,6 +199,6 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
 
-    </div>
+    </>
   );
 }
