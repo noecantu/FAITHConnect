@@ -295,9 +295,9 @@ export default function ChurchAdminDashboard() {
             label="Dashboard"
             active
           />
-          <SidebarLink href="/members" icon={UserPlus} label="Members" />
           <SidebarLink href="/attendance" icon={CalendarCheck} label="Attendance" />
           <SidebarLink href="/calendar" icon={Calendar} label="Events" />
+          <SidebarLink href="/members" icon={UserPlus} label="Members" />
           <SidebarLink href="/service-plan" icon={CalendarHeart} label="Service Plans" />
           <SidebarLink href="/music/setlists" icon={Music} label="Set Lists" />
         </nav>

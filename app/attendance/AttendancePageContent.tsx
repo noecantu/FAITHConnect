@@ -14,6 +14,7 @@ import { Fab } from "@/app/components/ui/fab";
 import { AttendanceControls } from "@/app/components/attendance/AttendanceControls";
 import { useToast } from "@/app/hooks/use-toast";
 import { nanoid } from "nanoid";
+import { QRCodeCanvas } from "qrcode.react";
 
 import {
   Dialog,
@@ -21,7 +22,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter
+  DialogFooter,
+  DialogDescription
 } from "@/app/components/ui/dialog";
 
 import { Input } from "@/app/components/ui/input";
@@ -51,6 +53,9 @@ export default function AttendancePageContent() {
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [qrOpen, setQrOpen] = useState(false);
+  const [qrLoading, setQrLoading] = useState(false);
 
   function fallbackCopy(text: string) {
     const textarea = document.createElement("textarea");
@@ -103,10 +108,6 @@ export default function AttendancePageContent() {
     [members]
   );
 
-  const [qrLoading, setQrLoading] = useState(false);
-
-  console.log("QR churchId:", churchId);
-
   // -----------------------------
   // QR Generator
   // -----------------------------
@@ -114,7 +115,6 @@ export default function AttendancePageContent() {
     try {
       setQrLoading(true);
 
-      // 1. Generate token client-side
       const tempToken = nanoid(24);
       const today = new Date();
       const dateString = today.toISOString().split("T")[0];
@@ -122,20 +122,22 @@ export default function AttendancePageContent() {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL as string;
       const url = `${baseUrl}/check-in/${churchId}?t=${tempToken}&d=${dateString}`;
 
-      // 2. Copy synchronously BEFORE any async
+      // Save URL so the QR code can render
+      setQrUrl(url);
+      setQrOpen(true);
+
+      // Copy to clipboard
       try {
         navigator.clipboard.writeText(url);
-      } catch (_err) {
+      } catch {
         fallbackCopy(url);
       }
 
-      // 3. Show toast immediately
       toast({
         title: "QR Generated",
         description: "The check‑in link has been copied to your clipboard.",
       });
 
-      // 4. Now do async work (register token)
       const idToken = await auth.currentUser?.getIdToken();
 
       await fetch(`/api/${churchId}/attendance/generate-token`, {
@@ -146,7 +148,7 @@ export default function AttendancePageContent() {
         },
         body: JSON.stringify({
           date: dateString,
-          token: tempToken, // send the token we already used
+          token: tempToken,
         }),
       });
 
@@ -208,6 +210,16 @@ export default function AttendancePageContent() {
     );
   }
 
+  function downloadQr() {
+    const canvas = document.getElementById("qr-canvas") as HTMLCanvasElement | null;
+    if (!canvas) return;
+
+    const link = document.createElement("a");
+    link.download = "attendance-qr.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  }
+
   // MAIN RENDER
   return (
     <div className="p-6 space-y-6">
@@ -254,9 +266,9 @@ export default function AttendancePageContent() {
         {/* GENERATE QR */}
         <Button
           onClick={handleGenerateQr}
-          variant="outline"
+          variant="default"
           disabled={qrLoading}
-          className="h-[72px] w-full flex flex-col items-center justify-center text-center gap-1 border border-dashed border-white/20 hover:bg-white/5"
+          className="h-[72px] w-full flex flex-col items-center justify-center text-center gap-1 border"
         >
           <span className="text-sm text-white/80">
             {qrLoading ? "Generating..." : "Generate QR"}
@@ -267,10 +279,10 @@ export default function AttendancePageContent() {
         <Dialog>
           <DialogTrigger asChild>
             <Button
-              variant="outline"
-              className="h-[72px] w-full flex flex-col items-center justify-center text-center gap-1 border border-dashed border-white/20 hover:bg-white/5"
+              variant="default"
+              className="h-[72px] w-full flex flex-col items-center justify-center text-center gap-1 border"
             >
-              <span className="text-3xl text-white/70 leading-none">+</span>
+              {/* <span className="text-3xl text-white/70 leading-none">+</span> */}
               <span className="text-sm text-white/80">Add Visitor</span>
             </Button>
           </DialogTrigger>
@@ -435,6 +447,35 @@ export default function AttendancePageContent() {
           await save();
           toast({ title: "Attendance saved" });
         } } type={"save"}      />
+
+        <Dialog open={qrOpen} onOpenChange={setQrOpen}>
+          <DialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+            <DialogHeader>
+              <DialogTitle>Attendance QR Code</DialogTitle>
+              <DialogDescription>
+                Scan or share this code to check in.
+              </DialogDescription>
+            </DialogHeader>
+
+            {qrUrl && (
+              <div className="flex flex-col items-center gap-4 py-4">
+                <QRCodeCanvas value={qrUrl} size={200} id="qr-canvas" />
+
+                <Button
+                  onClick={downloadQr}
+                  className="w-full"
+                >
+                  Download QR
+                </Button>
+
+                <div className="text-xs text-white/60 break-all text-center">
+                  {qrUrl}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
     </div>
   );
 }
