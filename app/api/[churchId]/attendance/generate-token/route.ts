@@ -1,69 +1,88 @@
-import { NextRequest, NextResponse } from "next/server";
-import { adminAuth } from "@/lib/firebase/firebaseAdmin";
-import { getUserRolesForChurch } from "@/app/lib/server/getUserRolesForChurch";
+import { NextResponse } from "next/server";
+import { nanoid } from "nanoid";
+import { adminAuth, adminDb } from "@/lib/firebase/firebaseAdmin";
+import { FieldValue } from "firebase-admin/firestore";
 
-const TOKEN_EXPIRATION_HOURS = 24;
-
-export async function POST(
-  req: NextRequest,
-  context: { params: Promise<{ churchId: string }> }
-) {
+export async function POST(req: Request, context: { params: Promise<{ churchId: string }> }) {
   try {
+    // -----------------------------
+    // 1. UNWRAP PARAMS (Next.js 15)
+    // -----------------------------
     const { churchId } = await context.params;
 
-    // ------------------------------
-    // AUTHENTICATE USER
-    // ------------------------------
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Missing auth token" }, { status: 401 });
-    }
-
-    const idToken = authHeader.replace("Bearer ", "");
-    const decoded = await adminAuth.verifyIdToken(idToken);
-
-    // ------------------------------
-    // AUTHORIZE USER
-    // ------------------------------
-    const roles = await getUserRolesForChurch(decoded.uid, churchId);
-
-    if (!roles.some(r => r === "Admin" || r === "AttendanceManager")) {
+    if (!churchId) {
       return NextResponse.json(
-        { error: "Not authorized to generate attendance tokens" },
-        { status: 403 }
+        { error: "Missing churchId in route params" },
+        { status: 400 }
       );
     }
 
-    // ------------------------------
-    // GENERATE DATE-BOUND TOKEN
-    // ------------------------------
-    const today = new Date();
-    const dateString = today.toISOString().split("T")[0]; // YYYY-MM-DD
+    // -----------------------------
+    // 2. AUTH CHECK
+    // -----------------------------
+    const authHeader = req.headers.get("Authorization");
 
-    const payload = {
-      churchId,
-      date: dateString,
-      issuedAt: Date.now(),
-      expiresAt: Date.now() + TOKEN_EXPIRATION_HOURS * 60 * 60 * 1000, // ✔ allowed
-    };
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Missing or invalid Authorization header" },
+        { status: 401 }
+      );
+    }
 
-    const signedToken = await adminAuth.createCustomToken(
-      `attendance-${churchId}-${dateString}`,
-      payload
+    const idToken = authHeader.replace("Bearer ", "");
+
+    let decoded;
+    try {
+      decoded = await adminAuth.verifyIdToken(idToken);
+    } catch (err) {
+      console.error("Token verification failed:", err);
+      return NextResponse.json(
+        { error: "Invalid or expired token" },
+        { status: 401 }
+      );
+    }
+
+    // -----------------------------
+    // 3. PARSE BODY
+    // -----------------------------
+    const { date } = await req.json();
+
+    if (!date) {
+      return NextResponse.json(
+        { error: "Missing date" },
+        { status: 400 }
+      );
+    }
+
+    // -----------------------------
+    // 4. GENERATE TOKEN
+    // -----------------------------
+    const token = nanoid(24);
+
+    // -----------------------------
+    // 5. STORE TOKEN
+    // -----------------------------
+    await adminDb
+      .collection("attendanceTokens")
+      .doc(token)
+      .set({
+        churchId,
+        date,
+        createdAt: FieldValue.serverTimestamp(),
+        createdBy: decoded.uid,
+      });
+
+    // -----------------------------
+    // 6. BUILD URL
+    // -----------------------------
+    const url = `/check-in/${churchId}?t=${token}&d=${date}`;
+
+    return NextResponse.json({ token, url });
+  } catch (err) {
+    console.error("QR generation error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
     );
-
-    // ------------------------------
-    // RETURN TOKEN + URL
-    // ------------------------------
-    const url = `${process.env.NEXT_PUBLIC_APP_URL}/check-in/${churchId}?d=${dateString}&t=${signedToken}`;
-
-    return NextResponse.json({
-      token: signedToken,
-      date: dateString,
-      url,
-    });
-  } catch (err: unknown) {
-    console.error("QR token generation error:", err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

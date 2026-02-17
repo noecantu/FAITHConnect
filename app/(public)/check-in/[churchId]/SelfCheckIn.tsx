@@ -2,18 +2,20 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import type { Church } from "./page";
+import type { Church } from "../../../lib/types";
 
 interface SelfCheckInProps {
   church: Church;
+  token: string;
+  date: string;
 }
 
-export default function SelfCheckIn({ church }: SelfCheckInProps) {
+export default function SelfCheckIn({ church, token, date }: SelfCheckInProps) {
   const searchParams = useSearchParams();
 
-  // QR parameters
-  const token = searchParams.get("t");
-  const date = searchParams.get("d");
+  console.log("FULL URL:", window.location.href);
+  console.log("TOKEN:", searchParams.get("t"));
+  console.log("DATE:", searchParams.get("d"));
 
   // UI state
   const [code, setCode] = useState("");

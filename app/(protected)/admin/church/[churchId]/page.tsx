@@ -5,7 +5,6 @@ import { useParams } from "next/navigation";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "@/app/lib/firebase";
 import Image from "next/image";
-import QRCode from "react-qr-code";
 
 import {
   doc,
@@ -49,49 +48,6 @@ export default function ChurchAdminDashboard() {
   const [serviceCount, setServiceCount] = useState(0);
   const [eventCount, setEventCount] = useState(0);
   const [attendanceThisWeek, setAttendanceThisWeek] = useState(0);
-
-  // ---------------------------
-  // QR Generator State
-  // ---------------------------
-  const [qrLoading, setQrLoading] = useState(false);
-  const [qrUrl, setQrUrl] = useState<string | null>(null);
-  const [qrError, setQrError] = useState("");
-  const [qrOpen, setQrOpen] = useState(false);
-
-  async function generateQr() {
-    try {
-      setQrLoading(true);
-      setQrError("");
-      setQrUrl(null);
-
-      const idToken = await user?.getIdToken();
-
-      const res = await fetch(`/api/${churchId}/attendance/generate-token`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
-
-      const data = await res.json();
-
-      console.log("QR API response:", data);
-
-      if (!res.ok) {
-        setQrError(data.error || "Failed to generate QR code");
-        setQrLoading(false);
-        return;
-      }
-
-      setQrUrl(data.url);
-      setQrOpen(true);
-      setQrLoading(false);
-    } catch (err) {
-      console.error(err);
-      setQrError("Something went wrong.");
-      setQrLoading(false);
-    }
-  }
 
   useEffect(() => {
     async function load() {
@@ -411,15 +367,6 @@ export default function ChurchAdminDashboard() {
             </CardHeader>
 
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <Button
-                onClick={generateQr}
-                variant="outline"
-                className="w-full justify-start gap-2 border-border bg-background/60 hover:bg-muted/70"
-                disabled={qrLoading}
-              >
-                <CalendarCheck className="h-4 w-4 text-foreground/70" />
-                {qrLoading ? "Generating QR..." : "Generate Attendance QR"}
-              </Button>
               <QuickAction href="/attendance" icon={CalendarCheck} label="Attendance" />
               <QuickAction href="/calendar" icon={Calendar} label="Events" />
               <QuickAction href="/members" icon={UserPlus} label="Members" />
@@ -428,43 +375,6 @@ export default function ChurchAdminDashboard() {
             </CardContent>
           </Card>
         </div>
-        {qrOpen && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-card border border-border rounded-xl p-6 w-full max-w-sm text-center space-y-4">
-              <h2 className="text-lg font-semibold">Attendance QR Code</h2>
-
-              {qrError && <p className="text-red-400">{qrError}</p>}
-
-              {qrUrl && (
-                <>
-                  <div className="bg-white p-4 rounded-md inline-block mx-auto">
-                    <QRCode value={qrUrl} size={200} />
-                  </div>
-
-                  {/* Truncated display */}
-                  <p className="text-xs text-muted-foreground break-all">
-                    {qrUrl.length > 60 ? qrUrl.slice(0, 60) + "..." : qrUrl}
-                  </p>
-
-                  <Button
-                    onClick={() => navigator.clipboard.writeText(qrUrl)}
-                    className="w-full"
-                  >
-                    Copy Full URL
-                  </Button>
-                </>
-              )}
-
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => setQrOpen(false)}
-              >
-                Close
-              </Button>
-            </div>
-          </div>
-        )}
       </main>
     </div>
   );

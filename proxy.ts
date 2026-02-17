@@ -6,6 +6,9 @@ export async function proxy(req: NextRequest) {
   const url = req.nextUrl.clone();
   const { pathname } = req.nextUrl;
 
+  // ALWAYS PRESERVE QUERY PARAMS
+  url.search = req.nextUrl.search;
+
   // PUBLIC ROUTES
   const publicPatterns = [/^\/login/, /^\/signup/, /^\/api/];
   if (publicPatterns.some((pattern) => pattern.test(pathname))) {

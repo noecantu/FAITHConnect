@@ -20,12 +20,17 @@ export interface AttendanceSummaryItem {
 export interface Church {
   id: string;
   name: string;
+  slug: string;
   timezone: string;
   logoUrl?: string | null;
   description?: string | null;
-  createdAt?: Date | null;
-  updatedAt?: Date | null;
   status?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  enabledAt?: string | null;
+  disabledAt?: string | null;
+  address?: string | null;
+  phone?: string | null;
 }
 
 export type Contribution = {

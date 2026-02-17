@@ -13,6 +13,7 @@ import Image from "next/image";
 import { Fab } from "@/app/components/ui/fab";
 import { AttendanceControls } from "@/app/components/attendance/AttendanceControls";
 import { useToast } from "@/app/hooks/use-toast";
+import { nanoid } from "nanoid";
 
 import {
   Dialog,
@@ -31,7 +32,7 @@ import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
 import { useSettings } from "@/app/hooks/use-settings";
 import { useAuth } from "@/app/hooks/useAuth";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase";
+import { auth, db } from "@/app/lib/firebase";
 
 export default function AttendancePageContent() {
   const searchParams = useSearchParams();
@@ -51,6 +52,16 @@ export default function AttendancePageContent() {
   const { toast } = useToast();
   const { user } = useAuth();
 
+  function fallbackCopy(text: string) {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+  }
   // SETTINGS
   const { settings } = useSettings();
   const savedAttendanceView = settings?.attendanceView ?? "cards";
@@ -91,6 +102,65 @@ export default function AttendancePageContent() {
     () => members.filter((m) => m.status !== "Archived"),
     [members]
   );
+
+  const [qrLoading, setQrLoading] = useState(false);
+
+  console.log("QR churchId:", churchId);
+
+  // -----------------------------
+  // QR Generator
+  // -----------------------------
+  async function handleGenerateQr() {
+    try {
+      setQrLoading(true);
+
+      // 1. Generate token client-side
+      const tempToken = nanoid(24);
+      const today = new Date();
+      const dateString = today.toISOString().split("T")[0];
+
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL as string;
+      const url = `${baseUrl}/check-in/${churchId}?t=${tempToken}&d=${dateString}`;
+
+      // 2. Copy synchronously BEFORE any async
+      try {
+        navigator.clipboard.writeText(url);
+      } catch (_err) {
+        fallbackCopy(url);
+      }
+
+      // 3. Show toast immediately
+      toast({
+        title: "QR Generated",
+        description: "The check‑in link has been copied to your clipboard.",
+      });
+
+      // 4. Now do async work (register token)
+      const idToken = await auth.currentUser?.getIdToken();
+
+      await fetch(`/api/${churchId}/attendance/generate-token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          date: dateString,
+          token: tempToken, // send the token we already used
+        }),
+      });
+
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Error",
+        description: "Something went wrong.",
+        variant: "destructive",
+      });
+    } finally {
+      setQrLoading(false);
+    }
+  }
 
   // Ensure every member/visitor has a record
   useEffect(() => {
@@ -179,42 +249,61 @@ export default function AttendancePageContent() {
         onHistory={() => router.push("/attendance/history")}
       />
 
-      {/* ADD VISITOR */}
-      <Dialog>
-        <DialogTrigger asChild>
-          <Card className="p-4 flex flex-col items-center justify-center text-center gap-2 cursor-pointer border border-dashed border-white/20 hover:bg-white/5 transition">
-            <span className="text-3xl text-white/70">+</span>
-            <span className="text-sm text-white/80">Add Visitor</span>
-          </Card>
-        </DialogTrigger>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-        <DialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
-          <DialogHeader>
-            <DialogTitle>Add Visitor</DialogTitle>
-          </DialogHeader>
+        {/* GENERATE QR */}
+        <Button
+          onClick={handleGenerateQr}
+          variant="outline"
+          disabled={qrLoading}
+          className="h-[72px] w-full flex flex-col items-center justify-center text-center gap-1 border border-dashed border-white/20 hover:bg-white/5"
+        >
+          <span className="text-sm text-white/80">
+            {qrLoading ? "Generating..." : "Generate QR"}
+          </span>
+        </Button>
 
-          <Input
-            placeholder="Visitor name"
-            value={visitorName}
-            onChange={(e) => setVisitorName(e.target.value)}
-            className="bg-black/40 text-white"
-          />
-
-          <DialogFooter>
+        {/* ADD VISITOR */}
+        <Dialog>
+          <DialogTrigger asChild>
             <Button
-              onClick={() => {
-                if (!visitorName.trim()) return;
-
-                const id = `visitor-${Date.now()}`;
-                setVisitors((prev) => [...prev, { id, name: visitorName.trim() }]);
-                setVisitorName("");
-              }}
+              variant="outline"
+              className="h-[72px] w-full flex flex-col items-center justify-center text-center gap-1 border border-dashed border-white/20 hover:bg-white/5"
             >
-              Add
+              <span className="text-3xl text-white/70 leading-none">+</span>
+              <span className="text-sm text-white/80">Add Visitor</span>
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DialogTrigger>
+
+          <DialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+            <DialogHeader>
+              <DialogTitle>Add Visitor</DialogTitle>
+            </DialogHeader>
+
+            <Input
+              placeholder="Visitor name"
+              value={visitorName}
+              onChange={(e) => setVisitorName(e.target.value)}
+              className="bg-black/40 text-white"
+            />
+
+            <DialogFooter>
+              <Button
+                onClick={() => {
+                  if (!visitorName.trim()) return;
+
+                  const id = `visitor-${Date.now()}`;
+                  setVisitors((prev) => [...prev, { id, name: visitorName.trim() }]);
+                  setVisitorName("");
+                }}
+              >
+                Add
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+      </div>
 
       {/* CARDS VIEW */}
       {attendanceView === "cards" && (
