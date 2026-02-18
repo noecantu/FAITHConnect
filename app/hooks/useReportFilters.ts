@@ -12,6 +12,10 @@ interface UseReportFiltersProps {
   selectedFY: string[];
   selectedCategories: string[];
   selectedContributionTypes: string[];
+
+  // NEW
+  contributionRange: 'week' | 'month' | 'year';
+  reportType: 'members' | 'contributions';
 }
 
 export function useReportFilters({
@@ -22,7 +26,10 @@ export function useReportFilters({
   selectedFY,
   selectedCategories,
   selectedContributionTypes,
+  contributionRange,
+  reportType,
 }: UseReportFiltersProps) {
+
   /**
    * Available fiscal years (derived from contributions)
    */
@@ -57,6 +64,7 @@ export function useReportFilters({
    * Filtered Contributions
    */
   const filteredContributions = useMemo(() => {
+    if (reportType !== "contributions") return [];
     if (selectedMembers.length === 0) return [];
     if (selectedFY.length === 0) return [];
 
@@ -67,8 +75,34 @@ export function useReportFilters({
       selectedFY.includes(new Date(c.date).getFullYear().toString())
     );
 
+    // Apply range filter (week, month)
+    const now = new Date();
+
+    if (contributionRange === "month") {
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+
+      list = list.filter((c) => {
+        const d = new Date(c.date);
+        return (
+          d.getMonth() === currentMonth &&
+          d.getFullYear() === currentYear
+        );
+      });
+    }
+
+    if (contributionRange === "week") {
+      list = list.filter((c) => {
+        const d = new Date(c.date);
+        const diffDays = (now.getTime() - d.getTime()) / 86400000;
+        return diffDays <= 7; // last 7 days
+      });
+    }
+
     // Member filter
-    list = list.filter((c) => selectedMembers.includes(c.memberId));
+    list = list.filter(
+      (c) => c.memberId && selectedMembers.includes(c.memberId)
+    );
 
     // Status filter
     if (selectedStatus.length > 0) {
@@ -99,6 +133,8 @@ export function useReportFilters({
     selectedStatus,
     selectedCategories,
     selectedContributionTypes,
+    contributionRange,   // REQUIRED
+    reportType,          // REQUIRED
   ]);
 
   return {

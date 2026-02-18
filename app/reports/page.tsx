@@ -23,6 +23,7 @@ import { MemberFieldSelect } from '../components/reports/MemberFieldSelect';
 import { MemberPreviewTable } from '../components/reports/MemberPreviewTable';
 import { ContributionPreviewTable } from '../components/reports/ContributionPreviewTable';
 import { useChurchId } from '../hooks/useChurchId';
+import { ContributionRangeSelect } from '../components/reports/ContributionRangeSelect';
 
 export default function ReportsPage() {
   const churchId = useChurchId();
@@ -31,6 +32,8 @@ export default function ReportsPage() {
 
   const [reportType, setReportType] =
     useState<'members' | 'contributions'>('members');
+    const [contributionRange, setContributionRange] =
+    useState<'week' | 'month' | 'year'>('year');
 
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
@@ -79,7 +82,9 @@ export default function ReportsPage() {
     selectedStatus,
     selectedFY,
     selectedCategories: [], // not implemented yet
-    selectedContributionTypes: [], // not implemented yet
+    selectedContributionTypes: [],
+    contributionRange,
+    reportType, // ← ADD THIS
   });
 
   // Export logic (Option B)
@@ -121,6 +126,13 @@ export default function ReportsPage() {
               options={statusOptions}
               value={selectedStatus}
               onChange={setSelectedStatus}
+            />
+          )}
+
+          {reportType === "contributions" && (
+            <ContributionRangeSelect
+              value={contributionRange}
+              onChange={setContributionRange}
             />
           )}
 
