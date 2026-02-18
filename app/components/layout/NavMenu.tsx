@@ -137,6 +137,22 @@ console.log("NavMenu rendered on:", typeof window === "undefined" ? "server" : "
             </Link>
           )}
 
+          {/* Member Dashboard */}
+          {!roles.includes("RootAdmin") && !isAdmin && churchId && (
+            <Link href={`/church/${churchId}/user`}>
+              <DropdownMenuItem
+                className={
+                  pathname.startsWith(`/church/${churchId}/user`)
+                    ? "bg-accent"
+                    : ""
+                }
+              >
+                <Home className="mr-2 h-4 w-4" />
+                <span>Dashboard</span>
+              </DropdownMenuItem>
+            </Link>
+          )}
+
           {/* Core Navigation (hidden for Root Admin) */}
           {!roles.includes("RootAdmin") && (
             <>

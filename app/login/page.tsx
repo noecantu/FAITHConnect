@@ -42,6 +42,17 @@ export default function LoginPage() {
       const profileRes = await fetch("/api/users/me");
       const profile = await profileRes.json();
 
+      // Member-level roles (non-admin)
+      const isMemberLevel =
+        profile.roles.includes("Member") ||
+        profile.roles.includes("MusicManager") ||
+        profile.roles.includes("MusicMember") ||
+        profile.roles.includes("EventManager") ||
+        profile.roles.includes("Finance") ||
+        profile.roles.includes("AttendanceManager") ||
+        profile.roles.includes("ServiceManager") ||
+        profile.roles.includes("MemberManager");
+
       toast({ title: "Login Successful", description: "Welcome back!" });
 
       // 4. Redirect based on role
@@ -59,8 +70,12 @@ export default function LoginPage() {
         return;
       }
 
-      if (profile.roles.includes("Member")) {
-        router.replace("/members");
+      if (isMemberLevel) {
+        if (profile.churchId) {
+          router.replace(`/church/${profile.churchId}/user`);
+        } else {
+          router.replace("/");
+        }
         return;
       }
 
@@ -83,6 +98,7 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-black">
       <Card className="w-full max-w-sm bg-card">
         <CardHeader className="text-center space-y-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/F-Flame_Vector.svg"
             alt="Faith Connect Logo"

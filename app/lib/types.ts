@@ -236,3 +236,11 @@ export interface User {
     fiscalYear?: string;
   };
 }
+
+export type UserProfile = {
+  uid: string;
+  email: string;
+  displayName: string;
+  roles: string[];
+  churchId: string | null;
+};
