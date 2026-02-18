@@ -17,13 +17,19 @@ export async function POST(req: Request) {
     const decoded = await adminAuth.verifyIdToken(token);
     const uid = decoded.uid;
 
-    const churchId = crypto.randomUUID();
+    // Create a slug from the church name
+    const slug = churchName
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
 
-    // 1. Create church
+    // 1. Create church (doc ID = slug)
     await adminDb
       .collection("churches")
-      .doc(churchId)
+      .doc(slug)
       .set({
+        slug,
         name: churchName,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         createdBy: uid,
@@ -33,14 +39,14 @@ export async function POST(req: Request) {
         },
       });
 
-    // 2. Update user
+    // 2. Update user (roles array, not role string)
     await adminDb
       .collection("users")
       .doc(uid)
       .set(
         {
-          churchId,
-          role: "admin",
+          churchId: slug,
+          roles: ["Admin"],
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
@@ -49,15 +55,15 @@ export async function POST(req: Request) {
     // 3. Create membership record
     await adminDb
       .collection("churches")
-      .doc(churchId)
+      .doc(slug)
       .collection("members")
       .doc(uid)
       .set({
-        role: "admin",
+        roles: ["Admin"],
         joinedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-    return NextResponse.json({ churchId });
+    return NextResponse.json({ churchId: slug });
   } catch (error) {
     console.error("Error creating church:", error);
     return NextResponse.json(

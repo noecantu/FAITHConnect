@@ -28,6 +28,9 @@ export default function UserDashboardPage({
     async function load() {
       const res = await fetch("/api/users/me");
       const profile: UserProfile = await res.json();
+
+          console.log("User profile from /api/users/me:", profile); // ← THIS ONE
+
       setUser(profile);
       setLoadingUser(false);
     }

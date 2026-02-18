@@ -49,7 +49,7 @@ export async function POST(req: Request) {
       .set(
         {
           churchId: slug,
-          role: "admin",
+          roles: ["Admin"],
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
       .collection("members")
       .doc(uid)
       .set({
-        role: "admin",
+        roles: ["Admin"],
         joinedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 

@@ -48,7 +48,7 @@ export default function CreateChurchPage() {
             }
 
             // 3. Redirect to dashboard
-            router.push("/dashboard");
+            router.push(`/admin/church/${data.churchId}`);
         } catch (err) {
             console.error(err);
             setError("Unexpected error occurred.");
