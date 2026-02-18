@@ -16,7 +16,7 @@ import { Fab } from '../../components/ui/fab';
 import { FileText, Music } from "lucide-react";
 
 export default function SongsPage() {
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const { songs, loading } = useSongs(churchId);
   const { isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
   const canManage = isAdmin || isMusicManager;

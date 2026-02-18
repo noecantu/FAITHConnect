@@ -14,7 +14,7 @@ export function useMemberRelationships(
   member: Member | undefined,
   isEditMode: boolean
 ) {
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const [allMembers, setAllMembers] = useState<Member[]>([]);
 
   useEffect(() => {

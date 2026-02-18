@@ -19,7 +19,7 @@ export function SongEditorDialog({
   mode: 'create' | 'edit';
   song?: Song;
 }) {
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const [open, setOpen] = useState(false);
 
   const [title, setTitle] = useState(song?.title ?? '');

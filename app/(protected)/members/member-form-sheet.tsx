@@ -48,7 +48,7 @@ export function MemberFormSheet({ member, children }: MemberFormSheetProps) {
 
   const titleRef = useRef<HTMLHeadingElement | null>(null);
 
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
 
   const { form, isEditMode, onSubmit, handleDeleteMember } = useMemberForm(
     member,

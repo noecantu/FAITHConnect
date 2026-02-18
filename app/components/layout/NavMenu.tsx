@@ -60,7 +60,7 @@ export function NavMenu() {
   const pathname = usePathname();
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false);
   const { toast } = useToast();
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
 
   const { roles, isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
 

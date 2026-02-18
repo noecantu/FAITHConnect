@@ -6,7 +6,7 @@ import { ServicePlanFormDialog } from '../../components/service-plans/ServicePla
 
 export default function NewServicePlanPage() {
   const router = useRouter();
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
 
   return (
     <ServicePlanFormDialog

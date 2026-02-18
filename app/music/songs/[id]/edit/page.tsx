@@ -13,7 +13,7 @@ import { Fab } from '../../../../components/ui/fab';
 export default function EditSongPage() {
   const { id } = useParams();
   const router = useRouter();
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
 
   // UPDATED ROLES
   const { isAdmin, isMusicManager } = useUserRoles(churchId);

@@ -9,7 +9,7 @@ import { useState } from 'react';
 export default function EditServicePlanPage() {
   const router = useRouter();
   const { id } = useParams();
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
 
   const { plan, loading } = useServicePlan(id as string);
 

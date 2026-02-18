@@ -17,7 +17,7 @@ import { Fab } from '../../../../components/ui/fab';
 export default function EditSetListPage() {
   const { id } = useParams();
   const router = useRouter();
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const { songs: allSongs } = useSongs(churchId);
   const { isAdmin, isMusicManager } = useUserRoles(churchId);
   const canEdit = isAdmin || isMusicManager;

@@ -15,7 +15,7 @@ export default function SetListsPage() {
   // -----------------------------
   // ALL HOOKS MUST RUN FIRST
   // -----------------------------
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const { lists, loading } = useSetLists(churchId);
 
   const {

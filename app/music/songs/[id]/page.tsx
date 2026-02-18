@@ -30,7 +30,7 @@ import { Fab } from '../../../components/ui/fab';
 export default function SongDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const { roles, isAdmin } = useUserRoles(churchId);
   const canEdit = isAdmin || roles.includes('WorshipLeader');
 

@@ -19,7 +19,7 @@ import ChurchLogoCard from './components/ChurchLogoCard';
 import ChurchProfileCard from './components/ChurchProfileCard';
 
 export default function AccessManagementPage() {
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const { user } = useAuth();
   const [churchName] = useState('');
 

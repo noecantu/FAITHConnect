@@ -16,7 +16,7 @@ import { Fab } from '../../../components/ui/fab';
 
 export default function NewSetListPage() {
   const router = useRouter();
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const { songs: allSongs } = useSongs(churchId);
   const { isAdmin, isMusicManager } = useUserRoles(churchId);
   const canCreate = isAdmin || isMusicManager;

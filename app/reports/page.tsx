@@ -26,7 +26,7 @@ import { useChurchId } from '../hooks/useChurchId';
 import { ContributionRangeSelect } from '../components/reports/ContributionRangeSelect';
 
 export default function ReportsPage() {
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const { members } = useMembers(churchId);
   const { contributions } = useContributions();
 

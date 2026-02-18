@@ -12,7 +12,7 @@ import { Fab } from '../../../components/ui/fab';
 
 export default function NewSongPage() {
   const router = useRouter();
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const { isAdmin, isMusicManager } = useUserRoles(churchId);
 
   const canEdit = isAdmin || isMusicManager;

@@ -105,7 +105,7 @@ export function MemberCard({
   searchAction: (name: string) => void;
   cardView: "show" | "hide";
 }) {
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const [allMembers, setAllMembers] = useState<Member[]>([]);
   const { isAdmin, isMemberManager } = useUserRoles(churchId);
   const canEdit = isAdmin || isMemberManager;

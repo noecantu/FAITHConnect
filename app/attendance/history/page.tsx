@@ -30,7 +30,7 @@ import { AttendanceHistoryControls } from '@/app/components/attendance/Attendanc
 // Page Component
 // --------------------------------------------------
 export default function AttendanceHistoryPage() {
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const { data, loading, refresh } = useAttendanceHistory(churchId);
   const router = useRouter();
 

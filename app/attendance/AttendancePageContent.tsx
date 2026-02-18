@@ -49,7 +49,7 @@ export default function AttendancePageContent() {
   const [date, setDate] = useState(initialDate);
   const dateString = format(date, "yyyy-MM-dd");
 
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();

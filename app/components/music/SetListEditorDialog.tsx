@@ -22,7 +22,7 @@ export function SetListEditorDialog({
   mode: 'create' | 'edit';
   setList?: SetList;
 }) {
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const [open, setOpen] = useState(false);
 
   // Title

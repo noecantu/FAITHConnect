@@ -73,7 +73,7 @@ export function EditContributionDialog({
   onClose,
 }: EditContributionDialogProps) {
   const { toast } = useToast();
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = React.useState(false);
 
   const form = useForm<ContributionFormValues>({

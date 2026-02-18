@@ -18,7 +18,7 @@ import { db } from "../../lib/firebase";
 import { useEffect, useMemo, useState } from "react";
 
 export default function MembersPage() {
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const [members, setMembers] = useState<Member[]>([]);
   const [search, setSearch] = useState("");
   const { isAdmin, isMemberManager } = useUserRoles(churchId);

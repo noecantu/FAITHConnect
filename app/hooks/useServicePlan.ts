@@ -8,7 +8,7 @@ import type { ServicePlan } from '../lib/types';
 import { useAuth } from './useAuth';
 
 export function useServicePlan(id?: string) {
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const { user } = useAuth();
   const [plan, setPlan] = useState<ServicePlan | null>(null);
   const [loading, setLoading] = useState(true);

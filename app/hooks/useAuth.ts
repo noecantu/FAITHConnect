@@ -12,8 +12,15 @@ export function useAuth(): { user: User | null; loading: boolean } {
 
   useEffect(() => {
     let isActive = true;
+    let unsubscribeUserDoc: (() => void) | null = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      // Clean up previous Firestore listener
+      if (unsubscribeUserDoc) {
+        unsubscribeUserDoc();
+        unsubscribeUserDoc = null;
+      }
+
       if (!firebaseUser) {
         if (isActive) {
           setUser(null);
@@ -24,7 +31,7 @@ export function useAuth(): { user: User | null; loading: boolean } {
 
       const userRef = doc(db, "users", firebaseUser.uid);
 
-      const unsubscribeUserDoc = onSnapshot(
+      unsubscribeUserDoc = onSnapshot(
         userRef,
         (snap) => {
           if (!isActive) return;
@@ -44,7 +51,12 @@ export function useAuth(): { user: User | null; loading: boolean } {
             churchId: data.churchId ?? null,
             firstName: data.firstName ?? null,
             lastName: data.lastName ?? null,
-            settings: data.settings ?? {},
+            settings: {
+              attendanceView: data.settings?.attendanceView ?? "cards",
+              calendarView: data.settings?.calendarView ?? "calendar",
+              cardView: data.settings?.cardView ?? "show",
+              fiscalYear: data.settings?.fiscalYear ?? undefined,
+            },
           };
 
           setUser(mergedUser);
@@ -56,13 +68,12 @@ export function useAuth(): { user: User | null; loading: boolean } {
           }
         }
       );
-
-      return () => unsubscribeUserDoc();
     });
 
     return () => {
       isActive = false;
       unsubscribeAuth();
+      if (unsubscribeUserDoc) unsubscribeUserDoc();
     };
   }, []);
 

@@ -11,7 +11,7 @@ import type { ServicePlan } from '@/app/lib/types';
 
 export function useServicePlanDetail() {
   const { id } = useParams();
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
 
   const { members, loading: membersLoading } = useMembers(churchId);
   const { songs, loading: songsLoading } = useSongs(churchId);

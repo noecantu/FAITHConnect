@@ -53,7 +53,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 export default function ContributionsPage() {
   const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);

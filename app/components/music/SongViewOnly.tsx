@@ -8,7 +8,7 @@ import { useChurchId } from "../../hooks/useChurchId";
 import { getSectionColor } from "@/app/lib/sectionColors";
 
 export default function SongViewOnly({ songId }: { songId: string }) {
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const [song, setSong] = useState<Song | null>(null);
   const [showLyrics, setShowLyrics] = useState(false);
   const [showChords, setShowChords] = useState(false);

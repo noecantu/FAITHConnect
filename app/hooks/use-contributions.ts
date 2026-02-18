@@ -7,7 +7,7 @@ import { useChurchId } from './useChurchId';
 import { useAuth } from './useAuth';
 
 export function useContributions() {
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const { user } = useAuth();
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [loading, setLoading] = useState(true);

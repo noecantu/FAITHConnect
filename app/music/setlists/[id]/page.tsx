@@ -18,7 +18,7 @@ import { getSectionColor } from '@/app/lib/sectionColors';
 
 export default function SetListDetailPage() {
   const { id } = useParams();
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const router = useRouter();
   const { isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
   const canView = isAdmin || isMusicManager || isMusicMember;

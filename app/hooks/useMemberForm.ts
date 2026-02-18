@@ -22,7 +22,7 @@ type UseMemberFormOptions = {
 export function useMemberForm(member: Member | undefined, opts: UseMemberFormOptions) {
   const { isOpen, setIsOpen } = opts;
   const { toast } = useToast();
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const isEditMode = !!member;
 
   const form = useForm<MemberFormValues>({

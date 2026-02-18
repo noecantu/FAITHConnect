@@ -9,7 +9,7 @@ import { Song } from '../../lib/types';
 
 export function SongDeleteDialog({ song }: { song: Song }) {
   const [open, setOpen] = useState(false);
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
 
   const handleDelete = async () => {
     if (!churchId) return;

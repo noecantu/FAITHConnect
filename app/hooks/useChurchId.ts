@@ -3,38 +3,38 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from './useAuth';
 
-export function useChurchId(): string | null {
-  const { user } = useAuth();
+export function useChurchId(): { churchId: string | null; loading: boolean } {
+  const { user, loading: authLoading } = useAuth();
   const [churchId, setChurchId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isActive = true;
 
-    // If user logs out, clear immediately and stop
-    if (!user?.id) {
-      setChurchId(null);
-      return () => { isActive = false };
-    }
+    if (authLoading) return;
 
-    const uid = user.id;
+    if (!user?.id) {
+      if (isActive) {
+        setChurchId(null);
+        setLoading(false);
+      }
+      return;
+    }
 
     const fetchChurchId = async () => {
       try {
-        const userDocRef = doc(db, 'users', uid);
+        const userDocRef = doc(db, "users", user.id);
         const userDoc = await getDoc(userDocRef);
 
         if (!isActive) return;
 
         if (userDoc.exists()) {
-          setChurchId(userDoc.data().churchId);
+          setChurchId(userDoc.data().churchId ?? null);
         } else {
           setChurchId(null);
         }
-      } catch (err) {
-        if (isActive) {
-          console.error("Error fetching churchId:", err);
-          setChurchId(null);
-        }
+      } finally {
+        if (isActive) setLoading(false);
       }
     };
 
@@ -43,7 +43,8 @@ export function useChurchId(): string | null {
     return () => {
       isActive = false;
     };
-  }, [user?.id]);
+  }, [authLoading, user?.id]);
 
-  return churchId;
+  return { churchId, loading };
 }
+

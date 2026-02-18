@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 
 export function SetListDeleteDialog({ setList }: { setList: SetList }) {
   const [open, setOpen] = useState(false);
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const router = useRouter();
 
   const handleDelete = async () => {

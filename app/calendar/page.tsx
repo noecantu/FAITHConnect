@@ -62,7 +62,7 @@ const muiTheme = createTheme({
 // Page Component
 // ------------------------------
 export default function CalendarPage() {
-  const churchId = useChurchId();
+  const { churchId } = useChurchId();
   const { user } = useAuth();
   const { isEventManager } = useUserRoles(churchId);
   const { calendarView } = useSettings();
