@@ -68,6 +68,10 @@ export function NavMenu() {
   const canAccessMusic = isAdmin || isMusicManager || isMusicMember;
   const canAccessServicePlan = isAdmin || roles.includes("Pastor");
   const canSeeSettings = isAdmin;
+  const canSeeAttendance =
+    isAdmin ||
+    roles.includes("MemberManager") ||
+    roles.includes("AttendanceManager");
 
   const handleLogout = async () => {
     try {
@@ -98,7 +102,7 @@ export function NavMenu() {
       });
     }
   };
-console.log("NavMenu rendered on:", typeof window === "undefined" ? "server" : "client");
+
   return (
     <>
       <DropdownMenu modal={false}>
@@ -158,6 +162,7 @@ console.log("NavMenu rendered on:", typeof window === "undefined" ? "server" : "
             <>
               {navItems
                 .filter((item) => {
+                  if (item.href === "/attendance") return canSeeAttendance;
                   if (item.href === "/contributions") return canSeeContributions;
                   if (item.href === "/music") return canAccessMusic;
                   if (item.href === "/service-plan") return canAccessServicePlan;
