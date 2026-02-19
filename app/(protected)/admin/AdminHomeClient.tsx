@@ -13,10 +13,22 @@ export default function AdminHomeClient({
   churchCount,
   userCount,
   adminCount,
+  eventCount,
+  checkinCount,
+  musicItemCount,
+  setlistCount,
+  pastorCount,
+  financeCount,
 }: {
   churchCount: number;
   userCount: number;
   adminCount: number;
+  eventCount: number;
+  checkinCount: number;
+  musicItemCount: number;
+  setlistCount: number;
+  pastorCount: number;
+  financeCount: number;
 }) {
   const renderStat = (value: number | null) => {
     if (value === -1) return "Error";
@@ -70,6 +82,65 @@ export default function AdminHomeClient({
               <p className="text-4xl font-bold">{renderStat(adminCount)}</p>
             </CardContent>
           </Card>
+          <Card>
+          <CardHeader>
+            <CardTitle>Total Events</CardTitle>
+            <CardDescription>All events across all churches.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold">{eventCount}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Check-ins</CardTitle>
+            <CardDescription>All attendance check-ins.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold">{checkinCount}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Music Items</CardTitle>
+            <CardDescription>All songs in the system.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold">{musicItemCount}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Setlists</CardTitle>
+            <CardDescription>All worship setlists.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold">{setlistCount}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Pastors</CardTitle>
+            <CardDescription>Users with the Pastor role.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold">{pastorCount}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Finance Managers</CardTitle>
+            <CardDescription>Users with the Finance role.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold">{financeCount}</p>
+          </CardContent>
+        </Card>
         </div>
       </section>
 
