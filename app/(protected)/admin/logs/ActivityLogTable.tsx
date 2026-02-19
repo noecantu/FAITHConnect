@@ -3,8 +3,18 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/app/components/ui/card";
 import { Input } from "@/app/components/ui/input";
+import type { LogEntry } from "@/app/lib/types";
 
-export default function ActivityLogTable({ logs }: { logs: any[] }) {
+function toDate(
+  value: Date | { seconds: number } | null | undefined
+): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  if ("seconds" in value) return new Date(value.seconds * 1000);
+  return null;
+}
+
+export default function ActivityLogTable({ logs }: { logs: LogEntry[] }) {
   const [search, setSearch] = useState("");
 
   const filtered = logs.filter((log) => {
@@ -35,7 +45,21 @@ export default function ActivityLogTable({ logs }: { logs: any[] }) {
             <tbody>
               {filtered.map((log) => (
                 <tr key={log.id} className="border-b">
-                  <td className="p-2 font-medium">{log.type}</td><td className="p-2">{log.message}</td><td className="p-2">{log.actorName || log.actorUid || "Unknown"}</td><td className="p-2">{log.targetId}</td><td className="p-2">{new Date(log.timestamp).toLocaleString()}</td><td className="p-2"><a href={`/admin/logs/${log.id}`} className="text-blue-600 hover:underline">View</a></td>
+                  <td className="p-2 font-medium">{log.type}</td>
+                  <td className="p-2">{log.message}</td>
+                  <td className="p-2">{log.actorName || log.actorUid || "Unknown"}</td>
+                  <td className="p-2">{log.targetId}</td>
+                  <td className="p-2">
+                    {toDate(log.timestamp)?.toLocaleString() ?? "—"}
+                  </td>
+                  <td className="p-2">
+                    <a
+                      href={`/admin/logs/${log.id}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      View
+                    </a>
+                  </td>
                 </tr>
               ))}
             </tbody>

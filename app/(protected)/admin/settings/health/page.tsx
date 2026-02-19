@@ -3,6 +3,7 @@
 import { adminDb, adminAuth } from "@/lib/firebase/firebaseAdmin";
 import HealthDashboard from "./HealthDashboard";
 import { normalizeFirestore } from "@/lib/normalize";
+import type { UserRecord, UserInfo } from "firebase-admin/auth";
 
 export default async function HealthPage() {
   // Firestore stats
@@ -42,11 +43,11 @@ export default async function HealthPage() {
   );
 }
 
-function countProviders(users: any[]) {
+function countProviders(users: UserRecord[]) {
   const providerCounts: Record<string, number> = {};
 
   users.forEach((u) => {
-    u.providerData.forEach((p: any) => {
+    u.providerData.forEach((p: UserInfo) => {
       providerCounts[p.providerId] = (providerCounts[p.providerId] || 0) + 1;
     });
   });

@@ -21,13 +21,14 @@ import {
 import { ALL_ROLES, ROLE_MAP, Role } from "@/app/lib/roles";
 import { SystemRole, SYSTEM_ROLES } from "@/app/lib/system-roles";
 import { SYSTEM_ROLE_MAP } from "@/app/lib/system-role-map";
+import type { User } from "@/app/lib/types";
 
 export default function EditUserForm({
   userId,
   user,
 }: {
   userId: string;
-  user: any;
+  user: User;
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -161,7 +162,9 @@ export default function EditUserForm({
                 <SelectValue placeholder="Select a church" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={user.churchId}>{user.churchId}</SelectItem>
+                <SelectItem value={user.churchId ?? ""}>
+                  {user.churchId ?? "(No church)"}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>

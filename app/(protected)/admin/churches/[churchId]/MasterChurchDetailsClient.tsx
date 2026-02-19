@@ -23,6 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/app/components/ui/alert-dialog";
+import type { Church } from "@/app/lib/types";
 
 export default function MasterChurchDetailsClient({
   church,
@@ -31,15 +32,15 @@ export default function MasterChurchDetailsClient({
   eventCount,
   admins,
 }: {
-  church: any;
+  church: Church;
   memberCount: number;
   serviceCount: number;
   eventCount: number;
-  admins: any[];
+  admins: { id: string; displayName?: string | null; email: string }[];
 }) {
   const churchId = church.id;
   const [showDisableDialog, setShowDisableDialog] = useState(false);
-  const [localChurch, setLocalChurch] = useState(church);
+  const [localChurch, setLocalChurch] = useState<Church>(church);
 
   const initials = localChurch.name
     .split(" ")
@@ -60,6 +61,7 @@ export default function MasterChurchDetailsClient({
       <Card>
         <CardContent className="flex items-center gap-4 p-6">
           {localChurch.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={localChurch.logoUrl}
               alt="Church Logo"
@@ -169,7 +171,7 @@ export default function MasterChurchDetailsClient({
                   status: "active",
                   enabledAt: serverTimestamp(),
                 });
-                setLocalChurch((prev: any) => ({ ...prev, status: "active" }));
+                setLocalChurch(prev => ({ ...prev, status: "active" }));
               }}
             >
               Enable Church
@@ -206,7 +208,7 @@ export default function MasterChurchDetailsClient({
                   status: "disabled",
                   disabledAt: serverTimestamp(),
                 });
-                setLocalChurch((prev: any) => ({ ...prev, status: "disabled" }));
+                setLocalChurch(prev => ({ ...prev, status: "disabled" }));
                 setShowDisableDialog(false);
               }}
             >

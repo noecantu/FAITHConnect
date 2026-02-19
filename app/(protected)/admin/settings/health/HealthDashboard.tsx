@@ -2,8 +2,14 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import type { HealthMetrics } from "@/app/lib/types";
+import type { LogEntry } from "@/app/lib/types";
 
-export default function HealthDashboard({ metrics }: { metrics: any }) {
+export default function HealthDashboard({
+  metrics,
+}: {
+  metrics: HealthMetrics;
+}) {
   const providerData = Object.entries(metrics.auth.providers).map(([provider, count]) => ({
     provider,
     count,
@@ -81,7 +87,7 @@ const COLORS = [
   "hsl(var(--chart-5))",
 ];
 
-function countLogTypes(logs: any[]) {
+function countLogTypes(logs: LogEntry[]) {
   const counts: Record<string, number> = {};
 
   logs.forEach((log) => {

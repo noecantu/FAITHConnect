@@ -25,10 +25,10 @@ export interface Church {
   logoUrl?: string | null;
   description?: string | null;
   status?: string | null;
-  createdAt?: string | null;
-  updatedAt?: string | null;
-  enabledAt?: string | null;
-  disabledAt?: string | null;
+  createdAt?: Date | { seconds: number } | null;
+  updatedAt?: Date | { seconds: number } | null;
+  enabledAt?: Date | { seconds: number } | null;
+  disabledAt?: Date | { seconds: number } | null;
   address?: string | null;
   phone?: string | null;
 }
@@ -68,6 +68,33 @@ export type Family = {
   id: string;
   name: string;
 };
+
+export interface HealthMetrics {
+  firestore: {
+    users: number;
+    churches: number;
+    logs: number;
+  };
+  auth: {
+    totalUsers: number;
+    providers: Record<string, number>;
+  };
+  logs: LogEntry[];
+}
+
+export interface LogEntry {
+  id: string;
+  type: string;
+  message: string;
+  actorUid?: string | null;
+  actorName?: string | null;
+  targetId?: string | null;
+  targetType?: string | null;
+  timestamp?: Date | { seconds: number } | null;
+  before?: Record<string, unknown> | null;
+  after?: Record<string, unknown> | null;
+  metadata?: Record<string, unknown> | null;
+}
 
 export type Member = {
   id: string;
@@ -220,6 +247,18 @@ export interface SongInput {
   lyrics?: string;
   chords?: string;
   tags: string[];
+}
+
+export interface SystemSettings {
+  platformName: string;
+  supportEmail: string;
+  defaultTimezone: string;
+  defaultLocale: string;
+  featureFlags: Record<string, boolean>;
+  maintenanceMode?: boolean;
+  allowRegistrations?: boolean;
+  logRetentionDays?: number;
+  updatedAt?: Date | { seconds: number } | null;
 }
 
 export interface User {

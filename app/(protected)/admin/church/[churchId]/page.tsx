@@ -379,7 +379,6 @@ export default function ChurchAdminDashboard() {
               <CardTitle>Quick Actions</CardTitle>
               <CardDescription>Jump into key areas of your church.</CardDescription>
             </CardHeader>
-
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <QuickAction href="/attendance" icon={CalendarCheck} label="Attendance" />
               <QuickAction href="/calendar" icon={Calendar} label="Events" />

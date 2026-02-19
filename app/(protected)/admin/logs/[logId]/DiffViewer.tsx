@@ -1,6 +1,12 @@
 "use client";
 
-export default function DiffViewer({ before = {}, after = {} }: { before: any; after: any }) {
+export default function DiffViewer({
+  before = {},
+  after = {},
+}: {
+  before: Record<string, unknown>;
+  after: Record<string, unknown>;
+}) {
   const keys = Array.from(new Set([...Object.keys(before), ...Object.keys(after)]));
 
   return (

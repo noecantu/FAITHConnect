@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase";
 
 import { PageHeader } from "@/app/components/page-header";
@@ -10,10 +10,12 @@ import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Checkbox } from "@/app/components/ui/checkbox";
+import type { SystemSettings } from "@/app/lib/types";
+import { setDoc } from "firebase/firestore";
 
 export default function SystemSettingsPage() {
-  const [settings, setSettings] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  const [settings, setSettings] = useState<SystemSettings | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -21,7 +23,7 @@ export default function SystemSettingsPage() {
       const snap = await getDoc(ref);
 
       if (snap.exists()) {
-        setSettings(snap.data());
+        setSettings(snap.data() as SystemSettings);
       }
     }
 
@@ -35,7 +37,7 @@ export default function SystemSettingsPage() {
 
     try {
       const ref = doc(db, "system", "settings");
-      await updateDoc(ref, settings);
+      await setDoc(ref, settings, { merge: true });
     } finally {
       setSaving(false);
     }

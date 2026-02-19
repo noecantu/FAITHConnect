@@ -2,9 +2,23 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import DiffViewer from "./DiffViewer";
+import type { LogEntry } from "@/app/lib/types";
 
-export default function LogDetailView({ logId, log }: { logId: string; log: any }) {
+function toDate(value: Date | { seconds: number } | null | undefined): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  if ("seconds" in value) return new Date(value.seconds * 1000);
+  return null;
+}
+
+export default function LogDetailView({
+  log,
+}: {
+  logId: string;
+  log: LogEntry;
+}) {
   const { type, message, actorName, actorUid, targetId, targetType, timestamp, before, after, metadata } = log;
+  const ts = toDate(timestamp);
 
   return (
     <div className="space-y-6">
@@ -19,7 +33,7 @@ export default function LogDetailView({ logId, log }: { logId: string; log: any 
           <p><strong>Message:</strong> {message}</p>
           <p><strong>Actor:</strong> {actorName || actorUid}</p>
           <p><strong>Target:</strong> {targetType} — {targetId}</p>
-          <p><strong>Timestamp:</strong> {new Date(timestamp).toLocaleString()}</p>
+          <p><strong>Timestamp:</strong> {ts ? ts.toLocaleString() : "—"}</p>
         </CardContent>
       </Card>
 
@@ -31,7 +45,7 @@ export default function LogDetailView({ logId, log }: { logId: string; log: any 
           </CardHeader>
 
           <CardContent>
-            <DiffViewer before={before} after={after} />
+            <DiffViewer before={before ?? {}} after={after ?? {}} />
           </CardContent>
         </Card>
       )}

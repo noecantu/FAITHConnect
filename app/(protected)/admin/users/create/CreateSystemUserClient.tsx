@@ -84,15 +84,18 @@ export default function CreateSystemUserClient() {
 
         router.push("/admin/users");
       }
-    } catch (err: any) {
-      console.error("Failed to create system user:", err);
+      } catch (err: unknown) {
+        console.error("Failed to create system user:", err);
 
-      toast({
-        title: "Error",
-        description: err.message || "Could not create system user.",
-        variant: "destructive",
-      });
-    } finally {
+        const message =
+          err instanceof Error ? err.message : "Could not create system user.";
+
+        toast({
+          title: "Error",
+          description: message,
+          variant: "destructive",
+        });
+      } finally {
       setLoading(false);
     }
   }

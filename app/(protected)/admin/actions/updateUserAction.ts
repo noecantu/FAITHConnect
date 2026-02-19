@@ -9,7 +9,7 @@ export interface UpdateUserInput {
   lastName?: string;
   email?: string;
   roles?: string[];
-  churchId?: string;
+  churchId?: string | null;
   actorUid: string;
   actorName?: string | null;
 }

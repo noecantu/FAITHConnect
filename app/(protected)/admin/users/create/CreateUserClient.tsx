@@ -97,15 +97,18 @@ export default function CreateUserClient({ churches }: CreateUserClientProps) {
 
         router.push("/admin/users");
       }
-    } catch (err: any) {
-      console.error("Failed to create user:", err);
+      } catch (err: unknown) {
+        console.error("Failed to create user:", err);
 
-      toast({
-        title: "Error",
-        description: err.message || "Could not create user.",
-        variant: "destructive",
-      });
-    } finally {
+        const message =
+          err instanceof Error ? err.message : "Could not create user.";
+
+        toast({
+          title: "Error",
+          description: message,
+          variant: "destructive",
+        });
+      } finally {
       setLoading(false);
     }
   }
