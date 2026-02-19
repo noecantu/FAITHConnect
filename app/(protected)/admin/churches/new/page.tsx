@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { db, auth } from "@/app/lib/firebase";
+import { db } from "@/app/lib/firebase";
+import { auth } from "@/app/lib/firebase-client";
 import { slugify } from "@/app/lib/slugify";
 import {
   doc,

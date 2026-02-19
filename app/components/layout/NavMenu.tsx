@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { signOut } from "firebase/auth";
-import { auth } from "../../lib/firebase";
+import { auth } from "@/app/lib/firebase-client";
 
 import {
   DropdownMenu,
@@ -47,41 +47,129 @@ import { useToast } from "../../hooks/use-toast";
 import { useUserRoles } from "../../hooks/useUserRoles";
 import { useChurchId } from "../../hooks/useChurchId";
 
-const navItems = [
-  { href: "/attendance", label: "Attendance", icon: CalendarCheck },
-  { href: "/calendar", label: "Calendar", icon: Calendar },
-  { href: "/contributions", label: "Contributions", icon: DollarSign },
-  { href: "/members", label: "Members", icon: Users },
-  { href: "/music", label: "Music", icon: Music },
-  { href: "/service-plan", label: "Service Plans", icon: CalendarHeart },
-];
+type MenuItem = {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  permission?: boolean;
+  isSubmenu?: boolean;
+};
 
 export function NavMenu() {
   const pathname = usePathname();
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false);
   const { toast } = useToast();
   const { churchId } = useChurchId();
+  const { roles = [], isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
 
-  const { roles, isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
+  // --- ROLE MODEL ---
+  const isRootAdmin = roles.includes("RootAdmin");
+  const isChurchAdmin = roles.includes("Admin") && churchId;
 
+  // --- PERMISSIONS ---
   const canSeeContributions = isAdmin || roles.includes("Finance");
   const canAccessMusic = isAdmin || isMusicManager || isMusicMember;
   const canAccessServicePlan = isAdmin || roles.includes("Pastor");
-  const canSeeSettings = isAdmin;
   const canSeeAttendance =
-    isAdmin ||
-    roles.includes("MemberManager") ||
-    roles.includes("AttendanceManager");
+    isAdmin || roles.includes("MemberManager") || roles.includes("AttendanceManager");
 
+  // --- MENU CONFIGS ---
+  const rootAdminMenu = [
+    { href: "/admin", label: "Dashboard", icon: Home },
+    { href: "/admin/churches", label: "Churches", icon: Users },
+    { href: "/admin/users", label: "Users", icon: Users },
+    { href: "/admin/settings", label: "System Settings", icon: Settings },
+    { href: "/admin/logs", label: "Activity Logs", icon: FileText },
+    { href: "/admin/settings/health", label: "Platform Health", icon: CalendarHeart },
+  ];
+
+  const churchAdminMenu = [
+    { href: `/admin/church/${churchId}`, label: "Dashboard", icon: Home },
+    { href: "/attendance", label: "Attendance", icon: CalendarCheck, permission: canSeeAttendance },
+    { href: "/calendar", label: "Calendar", icon: Calendar },
+    { href: "/contributions", label: "Contributions", icon: DollarSign, permission: canSeeContributions },
+    { href: "/members", label: "Members", icon: Users },
+    { href: "/music", label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
+    { href: "/service-plan", label: "Service Plans", icon: CalendarHeart, permission: canAccessServicePlan },
+    { href: "/reports", label: "Reports", icon: FileText },
+    { href: "/settings/access-management", label: "Settings", icon: Settings },
+  ];
+
+  const userMenu = [
+    { href: `/church/${churchId}/user`, label: "Dashboard", icon: Home },
+    { href: "/calendar", label: "Calendar", icon: Calendar },
+    { href: "/music", label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
+  ];
+
+  // --- ACTIVE MENU ---
+  const activeMenu = isRootAdmin
+    ? rootAdminMenu
+    : isChurchAdmin
+    ? churchAdminMenu
+    : userMenu;
+
+  // --- RENDERER ---
+  function renderMenuItems(items: MenuItem[]) {
+  return items
+    .filter((item) => item.permission !== false)
+    .map((item) => {
+      // MUSIC SUBMENU
+      if (item.isSubmenu && item.href === "/music") {
+        return (
+          <DropdownMenuSub key="music">
+            <DropdownMenuSubTrigger
+              className={pathname.startsWith("/music") ? "bg-accent" : ""}
+            >
+              <item.icon className="mr-2 h-4 w-4" />
+              <span>Music</span>
+            </DropdownMenuSubTrigger>
+
+            <DropdownMenuSubContent>
+              <Link href="/music/songs">
+                <DropdownMenuItem
+                  className={pathname.startsWith("/music/songs") ? "bg-accent" : ""}
+                >
+                  <Music className="mr-2 h-4 w-4" />
+                  <span>Songs</span>
+                </DropdownMenuItem>
+              </Link>
+
+              <Link href="/music/setlists">
+                <DropdownMenuItem
+                  className={pathname.startsWith("/music/setlists") ? "bg-accent" : ""}
+                >
+                  <ListMusic className="mr-2 h-4 w-4" />
+                  <span>Set Lists</span>
+                </DropdownMenuItem>
+              </Link>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        );
+      }
+
+      // NORMAL ITEM
+      return (
+        <Link href={item.href} key={item.href}>
+          <DropdownMenuItem
+            className={
+              pathname === item.href || pathname.startsWith(item.href + "/")
+                ? "bg-accent"
+                : ""
+            }
+          >
+            <item.icon className="mr-2 h-4 w-4" />
+            <span>{item.label}</span>
+          </DropdownMenuItem>
+        </Link>
+      );
+    });
+  }
+
+  // --- LOGOUT HANDLER ---
   const handleLogout = async () => {
     try {
-      // 1. Sign out from Firebase Auth (client)
       await signOut(auth);
-
-      // 2. Clear the session cookie (server)
-      await fetch("/api/auth/logout", {
-        method: "POST",
-      });
+      await fetch("/api/auth/logout", { method: "POST" });
 
       setIsLogoutAlertOpen(false);
 
@@ -90,9 +178,7 @@ export function NavMenu() {
         description: "You have been successfully logged out.",
       });
 
-      // 3. Redirect to login
       window.location.href = "/login";
-
     } catch (error) {
       console.error("Logout error:", error);
       toast({
@@ -103,6 +189,7 @@ export function NavMenu() {
     }
   };
 
+  // --- UI ---
   return (
     <>
       <DropdownMenu modal={false}>
@@ -114,154 +201,10 @@ export function NavMenu() {
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end">
-          {/* Dashboard Link (Root Admin or Church Admin) */}
-          {roles.includes("RootAdmin") && (
-            <Link href="/admin">
-              <DropdownMenuItem
-                className={pathname === "/admin" ? "bg-accent" : ""}
-              >
-                <Home className="mr-2 h-4 w-4" />
-                <span>Dashboard</span>
-              </DropdownMenuItem>
-            </Link>
-          )}
-
-          {!roles.includes("RootAdmin") && isAdmin && churchId && (
-            <Link href={`/admin/church/${churchId}`}>
-              <DropdownMenuItem
-                className={
-                  pathname.startsWith(`/admin/church/${churchId}`)
-                    ? "bg-accent"
-                    : ""
-                }
-              >
-                <Home className="mr-2 h-4 w-4" />
-                <span>Dashboard</span>
-              </DropdownMenuItem>
-            </Link>
-          )}
-
-          {/* Member Dashboard */}
-          {!roles.includes("RootAdmin") && !isAdmin && churchId && (
-            <Link href={`/church/${churchId}/user`}>
-              <DropdownMenuItem
-                className={
-                  pathname.startsWith(`/church/${churchId}/user`)
-                    ? "bg-accent"
-                    : ""
-                }
-              >
-                <Home className="mr-2 h-4 w-4" />
-                <span>Dashboard</span>
-              </DropdownMenuItem>
-            </Link>
-          )}
-
-          {/* Core Navigation (hidden for Root Admin) */}
-          {!roles.includes("RootAdmin") && (
-            <>
-              {navItems
-                .filter((item) => {
-                  if (item.href === "/attendance") return canSeeAttendance;
-                  if (item.href === "/contributions") return canSeeContributions;
-                  if (item.href === "/music") return canAccessMusic;
-                  if (item.href === "/service-plan") return canAccessServicePlan;
-                  return true;
-                })
-                .map((item) => {
-                  if (item.href === "/music") {
-                    return (
-                      <DropdownMenuSub key="music">
-                        <DropdownMenuSubTrigger
-                          className={
-                            pathname.startsWith("/music") ? "bg-accent" : ""
-                          }
-                        >
-                          <item.icon className="mr-2 h-4 w-4" />
-                          <span>Music</span>
-                        </DropdownMenuSubTrigger>
-
-                        <DropdownMenuSubContent>
-                          <Link href="/music/songs">
-                            <DropdownMenuItem
-                              className={
-                                pathname.startsWith("/music/songs")
-                                  ? "bg-accent"
-                                  : ""
-                              }
-                            >
-                              <Music className="mr-2 h-4 w-4" />
-                              <span>Songs</span>
-                            </DropdownMenuItem>
-                          </Link>
-
-                          <Link href="/music/setlists">
-                            <DropdownMenuItem
-                              className={
-                                pathname.startsWith("/music/setlists")
-                                  ? "bg-accent"
-                                  : ""
-                              }
-                            >
-                              <ListMusic className="mr-2 h-4 w-4" />
-                              <span>Set Lists</span>
-                            </DropdownMenuItem>
-                          </Link>
-                        </DropdownMenuSubContent>
-                      </DropdownMenuSub>
-                    );
-                  }
-
-                  return (
-                    <Link href={item.href} key={item.label}>
-                      <DropdownMenuItem
-                        className={
-                          pathname === item.href ||
-                          pathname.startsWith(item.href + "/")
-                            ? "bg-accent"
-                            : ""
-                        }
-                      >
-                        <item.icon className="mr-2 h-4 w-4" />
-                        <span>{item.label}</span>
-                      </DropdownMenuItem>
-                    </Link>
-                  );
-                })}
-            </>
-          )}
-
-          {/* Reports (Admin Only) */}
-          {isAdmin && (
-            <Link href="/reports">
-              <DropdownMenuItem
-                className={pathname === "/reports" ? "bg-accent" : ""}
-              >
-                <FileText className="mr-2 h-4 w-4" />
-                <span>Reports</span>
-              </DropdownMenuItem>
-            </Link>
-          )}
+          {renderMenuItems(activeMenu)}
 
           <DropdownMenuSeparator />
 
-          {/* Settings */}
-          {canSeeSettings && (
-            <Link href="/settings/access-management">
-              <DropdownMenuItem
-                className={
-                  pathname.startsWith("/settings/access-management")
-                    ? "bg-accent"
-                    : ""
-                }
-              >
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-            </Link>
-          )}
-
-          {/* Logout */}
           <DropdownMenuItem onClick={() => setIsLogoutAlertOpen(true)}>
             <LogOut className="mr-2 h-4 w-4" />
             <span>Log Out</span>

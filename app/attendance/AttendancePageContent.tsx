@@ -34,7 +34,8 @@ import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
 import { useSettings } from "@/app/hooks/use-settings";
 import { useAuth } from "@/app/hooks/useAuth";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { auth, db } from "@/app/lib/firebase";
+import { db } from "@/app/lib/firebase";
+import { auth } from "@/app/lib/firebase-client";
 
 export default function AttendancePageContent() {
   const searchParams = useSearchParams();

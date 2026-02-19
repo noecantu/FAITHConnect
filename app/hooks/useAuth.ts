@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
-import { auth, db } from "@/app/lib/firebase";
+import { auth } from "@/app/lib/firebase-client";
+import { db } from "@/app/lib/firebase";
 import type { User } from "@/app/lib/types";
 
 export function useAuth(): { user: User | null; loading: boolean } {
@@ -15,11 +16,12 @@ export function useAuth(): { user: User | null; loading: boolean } {
     let unsubscribeUserDoc: (() => void) | null = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+console.log("🔥 Firebase Auth state changed:", firebaseUser);
+
       // Always reset loading when auth state changes
       if (isActive) {
         setLoading(true);
       }
-
       // Clean up previous Firestore listener
       if (unsubscribeUserDoc) {
         unsubscribeUserDoc();
@@ -50,7 +52,7 @@ export function useAuth(): { user: User | null; loading: boolean } {
           }
 
           const data = snap.data() as Partial<User>;
-
+console.log("Firestore user doc:", data);
           const mergedUser: User = {
             id: firebaseUser.uid,
             email: firebaseUser.email ?? "",
@@ -65,7 +67,7 @@ export function useAuth(): { user: User | null; loading: boolean } {
               fiscalYear: data.settings?.fiscalYear ?? undefined,
             },
           };
-
+console.log("Merged user:", mergedUser);
           setUser(mergedUser);
           setLoading(false);
         },

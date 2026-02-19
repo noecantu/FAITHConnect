@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/app/lib/firebase";
+import { auth } from "@/app/lib/firebase-client";
 
 export default function CreateChurchPage() {
   const router = useRouter();

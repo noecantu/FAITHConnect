@@ -6,11 +6,24 @@ import { Input } from "@/app/components/ui/input";
 import type { LogEntry } from "@/app/lib/types";
 
 function toDate(
-  value: Date | { seconds: number } | null | undefined
+  value: Date | { seconds: number } | string | null | undefined
 ): Date | null {
   if (!value) return null;
+
+  // Already a JS Date
   if (value instanceof Date) return value;
-  if ("seconds" in value) return new Date(value.seconds * 1000);
+
+  // Firestore Timestamp-like object
+  if (typeof value === "object" && "seconds" in value) {
+    return new Date(value.seconds * 1000);
+  }
+
+  // ISO string or other string
+  if (typeof value === "string") {
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
   return null;
 }
 

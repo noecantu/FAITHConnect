@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { auth } from "@/app/lib/firebase-client";
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -28,7 +28,7 @@ export default function LoginPage() {
         email.trim(),
         password
       );
-
+console.log("🔥 After signIn, auth.currentUser:", auth.currentUser);
       // 2. Create Firebase session cookie
       const idToken = await user.getIdToken(true);
 
@@ -55,32 +55,36 @@ export default function LoginPage() {
 
       toast({ title: "Login Successful", description: "Welcome back!" });
 
-      // 4. Redirect based on role
-      if (profile.roles.includes("root")) {
-        router.replace("/admin");
-        return;
-      }
+        // 4. Redirect based on role
+        const isSystemUser =
+          profile.roles.includes("RootAdmin") ||
+          profile.roles.includes("SystemAdmin");
 
-      if (profile.roles.includes("Admin") || profile.roles.includes("ChurchAdmin")) {
-        if (profile.churchId) {
-          router.replace(`/admin/church/${profile.churchId}`);
-        } else {
-          router.replace("/onboarding/create-church");
+        if (isSystemUser) {
+          router.replace("/admin");
+          return;
         }
-        return;
-      }
 
-      if (isMemberLevel) {
-        if (profile.churchId) {
-          router.replace(`/church/${profile.churchId}/user`);
-        } else {
-          router.replace("/");
+        if (profile.roles.includes("Admin") || profile.roles.includes("ChurchAdmin")) {
+          if (profile.churchId) {
+            router.replace(`/admin/church/${profile.churchId}`);
+          } else {
+            router.replace("/onboarding/create-church");
+          }
+          return;
         }
-        return;
-      }
 
-      // fallback
-      router.replace("/");
+        if (isMemberLevel) {
+          if (profile.churchId) {
+            router.replace(`/church/${profile.churchId}/user`);
+          } else {
+            router.replace("/");
+          }
+          return;
+        }
+
+        // fallback
+        router.replace("/");
 
     } catch (error) {
       console.error('Login error:', error);

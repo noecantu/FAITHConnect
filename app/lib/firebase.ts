@@ -7,7 +7,7 @@ import {
   Firestore,
 } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, setPersistence, browserLocalPersistence } from "firebase/auth";
 
 // --- App singleton ---
 const firebaseConfig = {
@@ -43,6 +43,7 @@ export const db = dbInstance;
 // Storage + Auth
 export const storage = getStorage(app);
 export const auth = getAuth(app);
+setPersistence(auth, browserLocalPersistence);
 
 // Secondary user creation unchanged
 export async function createSecondaryUser(email: string, password: string) {
