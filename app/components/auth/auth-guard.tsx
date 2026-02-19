@@ -1,41 +1,65 @@
 'use client';
 
 import { useAuth } from '../../hooks/useAuth';
+import { useChurchId } from '../../hooks/useChurchId';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 
-// List of routes that are publicly accessible without authentication
 const PUBLIC_ROUTES = ['/login'];
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { churchId, loading: churchLoading } = useChurchId();
+
   const router = useRouter();
   const pathname = usePathname();
 
+  const hasRedirected = useRef(false);
+  const [redirecting, setRedirecting] = useState(false);
+
+  const isPublic = PUBLIC_ROUTES.includes(pathname);
+
   useEffect(() => {
-    // If the auth state is still loading, don't do anything yet.
-    if (loading) return;
+    // Wait for BOTH auth + church context to finish loading
+    if (authLoading || churchLoading) return;
+    if (hasRedirected.current) return;
 
-    const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
-
-    // If the user is not authenticated and is trying to access a protected route,
-    // redirect them to the login page.
-    if (!user && !isPublicRoute) {
-      router.push('/login');
+    // 1. Not logged in → protected route
+    if (!user && !isPublic) {
+      hasRedirected.current = true;
+      setRedirecting(true);
+      router.replace('/login');
+      return;
     }
 
-    // If the user is authenticated and is trying to access the login page,
-    // redirect them to the home page.
-    if (user && isPublicRoute) {
-      router.push('/');
+    // 2. Logged in → login page
+    if (user && isPublic) {
+      hasRedirected.current = true;
+      setRedirecting(true);
+      router.replace('/');
+      return;
     }
 
-  }, [user, loading, router, pathname]);
+    // 3. Logged in but no churchId → block protected pages
+    if (user && !churchId && !isPublic) {
+      hasRedirected.current = true;
+      setRedirecting(true);
+      router.replace('/select-church'); // or wherever you want
+      return;
+    }
+  }, [
+    user,
+    churchId,
+    authLoading,
+    churchLoading,
+    isPublic,
+    router,
+    pathname,
+  ]);
 
-  // While the auth state is loading, show a full-screen loader
-  // to prevent a flash of unauthenticated content.
-  if (loading) {
+  // Unified loading gate
+  if (authLoading || churchLoading || redirecting) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-12 w-12 animate-spin" />
@@ -43,16 +67,15 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If the user is not authenticated and on a public route (like /login), allow it.
-  if (!user && PUBLIC_ROUTES.includes(pathname)) {
+  // Public route allowed when logged out
+  if (!user && isPublic) {
     return <>{children}</>;
   }
 
-  // If the user is authenticated and not on a public route, show the protected content.
-  if (user && !PUBLIC_ROUTES.includes(pathname)) {
-      return <>{children}</>;
+  // Protected route allowed when logged in AND churchId is ready
+  if (user && churchId && !isPublic) {
+    return <>{children}</>;
   }
 
-  // In other cases (like redirecting), this will be null, which is fine.
   return null;
 }

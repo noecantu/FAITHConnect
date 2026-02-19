@@ -1,14 +1,15 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp, getApp, getApps, deleteApp, FirebaseApp } from "firebase/app";
+import { initializeApp, getApp, getApps, FirebaseApp, deleteApp } from "firebase/app";
 import {
   initializeFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
+  memoryLocalCache,
+  Firestore,
 } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
-// Your web app's Firebase configuration
+// --- App singleton ---
 const firebaseConfig = {
   apiKey: "AIzaSyDpZne6F54SJwPjPJouEWo7umZyieNPHTA",
   authDomain: "faith-connect-7342d.firebaseapp.com",
@@ -19,30 +20,36 @@ const firebaseConfig = {
   measurementId: "G-QCRKHZKNVE",
 };
 
-// Initialize Firebase
 const app: FirebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// 🔥 Offline-first Firestore
-export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({
-    tabManager: persistentMultipleTabManager(),
-  }),
-});
+// --- Firestore singleton ---
+// Give it an initial value of undefined so TS is satisfied
+let dbInstance: Firestore | undefined = undefined;
 
-// Storage + Auth stay the same
+if (!dbInstance) {
+  const useMemoryCache = process.env.NODE_ENV === "development";
+
+  dbInstance = initializeFirestore(app, {
+    localCache: useMemoryCache
+      ? memoryLocalCache() // prevents IndexedDB corruption during hot reload
+      : persistentLocalCache({
+          tabManager: persistentMultipleTabManager(),
+        }),
+  });
+}
+
+export const db = dbInstance;
+
+// Storage + Auth
 export const storage = getStorage(app);
 export const auth = getAuth(app);
 
-/**
- * Creates a new user in Firebase Authentication without logging out the current user.
- * This is done by initializing a secondary Firebase App instance.
- */
+// Secondary user creation unchanged
 export async function createSecondaryUser(email: string, password: string) {
   const secondaryAppName = "secondaryApp";
 
   let secondaryApp: FirebaseApp;
 
-  // Check if app already exists
   const existingApp = getApps().find((a) => a.name === secondaryAppName);
   if (existingApp) {
     secondaryApp = existingApp;
@@ -59,17 +66,12 @@ export async function createSecondaryUser(email: string, password: string) {
       password
     );
 
-    // Sign out to avoid auth collisions
     await secondaryAuth.signOut();
-
     return userCredential.user;
   } finally {
-    // Clean up the secondary app instance safely
     try {
       await deleteApp(secondaryApp);
-    } catch {
-      // Ignore — app may already be deleted during hot reload
-    }
+    } catch {}
   }
 }
 

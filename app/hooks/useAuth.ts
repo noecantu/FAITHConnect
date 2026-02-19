@@ -15,12 +15,18 @@ export function useAuth(): { user: User | null; loading: boolean } {
     let unsubscribeUserDoc: (() => void) | null = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      // Always reset loading when auth state changes
+      if (isActive) {
+        setLoading(true);
+      }
+
       // Clean up previous Firestore listener
       if (unsubscribeUserDoc) {
         unsubscribeUserDoc();
         unsubscribeUserDoc = null;
       }
 
+      // Logged out
       if (!firebaseUser) {
         if (isActive) {
           setUser(null);
@@ -29,6 +35,7 @@ export function useAuth(): { user: User | null; loading: boolean } {
         return;
       }
 
+      // Logged in → now wait for Firestore user doc
       const userRef = doc(db, "users", firebaseUser.uid);
 
       unsubscribeUserDoc = onSnapshot(
@@ -66,6 +73,7 @@ export function useAuth(): { user: User | null; loading: boolean } {
           if (error.code !== "permission-denied") {
             console.error("useAuth userDoc listener error:", error);
           }
+          if (isActive) setLoading(false);
         }
       );
     });

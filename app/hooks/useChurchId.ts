@@ -11,6 +11,10 @@ export function useChurchId(): { churchId: string | null; loading: boolean } {
   useEffect(() => {
     let isActive = true;
 
+    // Reset loading whenever the user changes
+    setLoading(true);
+    setChurchId(null);
+
     if (authLoading) return;
 
     if (!user?.id) {
@@ -47,4 +51,5 @@ export function useChurchId(): { churchId: string | null; loading: boolean } {
 
   return { churchId, loading };
 }
+
 

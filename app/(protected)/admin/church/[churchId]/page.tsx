@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { useAuthState } from "react-firebase-hooks/auth";
-import { auth, db } from "@/app/lib/firebase";
+import { db } from "@/app/lib/firebase";
 import Image from "next/image";
 
 import {
@@ -36,10 +35,11 @@ import {
 
 import Link from "next/link";
 import type { Church } from "@/app/lib/types";
+import { useAuth } from "@/app/hooks/useAuth";
 
 export default function ChurchAdminDashboard() {
   const { churchId } = useParams();
-  const [user, userLoading] = useAuthState(auth);
+  const { user, loading: userLoading } = useAuth();
 
   const [church, setChurch] = useState<Church | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,15 +49,30 @@ export default function ChurchAdminDashboard() {
   const [eventCount, setEventCount] = useState(0);
   const [attendanceThisWeek, setAttendanceThisWeek] = useState(0);
 
+  // ------------------------------------------------------
+  // FIXED EFFECT — NO EARLY RETURNS THAT FREEZE THE PAGE
+  // ------------------------------------------------------
   useEffect(() => {
-    async function load() {
-      if (userLoading) return;
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-      if (!churchId) return;
+    // 1. Wait for Firebase auth to finish
+    if (userLoading) return;
 
+    // 2. If user is not logged in → stop loading
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    // 3. Wait for churchId to be available
+    //    - undefined → still loading
+    //    - null → user has no church
+    if (churchId === undefined) return;
+
+    if (churchId === null) {
+      setLoading(false);
+      return;
+    }
+
+    async function load() {
       setLoading(true);
 
       // ---------------------------
@@ -108,7 +123,6 @@ export default function ChurchAdminDashboard() {
 
       // ---------------------------
       // 3. Upcoming Services
-      // dateString: "YYYY-MM-DD"
       // ---------------------------
       const todayIso = new Date().toISOString().slice(0, 10);
 
@@ -129,7 +143,6 @@ export default function ChurchAdminDashboard() {
 
       // ---------------------------
       // 4. Events This Week
-      // date: Firestore Timestamp
       // ---------------------------
       const eventsRef = collection(
         db,
@@ -149,7 +162,6 @@ export default function ChurchAdminDashboard() {
 
       // ---------------------------
       // 5. Attendance This Week
-      // doc IDs = "YYYY-MM-DD"
       // ---------------------------
       const attendanceRef = collection(
         db,
@@ -171,12 +183,14 @@ export default function ChurchAdminDashboard() {
 
       let totalPresent = 0;
 
-      attendanceSnap.forEach(docSnap => {
+      attendanceSnap.forEach((docSnap) => {
         const data = docSnap.data();
 
         const recordCount =
           data.records && typeof data.records === "object"
-            ? Object.keys(data.records).filter(id => data.records[id] === true).length
+            ? Object.keys(data.records).filter(
+                (id) => data.records[id] === true
+              ).length
             : 0;
 
         let visitorCount = 0;
