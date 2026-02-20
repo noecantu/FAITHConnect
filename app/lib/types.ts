@@ -268,6 +268,7 @@ export interface User {
   roles: Role[];
   firstName?: string | null;
   lastName?: string | null;
+  profilePhotoUrl?: string;
   settings?: {
     attendanceView: "cards" | "list";
     calendarView?: 'calendar' | 'list';
@@ -279,7 +280,10 @@ export interface User {
 export type UserProfile = {
   uid: string;
   email: string;
+  firstName: string;
+  lastName: string;
   displayName: string;
+  profilePhotoUrl?: string;
   roles: string[];
   churchId: string | null;
 };

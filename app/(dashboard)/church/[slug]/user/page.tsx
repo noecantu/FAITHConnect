@@ -4,14 +4,20 @@ import { use } from "react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-
 import type { UserProfile } from "@/app/lib/types";
 import { useChurch } from "@/app/hooks/useChurch";
-
 import { Button } from "@/app/components/ui/button";
 import { Avatar, AvatarFallback } from "@/app/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
 import { useUpcomingServices } from "@/app/hooks/useUpcomingServices";
+import {
+  CalendarCheck,
+  CalendarHeart,
+  Calendar,
+  // Music,
+  // UserPlus,
+  // LayoutDashboard,
+} from "lucide-react";
 
 export default function UserDashboardPage({
   params,
@@ -111,17 +117,48 @@ export default function UserDashboardPage({
           {/* Identity Header */}
           <Card className="border border-border bg-card/80">
             <CardContent className="flex items-center gap-4 p-4 md:p-6">
-              <Avatar className="h-12 w-12">
-                <AvatarFallback>
-                  {user.displayName?.[0]?.toUpperCase() ?? "U"}
-                </AvatarFallback>
+              {/* Avatar */}
+              <Avatar className="h-14 w-14">
+                {user.profilePhotoUrl ? (
+                  <Image
+                    src={user.profilePhotoUrl}
+                    alt={user.displayName ?? "User Avatar"}
+                    width={56}
+                    height={56}
+                    className="rounded-full object-cover"
+                  />
+                ) : (
+                  <AvatarFallback className="text-lg">
+                    {user.displayName?.[0]?.toUpperCase() ?? "U"}
+                  </AvatarFallback>
+                )}
               </Avatar>
 
+              {/* Identity Info */}
               <div className="flex flex-col">
-                <h1 className="text-xl font-semibold">{user.displayName}</h1>
-                <p className="text-sm text-muted-foreground">
+                <h1 className="text-xl font-semibold">
+                  {user.firstName || user.lastName
+                    ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
+                    : user.displayName}
+                </h1>
+
+                <p className="text-sm text-muted-foreground">{user.email}</p>
+
+                <p className="text-xs text-muted-foreground mt-1">
                   Member of {church.name}
                 </p>
+
+                {/* Role Badges */}
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {user.roles.map((role) => (
+                    <span
+                      key={role}
+                      className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border"
+                    >
+                      {role}
+                    </span>
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -134,9 +171,9 @@ export default function UserDashboardPage({
             </CardHeader>
 
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <QuickAction href={`/church/${slug}/user/services`} label="Upcoming Services" />
-              <QuickAction href={`/church/${slug}/user/events`} label="Events" />
-              <QuickAction href={`/church/${slug}/user/schedule`} label="My Schedule" />
+              <QuickAction href={`/church/${slug}/user/services`} icon={CalendarHeart} label="Upcoming Services" />
+              <QuickAction href={`/church/${slug}/user/events`} icon={Calendar} label="Events" />
+              <QuickAction href={`/church/${slug}/user/schedule`} icon={CalendarCheck} label="My Schedule" />
             </CardContent>
           </Card>
 
@@ -172,6 +209,7 @@ export default function UserDashboardPage({
 /* ---------------------------
    Small Components
 --------------------------- */
+type IconType = React.ComponentType<React.SVGProps<SVGSVGElement>>;
 
 function SidebarLink({
   href,
@@ -200,9 +238,11 @@ function SidebarLink({
 
 function QuickAction({
   href,
+  icon: Icon,
   label,
 }: {
   href: string;
+  icon: IconType,
   label: string;
 }) {
   return (
@@ -212,6 +252,7 @@ function QuickAction({
       className="w-full justify-start gap-2 border-border bg-background/60 hover:bg-muted/70"
     >
       <Link href={href}>
+        <Icon className="h-4 w-4 text-foreground/70" />
         <span>{label}</span>
       </Link>
     </Button>
