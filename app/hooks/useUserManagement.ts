@@ -237,6 +237,6 @@ export function useUserManagement(churchId: string | null) {
     goBackToList,
 
     // utilities
-    sortedUsers,
+    getSortedUsers: sortedUsers,
   };
 }
