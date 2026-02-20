@@ -29,6 +29,7 @@ export default function LoginPage() {
         password
       );
 console.log("🔥 After signIn, auth.currentUser:", auth.currentUser);
+console.log(await auth.currentUser?.getIdTokenResult());
       // 2. Create Firebase session cookie
       const idToken = await user.getIdToken(true);
 

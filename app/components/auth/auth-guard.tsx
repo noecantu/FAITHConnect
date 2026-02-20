@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { SYSTEM_ROLES, SystemRole } from "@/app/lib/system-roles";
 
 const PUBLIC_ROUTES = ["/login"];
+const ONBOARDING_ROUTES = ["/select-church", "/onboarding/create-church"];
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
@@ -20,28 +21,17 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const [redirecting, setRedirecting] = useState(false);
 
   const isPublic = PUBLIC_ROUTES.includes(pathname);
+  const isOnboardingRoute = ONBOARDING_ROUTES.includes(pathname);
 
-  // ⭐ System-level users (RootAdmin, etc.)
   const isSystemUser =
     user?.roles?.some((r) => SYSTEM_ROLES.includes(r as SystemRole)) ?? false;
-console.log("AuthGuard user:", user);
-console.log("AuthGuard roles:", user?.roles);
-console.log("AuthGuard isSystemUser:", isSystemUser);
-console.log("AuthGuard churchId:", churchId);
-console.log("AuthGuard pathname:", pathname);
 
   useEffect(() => {
-    // ⭐ Never run guard logic until auth is fully loaded
     if (authLoading) return;
-
-    // ⭐ Only load churchId AFTER we know the user
     if (!isSystemUser && churchLoading) return;
-
     if (hasRedirected.current) return;
 
-    //
-    // 1. NOT LOGGED IN → protected route
-    //
+    // 1. Not logged in → protected route
     if (!user && !isPublic) {
       hasRedirected.current = true;
       setRedirecting(true);
@@ -49,9 +39,7 @@ console.log("AuthGuard pathname:", pathname);
       return;
     }
 
-    //
-    // 2. LOGGED IN → login page
-    //
+    // 2. Logged in → login page
     if (user && isPublic) {
       hasRedirected.current = true;
       setRedirecting(true);
@@ -59,11 +47,8 @@ console.log("AuthGuard pathname:", pathname);
       return;
     }
 
-    //
-    // 3. SYSTEM USERS (RootAdmin) → always allowed, no churchId required
-    //
+    // 3. System users (RootAdmin)
     if (user && isSystemUser) {
-      // If landing on "/", send to /admin
       if (pathname === "/") {
         hasRedirected.current = true;
         setRedirecting(true);
@@ -72,19 +57,17 @@ console.log("AuthGuard pathname:", pathname);
       return;
     }
 
-    //
-    // 4. CHURCH USERS WITHOUT CHURCH → onboarding
-    //
+    // 4. Church users without church → onboarding
     if (user && !isSystemUser && !churchId) {
-      hasRedirected.current = true;
-      setRedirecting(true);
-      router.replace("/select-church");
+      if (!isOnboardingRoute) {
+        hasRedirected.current = true;
+        setRedirecting(true);
+        router.replace("/onboarding/create-church");
+      }
       return;
     }
 
-    //
-    // 5. CHURCH USERS WITH CHURCH → allowed
-    //
+    // 5. Church users with church → allowed
     return;
   }, [
     user,
@@ -94,12 +77,10 @@ console.log("AuthGuard pathname:", pathname);
     pathname,
     isPublic,
     isSystemUser,
+    isOnboardingRoute,
     router,
   ]);
 
-  //
-  // Unified loading gate
-  //
   if (authLoading || churchLoading || redirecting) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -108,23 +89,9 @@ console.log("AuthGuard pathname:", pathname);
     );
   }
 
-  //
-  // Public route allowed when logged out
-  //
   if (!user && isPublic) return <>{children}</>;
-
-  //
-  // System users always allowed
-  //
   if (user && isSystemUser) return <>{children}</>;
-
-  //
-  // Church users allowed only when churchId is ready
-  //
   if (user && churchId) return <>{children}</>;
 
-  //
-  // Fallback (should never hit)
-  //
   return null;
 }

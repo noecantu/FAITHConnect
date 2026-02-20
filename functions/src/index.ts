@@ -27,6 +27,19 @@ async function sendPasswordSetupEmail(email: string, resetLink: string) {
 }
 
 // -----------------------------
+// Apply Claims Helper
+// -----------------------------
+async function applyClaims(uid: string, roles: string[], churchId?: string) {
+  const claims: any = { roles };
+
+  if (churchId) {
+    claims.churchId = churchId;
+  }
+
+  await admin.auth().setCustomUserClaims(uid, claims);
+}
+
+// -----------------------------
 // createMemberLogin
 // -----------------------------
 export const createMemberLogin = onCall(async (request) => {
@@ -80,6 +93,8 @@ export const createMemberLogin = onCall(async (request) => {
       url: "https://faith-connect-7342d.web.app",
       handleCodeInApp: false,
     };
+
+    await applyClaims(uid, [], churchId);
 
     const resetLink = await admin
       .auth()
@@ -193,6 +208,8 @@ export const createRootAdmin = onCall(async (request) => {
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
   });
 
+  await applyClaims(user.uid, ["RootAdmin"]);
+  
   // Generate reset link
   const resetLink = await admin.auth().generatePasswordResetLink(user.email!);
 

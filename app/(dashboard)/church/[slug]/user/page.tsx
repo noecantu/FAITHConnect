@@ -60,49 +60,8 @@ export default function UserDashboardPage({
     return <div className="p-6">Loading...</div>;
   }
 
-  const initials = church.name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Sidebar */}
-      <aside className="hidden md:flex md:w-64 lg:w-72 flex-col border-r border-border bg-muted/20">
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-border">
-          <div className="w-10 h-10 rounded-xl bg-muted/60 border border-border flex items-center justify-center overflow-hidden">
-            {church.logoUrl ? (
-              <Image
-                src={church.logoUrl}
-                alt="Church Logo"
-                width={40}
-                height={40}
-                className="object-contain w-full h-full p-1.5"
-              />
-            ) : (
-              <span className="text-sm font-semibold text-muted-foreground">
-                {initials}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold truncate">{church.name}</span>
-            <span className="text-xs text-muted-foreground">{church.timezone}</span>
-          </div>
-        </div>
-
-        <nav className="flex-1 px-3 py-4 space-y-1 text-sm">
-          <SidebarLink href={`/church/${slug}/user`} label="My Dashboard" active />
-          <SidebarLink href={`/church/${slug}/user/schedule`} label="My Schedule" />
-          <SidebarLink href={`/church/${slug}/user/services`} label="Upcoming Services" />
-          <SidebarLink href={`/church/${slug}/user/events`} label="Events" />
-          <SidebarLink href={`/church/${slug}/user/profile`} label="My Profile" />
-        </nav>
-      </aside>
-
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
         <div className="border-b border-border bg-background/80 backdrop-blur">
@@ -115,49 +74,82 @@ export default function UserDashboardPage({
         </div>
 
         <div className="flex-1 px-4 md:px-8 py-6 space-y-6">
-          {/* Identity Header */}
-          <UserFormSheet user={user}>
-            <Card className="border border-border bg-card/80 cursor-pointer hover:bg-muted/50 transition">
-              <CardContent className="flex items-center gap-4 p-4 md:p-6">
-                <Avatar className="h-14 w-14">
-                  {user.profilePhotoUrl ? (
-                    <Image
-                      src={user.profilePhotoUrl}
-                      alt="Profile Photo"
-                      width={56}
-                      height={56}
-                      className="rounded-full object-cover"
-                    />
-                  ) : (
-                    <AvatarFallback className="text-lg">
-                      {user.displayName?.[0]?.toUpperCase() ?? "U"}
-                    </AvatarFallback>
-                  )}
-                </Avatar>
+          
+              {/* Identity Header — Two Cards Side-by-Side */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                <div className="flex flex-col">
-                  <h1 className="text-xl font-semibold">
-                    {user.firstName || user.lastName
-                      ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
-                      : user.displayName}
-                  </h1>
+                {/* Church Identity Card */}
+                <Card className="border border-border bg-card/80">
+                  <CardContent className="flex items-center gap-4 p-4 md:p-6">
+                    <Avatar className="h-20 w-20 rounded-md overflow-hidden border border-border bg-white shadow-sm">
+                      {church.logoUrl ? (
+                        <Image
+                          src={church.logoUrl}
+                          alt="Church Logo"
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <AvatarFallback className="rounded-md text-xl">
+                          {church.name?.[0]?.toUpperCase() ?? "C"}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
 
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                    <div className="space-y-1">
+                      <h2 className="text-xl font-semibold tracking-tight">
+                        {church.name}
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        Timezone: {church.timezone}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
 
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {user.roles.map((role) => (
-                      <span
-                        key={role}
-                        className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border"
-                      >
-                        {role}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </UserFormSheet>
+                {/* User Identity Card */}
+                <UserFormSheet user={user}>
+                  <Card className="border border-border bg-card/80 cursor-pointer hover:bg-muted/50 transition">
+                    <CardContent className="flex items-center gap-4 p-4 md:p-6">
+                      <Avatar className="h-20 w-20 rounded-md overflow-hidden border border-border bg-white shadow-sm">
+                        {user.profilePhotoUrl ? (
+                          <Image
+                            src={user.profilePhotoUrl}
+                            alt="Profile Photo"
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <AvatarFallback className="rounded-md text-xl">
+                            {user.displayName?.[0]?.toUpperCase() ?? "U"}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+
+                      <div className="flex flex-col">
+                        <h1 className="text-lg font-semibold">
+                          {user.firstName || user.lastName
+                            ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
+                            : user.displayName}
+                        </h1>
+
+                        <p className="text-sm text-muted-foreground">{user.email}</p>
+
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {user.roles.map((role) => (
+                            <span
+                              key={role}
+                              className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border"
+                            >
+                              {role}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </UserFormSheet>
+              </div>
 
           {/* Quick Actions */}
           <Card className="border border-border bg-card/80">
@@ -206,31 +198,6 @@ export default function UserDashboardPage({
    Small Components
 --------------------------- */
 type IconType = React.ComponentType<React.SVGProps<SVGSVGElement>>;
-
-function SidebarLink({
-  href,
-  label,
-  active = false,
-}: {
-  href: string;
-  label: string;
-  active?: boolean;
-}) {
-  return (
-    <Link href={href}>
-      <div
-        className={[
-          "flex items-center gap-2 px-3 py-2 rounded-md transition-colors cursor-pointer",
-          active
-            ? "bg-muted text-foreground"
-            : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-        ].join(" ")}
-      >
-        <span className="truncate">{label}</span>
-      </div>
-    </Link>
-  );
-}
 
 function QuickAction({
   href,
