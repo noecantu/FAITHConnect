@@ -93,8 +93,8 @@ export async function createSetList(
   churchId: string | null,
   data: {
     title: string;
-    dateString: string;   // NEW
-    timeString: string;   // NEW
+    dateString: string;
+    timeString: string;
     sections: SetListSection[];
     createdBy: string;
     serviceType: 'Sunday' | 'Midweek' | 'Special' | null;
@@ -111,8 +111,8 @@ export async function createSetList(
 
   const ref = await addDoc(setListsCollection(cid), {
     title: data.title,
-    dateString: data.dateString,     // ✔ stored directly
-    timeString: data.timeString,     // ✔ stored directly
+    dateString: data.dateString,
+    timeString: data.timeString,
     sections: data.sections,
     createdBy: data.createdBy,
     serviceType: data.serviceType,

@@ -42,13 +42,15 @@ export function usePhotoCapture(
   useEffect(() => {
     if (!isTakingPhoto) return;
 
+    const videoEl = videoRef.current; // capture ref ONCE
+
     const getCameraPermission = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         setHasCameraPermission(true);
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+        if (videoEl) {
+          videoEl.srcObject = stream;
         }
       } catch (error) {
         console.error("Error accessing camera:", error);
@@ -66,8 +68,8 @@ export function usePhotoCapture(
     getCameraPermission();
 
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
+      if (videoEl && videoEl.srcObject) {
+        const stream = videoEl.srcObject as MediaStream;
         stream.getTracks().forEach((track) => track.stop());
       }
     };

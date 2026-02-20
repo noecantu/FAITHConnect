@@ -12,6 +12,7 @@ import {
     orderBy,
     serverTimestamp,
     onSnapshot,
+    Timestamp,
   } from 'firebase/firestore';
   
   import { db } from './firebase';
@@ -35,19 +36,26 @@ import {
     // Prevent listener from attaching during logout or unstable auth
     if (!churchId || !userId) return () => {};
 
-    const q = query(songsCollection(churchId), orderBy('title'));
+    const q = query(songsCollection(churchId), orderBy("title"));
 
     return onSnapshot(
       q,
       (snapshot) => {
         const songs: Song[] = snapshot.docs.map((docSnap) => {
-          const data = docSnap.data();
+          const data = docSnap.data() as Record<string, unknown>;
+
           return {
             id: docSnap.id,
-            ...(data as any),
-            createdAt: data.createdAt?.toDate?.() ?? new Date(),
-            updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
-          };
+            ...data,
+            createdAt:
+              data.createdAt instanceof Timestamp
+                ? data.createdAt.toDate()
+                : new Date(),
+            updatedAt:
+              data.updatedAt instanceof Timestamp
+                ? data.updatedAt.toDate()
+                : new Date(),
+          } as Song;
         });
 
         callback(songs);
@@ -66,45 +74,61 @@ import {
   // -----------------------------------------------------
   export async function createSong(
     churchId: string,
-    data: Omit<Song, 'id' | 'churchId' | 'createdAt' | 'updatedAt'>
+    data: Omit<Song, "id" | "churchId" | "createdAt" | "updatedAt">
   ) {
     // Remove undefined fields so Firestore doesn't choke
     const cleaned = Object.fromEntries(
       Object.entries(data).filter(([_, v]) => v !== undefined)
     );
-  
+
     const ref = await addDoc(songsCollection(churchId), {
       ...cleaned,
       churchId,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
-  
+
     const snap = await getDoc(ref);
     const docData = snap.data();
-  
+
+    // Narrow docData safely
+    const base = (docData ?? {}) as Record<string, unknown>;
+
     return {
       id: ref.id,
-      ...(docData as any),
-      createdAt: docData?.createdAt?.toDate?.() ?? new Date(),
-      updatedAt: docData?.updatedAt?.toDate?.() ?? new Date(),
+      ...base,
+      createdAt:
+        base.createdAt instanceof Timestamp
+          ? base.createdAt.toDate()
+          : new Date(),
+      updatedAt:
+        base.updatedAt instanceof Timestamp
+          ? base.updatedAt.toDate()
+          : new Date(),
     } as Song;
-  }  
+  }
   
   // -----------------------------------------------------
   // Get all songs (non-realtime)
   // -----------------------------------------------------
   export async function getSongs(churchId: string): Promise<Song[]> {
-    const q = query(songsCollection(churchId), orderBy('title'));
+    const q = query(songsCollection(churchId), orderBy("title"));
     const snap = await getDocs(q);
-  
+
     return snap.docs.map((docSnap) => {
-      const data = docSnap.data();
+      const data = docSnap.data() as Record<string, unknown>;
+
       return {
         id: docSnap.id,
-        ...(data as any),
-        createdAt: data.createdAt?.toDate?.() ?? new Date(),
-        updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
+        ...data,
+        createdAt:
+          data.createdAt instanceof Timestamp
+            ? data.createdAt.toDate()
+            : new Date(),
+        updatedAt:
+          data.updatedAt instanceof Timestamp
+            ? data.updatedAt.toDate()
+            : new Date(),
       } as Song;
     });
   }
@@ -129,22 +153,32 @@ import {
   // Delete Song
   // -----------------------------------------------------
   export async function deleteSong(churchId: string, songId: string) {
-    const ref = doc(db, 'churches', churchId, 'songs', songId);
+    const ref = doc(db, "churches", churchId, "songs", songId);
     await deleteDoc(ref);
-  }  
-  
-  export async function getSongById(churchId: string, songId: string): Promise<Song | null> {
+  }
+
+  export async function getSongById(
+    churchId: string,
+    songId: string
+  ): Promise<Song | null> {
     const ref = doc(db, `churches/${churchId}/songs/${songId}`);
     const snap = await getDoc(ref);
-  
+
     if (!snap.exists()) return null;
-  
-    const data = snap.data();
-  
+
+    // Firestore returns DocumentData = Record<string, unknown>
+    const data = snap.data() as Record<string, unknown>;
+
     return {
       id: snap.id,
-      ...(data as any),
-      createdAt: data.createdAt?.toDate?.() ?? new Date(),
-      updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
+      ...data,
+      createdAt:
+        data.createdAt instanceof Timestamp
+          ? data.createdAt.toDate()
+          : new Date(),
+      updatedAt:
+        data.updatedAt instanceof Timestamp
+          ? data.updatedAt.toDate()
+          : new Date(),
     } as Song;
   }

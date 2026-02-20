@@ -2,17 +2,17 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PageHeader } from '../../../components/page-header';
-import { Card } from '../../../components/ui/card';
-import { Input } from '../../../components/ui/input';
-import { Textarea } from '../../../components/ui/textarea';
-import { useChurchId } from '../../../hooks/useChurchId';
-import { useUserRoles } from '../../../hooks/useUserRoles';
-import { createSetList } from '../../../lib/setlists';
-import { SetListSection } from '../../../lib/types';
-import { useSongs } from '../../../hooks/useSongs';
-import { SetListSectionEditor } from '../../../components/music/SetListSectionEditor';
-import { Fab } from '../../../components/ui/fab';
+import { PageHeader } from '@/app/components/page-header';
+import { Card } from '@/app/components/ui/card';
+import { Input } from '@/app/components/ui/input';
+import { Textarea } from '@/app/components/ui/textarea';
+import { useChurchId } from '@/app/hooks/useChurchId';
+import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { createSetList } from '@/app/lib/setlists';
+import { SetListSection } from '@/app/lib/types';
+import { useSongs } from '@/app/hooks/useSongs';
+import { SetListSectionEditor } from '@/app/components/music/SetListSectionEditor';
+import { Fab } from '@/app/components/ui/fab';
 
 export default function NewSetListPage() {
   const router = useRouter();
@@ -72,8 +72,8 @@ export default function NewSetListPage() {
 
     const newSetList = {
       title: title.trim(),
-      date: baseDate,
-      time,
+      dateString: baseDate.toISOString().slice(0, 10),
+      timeString: time,
       sections,
       createdBy: "system",
       serviceType: serviceType ?? null,

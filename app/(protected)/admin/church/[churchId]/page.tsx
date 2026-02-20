@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { db } from "@/app/lib/firebase";
-import Image from "next/image";
 
 import {
   doc,
@@ -30,7 +29,6 @@ import {
   Calendar,
   Music,
   UserPlus,
-  LayoutDashboard,
 } from "lucide-react";
 
 import Link from "next/link";
@@ -263,60 +261,8 @@ export default function ChurchAdminDashboard() {
   // ---------------------------
   // NORMAL RENDER
   // ---------------------------
-
-  const initials = church.name
-    .split(" ")
-    .map((w: string) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Sidebar */}
-      <aside className="hidden md:flex md:w-64 lg:w-72 flex-col border-r border-border bg-muted/20">
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-border">
-          <div className="w-10 h-10 rounded-xl bg-muted/60 border border-border flex items-center justify-center overflow-hidden">
-            {church.logoUrl ? (
-              <Image
-                src={church.logoUrl}
-                alt="Church Logo"
-                width={40}
-                height={40}
-                className="object-contain w-full h-full p-1.5"
-              />
-            ) : (
-              <span className="text-sm font-semibold text-muted-foreground">
-                {initials}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold truncate">
-              {church.name}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {church.timezone}
-            </span>
-          </div>
-        </div>
-
-        <nav className="flex-1 px-3 py-4 space-y-1 text-sm">
-          <SidebarLink
-            href={`/church/${churchId}/admin`}
-            icon={LayoutDashboard}
-            label="Dashboard"
-            active
-          />
-          <SidebarLink href="/attendance" icon={CalendarCheck} label="Attendance" />
-          <SidebarLink href="/calendar" icon={Calendar} label="Events" />
-          <SidebarLink href="/members" icon={UserPlus} label="Members" />
-          <SidebarLink href="/service-plan" icon={CalendarHeart} label="Service Plans" />
-          <SidebarLink href="/music/setlists" icon={Music} label="Set Lists" />
-        </nav>
-      </aside>
-
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
         <div className="border-b border-border bg-background/80 backdrop-blur">
@@ -326,12 +272,30 @@ export default function ChurchAdminDashboard() {
               subtitle="Manage your church’s people, events, and ministries."
             />
           </div>
-        </div>
-
+        </div>=
         <div className="flex-1 px-4 md:px-8 py-6 space-y-6">
-          {/* Identity Header */}
-          <Card className="border border-border bg-card/80">
-            <CardContent className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 md:p-6">
+
+        {/* Identity Header */}
+        <Card className="border border-border bg-card/80">
+          <CardContent className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 md:p-6">
+            
+            {/* Left: Logo + Name */}
+            <div className="flex items-center gap-4">
+              {/* Logo */}
+              {church.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={church.logoUrl}
+                  alt={church.name}
+                  className="h-32 w-32 rounded-md object-cover border border-border bg-white ring-2 ring-primary/20 shadow-md"
+                />
+              ) : (
+                <div className="h-32 w-32 rounded-md bg-muted flex items-center justify-center text-lg font-semibold text-muted-foreground border border-border">
+                  {church.name?.charAt(0)}
+                </div>
+              )}
+
+              {/* Name + Timezone */}
               <div className="space-y-1">
                 <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
                   {church.name}
@@ -340,14 +304,17 @@ export default function ChurchAdminDashboard() {
                   Timezone: {church.timezone}
                 </p>
               </div>
+            </div>
 
-              <div className="flex items-center gap-3">
-                <span className="inline-flex items-center rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground">
-                  Status: {church.status === "active" ? "Active" : "Disabled"}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Right: Status */}
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground">
+                Status: {church.status === "active" ? "Active" : "Disabled"}
+              </span>
+            </div>
+
+          </CardContent>
+        </Card>
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -396,36 +363,7 @@ export default function ChurchAdminDashboard() {
 // ---------------------------
 // Small Components
 // ---------------------------
-
 type IconType = React.ComponentType<React.SVGProps<SVGSVGElement>>;
-
-function SidebarLink({
-  href,
-  icon: Icon,
-  label,
-  active = false,
-}: {
-  href: string;
-  icon: IconType;
-  label: string;
-  active?: boolean;
-}) {
-  return (
-    <Link href={href}>
-      <div
-        className={[
-          "flex items-center gap-2 px-3 py-2 rounded-md transition-colors cursor-pointer",
-          active
-            ? "bg-muted text-foreground"
-            : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-        ].join(" ")}
-      >
-        <Icon className="h-4 w-4" />
-        <span className="truncate">{label}</span>
-      </div>
-    </Link>
-  );
-}
 
 function StatCard({
   title,

@@ -68,16 +68,13 @@ export function useUserManagement(churchId: string | null) {
     });
   };
 
-  // -----------------------------
-  // CREATE USER
-  // -----------------------------
   const handleCreateUser = async () => {
     if (!churchId) return;
 
     if (!firstName || !lastName || !email || !password) {
       toast({
-        title: 'Missing fields',
-        description: 'Please fill all fields.',
+        title: "Missing fields",
+        description: "Please fill all fields.",
       });
       return;
     }
@@ -88,7 +85,7 @@ export function useUserManagement(churchId: string | null) {
       const authUser = await createSecondaryUser(email, password);
       const uid = authUser.uid;
 
-      await setDoc(doc(db, 'users', uid), {
+      await setDoc(doc(db, "users", uid), {
         id: uid,
         churchId,
         firstName,
@@ -98,61 +95,73 @@ export function useUserManagement(churchId: string | null) {
         createdAt: serverTimestamp(),
       });
 
-      toast({ title: 'Success', description: 'User created.' });
+      toast({ title: "Success", description: "User created." });
       resetForm();
-      setMode('list');
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message });
+      setMode("list");
+    } catch (err: unknown) {
+      let message = "Something went wrong.";
+
+      if (err instanceof Error) {
+        message = err.message;
+      }
+
+      toast({ title: "Error", description: message });
     } finally {
       setIsCreating(false);
     }
   };
 
-  // -----------------------------
-  // SAVE USER
-  // -----------------------------
   const handleSaveUser = async () => {
     if (!selectedUser) return;
 
     setIsSaving(true);
 
     try {
-      await updateDoc(doc(db, 'users', selectedUser.id), {
+      await updateDoc(doc(db, "users", selectedUser.id), {
         firstName,
         lastName,
         email,
         roles: selectedRoles,
       });
 
-      toast({ title: 'Success', description: 'User updated.' });
+      toast({ title: "Success", description: "User updated." });
       resetForm();
-      setMode('list');
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message });
+      setMode("list");
+    } catch (err: unknown) {
+      let message = "Something went wrong.";
+
+      if (err instanceof Error) {
+        message = err.message;
+      }
+
+      toast({ title: "Error", description: message });
     } finally {
       setIsSaving(false);
     }
   };
 
-  // -----------------------------
-  // DELETE USER
-  // -----------------------------
   const handleDeleteUser = async () => {
     if (!selectedUser) return;
 
     setIsDeleting(true);
 
     try {
-      const deleteFn = httpsCallable(functions, 'deleteUserByUid');
+      const deleteFn = httpsCallable(functions, "deleteUserByUid");
       await deleteFn({ uid: selectedUser.id });
 
-      await deleteDoc(doc(db, 'users', selectedUser.id));
+      await deleteDoc(doc(db, "users", selectedUser.id));
 
-      toast({ title: 'Success', description: 'User deleted.' });
+      toast({ title: "Success", description: "User deleted." });
       resetForm();
-      setMode('list');
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message });
+      setMode("list");
+    } catch (err: unknown) {
+      let message = "Something went wrong.";
+
+      if (err instanceof Error) {
+        message = err.message;
+      }
+
+      toast({ title: "Error", description: message });
     } finally {
       setIsDeleting(false);
     }
@@ -183,14 +192,14 @@ export function useUserManagement(churchId: string | null) {
   // -----------------------------
   // SORTED USERS
   // -----------------------------
-  const getSortedUsers = (users: User[]) =>
-    useMemo(() => {
-      return [...users].sort((a, b) => {
-        const nameA = `${a.lastName ?? ''}, ${a.firstName ?? ''}`.toLowerCase();
-        const nameB = `${b.lastName ?? ''}, ${b.firstName ?? ''}`.toLowerCase();
+  const sortedUsers = useMemo(() => {
+    return (users: User[]) =>
+      [...users].sort((a, b) => {
+        const nameA = `${a.lastName ?? ""}, ${a.firstName ?? ""}`.toLowerCase();
+        const nameB = `${b.lastName ?? ""}, ${b.firstName ?? ""}`.toLowerCase();
         return nameA.localeCompare(nameB);
       });
-    }, [users]);
+  }, []);
 
   // -----------------------------
   // RETURN API
@@ -228,6 +237,6 @@ export function useUserManagement(churchId: string | null) {
     goBackToList,
 
     // utilities
-    getSortedUsers,
+    sortedUsers,
   };
 }

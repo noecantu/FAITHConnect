@@ -3,7 +3,7 @@
 import * as React from 'react';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, UseFormReturn } from 'react-hook-form';
 
 import { Button } from '../components/ui/button';
 import {
@@ -225,21 +225,7 @@ export function AddContributionDialog({
                 )}
               />
 
-              {form.watch("memberId") === "custom" && (
-                <FormField
-                  control={form.control}
-                  name="customContributorName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Contributor Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter contributor name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
+              <CustomContributorField form={form} />
 
               {/* Amount */}
               <FormField
@@ -326,5 +312,25 @@ export function AddContributionDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function CustomContributorField({ form }: { form: UseFormReturn<ContributionFormValues> }) {
+  if (form.watch("memberId") !== "custom") return null;
+
+  return (
+    <FormField
+      control={form.control}
+      name="customContributorName"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Contributor Name</FormLabel>
+          <FormControl>
+            <Input placeholder="Enter contributor name" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   );
 }

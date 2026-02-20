@@ -60,14 +60,33 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
     setUploading(true);
 
     try {
-      const storageRef = ref(storage, `churches/${churchId}/logo`);
+      if (!churchId) throw new Error("Missing churchId");
+      if (!file) throw new Error("No file selected");
+
+      // Always include a filename + extension to avoid CORS + metadata issues
+      const ext = file.name.split(".").pop() || "png";
+      const storageRef = ref(storage, `churches/${churchId}/logo/logo.${ext}`);
+
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
 
       setLogoUrl(url);
-      toast({ title: 'Logo uploaded', description: 'Preview updated.' });
-    } catch (err: any) {
-      toast({ title: 'Upload failed', description: err.message });
+
+      toast({
+        title: "Logo uploaded",
+        description: "Preview updated.",
+      });
+    } catch (err: unknown) {
+      let message = "Something went wrong.";
+
+      if (err instanceof Error) {
+        message = err.message;
+      }
+
+      toast({
+        title: "Upload failed",
+        description: message,
+      });
     } finally {
       setUploading(false);
     }
@@ -80,16 +99,28 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
     setSaving(true);
 
     try {
-      await updateDoc(doc(db, 'churches', churchId), {
+      await updateDoc(doc(db, "churches", churchId), {
         logoUrl,
         updatedAt: new Date(),
       });
 
       setOriginalLogoUrl(logoUrl);
 
-      toast({ title: 'Saved', description: 'Church logo updated.' });
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message });
+      toast({
+        title: "Saved",
+        description: "Church logo updated.",
+      });
+    } catch (err: unknown) {
+      let message = "Something went wrong.";
+
+      if (err instanceof Error) {
+        message = err.message;
+      }
+
+      toast({
+        title: "Error",
+        description: message,
+      });
     } finally {
       setSaving(false);
     }
@@ -97,24 +128,36 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
 
   // Remove logo handler
   const handleRemove = async () => {
-    if (!churchId || !logoUrl) return;
+  if (!churchId || !logoUrl) return;
 
-    setRemoving(true);
+  setRemoving(true);
 
-    try {
-      const storageRef = ref(storage, `churches/${churchId}/logo`);
+  try {
+    const storageRef = ref(storage, `churches/${churchId}/logo`);
       await deleteObject(storageRef);
 
       setLogoUrl(null);
 
-      await updateDoc(doc(db, 'churches', churchId), {
+      await updateDoc(doc(db, "churches", churchId), {
         logoUrl: null,
         updatedAt: new Date(),
       });
 
-      toast({ title: 'Logo removed', description: 'The church logo has been deleted.' });
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message });
+      toast({
+        title: "Logo removed",
+        description: "The church logo has been deleted.",
+      });
+    } catch (err: unknown) {
+      let message = "Something went wrong.";
+
+      if (err instanceof Error) {
+        message = err.message;
+      }
+
+      toast({
+        title: "Error",
+        description: message,
+      });
     } finally {
       setRemoving(false);
     }
@@ -130,10 +173,11 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
       <CardContent className="space-y-4">
         {/* Preview */}
         {logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={logoUrl}
             alt="Church Logo"
-            className="w-36 h-36 rounded-xl border border-slate-700 p-2 object-contain"
+            className="h-32 w-32 rounded-md object-cover border border-border bg-white ring-2 ring-primary/20 shadow-md"
           />
         ) : (
           <div

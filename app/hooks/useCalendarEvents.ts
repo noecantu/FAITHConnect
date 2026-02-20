@@ -7,6 +7,7 @@ import {
   query,
   orderBy,
   onSnapshot,
+  Timestamp,
 } from 'firebase/firestore';
 import type { Event as EventType } from '../lib/types';
 
@@ -27,11 +28,17 @@ export function useCalendarEvents(churchId: string | null, userId: string | null
       (snapshot) => {
         const data: EventType[] = snapshot.docs.map((docSnap) => {
           const raw = docSnap.data();
+          const date =
+            raw.date instanceof Timestamp
+              ? raw.date.toDate()
+              : new Date(raw.date ?? Date.now());
+
           return {
             id: docSnap.id,
             title: raw.title,
+            dateString: date.toISOString().slice(0, 10),
             description: raw.description,
-            date: raw.date?.toDate?.() ?? new Date(),
+            date,
           };
         });
 

@@ -78,7 +78,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
     setSaving(true);
 
     try {
-      await updateDoc(doc(db, 'churches', churchId), {
+      await updateDoc(doc(db, "churches", churchId), {
         timezone,
         address,
         phone,
@@ -90,9 +90,21 @@ export default function ChurchProfileCard({ churchId }: Props) {
       setOriginalAddress(address);
       setOriginalPhone(phone);
 
-      toast({ title: 'Saved', description: 'Church profile updated.' });
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message });
+      toast({
+        title: "Saved",
+        description: "Church profile updated.",
+      });
+    } catch (err: unknown) {
+      let message = "Something went wrong.";
+
+      if (err instanceof Error) {
+        message = err.message;
+      }
+
+      toast({
+        title: "Error",
+        description: message,
+      });
     } finally {
       setSaving(false);
     }

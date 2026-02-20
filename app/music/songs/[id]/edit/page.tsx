@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { PageHeader } from '../../../../components/page-header';
-import { SongForm } from '../../../../components/music/SongForm';
-import { useChurchId } from '../../../../hooks/useChurchId';
-import { useUserRoles } from '../../../../hooks/useUserRoles';
-import { getSongById, updateSong } from '../../../../lib/songs';
-import type { Song, SongInput } from '../../../../lib/types';
-import { Fab } from '../../../../components/ui/fab';
+import { PageHeader } from '@/app/components/page-header';
+import { SongForm } from '@/app/components/music/SongForm';
+import { useChurchId } from '@/app/hooks/useChurchId';
+import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { getSongById, updateSong } from '@/app/lib/songs';
+import type { Song, SongInput } from '@/app/lib/types';
+import { Fab } from '@/app/components/ui/fab';
 
 export default function EditSongPage() {
   const { id } = useParams();

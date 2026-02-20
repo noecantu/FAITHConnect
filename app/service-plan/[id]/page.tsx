@@ -61,21 +61,26 @@ export default function ServicePlanDetailPage() {
         router={router}
       />
 
-      <DuplicateServicePlanDialog
-        open={duplicateOpen}
-        onOpenChange={setDuplicateOpen}
-        plan={plan}
-        churchId={churchId}
-        router={router}
-      />
+      {churchId && (
+        <DuplicateServicePlanDialog
+          open={duplicateOpen}
+          onOpenChange={setDuplicateOpen}
+          plan={plan}
+          churchId={churchId}
+          router={router}
+        />
+      )}
 
-      <DeleteServicePlanDialog
-        open={deleteOpen}
-        onOpenChange={setDeleteOpen}
-        plan={plan}
-        churchId={churchId}
-        router={router}
-      />
+      {churchId && (
+        <DeleteServicePlanDialog
+          open={deleteOpen}
+          onOpenChange={setDeleteOpen}
+          plan={plan}
+          churchId={churchId}
+          router={router}
+        />
+      )}
+
     </>
   );
 }

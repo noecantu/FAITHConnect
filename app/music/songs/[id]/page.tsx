@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { PageHeader } from '../../../components/page-header';
-import { Card } from '../../../components/ui/card';
-import { Button } from '../../../components/ui/button';
-import { useChurchId } from '../../../hooks/useChurchId';
-import { useUserRoles } from '../../../hooks/useUserRoles';
-import { getSongById, deleteSong, createSong } from '../../../lib/songs';
-import { useRecentSetLists } from '../../../hooks/useRecentSetLists';
-import type { Song, SetList } from '../../../lib/types';
-import { Separator } from '../../../components/ui/separator';
+import { PageHeader } from '@/app/components/page-header';
+import { Card } from '@/app/components/ui/card';
+import { Button } from '@/app/components/ui/button';
+import { useChurchId } from '@/app/hooks/useChurchId';
+import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { getSongById, deleteSong, createSong } from '@/app/lib/songs';
+import { useRecentSetLists } from '@/app/hooks/useRecentSetLists';
+import type { Song, SetList } from '@/app/lib/types';
+import { Separator } from '@/app/components/ui/separator';
 import { Copy, Pencil, Trash } from 'lucide-react';
 import {
   AlertDialog,
@@ -22,10 +22,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '../../../components/ui/alert-dialog';
-import { useToast } from '../../../hooks/use-toast';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../../../components/ui/dropdown-menu';
-import { Fab } from '../../../components/ui/fab';
+} from '@/app/components/ui/alert-dialog';
+import { useToast } from '@/app/hooks/use-toast';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu';
+import { Fab } from '@/app/components/ui/fab';
 
 export default function SongDetailPage() {
   const { id } = useParams();

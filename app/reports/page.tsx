@@ -2,28 +2,28 @@
 
 import { useState } from 'react';
 
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
-import { Separator } from '../components/ui/separator';
-import { Button } from '../components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/app/components/ui/card';
+import { Separator } from '@/app/components/ui/separator';
+import { Button } from '@/app/components/ui/button';
 
-import { useMembers } from '../hooks/useMembers';
-import { useContributions } from '../hooks/use-contributions';
+import { useMembers } from '@/app/hooks/useMembers';
+import { useContributions } from '@/app/hooks/use-contributions';
 
-import { useReportFilters } from '../hooks/useReportFilters';
-import { useReportExports } from '../hooks/useReportExports';
+import { useReportFilters } from '@/app/hooks/useReportFilters';
+import { useReportExports } from '@/app/hooks/useReportExports';
 
 // Filter components
-import { ReportTypeSelect } from '../components/reports/ReportTypeSelect';
-import { MemberSelect } from '../components/reports/MemberSelect';
-import { StatusSelect } from '../components/reports/StatusSelect';
-import { YearSelect } from '../components/reports/YearSelect';
-import { MemberFieldSelect } from '../components/reports/MemberFieldSelect';
+import { ReportTypeSelect } from '@/app/components/reports/ReportTypeSelect';
+import { MemberSelect } from '@/app/components/reports/MemberSelect';
+import { StatusSelect } from '@/app/components/reports/StatusSelect';
+import { YearSelect } from '@/app/components/reports/YearSelect';
+import { MemberFieldSelect } from '@/app/components/reports/MemberFieldSelect';
 
 // Preview table components
-import { MemberPreviewTable } from '../components/reports/MemberPreviewTable';
-import { ContributionPreviewTable } from '../components/reports/ContributionPreviewTable';
-import { useChurchId } from '../hooks/useChurchId';
-import { ContributionRangeSelect } from '../components/reports/ContributionRangeSelect';
+import { MemberPreviewTable } from '@/app/components/reports/MemberPreviewTable';
+import { ContributionPreviewTable } from '@/app/components/reports/ContributionPreviewTable';
+import { useChurchId } from '@/app/hooks/useChurchId';
+import { ContributionRangeSelect } from '@/app/components/reports/ContributionRangeSelect';
 
 export default function ReportsPage() {
   const { churchId } = useChurchId();

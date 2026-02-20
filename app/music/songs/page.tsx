@@ -2,17 +2,17 @@
 
 import Link from 'next/link';
 import { useRef, useState } from 'react';
-import { Card } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
-import { Separator } from '../../components/ui/separator';
-import { Input } from '../../components/ui/input';
-import { PageHeader } from '../../components/page-header';
-import { useChurchId } from '../../hooks/useChurchId';
-import { useSongs } from '../../hooks/useSongs';
-import type { Song } from '../../lib/types';
-import { useUserRoles } from '../../hooks/useUserRoles';
+import { Card } from '@/app/components/ui/card';
+import { Button } from '@/app/components/ui/button';
+import { Separator } from '@/app/components/ui/separator';
+import { Input } from '@/app/components/ui/input';
+import { PageHeader } from '@/app/components/page-header';
+import { useChurchId } from '@/app/hooks/useChurchId';
+import { useSongs } from '@/app/hooks/useSongs';
+import type { Song } from '@/app/lib/types';
+import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { useRouter } from "next/navigation";
-import { Fab } from '../../components/ui/fab';
+import { Fab } from '@/app/components/ui/fab';
 import { FileText, Music } from "lucide-react";
 
 export default function SongsPage() {

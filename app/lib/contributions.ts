@@ -71,7 +71,8 @@ export async function addContribution(
 
   const colRef = collection(db, "churches", churchId, "contributions");
 
-  const payload: any = {
+  // Start with a safely typed object
+  const payload: Record<string, unknown> = {
     memberName: data.memberName,
     amount: data.amount,
     category: data.category,
@@ -83,7 +84,7 @@ export async function addContribution(
   };
 
   // Only include memberId if it is defined
-  if (data.memberId) {
+  if (data.memberId !== undefined) {
     payload.memberId = data.memberId;
   }
 
