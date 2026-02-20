@@ -26,10 +26,11 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json({
-      uid,
+      id: uid,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
+      profilePhotoUrl: user.profilePhotoUrl || null,
       roles: user.roles || [],
       churchId: user.churchId || null,
     });

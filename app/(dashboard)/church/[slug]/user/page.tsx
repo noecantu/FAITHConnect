@@ -18,6 +18,7 @@ import {
   // UserPlus,
   // LayoutDashboard,
 } from "lucide-react";
+import { UserFormSheet } from "./profile/user-form-sheet";
 
 export default function UserDashboardPage({
   params,
@@ -115,53 +116,48 @@ export default function UserDashboardPage({
 
         <div className="flex-1 px-4 md:px-8 py-6 space-y-6">
           {/* Identity Header */}
-          <Card className="border border-border bg-card/80">
-            <CardContent className="flex items-center gap-4 p-4 md:p-6">
-              {/* Avatar */}
-              <Avatar className="h-14 w-14">
-                {user.profilePhotoUrl ? (
-                  <Image
-                    src={user.profilePhotoUrl}
-                    alt={user.displayName ?? "User Avatar"}
-                    width={56}
-                    height={56}
-                    className="rounded-full object-cover"
-                  />
-                ) : (
-                  <AvatarFallback className="text-lg">
-                    {user.displayName?.[0]?.toUpperCase() ?? "U"}
-                  </AvatarFallback>
-                )}
-              </Avatar>
+          <UserFormSheet user={user}>
+            <Card className="border border-border bg-card/80 cursor-pointer hover:bg-muted/50 transition">
+              <CardContent className="flex items-center gap-4 p-4 md:p-6">
+                <Avatar className="h-14 w-14">
+                  {user.profilePhotoUrl ? (
+                    <Image
+                      src={user.profilePhotoUrl}
+                      alt="Profile Photo"
+                      width={56}
+                      height={56}
+                      className="rounded-full object-cover"
+                    />
+                  ) : (
+                    <AvatarFallback className="text-lg">
+                      {user.displayName?.[0]?.toUpperCase() ?? "U"}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
 
-              {/* Identity Info */}
-              <div className="flex flex-col">
-                <h1 className="text-xl font-semibold">
-                  {user.firstName || user.lastName
-                    ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
-                    : user.displayName}
-                </h1>
+                <div className="flex flex-col">
+                  <h1 className="text-xl font-semibold">
+                    {user.firstName || user.lastName
+                      ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
+                      : user.displayName}
+                  </h1>
 
-                <p className="text-sm text-muted-foreground">{user.email}</p>
+                  <p className="text-sm text-muted-foreground">{user.email}</p>
 
-                <p className="text-xs text-muted-foreground mt-1">
-                  Member of {church.name}
-                </p>
-
-                {/* Role Badges */}
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {user.roles.map((role) => (
-                    <span
-                      key={role}
-                      className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border"
-                    >
-                      {role}
-                    </span>
-                  ))}
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {user.roles.map((role) => (
+                      <span
+                        key={role}
+                        className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border"
+                      >
+                        {role}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </UserFormSheet>
 
           {/* Quick Actions */}
           <Card className="border border-border bg-card/80">

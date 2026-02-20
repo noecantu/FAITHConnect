@@ -278,7 +278,7 @@ export interface User {
 }
 
 export type UserProfile = {
-  uid: string;
+  id: string;
   email: string;
   firstName: string;
   lastName: string;
