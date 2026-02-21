@@ -119,35 +119,48 @@ export default function ChurchProfileCard({ churchId }: Props) {
 
       <CardContent className="space-y-4">
 
-        {/* Address */}
-        <div className="grid gap-1">
-          <Label>Address</Label>
-          <Input value={address} onChange={(e) => setAddress(e.target.value)} />
+        {/* Address + Phone (side-by-side) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          {/* Address */}
+          <div className="grid gap-1">
+            <Label>Address</Label>
+            <Input
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+          </div>
+
+          {/* Phone */}
+          <div className="grid gap-1">
+            <Label>Phone Number</Label>
+            <Input
+              value={phoneDisplay}
+              onChange={(e) => handlePhoneChange(e.target.value)}
+              placeholder="(555) 123‑4567"
+            />
+          </div>
+
         </div>
 
-        {/* Phone */}
-        <div className="grid gap-1">
-          <Label>Phone Number</Label>
-          <Input
-            value={phoneDisplay}
-            onChange={(e) => handlePhoneChange(e.target.value)}
-            placeholder="(555) 123‑4567"
-          />
-        </div>
+        {/* Timezone + Save Button (side-by-side) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
 
-        {/* Timezone */}
-        <div className="grid gap-1">
-          <TimezoneSelect value={timezone} onChange={setTimezone} />
-        </div>
+          {/* Timezone */}
+          <div className="grid gap-1">
+            <TimezoneSelect value={timezone} onChange={setTimezone} />
+          </div>
 
-        {/* Save Button */}
-        <Button
-          onClick={handleSave}
-          disabled={!hasChanges || saving}
-          className="w-full sm:w-auto"
-        >
-          {saving ? "Saving..." : "Save Changes"}
-        </Button>
+          {/* Save Button */}
+          <Button
+            onClick={handleSave}
+            disabled={!hasChanges || saving}
+            className="w-full sm:w-auto"
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </Button>
+
+        </div>
 
       </CardContent>
     </Card>
