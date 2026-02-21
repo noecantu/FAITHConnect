@@ -272,7 +272,7 @@ export default function ChurchAdminDashboard() {
               subtitle="Manage your church’s people, events, and ministries."
             />
           </div>
-        </div>=
+        </div>
         <div className="flex-1 px-4 md:px-8 py-6 space-y-6">
 
         {/* Identity Header */}

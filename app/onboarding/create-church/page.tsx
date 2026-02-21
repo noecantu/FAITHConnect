@@ -7,6 +7,7 @@ import { Input } from "@/app/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
 import { useToast } from "@/app/hooks/use-toast";
+import { getAuth } from "firebase/auth";
 
 export default function CreateChurchPage() {
   const [churchName, setChurchName] = useState("");
@@ -19,15 +20,23 @@ export default function CreateChurchPage() {
     setLoading(true);
 
     try {
+      const auth = getAuth();
+      const token = await auth.currentUser?.getIdToken();
+
       const res = await fetch("/api/onboarding/create-church", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ churchName }),
+        body: JSON.stringify({
+          churchName,
+          token, // REQUIRED
+        }),
       });
 
-      if (!res.ok) throw new Error("Failed to create church");
-
       const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create church");
+      }
 
       toast({
         title: "Church Created",
