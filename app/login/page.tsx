@@ -103,7 +103,7 @@ export default function LoginPage() {
         <CardHeader className="text-center space-y-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/F-Flame_Vector.svg"
+            src="/F-Flame_Vector_Optimized.svg"
             alt="Faith Connect Logo"
             className="mx-auto h-20 w-20"
           />
