@@ -94,14 +94,31 @@ export default function SignupPage() {
     <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <Card className="backdrop-blur-xl bg-zinc-900/60 border-zinc-800 shadow-2xl">
-          <CardHeader className="text-center space-y-3 pb-2">
+          {/* <CardHeader className="text-center space-y-3 pb-2">
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+            src="/F-Flame_Vector_Optimized.svg"
+            alt="Faith Connect Logo"
+            className="mx-auto h-20 w-20"
+          />
             <CardTitle className="text-2xl font-bold tracking-tight text-white">
               Create Your Account
             </CardTitle>
             <CardDescription className="text-zinc-400">
               Start your church on FAITH Connect
             </CardDescription>
-          </CardHeader>
+          </CardHeader> */}
+
+        <CardHeader className="text-center space-y-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/FAITH_CONNECT_FLAME_LOGO.svg"
+            alt="FAITH Connect Logo"
+            className="mx-auto h-20 w-20"
+          />
+          <CardTitle>Create Your Account</CardTitle>
+          <CardDescription>Start Your Church on FAITH Connect</CardDescription>
+        </CardHeader>
 
           <CardContent className="space-y-6">
             <form onSubmit={handleSignup} className="space-y-5">
