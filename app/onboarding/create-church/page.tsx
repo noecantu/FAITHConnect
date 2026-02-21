@@ -21,14 +21,16 @@ export default function CreateChurchPage() {
 
     try {
       const auth = getAuth();
-      const token = await auth.currentUser?.getIdToken();
+
+      // 🔥 Always get a *fresh* token before sending to backend
+      const token = await auth.currentUser?.getIdToken(true);
 
       const res = await fetch("/api/onboarding/create-church", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           churchName,
-          token, // REQUIRED
+          token,
         }),
       });
 
@@ -38,12 +40,16 @@ export default function CreateChurchPage() {
         throw new Error(data.error || "Failed to create church");
       }
 
+      // 🔥 Refresh token AFTER backend sets custom claims
+      await auth.currentUser?.getIdToken(true);
+
       toast({
         title: "Church Created",
         description: "Your church has been successfully created.",
       });
 
       router.replace(`/admin/church/${data.churchId}`);
+
     } catch (err) {
       console.error(err);
       toast({

@@ -34,6 +34,9 @@ export async function POST(req: Request) {
       .set({
         name: churchName,
         slug,
+        status: "active",
+        enabledAt: admin.firestore.FieldValue.serverTimestamp(),
+        disabledAt: null,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         createdBy: uid,
         settings: {

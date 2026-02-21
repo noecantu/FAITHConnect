@@ -51,6 +51,12 @@ export async function POST(req: Request) {
         },
         { merge: true }
       );
+      
+    // 2b. Apply custom claims for Storage + Security Rules
+    await admin.auth().setCustomUserClaims(uid, {
+      roles: ["Admin"],
+      churchId: slug,
+    });
 
     // 3. Create membership record
     await adminDb

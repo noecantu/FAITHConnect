@@ -309,7 +309,7 @@ export default function ChurchAdminDashboard() {
             {/* Right: Status */}
             <div className="flex items-center gap-3">
               <span className="inline-flex items-center rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground">
-                Status: {church.status === "active" ? "Active" : "Disabled"}
+                Status: {church.status === "disabled" ? "Disabled" : "Active"}
               </span>
             </div>
 

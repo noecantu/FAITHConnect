@@ -192,18 +192,18 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
           </div>
         )}
 
-        {/* Upload */}
-        <Input
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleUpload(file);
-          }}
-        />
+        <div className="flex flex-col sm:flex-row gap-2">
+          {/* Upload */}
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleUpload(file);
+            }}
+          />
 
         {/* Buttons */}
-        <div className="flex flex-col sm:flex-row gap-2">
           <Button
             onClick={handleSave}
             disabled={!hasChanges || saving || uploading}

@@ -1,5 +1,5 @@
 export const ROLE_MAP = {
-    RootAdmin: "Root Administrator",
+    // RootAdmin: "Root Administrator",
     Admin: "Administrator",
     EventManager: "Event Manager",
     Finance: "Finance Manager",
