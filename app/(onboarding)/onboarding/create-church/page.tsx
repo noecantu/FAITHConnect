@@ -1,97 +1,89 @@
-"use client";
+'use client';
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/app/lib/firebase-client";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
+import { Label } from "@/app/components/ui/label";
+import { useToast } from "@/app/hooks/use-toast";
 
 export default function CreateChurchPage() {
-  const router = useRouter();
-
   const [churchName, setChurchName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const router = useRouter();
+  const { toast } = useToast();
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError("");
-        setLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-        try {
-            const user = auth.currentUser;
-            if (!user) {
-            setError("You must be logged in to create a church.");
-            setLoading(false);
-            return;
-            }
+    try {
+      const res = await fetch("/api/onboarding/create-church", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ churchName }),
+      });
 
-            // 1. Get a fresh Firebase ID token
-            const token = await user.getIdToken(true);
+      if (!res.ok) throw new Error("Failed to create church");
 
-            // 2. Call your API route with the token + church name
-            const res = await fetch("/api/onboarding/create-church", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                token,
-                churchName,
-            }),
-            });
+      const data = await res.json();
 
-            const data = await res.json();
+      toast({
+        title: "Church Created",
+        description: "Your church has been successfully created.",
+      });
 
-            if (!res.ok) {
-            setError(data.error || "Something went wrong.");
-            setLoading(false);
-            return;
-            }
-
-            // 3. Redirect to dashboard
-            router.push(`/admin/church/${data.churchId}`);
-        } catch (err) {
-            console.error(err);
-            setError("Unexpected error occurred.");
-        } finally {
-            setLoading(false);
-        }
-    };
+      router.replace(`/admin/church/${data.churchId}`);
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Error",
+        description: "Could not create church. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="max-w-md mx-auto mt-20 p-6 bg-slate-800/30 rounded-xl border border-slate-700">
-      <h1 className="text-2xl font-semibold text-slate-100 mb-4">
-        Create Your Church
-      </h1>
-
-      <p className="text-slate-300 mb-6">
-        Welcome! Let’s set up your church so you can begin managing your
-        community.
-      </p>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-slate-300 mb-1">Church Name</label>
-          <input
-            type="text"
-            value={churchName}
-            onChange={(e) => setChurchName(e.target.value)}
-            required
-            className="w-full px-3 py-2 rounded bg-slate-900 border border-slate-700 text-slate-100 focus:outline-none focus:ring focus:ring-slate-600"
+    <div className="flex items-center justify-center min-h-screen">
+      <Card className="w-full max-w-sm bg-card">
+        <CardHeader className="text-center space-y-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/FAITH_CONNECT_FLAME_LOGO.svg"
+            alt="Faith Connect Logo"
+            className="mx-auto h-20 w-20"
+            draggable={false}
           />
-        </div>
 
-        {error && (
-          <p className="text-red-400 text-sm">{error}</p>
-        )}
+          <CardTitle>Create Your Church</CardTitle>
+          <CardDescription>
+            Let’s set up your church so you can begin managing your community.
+          </CardDescription>
+        </CardHeader>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-2 rounded bg-slate-700 text-slate-100 hover:bg-slate-600 transition disabled:opacity-50"
-        >
-          {loading ? "Creating..." : "Create Church"}
-        </button>
-      </form>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="churchName">Church Name</Label>
+              <Input
+                id="churchName"
+                value={churchName}
+                onChange={(e) => setChurchName(e.target.value)}
+                required
+                placeholder="e.g. Grace Fellowship Church"
+              />
+            </div>
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Creating..." : "Create Church"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

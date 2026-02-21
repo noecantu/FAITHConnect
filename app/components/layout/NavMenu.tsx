@@ -62,6 +62,12 @@ export function NavMenu() {
   const { churchId } = useChurchId();
   const { roles = [], isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
 
+  // Hide NavMenu during onboarding (AFTER hooks)
+  const isOnboarding = pathname.startsWith("/onboarding");
+  if (isOnboarding) {
+    return null;
+  }
+  
   // --- ROLE MODEL ---
   const isRootAdmin = roles.includes("RootAdmin");
   const isChurchAdmin = roles.includes("Admin") && churchId;
