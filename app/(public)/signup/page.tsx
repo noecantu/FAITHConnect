@@ -91,7 +91,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <Card className="backdrop-blur-xl bg-zinc-900/60 border-zinc-800 shadow-2xl">
           <CardHeader className="text-center space-y-3 pb-2">

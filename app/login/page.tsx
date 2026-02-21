@@ -28,11 +28,9 @@ export default function LoginPage() {
         email.trim(),
         password
       );
-console.log("🔥 After signIn, auth.currentUser:", auth.currentUser);
-console.log(await auth.currentUser?.getIdTokenResult());
+
       // 2. Create Firebase session cookie
       const idToken = await user.getIdToken(true);
-
       await fetch('/api/auth/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -100,7 +98,7 @@ console.log(await auth.currentUser?.getIdTokenResult());
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-black">
+    <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 flex items-center justify-center px-4">
       <Card className="w-full max-w-sm bg-card">
         <CardHeader className="text-center space-y-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}

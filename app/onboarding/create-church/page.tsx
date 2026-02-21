@@ -48,7 +48,7 @@ export default function CreateChurchPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 flex items-center justify-center px-4">
       <Card className="w-full max-w-sm bg-card">
         <CardHeader className="text-center space-y-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -61,7 +61,7 @@ export default function CreateChurchPage() {
 
           <CardTitle>Create Your Church</CardTitle>
           <CardDescription>
-            Let’s set up your church so you can begin managing your community.
+            Let’s set up your church so you can begin managing your congregation. Please be sure to enter your church name correctly, as this cannot be changed later.
           </CardDescription>
         </CardHeader>
 

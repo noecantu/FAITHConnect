@@ -7,8 +7,10 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   const hideHeader =
-    pathname === '/login' ||
-    pathname.includes('/attendance/self-checkin');
+  pathname === '/login' ||
+  pathname.includes('/attendance/self-checkin') ||
+  pathname.includes('/signup') ||
+  pathname.includes('/onboarding/create-church');
 
   if (hideHeader) {
     return <>{children}</>;
