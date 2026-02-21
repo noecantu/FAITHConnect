@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
-import { Input } from '@/app/components/ui/input';
 import { useToast } from '@/app/hooks/use-toast';
 
 import { db, storage } from '@/app/lib/firebase';
@@ -27,7 +26,7 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
 
   const hasChanges = logoUrl !== originalLogoUrl;
   const [showConfirmRemove, setShowConfirmRemove] = useState(false);
-
+  const fileInputRef = useRef<HTMLInputElement>(null);
   function getInitials(name: string | null | undefined) {
     if (!name) return "??";
     return name
@@ -128,12 +127,18 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
 
   // Remove logo handler
   const handleRemove = async () => {
-  if (!churchId || !logoUrl) return;
+    if (!churchId || !logoUrl) return;
 
-  setRemoving(true);
+    setRemoving(true);
 
-  try {
-    const storageRef = ref(storage, `churches/${churchId}/logo`);
+    try {
+      // Extract the exact storage path from the download URL
+      const decodedPath = decodeURIComponent(
+        logoUrl.split("/o/")[1].split("?")[0]
+      );
+      // decodedPath = "churches/first-test-church/logo/logo.jpg"
+
+      const storageRef = ref(storage, decodedPath);
       await deleteObject(storageRef);
 
       setLogoUrl(null);
@@ -165,51 +170,65 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
 
   return (
     <Card>
+
+      {/* Header (title + description only) */}
       <CardHeader>
         <CardTitle>Church Logo</CardTitle>
         <CardDescription>Upload and manage your church’s logo.</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Preview */}
-        {logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={logoUrl}
-            alt="Church Logo"
-            className="h-32 w-32 rounded-md object-cover border border-border bg-white ring-2 ring-primary/20 shadow-md"
-          />
-        ) : (
-          <div
-            className="
-              h-20 w-20 rounded-full
-              bg-muted flex items-center justify-center
-              text-xl font-semibold text-muted-foreground
-              border
-            "
-          >
-            {getInitials(churchName)}
-          </div>
-        )}
 
+        {/* Clickable Preview */}
+        <div
+          className="cursor-pointer group w-fit"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logoUrl}
+              alt="Church Logo"
+              className="
+                h-40 w-40 rounded-md object-cover border border-border bg-white
+                ring-2 ring-primary/20 shadow-md
+                transition-all group-hover:ring-primary/40 group-hover:shadow-lg
+              "
+            />
+          ) : (
+            <div
+              className="
+                h-40 w-40 rounded-md bg-muted flex items-center justify-center
+                text-xl font-semibold text-muted-foreground border border-border
+                transition-all group-hover:bg-muted/70
+              "
+            >
+              {getInitials(churchName)}
+            </div>
+          )}
+        </div>
+
+        {/* Hidden file input */}
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleUpload(file);
+          }}
+        />
+
+        {/* Upload + Save + Remove */}
         <div className="flex flex-col sm:flex-row gap-2">
-          {/* Upload */}
-          <Input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleUpload(file);
-            }}
-          />
 
-        {/* Buttons */}
           <Button
             onClick={handleSave}
             disabled={!hasChanges || saving || uploading}
             className="w-full sm:w-auto"
           >
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? "Saving..." : "Save Changes"}
           </Button>
 
           <Button
@@ -222,6 +241,7 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
           </Button>
         </div>
 
+        {/* Confirm Remove */}
         {showConfirmRemove && (
           <div className="border border-red-300 bg-red-50 rounded-md p-4 space-y-3">
             <p className="text-sm text-red-800">
@@ -243,7 +263,7 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
                 disabled={removing}
                 className="w-full sm:w-auto"
               >
-                {removing ? 'Removing...' : 'Confirm Remove'}
+                {removing ? "Removing..." : "Confirm Remove"}
               </Button>
             </div>
           </div>
