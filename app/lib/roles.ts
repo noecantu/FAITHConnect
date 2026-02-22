@@ -1,5 +1,5 @@
 export const ROLE_MAP = {
-    // RootAdmin: "Root Administrator",
+    RootAdmin: "Root Administrator",
     Admin: "Administrator",
     EventManager: "Event Manager",
     Finance: "Finance Manager",
@@ -11,4 +11,3 @@ export const ROLE_MAP = {
   export type Role = keyof typeof ROLE_MAP;
   
   export const ALL_ROLES: Role[] = Object.keys(ROLE_MAP) as Role[];
-  

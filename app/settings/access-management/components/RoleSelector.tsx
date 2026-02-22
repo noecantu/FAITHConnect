@@ -10,12 +10,13 @@ interface Props {
 }
 
 export default function RoleSelector({ selectedRoles, onChange }: Props) {
+  const VISIBLE_ROLES = ALL_ROLES.filter((r) => r !== "RootAdmin");
   return (
     <div className="space-y-4">
       <h4 className="text-md font-bold">Roles & Permissions</h4>
 
       <div className="space-y-2">
-        {ALL_ROLES.map((role) => (
+        {VISIBLE_ROLES.map((role) => (
           <div key={role} className="flex items-center space-x-2">
             <Checkbox
               checked={selectedRoles.includes(role)}
