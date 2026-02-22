@@ -5,22 +5,22 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../../../components/ui/card";
+} from "@/app/components/ui/card";
 import {
   FormField,
   FormItem,
   FormControl,
   FormMessage,
-} from "../../../components/ui/form";
+} from "@/app/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../components/ui/select";
+} from "@/app/components/ui/select";
 import type { UseFormReturn } from "react-hook-form";
-import type { MemberFormValues } from "../../../lib/memberForm.schema";
+import type { MemberFormValues } from "@/app/lib/memberForm.schema";
 
 type Props = {
   form: UseFormReturn<MemberFormValues>;

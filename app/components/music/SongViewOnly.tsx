@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { getSongById } from "../../lib/songs";
+import { getSongById } from "@/app/lib/songs";
 import FullscreenModal from "./FullscreenModal";
-import type { Song } from "../../lib/types";
-import { useChurchId } from "../../hooks/useChurchId";
+import type { Song } from "@/app/lib/types";
+import { useChurchId } from "@/app/hooks/useChurchId";
 import { getSectionColor } from "@/app/lib/sectionColors";
 
 export default function SongViewOnly({ songId }: { songId: string }) {

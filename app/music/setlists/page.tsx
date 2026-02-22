@@ -2,14 +2,14 @@
 
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import { PageHeader } from '../../components/page-header';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { useChurchId } from '../../hooks/useChurchId';
-import { useSetLists } from '../../hooks/useSetLists';
-import { useUserRoles } from '../../hooks/useUserRoles';
+import { PageHeader } from '@/app/components/page-header';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { useChurchId } from '@/app/hooks/useChurchId';
+import { useSetLists } from '@/app/hooks/useSetLists';
+import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { useRouter } from "next/navigation";
-import { Fab } from '../../components/ui/fab';
+import { Fab } from '@/app/components/ui/fab';
 
 export default function SetListsPage() {
   // -----------------------------

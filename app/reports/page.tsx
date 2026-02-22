@@ -55,7 +55,6 @@ export default function ReportsPage() {
     { label: "Anniversary", value: "anniversary" },
     { label: "Address", value: "address" },
     { label: "Notes", value: "notes" },
-    { label: "Roles", value: "roles" },
   ];
 
   const fieldLabelMap: Record<string, string> = {
@@ -67,7 +66,6 @@ export default function ReportsPage() {
     anniversary: "Anniversary",
     address: "Address",
     notes: "Notes",
-    roles: "Roles",
   };
 
   // Filtering logic (Option A)
@@ -81,10 +79,10 @@ export default function ReportsPage() {
     selectedMembers,
     selectedStatus,
     selectedFY,
-    selectedCategories: [], // not implemented yet
+    selectedCategories: [],
     selectedContributionTypes: [],
     contributionRange,
-    reportType, // ← ADD THIS
+    reportType,
   });
 
   // Export logic (Option B)
@@ -100,8 +98,8 @@ export default function ReportsPage() {
   });
 
   return (
-    <>
-      
+    <div className="flex flex-col lg:flex-row gap-6">
+
       {/* LEFT PANEL — Filters */}
       <Card className="w-full lg:w-80 h-fit">
         <CardHeader>
@@ -211,6 +209,6 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
 
-    </>
+    </div>
   );
 }

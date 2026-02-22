@@ -2,17 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { PageHeader } from '../../../../components/page-header';
-import { Card } from '../../../../components/ui/card';
-import { Input } from '../../../../components/ui/input';
-import { Textarea } from '../../../../components/ui/textarea';
-import { useChurchId } from '../../../../hooks/useChurchId';
-import { useUserRoles } from '../../../../hooks/useUserRoles';
-import { useSongs } from '../../../../hooks/useSongs';
-import { getSetListById, updateSetList } from '../../../../lib/setlists';
-import { SetList, SetListSection } from '../../../../lib/types';
-import { SetListSectionEditor } from '../../../../components/music/SetListSectionEditor';
-import { Fab } from '../../../../components/ui/fab';
+import { PageHeader } from '@/app/../../components/page-header';
+import { Card } from '@/app/../../components/ui/card';
+import { Input } from '@/app/../../components/ui/input';
+import { Textarea } from '@/app/../../components/ui/textarea';
+import { useChurchId } from '@/app/../../hooks/useChurchId';
+import { useUserRoles } from '@/app/../../hooks/useUserRoles';
+import { useSongs } from '@/app/../../hooks/useSongs';
+import { getSetListById, updateSetList } from '@/app/../../lib/setlists';
+import { SetList, SetListSection } from '@/app/../../lib/types';
+import { SetListSectionEditor } from '@/app/../../components/music/SetListSectionEditor';
+import { Fab } from '@/app/../../components/ui/fab';
 
 export default function EditSetListPage() {
   const { id } = useParams();

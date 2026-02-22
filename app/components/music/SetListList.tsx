@@ -2,7 +2,7 @@
 
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
-import { SetList } from '../../lib/types';
+import { SetList } from '@/app/lib/types';
 import { SetListEditorDialog } from './SetListEditorDialog';
 import { SetListDeleteDialog } from './SetListDeleteDialog';
 import Link from 'next/link';

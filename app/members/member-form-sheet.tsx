@@ -12,7 +12,7 @@ import {
   DialogTrigger,
   DialogFooter,
   DialogClose,
-} from "../../components/ui/dialog";
+} from "@/app/components/ui/dialog";
 
 import {
   AlertDialog,
@@ -24,19 +24,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "../../components/ui/alert-dialog";
+} from "@/app/components/ui/alert-dialog";
 
-import { Alert, AlertTitle, AlertDescription } from "../../components/ui/alert";
-import { Button } from "../../components/ui/button";
+import { Alert, AlertTitle, AlertDescription } from "@/app/components/ui/alert";
+import { Button } from "@/app/components/ui/button";
 import { Camera } from "lucide-react";
 
-import type { Member } from "../../lib/types";
+import type { Member } from "@/app/lib/types";
 
-import { useMemberForm } from "../../hooks/useMemberForm";
-import { useMemberRelationships } from "../../hooks/useMemberRelationships";
-import { usePhotoCapture } from "../../hooks/usePhotoCapture";
+import { useMemberForm } from "@/app/hooks/useMemberForm";
+import { useMemberRelationships } from "@/app/hooks/useMemberRelationships";
+import { usePhotoCapture } from "@/app/hooks/usePhotoCapture";
 import { MemberForm } from "./components/MemberForm";
-import { useChurchId } from "../../hooks/useChurchId";
+import { useChurchId } from "@/app/hooks/useChurchId";
 
 interface MemberFormSheetProps {
   member?: Member;

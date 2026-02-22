@@ -6,9 +6,9 @@ import { StandardDialogLayout } from '../layout/StandardDialogLayout';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
-import { createSong, updateSong } from '../../lib/songs';
-import { useChurchId } from '../../hooks/useChurchId';
-import { Song } from '../../lib/types';
+import { createSong, updateSong } from '@/app/lib/songs';
+import { useChurchId } from '@/app/hooks/useChurchId';
+import { Song } from '@/app/lib/types';
 
 export function SongEditorDialog({
   children,

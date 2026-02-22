@@ -6,28 +6,28 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "../../../components/ui/card";
+} from "@/app/components/ui/card";
 import {
   FormItem,
   FormLabel,
   FormControl,
   FormField,
   FormMessage,
-} from "../../../components/ui/form";
+} from "@/app/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../components/ui/select";
-import { Input } from "../../../components/ui/input";
-import { Button } from "../../../components/ui/button";
+} from "@/app/components/ui/select";
+import { Input } from "@/app/components/ui/input";
+import { Button } from "@/app/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { useToast } from "../../../hooks/use-toast";
+import { useToast } from "@/app/hooks/use-toast";
 import type { UseFormReturn, FieldArrayWithId } from "react-hook-form";
-import type { MemberFormValues } from "../../../lib/memberForm.schema";
-import type { Member } from "../../../lib/types";
+import type { MemberFormValues } from "@/app/lib/memberForm.schema";
+import type { Member } from "@/app/lib/types";
 
 type Props = {
   form: UseFormReturn<MemberFormValues>;
@@ -97,9 +97,7 @@ export function RelationshipsSection({
             <FormItem>
               <FormLabel>Member</FormLabel>
               <Select
-                onValueChange={(val) =>
-                  form.setValue(`__temp_rel_member` as any, val)
-                }
+                onValueChange={(val) => form.setValue("__temp_rel_member", val)}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -115,12 +113,11 @@ export function RelationshipsSection({
                 </SelectContent>
               </Select>
             </FormItem>
+
             <FormItem>
               <FormLabel>Relationship</FormLabel>
               <Select
-                onValueChange={(val) =>
-                  form.setValue(`__temp_rel_type` as any, val)
-                }
+                onValueChange={(val) => form.setValue("__temp_rel_type", val)}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -137,25 +134,27 @@ export function RelationshipsSection({
               </Select>
             </FormItem>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              const [memberId, relType] = form.getValues(
-                ["__temp_rel_member", "__temp_rel_type"] as any
-              ) as [string | undefined, string | undefined];
-              if (memberId && relType) {
-                append({ relatedMemberId: memberId, type: relType });
-              } else {
-                toast({
-                  title: "Please select a member and relationship type.",
-                  variant: "destructive",
-                });
-              }
-            }}
-          >
-            Add
-          </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                const { __temp_rel_member, __temp_rel_type } = form.getValues();
+
+                if (__temp_rel_member && __temp_rel_type) {
+                  append({
+                    relatedMemberId: __temp_rel_member,
+                    type: __temp_rel_type,
+                  });
+                } else {
+                  toast({
+                    title: "Please select a member and relationship type.",
+                    variant: "destructive",
+                  });
+                }
+              }}
+            >
+              Add
+            </Button>
         </div>
 
         <FormField

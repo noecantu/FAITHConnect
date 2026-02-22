@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useChurchId } from '../../hooks/useChurchId';
-import { ServicePlanFormDialog } from '../../components/service-plans/ServicePlanFormDialog';
+import { useChurchId } from '@/app/hooks/useChurchId';
+import { ServicePlanFormDialog } from '@/app/components/service-plans/ServicePlanFormDialog';
 
 export default function NewServicePlanPage() {
   const router = useRouter();

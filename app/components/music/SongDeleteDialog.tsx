@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '../ui/alert-dialog';
 import { Button } from '../ui/button';
-import { deleteSong } from '../../lib/songs';
-import { useChurchId } from '../../hooks/useChurchId';
-import { Song } from '../../lib/types';
+import { deleteSong } from '@/app/lib/songs';
+import { useChurchId } from '@/app/hooks/useChurchId';
+import { Song } from '@/app/lib/types';
 
 export function SongDeleteDialog({ song }: { song: Song }) {
   const [open, setOpen] = useState(false);

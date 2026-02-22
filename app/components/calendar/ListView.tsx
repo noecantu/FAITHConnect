@@ -1,6 +1,6 @@
 import * as React from "react";
 import { format } from "date-fns";
-import type { Event } from "../../lib/types";
+import type { Event } from "@/app/lib/types";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { Pencil, Trash2 } from "lucide-react";

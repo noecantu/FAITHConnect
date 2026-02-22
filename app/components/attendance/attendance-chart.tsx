@@ -9,7 +9,7 @@ import {
   Tooltip,
   CartesianGrid
 } from 'recharts';
-import { AttendanceSummaryItem } from '../../lib/types';
+import { AttendanceSummaryItem } from '@/app/lib/types';
 
 export function AttendanceChart({ data }: { data: AttendanceSummaryItem[] }) {
   return (

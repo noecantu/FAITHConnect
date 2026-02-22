@@ -3,7 +3,7 @@
 import { Label } from "../ui/label";
 import { Button } from "../ui/button";
 import { MultiSelect } from "../ui/multi-select";
-import { Member } from "../../lib/types";
+import { Member } from "@/app/lib/types";
 
 interface Props {
   members: Member[];

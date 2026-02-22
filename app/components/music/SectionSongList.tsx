@@ -5,8 +5,8 @@ import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { ChevronUp, ChevronDown, X } from 'lucide-react';
-import { Song, SetListSongEntry } from '../../lib/types';
-import { ensureSongEntryIds, generateId } from '../../lib/utils/id';
+import { Song, SetListSongEntry } from '@/app/lib/types';
+import { ensureSongEntryIds, generateId } from '@/app/lib/utils/id';
 
 interface Props {
   sectionId: string;

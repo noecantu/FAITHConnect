@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '../ui/alert-dialog';
 import { Button } from '../ui/button';
-import { deleteSetList } from '../../lib/setlists';
-import { useChurchId } from '../../hooks/useChurchId';
-import { SetList } from '../../lib/types';
+import { deleteSetList } from '@/app/lib/setlists';
+import { useChurchId } from '@/app/hooks/useChurchId';
+import { SetList } from '@/app/lib/types';
 import { useRouter } from "next/navigation";
 
 export function SetListDeleteDialog({ setList }: { setList: SetList }) {

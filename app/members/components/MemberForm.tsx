@@ -1,8 +1,8 @@
 
-import { Form } from "../../../components/ui/form";
+import { Form } from "@/app/components/ui/form";
 import type { UseFormReturn } from "react-hook-form";
-import type { MemberFormValues } from "../../../lib/memberForm.schema";
-import type { Member } from "../../../lib/types";
+import type { MemberFormValues } from "@/app/lib/memberForm.schema";
+import type { Member } from "@/app/lib/types";
 
 import { MemberInfoSection } from "./MemberInfoSection";
 import { StatusSection } from "./StatusSection";
@@ -13,7 +13,7 @@ import { LoginAccessSection } from "./LoginAccessSection";
 import type { FieldArrayWithId } from "react-hook-form";
 
 import { getFunctions, httpsCallable } from "firebase/functions";
-import { app } from "../../../lib/firebase";
+import { app } from "@/app/lib/firebase";
 import { useState } from "react";
 import { toast } from "@/app/hooks/use-toast";
 
@@ -71,6 +71,7 @@ export function MemberForm({
         title: "Login Created",
         description: "A password reset email has been sent.",
       });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       toast({
         title: "Error",
@@ -94,6 +95,7 @@ export function MemberForm({
         title: "Reset Email Sent",
         description: "A password reset email has been sent.",
       });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       toast({
         title: "Error",

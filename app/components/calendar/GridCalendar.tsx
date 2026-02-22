@@ -12,8 +12,8 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Event } from '../../lib/types';
-import { dateKey } from '../../lib/calendar/utils';
+import type { Event } from '@/app/lib/types';
+import { dateKey } from '@/app/lib/calendar/utils';
 
 interface GridCalendarProps {
   month: Date;

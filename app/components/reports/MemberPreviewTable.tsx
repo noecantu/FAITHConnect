@@ -1,7 +1,7 @@
 'use client';
 
 import { FieldValue } from "@/app/lib/report-types";
-import { Member } from "../../lib/types";
+import { Member } from "@/app/lib/types";
 
 interface Props {
   members: Member[];

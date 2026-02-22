@@ -5,7 +5,7 @@ import { Pencil, Trash2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Dialog } from '../ui/dialog';
 import { StandardDialogLayout } from '../layout/StandardDialogLayout';
-import type { Event } from '../../lib/types';
+import type { Event } from '@/app/lib/types';
 
 interface DayEventsDialogProps {
   open: boolean;

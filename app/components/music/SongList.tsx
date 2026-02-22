@@ -1,7 +1,7 @@
 'use client';
 
 import { Card } from '../ui/card';
-import { Song } from '../../lib/types';
+import { Song } from '@/app/lib/types';
 import { SongEditorDialog } from './SongEditorDialog';
 import { SongDeleteDialog } from './SongDeleteDialog';
 import { Button } from '../ui/button';

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Card } from '../ui/card';
-import type { Song } from '../../lib/types';
+import type { Song } from '@/app/lib/types';
 
 interface SongFormProps {
   mode: 'new' | 'edit';

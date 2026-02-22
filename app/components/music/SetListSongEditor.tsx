@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card } from '../ui/card';
-import { Song, SetListSongEntry } from '../../lib/types';
+import { Song, SetListSongEntry } from '@/app/lib/types';
 import { X, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface SetListSongEditorProps {

@@ -43,9 +43,9 @@ import {
 } from "../ui/alert-dialog";
 
 import { Button } from "../ui/button";
-import { useToast } from "../../hooks/use-toast";
-import { useUserRoles } from "../../hooks/useUserRoles";
-import { useChurchId } from "../../hooks/useChurchId";
+import { useToast } from "@/app/hooks/use-toast";
+import { useUserRoles } from "@/app/hooks/useUserRoles";
+import { useChurchId } from "@/app/hooks/useChurchId";
 
 type MenuItem = {
   href: string;

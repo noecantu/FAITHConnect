@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Church } from "../../../lib/types";
+import type { Church } from "@/app/../lib/types";
 
 interface SelfCheckInProps {
   church: Church;

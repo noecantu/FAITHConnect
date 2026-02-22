@@ -26,10 +26,10 @@ import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Button } from '../ui/button';
 
-import { createServicePlan, updateServicePlan } from '../../lib/servicePlans';
-import type { ServicePlan, ServicePlanSection } from '../../lib/types';
-import { useMembers } from '../../hooks/useMembers';
-import { useSongs } from '../../hooks/useSongs';
+import { createServicePlan, updateServicePlan } from '@/app/lib/servicePlans';
+import type { ServicePlan, ServicePlanSection } from '@/app/lib/types';
+import { useMembers } from '@/app/hooks/useMembers';
+import { useSongs } from '@/app/hooks/useSongs';
 
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';

@@ -4,11 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from "@/app/lib/firebase-client";
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
-import { Label } from '../../components/ui/label';
-import { useToast } from '../../hooks/use-toast';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
+import { Label } from '@/app/components/ui/label';
+import { useToast } from '@/app/hooks/use-toast';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');

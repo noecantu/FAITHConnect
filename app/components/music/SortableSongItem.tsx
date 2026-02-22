@@ -6,7 +6,7 @@ import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
-import type { SetListSongEntry, Song } from '../../lib/types';
+import type { SetListSongEntry, Song } from '@/app/lib/types';
 
 interface SortableSongItemProps {
   entry: SetListSongEntry;

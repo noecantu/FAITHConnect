@@ -6,7 +6,7 @@ import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
-import { SetListSection, Song } from '../../lib/types';
+import { SetListSection, Song } from '@/app/lib/types';
 import { SectionSongList } from './SectionSongList';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { SECTION_TEMPLATES } from '@/app/lib/sectionTemplates';

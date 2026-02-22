@@ -1,7 +1,7 @@
 "use client";
 
-import { useAuth } from "../../hooks/useAuth";
-import { useChurchId } from "../../hooks/useChurchId";
+import { useAuth } from "@/app/hooks/useAuth";
+import { useChurchId } from "@/app/hooks/useChurchId";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";

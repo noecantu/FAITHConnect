@@ -1,6 +1,6 @@
 'use client';
 
-import { Member, Contribution } from "../../lib/types";
+import { Member, Contribution } from "@/app/lib/types";
 
 interface Props {
   contributions: Contribution[];
