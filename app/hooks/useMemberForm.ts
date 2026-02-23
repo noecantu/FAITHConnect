@@ -181,8 +181,9 @@ export function useMemberForm(member: Member | undefined, opts: UseMemberFormOpt
         status: data.status,
         profilePhotoUrl,
         relationships: data.relationships?.map((r) => ({
-          memberIds: [currentMemberId, r.relatedMemberId],
+          memberIds: [currentMemberId, r.memberIds[1]],
           type: r.type,
+          anniversary: r.anniversary,
         })),
       };
 
@@ -219,3 +220,4 @@ export function useMemberForm(member: Member | undefined, opts: UseMemberFormOpt
     handleDeleteMember,
   };
 }
+

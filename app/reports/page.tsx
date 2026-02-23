@@ -54,6 +54,8 @@ export default function ReportsPage() {
     { label: "Baptism Date", value: "baptismDate" },
     { label: "Anniversary", value: "anniversary" },
     { label: "Address", value: "address" },
+    { label: "Check-In Code", value: "checkInCode" },
+    { label: "QR Code", value: "qrCode" },
     { label: "Notes", value: "notes" },
   ];
 
@@ -65,6 +67,8 @@ export default function ReportsPage() {
     baptismDate: "Baptism Date",
     anniversary: "Anniversary",
     address: "Address",
+    checkInCode: "Check-In Code",
+    qrCode: "QR Code",
     notes: "Notes",
   };
 

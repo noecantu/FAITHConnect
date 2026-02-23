@@ -28,7 +28,7 @@ function getReciprocalType(type: string): string {
   return RECIPROCAL_TYPES[type] || type;
 }
 
-function generateCheckInCode(length = 6) {
+function generateCheckInCode(length = 4) {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no I, O, 1, 0
   let code = "";
   for (let i = 0; i < length; i++) {

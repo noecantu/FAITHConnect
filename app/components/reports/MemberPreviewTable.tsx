@@ -2,6 +2,7 @@
 
 import { FieldValue } from "@/app/lib/report-types";
 import { Member } from "@/app/lib/types";
+import QRCode from "react-qr-code";
 
 interface Props {
   members: Member[];
@@ -38,7 +39,16 @@ export function MemberPreviewTable({
 
             {selectedFields.map((f) => (
               <td key={f} className="p-2">
-                {formatField(m[f as keyof Member])}
+                {f === "qrCode" ? (
+                  <div className="flex justify-left">
+                    <QRCode
+                      value={`${window.location.origin}/check-in/${m.checkInCode}`}
+                      size={64}
+                    />
+                  </div>
+                ) : (
+                  formatField(m[f as keyof Member])
+                )}
               </td>
             ))}
           </tr>
