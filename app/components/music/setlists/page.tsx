@@ -1,10 +1,10 @@
 'use client';
 
-import { PageHeader } from '@/app/page-header';
-import { Button } from '@/app/ui/button';
-import { useChurchId } from '@/app/../hooks/useChurchId';
-import { useSetLists } from '@/app/../hooks/useSetLists';
-import { useUserRoles } from '@/app/../hooks/useUserRoles';
+import { PageHeader } from '@/app/components/page-header';
+import { Button } from '@/app/components/ui/button';
+import { useChurchId } from '@/app/hooks/useChurchId';
+import { useSetLists } from '@/app/hooks/useSetLists';
+import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { SetListList } from '../SetListList';
 import { SetListEditorDialog } from '../SetListEditorDialog';
 
