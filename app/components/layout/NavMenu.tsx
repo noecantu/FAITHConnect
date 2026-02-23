@@ -94,7 +94,7 @@ export function NavMenu() {
     { href: "/attendance", label: "Attendance", icon: CalendarCheck, permission: canSeeAttendance },
     { href: "/calendar", label: "Calendar", icon: Calendar },
     { href: "/contributions", label: "Contributions", icon: DollarSign, permission: canSeeContributions },
-    { href: "/members", label: "Members", icon: Users },
+    { href: `/church/${churchId}/members`, label: "Members", icon: Users },
     { href: "/music", label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
     { href: "/service-plan", label: "Service Plans", icon: CalendarHeart, permission: canAccessServicePlan },
     { href: "/reports", label: "Reports", icon: FileText },
