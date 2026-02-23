@@ -32,11 +32,17 @@ import type { Member } from "@/app/lib/types";
 type Props = {
   form: UseFormReturn<MemberFormValues>;
   fields: FieldArrayWithId<MemberFormValues, "relationships", "id">[];
-  append: (value: { relatedMemberId: string; type: string }) => void;
+  append: (value: {
+    memberIds: [string, string];
+    type: string;
+    anniversary?: string;
+    id?: string;
+  }) => void;
   remove: (index: number) => void;
   allMembers: Member[];
   availableMembers: Member[];
   relationshipOptions: string[];
+  currentMemberId: string;
 };
 
 export function RelationshipsSection({
@@ -47,6 +53,7 @@ export function RelationshipsSection({
   allMembers,
   availableMembers,
   relationshipOptions,
+  currentMemberId,
 }: Props) {
   const { toast } = useToast();
 
@@ -56,13 +63,16 @@ export function RelationshipsSection({
         <CardTitle className="text-xl">Relationships</CardTitle>
         <CardDescription>Manage member relationships.</CardDescription>
       </CardHeader>
+
       <CardContent className="space-y-4">
         {fields.length > 0 && (
           <div className="space-y-2">
             {fields.map((field, index) => {
-              const relatedMember = allMembers.find(
-                (m) => m.id === field.relatedMemberId
-              );
+              const [id1, id2] = field.memberIds;
+              const relatedId = id1 === currentMemberId ? id2 : id1;
+
+              const relatedMember = allMembers.find((m) => m.id === relatedId);
+
               return (
                 <div
                   key={field.id}
@@ -78,6 +88,7 @@ export function RelationshipsSection({
                         : "Unknown Member"}
                     </span>
                   </div>
+
                   <Button
                     type="button"
                     variant="ghost"
@@ -134,27 +145,28 @@ export function RelationshipsSection({
               </Select>
             </FormItem>
           </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                const { __temp_rel_member, __temp_rel_type } = form.getValues();
 
-                if (__temp_rel_member && __temp_rel_type) {
-                  append({
-                    relatedMemberId: __temp_rel_member,
-                    type: __temp_rel_type,
-                  });
-                } else {
-                  toast({
-                    title: "Please select a member and relationship type.",
-                    variant: "destructive",
-                  });
-                }
-              }}
-            >
-              Add
-            </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              const { __temp_rel_member, __temp_rel_type } = form.getValues();
+
+              if (__temp_rel_member && __temp_rel_type) {
+                append({
+                  memberIds: [currentMemberId, __temp_rel_member],
+                  type: __temp_rel_type,
+                });
+              } else {
+                toast({
+                  title: "Please select a member and relationship type.",
+                  variant: "destructive",
+                });
+              }
+            }}
+          >
+            Add
+          </Button>
         </div>
 
         <FormField

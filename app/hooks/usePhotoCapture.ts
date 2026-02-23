@@ -7,11 +7,17 @@ import { useToast } from "./use-toast";
 import type { Member } from "../lib/types";
 import type { MemberFormValues } from "../lib/memberForm.schema";
 
-export function usePhotoCapture(
-  form: UseFormReturn<MemberFormValues>,
-  member: Member | undefined,
-  isOpen: boolean
-) {
+export function usePhotoCapture({
+  form,
+  member,
+  isOpen,
+  initialUrl,
+}: {
+  form: UseFormReturn<MemberFormValues>;
+  member: Member | undefined;
+  isOpen: boolean;
+  initialUrl: string | null;
+}) {
   const { toast } = useToast();
 
   const [isTakingPhoto, setIsTakingPhoto] = useState(false);
@@ -32,12 +38,12 @@ export function usePhotoCapture(
           URL.revokeObjectURL(url);
         }
       };
-    } else if (member?.profilePhotoUrl) {
-      setPreviewUrl(member.profilePhotoUrl);
+      } else if (initialUrl) {
+      setPreviewUrl(initialUrl);
     } else {
       setPreviewUrl(null);
     }
-  }, [photoFile, member, isOpen]);
+  }, [photoFile, member, isOpen, initialUrl]);
 
   useEffect(() => {
     if (!isTakingPhoto) return;

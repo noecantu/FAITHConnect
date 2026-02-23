@@ -2,79 +2,145 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { Input } from "@/app/components/ui/input";
-import { Button } from "@/app/components/ui/button";
-import { Card, CardContent } from "@/app/components/ui/card";
-import { Label } from "@/app/components/ui/label";
+import { Form } from "@/app/components/ui/form";
+import { toast } from "@/app/hooks/use-toast";
 
-import { db } from "@/app/lib/firebase";
+import { MemberInfoSection } from "./MemberInfoSection";
+import { StatusSection } from "./StatusSection";
+import { RelationshipsSection } from "./RelationshipsSection";
+import { PhotoSection } from "./PhotoSection";
+import { LoginAccessSection } from "./LoginAccessSection";
+
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { app, db } from "@/app/lib/firebase";
 import { doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 
 import type { Member } from "@/app/lib/types";
+import type { MemberFormValues } from "@/app/lib/memberForm.schema";
+import { memberSchema } from "@/app/lib/memberForm.schema";
 
-//
-// VALIDATION SCHEMA
-//
-const MemberSchema = z.object({
-  firstName: z.string().min(1, "Required"),
-  lastName: z.string().min(1, "Required"),
-  email: z.string().email().optional().or(z.literal("")),
-  phoneNumber: z.string().optional(),
-  birthday: z.string().optional(),
-  anniversary: z.string().optional(),
-  status: z.enum(["Active", "Prospect", "Archived"]).default("Active"),
-});
+import { useMemberRelationships } from "@/app/hooks/useMemberRelationships";
+import { usePhotoCapture } from "@/app/hooks/usePhotoCapture";
 
-export type MemberFormValues = z.infer<typeof MemberSchema>;
-
-//
-// PROPS
-//
-export interface MemberFormProps {
+export interface StandaloneMemberFormProps {
   churchId: string;
   member?: Member;
-  onSuccess?: (newMemberId: string) => void;
+  onSuccess?: (id: string) => void;
 }
 
-//
-// COMPONENT
-//
 export default function MemberForm({
   churchId,
   member,
   onSuccess,
-}: MemberFormProps) {
+}: StandaloneMemberFormProps) {
   const isEditing = !!member;
 
+  // FORM SETUP
   const form = useForm<MemberFormValues>({
-    resolver: zodResolver(MemberSchema),
-    defaultValues: {
-      firstName: member?.firstName ?? "",
-      lastName: member?.lastName ?? "",
-      email: member?.email ?? "",
-      phoneNumber: member?.phoneNumber ?? "",
-      birthday: member?.birthday ?? "",
-      anniversary: member?.anniversary ?? "",
-      status: member?.status ?? "Active",
-    },
+    resolver: zodResolver(memberSchema),
+    defaultValues: member ?? {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phoneNumber: "",
+      birthday: "",
+      baptismDate: "",
+      anniversary: "",
+      status: "Active",
+      address: {
+        street: "",
+        city: "",
+        state: "",
+        zip: "",
+      },
+      notes: "",
+      relationships: [],   // ← matches DB shape
+      photoFile: null,
+      roles: [],
+      __temp_rel_member: "",
+      __temp_rel_type: "",
+    }
   });
 
-  const [isSaving, setIsSaving] = useState(false);
+  // RELATIONSHIPS HOOK
+  const relationships = useMemberRelationships({
+    form,
+    member,
+    isEditMode: isEditing,
+  });
 
-  //
+  // PHOTO HOOK
+  const photo = usePhotoCapture({
+    form,
+    member,
+    isOpen: true, // standalone form is always open
+    initialUrl: member?.profilePhotoUrl ?? null,
+  });
+
+  // FIREBASE FUNCTIONS
+  const functions = getFunctions(app, "us-central1");
+  const createMemberLogin = httpsCallable(functions, "createMemberLogin");
+  const sendPasswordReset = httpsCallable(functions, "sendPasswordReset");
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  // LOGIN HANDLERS
+  async function handleCreateLogin() {
+    if (!member) return;
+
+    setIsLoading(true);
+    try {
+      await createMemberLogin({
+        email: form.watch("email"),
+        memberId: member.id,
+        churchId,
+      });
+
+      toast({
+        title: "Login Created",
+        description: "A password reset email has been sent.",
+      });
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to create login.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleSendReset() {
+    if (!member?.userId) return;
+
+    setIsLoading(true);
+    try {
+      await sendPasswordReset({ userId: member.userId });
+
+      toast({
+        title: "Reset Email Sent",
+        description: "A password reset email has been sent.",
+      });
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to send reset email.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   // SUBMIT HANDLER
-  //
-  async function handleSubmit(values: MemberFormValues) {
-    if (!churchId) return;
-
-    setIsSaving(true);
+  async function onSubmit(values: MemberFormValues) {
+    setIsLoading(true);
 
     try {
       if (isEditing) {
-        // UPDATE EXISTING MEMBER
         await updateDoc(
           doc(db, "churches", churchId, "members", member!.id),
           {
@@ -85,7 +151,6 @@ export default function MemberForm({
 
         onSuccess?.(member!.id);
       } else {
-        // CREATE NEW MEMBER
         const newId = crypto.randomUUID();
 
         await setDoc(
@@ -96,99 +161,61 @@ export default function MemberForm({
             ...values,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
-            relationships: [],
-            profilePhotoUrl: "",
           }
         );
 
         onSuccess?.(newId);
       }
     } catch (err) {
-      console.error("Error saving member:", err);
+      console.error(err);
+      toast({
+        title: "Error",
+        description: "Failed to save member.",
+        variant: "destructive",
+      });
     } finally {
-      setIsSaving(false);
+      setIsLoading(false);
     }
   }
 
-  //
-  // UI
-  //
+  // RENDER
   return (
-    <Card>
-      <CardContent className="space-y-6 pt-6">
-        <form
-          onSubmit={form.handleSubmit(handleSubmit)}
-          className="space-y-6"
+    <Form {...form}>
+      <form
+        id="member-form"
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6 pl-6 pr-4 py-4"
+      >
+        <MemberInfoSection form={form} />
+        <StatusSection form={form} />
+
+        <RelationshipsSection
+          currentMemberId={""} form={form}
+          {...relationships}        />
+
+        <LoginAccessSection
+          hasUserAccount={!!member?.userId}
+          email={form.watch("email")}
+          onEmailChange={(value) => form.setValue("email", value)}
+          onCreateLogin={handleCreateLogin}
+          onSendReset={handleSendReset}
+          isLoading={isLoading}
+        />
+
+        <PhotoSection form={form} {...photo} />
+
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-blue-600 text-white py-2 rounded-md"
         >
-          {/* FIRST NAME */}
-          <div className="space-y-2">
-            <Label>First Name</Label>
-            <Input {...form.register("firstName")} />
-            {form.formState.errors.firstName && (
-              <p className="text-red-600 text-sm">
-                {form.formState.errors.firstName.message}
-              </p>
-            )}
-          </div>
-
-          {/* LAST NAME */}
-          <div className="space-y-2">
-            <Label>Last Name</Label>
-            <Input {...form.register("lastName")} />
-            {form.formState.errors.lastName && (
-              <p className="text-red-600 text-sm">
-                {form.formState.errors.lastName.message}
-              </p>
-            )}
-          </div>
-
-          {/* EMAIL */}
-          <div className="space-y-2">
-            <Label>Email</Label>
-            <Input type="email" {...form.register("email")} />
-          </div>
-
-          {/* PHONE */}
-          <div className="space-y-2">
-            <Label>Phone Number</Label>
-            <Input {...form.register("phoneNumber")} />
-          </div>
-
-          {/* BIRTHDAY */}
-          <div className="space-y-2">
-            <Label>Birthday</Label>
-            <Input type="date" {...form.register("birthday")} />
-          </div>
-
-          {/* ANNIVERSARY */}
-          <div className="space-y-2">
-            <Label>Anniversary</Label>
-            <Input type="date" {...form.register("anniversary")} />
-          </div>
-
-          {/* STATUS */}
-          <div className="space-y-2">
-            <Label>Status</Label>
-            <select
-              {...form.register("status")}
-              className="border rounded-md p-2 w-full bg-background"
-            >
-              <option value="Active">Active</option>
-              <option value="Prospect">Prospect</option>
-              <option value="Archived">Archived</option>
-            </select>
-          </div>
-
-          {/* SUBMIT */}
-          <Button type="submit" disabled={isSaving} className="w-full">
-            {isSaving
-              ? "Saving..."
-              : isEditing
-              ? "Save Changes"
-              : "Create Member"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+          {isLoading
+            ? "Saving..."
+            : isEditing
+            ? "Save Changes"
+            : "Create Member"}
+        </button>
+      </form>
+    </Form>
   );
 }

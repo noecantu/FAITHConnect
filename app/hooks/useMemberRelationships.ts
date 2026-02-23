@@ -9,11 +9,15 @@ import { useChurchId } from "./useChurchId";
 
 import type { MemberFormValues } from "../lib/memberForm.schema";
 
-export function useMemberRelationships(
-  form: UseFormReturn<MemberFormValues>,
-  member: Member | undefined,
-  isEditMode: boolean
-) {
+export function useMemberRelationships({
+  form,
+  member,
+  isEditMode,
+}: {
+  form: UseFormReturn<MemberFormValues>;
+  member: Member | undefined;
+  isEditMode: boolean;
+}) {
   const { churchId } = useChurchId();
   const [allMembers, setAllMembers] = useState<Member[]>([]);
 
@@ -61,3 +65,4 @@ export function useMemberRelationships(
     availableMembers,
   };
 }
+

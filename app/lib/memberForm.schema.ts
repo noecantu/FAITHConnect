@@ -3,7 +3,8 @@
 import * as z from "zod";
 
 const relationshipSchema = z.object({
-  relatedMemberId: z.string().min(1, "Member is required"),
+  id: z.string().optional(),
+  memberIds: z.tuple([z.string(), z.string()]),
   type: z.string().min(1, "Relationship type is required"),
   anniversary: z.string().optional(),
 });
