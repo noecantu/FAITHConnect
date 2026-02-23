@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, Timestamp } from "firebase/firestore";
 
 import { db } from "@/app/lib/firebase";
 import { useChurchId } from "@/app/hooks/useChurchId";
-import MemberForm from "../../components/MemberForm"; // adjust path if needed
+import MemberForm from "../../components/MemberForm";
 import type { Member } from "@/app/lib/types";
 
 export default function EditMemberPage() {
@@ -26,9 +26,28 @@ export default function EditMemberPage() {
     async function loadMember() {
       const ref = doc(db, "churches", churchId!, "members", memberId);
       const snap = await getDoc(ref);
-
       if (snap.exists()) {
-        setMember(snap.data() as Member);
+        const data = snap.data();
+
+        setMember({
+          id: snap.id,
+          ...data,
+          birthday: data.birthday
+            ? data.birthday instanceof Timestamp
+              ? data.birthday.toDate().toISOString().substring(0, 10)
+              : data.birthday // already a string
+            : "",
+          baptismDate: data.baptismDate
+            ? data.baptismDate instanceof Timestamp
+              ? data.baptismDate.toDate().toISOString().substring(0, 10)
+              : data.baptismDate
+            : "",
+          anniversary: data.anniversary
+            ? data.anniversary instanceof Timestamp
+              ? data.anniversary.toDate().toISOString().substring(0, 10)
+              : data.anniversary
+            : "",
+        } as Member);
       } else {
         setMember(null);
       }
@@ -61,7 +80,7 @@ export default function EditMemberPage() {
         churchId={churchId}
         member={member}
         onSuccess={() => {
-          router.push(`/church/${churchId}/members/${memberId}`);
+          router.push(`/church/${churchId}/members`);
         }}
       />
     </div>

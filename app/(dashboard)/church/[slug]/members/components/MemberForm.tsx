@@ -23,6 +23,7 @@ import { memberSchema } from "@/app/lib/memberForm.schema";
 
 import { useMemberRelationships } from "@/app/hooks/useMemberRelationships";
 import { usePhotoCapture } from "@/app/hooks/usePhotoCapture";
+import { Fab } from "@/app/components/ui/fab";
 
 export interface StandaloneMemberFormProps {
   churchId: string;
@@ -56,7 +57,7 @@ export default function MemberForm({
         zip: "",
       },
       notes: "",
-      relationships: [],   // ← matches DB shape
+      relationships: [],
       photoFile: null,
       roles: [],
       __temp_rel_member: "",
@@ -204,17 +205,14 @@ export default function MemberForm({
 
         <PhotoSection form={form} {...photo} />
 
-        <button
-          type="submit"
+        <Fab
+          type="save"
           disabled={isLoading}
-          className="w-full bg-blue-600 text-white py-2 rounded-md"
-        >
-          {isLoading
-            ? "Saving..."
-            : isEditing
-            ? "Save Changes"
-            : "Create Member"}
-        </button>
+          onClick={() => {
+            const formEl = document.getElementById("member-form") as HTMLFormElement;
+            formEl?.requestSubmit();
+          }}
+        />
       </form>
     </Form>
   );

@@ -54,9 +54,7 @@ async function generateUniqueCheckInCode(churchId: string): Promise<string> {
   return code;
 }
 
-// ------------------------------
 // ADD MEMBER
-// ------------------------------
 export async function addMember(
   churchId: string,
   data: Partial<Omit<Member, "id">> & { id: string }
@@ -143,9 +141,7 @@ export async function addMember(
   });
 }
 
-// ------------------------------
 // UPDATE MEMBER
-// ------------------------------
 export async function updateMember(
   churchId: string,
   memberId: string,
@@ -161,9 +157,7 @@ export async function updateMember(
     const oldRels = currentMember.relationships ?? [];
     const newRels = data.relationships;
 
-    // ------------------------------
     // SIMPLE UPDATE (no relationships)
-    // ------------------------------
     if (!newRels) {
       const {
         birthday,
@@ -191,9 +185,7 @@ export async function updateMember(
       return;
     }
 
-    // ------------------------------
     // RELATIONSHIP UPDATE LOGIC
-    // ------------------------------
     const oldIds = oldRels.map((r) => r.memberIds[1]);
     const newIds = newRels.map((r) => r.memberIds[1]);
     const allRelatedIds = Array.from(new Set([...oldIds, ...newIds])).filter(Boolean);
@@ -273,9 +265,7 @@ export async function updateMember(
       }
     });
 
-    // ------------------------------
     // UPDATE MAIN MEMBER
-    // ------------------------------
     const {
       birthday,
       baptismDate,
@@ -302,9 +292,7 @@ export async function updateMember(
   });
 }
 
-// ------------------------------
 // DELETE MEMBER
-// ------------------------------
 export async function deleteMember(churchId: string, memberId: string) {
   await runTransaction(db, async (transaction) => {
     const memberRef = doc(db, "churches", churchId, "members", memberId);
@@ -342,9 +330,7 @@ export async function deleteMember(churchId: string, memberId: string) {
   });
 }
 
-// ------------------------------
 // LISTEN TO MEMBERS
-// ------------------------------
 export function listenToMembers(
   churchId: string,
   callback: (members: Member[]) => void
@@ -374,13 +360,20 @@ export function listenToMembers(
           status: raw.status ?? "",
           address: raw.address ?? "",
           birthday: raw.birthday
-            ? raw.birthday.toDate().toISOString().split("T")[0]
+            ? raw.birthday instanceof Timestamp
+              ? raw.birthday.toDate().toISOString().split("T")[0]
+              : raw.birthday // already a string
             : undefined,
           baptismDate: raw.baptismDate
-            ? raw.baptismDate.toDate().toISOString().split("T")[0]
+            ? raw.baptismDate instanceof Timestamp
+              ? raw.baptismDate.toDate().toISOString().split("T")[0]
+              : raw.baptismDate
             : undefined,
+
           anniversary: raw.anniversary
-            ? raw.anniversary.toDate().toISOString().split("T")[0]
+            ? raw.anniversary instanceof Timestamp
+              ? raw.anniversary.toDate().toISOString().split("T")[0]
+              : raw.anniversary
             : undefined,
           familyId: raw.familyId ?? null,
           notes: raw.notes ?? "",

@@ -11,8 +11,8 @@ import {
   FormItem,
   FormLabel,
   FormControl,
-  FormField,
-  FormMessage,
+  // FormField,
+  // FormMessage,
 } from "@/app/components/ui/form";
 import {
   Select,
@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/components/ui/select";
-import { Input } from "@/app/components/ui/input";
+// import { Input } from "@/app/components/ui/input";
 import { Button } from "@/app/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { useToast } from "@/app/hooks/use-toast";
@@ -35,7 +35,7 @@ type Props = {
   append: (value: {
     memberIds: [string, string];
     type: string;
-    anniversary?: string;
+    // anniversary?: string;
     id?: string;
   }) => void;
   remove: (index: number) => void;
@@ -169,7 +169,7 @@ export function RelationshipsSection({
           </Button>
         </div>
 
-        <FormField
+        {/* <FormField
           control={form.control}
           name="anniversary"
           render={({ field }) => (
@@ -185,7 +185,7 @@ export function RelationshipsSection({
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
       </CardContent>
     </Card>
   );

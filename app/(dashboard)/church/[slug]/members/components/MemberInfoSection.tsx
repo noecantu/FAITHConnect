@@ -60,145 +60,169 @@ export function MemberInfoSection({ form }: Props) {
         <CardTitle className="text-xl">Member Information</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <FormField
-          control={form.control}
-          name="firstName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                First Name <span className="text-destructive">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="firstName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  First Name <span className="text-destructive">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="lastName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Last Name <span className="text-destructive">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="lastName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Last Name <span className="text-destructive">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="phoneNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Phone <span className="text-destructive">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input
-                  value={formatPhoneInput(field.value ?? "")}
-                  onChange={(e) => {
-                    const input = e.target;
-                    const raw = input.value;
-                    const cursor = input.selectionStart ?? raw.length;
+          <FormField
+            control={form.control}
+            name="phoneNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Phone <span className="text-destructive">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    value={formatPhoneInput(field.value ?? "")}
+                    onChange={(e) => {
+                      const input = e.target;
+                      const raw = input.value;
+                      const cursor = input.selectionStart ?? raw.length;
 
-                    // 1. Extract raw digits (what we actually store)
-                    const digits = raw.replace(/\D/g, "").slice(0, 10);
+                      // 1. Extract raw digits (what we actually store)
+                      const digits = raw.replace(/\D/g, "").slice(0, 10);
 
-                    // 2. Build the formatted view value
-                    const formatted = formatPhoneInput(digits);
+                      // 2. Build the formatted view value
+                      const formatted = formatPhoneInput(digits);
 
-                    // 3. Compute new cursor position
-                    const nextCursor = calculateCursorPosition(raw, formatted, cursor);
+                      // 3. Compute new cursor position
+                      const nextCursor = calculateCursorPosition(raw, formatted, cursor);
 
-                    // 4. Store RAW digits in the form
-                    field.onChange(digits);
+                      // 4. Store RAW digits in the form
+                      field.onChange(digits);
 
-                    // 5. Restore cursor after React applies value
-                    requestAnimationFrame(() => {
-                      input.setSelectionRange(nextCursor, nextCursor);
-                    });
-                  }}
-                  inputMode="numeric"
-                  placeholder="(915) 123‑4567"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                      // 5. Restore cursor after React applies value
+                      requestAnimationFrame(() => {
+                        input.setSelectionRange(nextCursor, nextCursor);
+                      });
+                    }}
+                    inputMode="numeric"
+                    placeholder="(915) 123‑4567"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <FormField
-          control={form.control}
-          name="birthday"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Birthday</FormLabel>
-              <FormControl>
-                <Input
-                  type="date"
-                  value={field.value || ""}
-                  onChange={(e) => field.onChange(e.target.value)}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <FormField
+            control={form.control}
+            name="birthday"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Birthday</FormLabel>
+                <FormControl>
+                  <Input
+                    type="date"
+                    value={field.value || ""}
+                    onChange={(e) => field.onChange(e.target.value)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="baptismDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Baptism Date</FormLabel>
-              <FormControl>
-                <Input
-                  type="date"
-                  value={field.value || ""}
-                  onChange={(e) => field.onChange(e.target.value)}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="baptismDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Baptism Date</FormLabel>
+                <FormControl>
+                  <Input
+                    type="date"
+                    value={field.value || ""}
+                    onChange={(e) => field.onChange(e.target.value)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="address.street"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Street</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="123 Main St" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="anniversary"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Anniversary</FormLabel>
+                <FormControl>
+                  <Input
+                    type="date"
+                    value={field.value || ""}
+                    onChange={(e) => field.onChange(e.target.value)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <FormField
+            control={form.control}
+            name="address.street"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Street</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="123 Main St" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="address.city"
