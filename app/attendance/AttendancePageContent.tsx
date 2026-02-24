@@ -90,7 +90,6 @@ export default function AttendancePageContent() {
   // ATTENDANCE
   const {
     records,
-    setRecords,
     visitors,
     setVisitors,
     toggle,
@@ -147,24 +146,6 @@ export default function AttendancePageContent() {
       setQrLoading(false);
     }
   }
-
-  // Ensure every member/visitor has a record
-  useEffect(() => {
-    const allIds = [
-      ...activeMembers.map((m) => m.id),
-      ...visitors.map((v) => v.id),
-    ];
-
-    setRecords((prev) => {
-      const next = { ...prev };
-      allIds.forEach((id) => {
-        if (next[id] === undefined) {
-          next[id] = true;
-        }
-      });
-      return next;
-    });
-  }, [activeMembers, visitors, setRecords]);
 
   // Sync date when URL changes
   useEffect(() => {

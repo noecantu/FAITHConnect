@@ -62,12 +62,11 @@ export function useAttendance(
     load();
   }, [load]);
 
-
   const toggle = (id: string) => {
     setRecords((prev) => {
       const current = prev[id];
-      // default to true if undefined, then toggle
-      const nextValue = current === undefined ? false : !current;
+      // default to false if undefined, then toggle
+      const nextValue = current === undefined ? true : !current;
       return { ...prev, [id]: nextValue };
     });
   };
