@@ -5,11 +5,10 @@ import type { Church } from "@/app/lib/types";
 
 interface SelfCheckInProps {
   church: Church;
-  token: string;
   date: string;
 }
 
-export default function SelfCheckIn({ church, token, date }: SelfCheckInProps) {
+export default function SelfCheckIn({ church, date }: SelfCheckInProps) {
   // UI state
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,9 +26,8 @@ export default function SelfCheckIn({ church, token, date }: SelfCheckInProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          token,
+          code,
           date,
-          checkInCode: code,
         }),
       });
 
@@ -37,6 +35,12 @@ export default function SelfCheckIn({ church, token, date }: SelfCheckInProps) {
 
       if (!res.ok) {
         setError(data.error || "Something went wrong.");
+        setLoading(false);
+        return;
+      }
+
+      if (data.alreadyCheckedIn) {
+        setSuccess("You’ve already checked in today.");
         setLoading(false);
         return;
       }
@@ -56,7 +60,7 @@ export default function SelfCheckIn({ church, token, date }: SelfCheckInProps) {
           Self Check-In
         </h1>
 
-        {!token || !date ? (
+        {!date ? (
           <div className="text-red-400 text-center text-sm">
             Invalid or missing QR code. Please scan again.
           </div>
@@ -69,7 +73,7 @@ export default function SelfCheckIn({ church, token, date }: SelfCheckInProps) {
               <input
                 type="text"
                 value={code}
-                onChange={(e) => setCode(e.target.value)}
+                onChange={(e) => setCode(e.target.value.toUpperCase().trim())}
                 className="w-full px-3 py-2 rounded-lg bg-slate-700 text-slate-100 border border-slate-600 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter your code"
                 required

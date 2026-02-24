@@ -13,7 +13,6 @@ import Image from "next/image";
 import { Fab } from "@/app/components/ui/fab";
 import { AttendanceControls } from "@/app/components/attendance/AttendanceControls";
 import { useToast } from "@/app/hooks/use-toast";
-import { nanoid } from "nanoid";
 import { QRCodeCanvas } from "qrcode.react";
 
 import {
@@ -35,7 +34,6 @@ import { useSettings } from "@/app/hooks/use-settings";
 import { useAuth } from "@/app/hooks/useAuth";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase";
-import { auth } from "@/app/lib/firebase-client";
 
 export default function AttendancePageContent() {
   const searchParams = useSearchParams();
@@ -116,18 +114,17 @@ export default function AttendancePageContent() {
     try {
       setQrLoading(true);
 
-      const tempToken = nanoid(24);
       const today = new Date();
-      const dateString = today.toISOString().split("T")[0];
+      const dateString = today.toLocaleDateString("en-CA", {
+        timeZone: "America/Denver",
+      });
 
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL as string;
-      const url = `${baseUrl}/check-in/${churchId}?t=${tempToken}&d=${dateString}`;
+      const url = `${baseUrl}/check-in/${churchId}?d=${dateString}`;
 
-      // Save URL so the QR code can render
       setQrUrl(url);
       setQrOpen(true);
 
-      // Copy to clipboard
       try {
         navigator.clipboard.writeText(url);
       } catch {
@@ -137,20 +134,6 @@ export default function AttendancePageContent() {
       toast({
         title: "QR Generated",
         description: "The check‑in link has been copied to your clipboard.",
-      });
-
-      const idToken = await auth.currentUser?.getIdToken();
-
-      await fetch(`/api/${churchId}/attendance/generate-token`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({
-          date: dateString,
-          token: tempToken,
-        }),
       });
 
     } catch (err) {

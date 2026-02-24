@@ -62,6 +62,7 @@ export function useAttendance(
     load();
   }, [load]);
 
+
   const toggle = (id: string) => {
     setRecords((prev) => {
       const current = prev[id];

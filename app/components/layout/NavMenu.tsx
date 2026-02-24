@@ -67,7 +67,13 @@ export function NavMenu() {
   if (isOnboarding) {
     return null;
   }
-  
+
+  // Hide NavMenu during Self Check-In
+  const isSelfCheckIn = pathname.match(/\/[^/]+\/attendance\/self-checkin/);
+  if (isSelfCheckIn) {
+    return null;
+  }
+
   // --- ROLE MODEL ---
   const isRootAdmin = roles.includes("RootAdmin");
   const isChurchAdmin = roles.includes("Admin") && churchId;

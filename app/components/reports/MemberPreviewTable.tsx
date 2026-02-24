@@ -42,7 +42,7 @@ export function MemberPreviewTable({
                 {f === "qrCode" ? (
                   <div className="flex justify-left">
                     <QRCode
-                      value={`${window.location.origin}/check-in/${m.checkInCode}`}
+                      value={`${window.location.origin}/check-in/default-church?code=${m.checkInCode}`}
                       size={64}
                     />
                   </div>

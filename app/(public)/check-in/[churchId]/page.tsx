@@ -6,12 +6,12 @@ import type { DocumentData } from "firebase/firestore";
 
 interface CheckInPageProps {
   params: Promise<{ churchId: string }>;
-  searchParams: Promise<{ t?: string; d?: string }>;
+  searchParams: Promise<{ d?: string }>;
 }
 
 export default async function CheckInPage({ params, searchParams }: CheckInPageProps) {
   const { churchId } = await params;
-  const { t: token, d: date } = await searchParams;
+  const { d: date } = await searchParams;
 
   // Fetch church on the server
   const q = query(
@@ -36,21 +36,19 @@ export default async function CheckInPage({ params, searchParams }: CheckInPageP
     name: raw.name,
     slug: raw.slug,
     timezone: raw.timezone,
-
     logoUrl: raw.logoUrl ?? null,
     description: raw.description ?? null,
     status: raw.status ?? null,
-
     createdAt: raw.createdAt?.toDate?.().toISOString() ?? null,
     updatedAt: raw.updatedAt?.toDate?.().toISOString() ?? null,
     enabledAt: raw.enabledAt ?? null,
     disabledAt: raw.disabledAt ?? null,
-
     address: raw.address ?? null,
     phone: raw.phone ?? null,
   };
 
-  if (!token || !date) {
+  // Only require date now — token is no longer part of the system
+  if (!date) {
     return (
       <div className="min-h-screen flex items-center justify-center text-slate-200">
         Invalid check‑in link.
@@ -61,7 +59,6 @@ export default async function CheckInPage({ params, searchParams }: CheckInPageP
   return (
     <SelfCheckIn
       church={church}
-      token={token}
       date={date}
     />
   );
