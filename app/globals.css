@@ -2,6 +2,8 @@
    External styles
 ------------------------------------------------------- */
 @import "react-day-picker/dist/style.css";
+@import "flatpickr/dist/flatpickr.min.css";
+@import "flatpickr/dist/themes/dark.css";
 
 /* -------------------------------------------------------
    Tailwind layers

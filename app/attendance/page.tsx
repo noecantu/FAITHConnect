@@ -1,18 +1,15 @@
-'use client';
+"use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { format } from "date-fns";
+import Flatpickr from "react-flatpickr";
 import { PageHeader } from "@/app/components/page-header";
 import { Card } from "@/app/components/ui/card";
-import { useChurchId } from "@/app/hooks/useChurchId";
-import { useUserRoles } from "@/app/hooks/useUserRoles";
-import { useMembers } from "@/app/hooks/useMembers";
-import { useAttendance } from "@/app/hooks/useAttendance";
-import Image from "next/image";
 import { Fab } from "@/app/components/ui/fab";
-import { useToast } from "@/app/hooks/use-toast";
-import { QRCodeCanvas } from "qrcode.react";
+import { Input } from "@/app/components/ui/input";
+import { Button } from "@/app/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
 import {
   Dialog,
   DialogTrigger,
@@ -20,18 +17,23 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogDescription
+  DialogDescription,
 } from "@/app/components/ui/dialog";
 
-import { Input } from "@/app/components/ui/input";
-import { Button } from "@/app/components/ui/button";
-import { X } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
-
+import { useChurchId } from "@/app/hooks/useChurchId";
+import { useUserRoles } from "@/app/hooks/useUserRoles";
+import { useMembers } from "@/app/hooks/useMembers";
+import { useAttendance } from "@/app/hooks/useAttendance";
+import { useToast } from "@/app/hooks/use-toast";
 import { useSettings } from "@/app/hooks/use-settings";
 import { useAuth } from "@/app/hooks/useAuth";
+
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase";
+
+import Image from "next/image";
+import { QRCodeCanvas } from "qrcode.react";
+import { X } from "lucide-react";
 
 export default function AttendancePageContent() {
   const searchParams = useSearchParams();
@@ -50,9 +52,15 @@ export default function AttendancePageContent() {
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();
+
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
   const [qrLoading, setQrLoading] = useState(false);
+
+  const [attendanceView, setAttendanceView] = useState<"cards" | "list">(
+    "cards"
+  );
+  const [visitorName, setVisitorName] = useState("");
 
   function fallbackCopy(text: string) {
     const textarea = document.createElement("textarea");
@@ -64,10 +72,10 @@ export default function AttendancePageContent() {
     document.execCommand("copy");
     document.body.removeChild(textarea);
   }
+
   // SETTINGS
   const { settings } = useSettings();
   const savedAttendanceView = settings?.attendanceView ?? "cards";
-  const [attendanceView, setAttendanceView] = useState<"cards" | "list">("cards");
 
   useEffect(() => {
     if (savedAttendanceView && savedAttendanceView !== attendanceView) {
@@ -95,8 +103,6 @@ export default function AttendancePageContent() {
     loading: attendanceLoading,
   } = useAttendance(churchId, dateString);
 
-  const [visitorName, setVisitorName] = useState("");
-
   const loading = rolesLoading || membersLoading || attendanceLoading;
 
   const activeMembers = useMemo(
@@ -104,9 +110,7 @@ export default function AttendancePageContent() {
     [members]
   );
 
-  // -----------------------------
   // QR Generator
-  // -----------------------------
   async function handleGenerateQr() {
     try {
       setQrLoading(true);
@@ -132,7 +136,6 @@ export default function AttendancePageContent() {
         title: "QR Generated",
         description: "The check‑in link has been copied to your clipboard.",
       });
-
     } catch (err) {
       console.error(err);
       toast({
@@ -145,7 +148,7 @@ export default function AttendancePageContent() {
     }
   }
 
-  // Sync date when URL changes
+  // Sync date when URL changes (safe: only reacts to navigation, not typing)
   useEffect(() => {
     if (urlDate) {
       setDate(parseLocalDate(urlDate));
@@ -174,7 +177,9 @@ export default function AttendancePageContent() {
   }
 
   function downloadQr() {
-    const canvas = document.getElementById("qr-canvas") as HTMLCanvasElement | null;
+    const canvas = document.getElementById(
+      "qr-canvas"
+    ) as HTMLCanvasElement | null;
     if (!canvas) return;
 
     const link = document.createElement("a");
@@ -205,30 +210,41 @@ export default function AttendancePageContent() {
           >
             <div className="flex items-center gap-1">
               <RadioGroupItem value="cards" id="view-cards" />
-              <label htmlFor="view-cards" className="text-sm">Cards</label>
+              <label htmlFor="view-cards" className="text-sm">
+                Cards
+              </label>
             </div>
 
             <div className="flex items-center gap-1">
               <RadioGroupItem value="list" id="view-list" />
-              <label htmlFor="view-list" className="text-sm">List</label>
+              <label htmlFor="view-list" className="text-sm">
+                List
+              </label>
             </div>
           </RadioGroup>
         </div>
       </PageHeader>
 
-      {/* DATE PICKER + TODAY + HISTORY (same row, right-aligned) */}
+      {/* DATE PICKER + TODAY + HISTORY */}
       <div className="flex items-center justify-end gap-3 mb-4">
 
-        {/* DATE PICKER */}
-        <Input
-          type="date"
-          value={format(date, "yyyy-MM-dd")}
-          onChange={(e) => {
-            const newDate = new Date(e.target.value + "T00:00:00");
-            setDate(newDate);
-            router.push(`/attendance?date=${e.target.value}`);
+        {/* FLATPICKR DATE PICKER */}
+        <Flatpickr
+          value={date}
+          options={{
+            dateFormat: "Y-m-d",
+            defaultDate: date,
+            allowInput: false,
+            altInput: true,
+            altFormat: "Y-m-d",
+            monthSelectorType: "dropdown",
           }}
-          className="w-[180px] bg-black/40 text-white border-white/20"
+          onChange={([selected]) => {
+            if (!selected) return;
+            setDate(selected);
+            router.push(`/attendance?date=${format(selected, "yyyy-MM-dd")}`);
+          }}
+          className="w-[160px] bg-black/40 text-white border-white/20 rounded-md px-3 py-2"
         />
 
         {/* TODAY BUTTON */}
@@ -236,16 +252,15 @@ export default function AttendancePageContent() {
           variant="outline"
           onClick={() => {
             const today = new Date();
-            const todayString = format(today, "yyyy-MM-dd");
             setDate(today);
-            router.push(`/attendance?date=${todayString}`);
+            router.push(`/attendance?date=${format(today, "yyyy-MM-dd")}`);
           }}
           className="text-white/80 border-white/20"
         >
           Today
         </Button>
 
-        {/* HISTORY BUTTON (unchanged) */}
+        {/* HISTORY BUTTON */}
         <Button
           variant="outline"
           onClick={() => router.push("/attendance/history")}
@@ -256,7 +271,6 @@ export default function AttendancePageContent() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-
         {/* GENERATE QR */}
         <Button
           onClick={handleGenerateQr}
@@ -298,7 +312,10 @@ export default function AttendancePageContent() {
                   if (!visitorName.trim()) return;
 
                   const id = `visitor-${Date.now()}`;
-                  setVisitors((prev) => [...prev, { id, name: visitorName.trim() }]);
+                  setVisitors((prev) => [
+                    ...prev,
+                    { id, name: visitorName.trim() },
+                  ]);
                   setVisitorName("");
                 }}
               >
@@ -307,25 +324,19 @@ export default function AttendancePageContent() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
       </div>
 
       {/* CARDS VIEW */}
       {attendanceView === "cards" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-3">
-        {/* grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 xl:grid-cols-8 gap-6 */}
           {[...activeMembers, ...visitors].map((m) => {
             const isVisitor = !("firstName" in m);
             const id = m.id;
 
-            const name = isVisitor
-              ? m.name
-              : `${m.firstName} ${m.lastName}`;
+            const name = isVisitor ? m.name : `${m.firstName} ${m.lastName}`;
 
             const photo =
-              !isVisitor && m.profilePhotoUrl
-                ? m.profilePhotoUrl
-                : null;
+              !isVisitor && m.profilePhotoUrl ? m.profilePhotoUrl : null;
 
             const initials = isVisitor
               ? m.name
@@ -412,9 +423,7 @@ export default function AttendancePageContent() {
             const isVisitor = !("firstName" in m);
             const id = m.id;
 
-            const name = isVisitor
-              ? m.name
-              : `${m.firstName} ${m.lastName}`;
+            const name = isVisitor ? m.name : `${m.firstName} ${m.lastName}`;
 
             const present = records[id] === true;
 
@@ -439,36 +448,34 @@ export default function AttendancePageContent() {
         onClick={async () => {
           await save();
           toast({ title: "Attendance saved" });
-        } } type={"save"}      />
+        }}
+        type={"save"}
+      />
 
-        <Dialog open={qrOpen} onOpenChange={setQrOpen}>
-          <DialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
-            <DialogHeader>
-              <DialogTitle>Attendance QR Code</DialogTitle>
-              <DialogDescription>
-                Scan or share this code to check in.
-              </DialogDescription>
-            </DialogHeader>
+      <Dialog open={qrOpen} onOpenChange={setQrOpen}>
+        <DialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+          <DialogHeader>
+            <DialogTitle>Attendance QR Code</DialogTitle>
+            <DialogDescription>
+              Scan or share this code to check in.
+            </DialogDescription>
+          </DialogHeader>
 
-            {qrUrl && (
-              <div className="flex flex-col items-center gap-4 py-4">
-                <QRCodeCanvas value={qrUrl} size={200} id="qr-canvas" />
+          {qrUrl && (
+            <div className="flex flex-col items-center gap-4 py-4">
+              <QRCodeCanvas value={qrUrl} size={200} id="qr-canvas" />
 
-                <Button
-                  onClick={downloadQr}
-                  className="w-full"
-                >
-                  Download QR
-                </Button>
+              <Button onClick={downloadQr} className="w-full">
+                Download QR
+              </Button>
 
-                <div className="text-xs text-white/60 break-all text-center">
-                  {qrUrl}
-                </div>
+              <div className="text-xs text-white/60 break-all text-center">
+                {qrUrl}
               </div>
-            )}
-          </DialogContent>
-        </Dialog>
-
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
