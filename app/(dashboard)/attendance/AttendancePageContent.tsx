@@ -226,7 +226,7 @@ export default function AttendancePageContent() {
       </PageHeader>
 
       {/* DATE PICKER + TODAY + HISTORY */}
-      <div className="flex items-center justify-end gap-3 mb-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 mb-4">
 
         {/* FLATPICKR DATE PICKER */}
         <Flatpickr
@@ -244,7 +244,7 @@ export default function AttendancePageContent() {
             setDate(selected);
             router.push(`/attendance?date=${format(selected, "yyyy-MM-dd")}`);
           }}
-          className="w-[120px] bg-black/40 text-white border-white/20 rounded-md px-3 py-2"
+          className="w-[180px] bg-black/40 text-white border-white/20 rounded-md px-3 py-2 text-center"
         />
 
         {/* TODAY BUTTON */}
