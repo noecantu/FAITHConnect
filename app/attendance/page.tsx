@@ -232,11 +232,11 @@ export default function AttendancePageContent() {
         <Flatpickr
           value={date}
           options={{
-            dateFormat: "Y-m-d",
+            dateFormat: "m-d-Y",
             defaultDate: date,
             allowInput: false,
             altInput: true,
-            altFormat: "Y-m-d",
+            altFormat: "m-d-Y",
             monthSelectorType: "dropdown",
           }}
           onChange={([selected]) => {
@@ -244,7 +244,7 @@ export default function AttendancePageContent() {
             setDate(selected);
             router.push(`/attendance?date=${format(selected, "yyyy-MM-dd")}`);
           }}
-          className="w-[160px] bg-black/40 text-white border-white/20 rounded-md px-3 py-2"
+          className="w-[120px] bg-black/40 text-white border-white/20 rounded-md px-3 py-2"
         />
 
         {/* TODAY BUTTON */}

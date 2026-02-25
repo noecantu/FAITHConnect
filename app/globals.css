@@ -177,3 +177,139 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .min-w-0 {
   min-width: 0;
 }
+
+/* -------------------------------------------------------
+   FLATPICKR — SOLID DARK THEME (FINAL CLEAN VERSION)
+------------------------------------------------------- */
+
+/* Calendar container */
+.flatpickr-calendar {
+  background: #1e1e1e !important;
+  border: 2px solid rgba(103, 54, 54, 0.12) !important;
+  border-radius: 10px !important;
+  color: white !important;
+  overflow: hidden !important;
+}
+
+/* -------------------------------------------------------
+   MONTH + YEAR HEADER (PERFECTLY CENTERED)
+------------------------------------------------------- */
+
+/* Center Month + Year */
+.flatpickr-current-month {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  color: white !important;
+  width: auto !important;
+  margin: 0 !important;
+}
+
+/* Navigation arrows */
+.flatpickr-prev-month,
+.flatpickr-next-month {
+  color: white !important;
+  fill: white !important;
+  opacity: 0.9 !important;
+}
+
+.flatpickr-prev-month:hover,
+.flatpickr-next-month:hover {
+  opacity: 1 !important;
+}
+
+/* -------------------------------------------------------
+   WEEKDAY BAR — SOLID, NO STRIPES
+------------------------------------------------------- */
+
+/* Weekday labels */
+.flatpickr-weekday {
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-weight: 600 !important;
+  font-size: 0.8rem !important;
+}
+
+/* -------------------------------------------------------
+   DAY CELLS
+------------------------------------------------------- */
+
+.flatpickr-day {
+  color: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 6px !important;
+}
+
+.flatpickr-day:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Selected day */
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+  background: #353b4a !important;
+  border-color: #afafaf !important;
+  color: white !important;
+}
+
+/* Today highlight */
+.flatpickr-day.today {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  color: white !important;
+}
+
+/* Outside days */
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay {
+  color: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Weekday text */
+.flatpickr-weekday {
+  background: #1e1e1e !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-weight: 600 !important;
+  font-size: 0.8rem !important;
+}
+
+/* Solid weekday bar + white bottom border */
+.flatpickr-weekdays,
+.flatpickr-weekdaycontainer,
+.flatpickr-weekdays * {
+  background: #1e1e1e !important; /* solid dark */
+}
+
+.flatpickr-weekdays {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25) !important; /* white-ish divider */
+}
+
+/* Nudge Month + Year upward for perfect vertical centering */
+.flatpickr-current-month {
+  top: 40% !important;
+}
+
+/* Entire header background (chevrons + Month + Year) */
+.flatpickr-months,
+.flatpickr-month {
+  background: #353b4a !important; /* or whatever shade you want */
+}
+
+/* Remove Month dropdown background */
+.flatpickr-monthDropdown-months {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Remove Year input wrapper background (if you want it clean too) */
+.flatpickr-current-month .numInputWrapper {
+  background: transparent !important;
+  border: none !important;
+}
