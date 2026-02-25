@@ -161,7 +161,7 @@ export default function AdminHomeClient({
 
           <Link href="/admin/users">
             <Card className="p-6 hover:shadow-md transition cursor-pointer">
-              <CardTitle className="text-xl mb-2">Users</CardTitle>
+              <CardTitle className="text-xl mb-2">System Users</CardTitle>
               <CardDescription>
                 View and manage system-level users.
               </CardDescription>

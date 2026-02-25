@@ -1,0 +1,7 @@
+import { NextResponse } from "next/server";
+import { recoverRootAdmin } from "@/app/lib/admin/recoverRootAdmin";
+
+export async function GET() {
+  const result = await recoverRootAdmin();
+  return NextResponse.json(result);
+}

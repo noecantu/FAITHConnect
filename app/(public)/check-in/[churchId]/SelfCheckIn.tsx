@@ -9,7 +9,6 @@ interface SelfCheckInProps {
 }
 
 export default function SelfCheckIn({ church, date }: SelfCheckInProps) {
-  // UI state
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -25,10 +24,7 @@ export default function SelfCheckIn({ church, date }: SelfCheckInProps) {
       const res = await fetch(`/api/${church.id}/attendance/self-checkin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code,
-          date,
-        }),
+        body: JSON.stringify({ code, date }),
       });
 
       const data = await res.json();
@@ -41,11 +37,13 @@ export default function SelfCheckIn({ church, date }: SelfCheckInProps) {
 
       if (data.alreadyCheckedIn) {
         setSuccess("You’ve already checked in today.");
+        setCode("");
         setLoading(false);
         return;
       }
 
       setSuccess("Check-in successful. Thank you!");
+      setCode("");
       setLoading(false);
     } catch (_err) {
       setError("Something went wrong. Please try again.");
@@ -54,50 +52,69 @@ export default function SelfCheckIn({ church, date }: SelfCheckInProps) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-slate-900 p-6 rounded-xl shadow-lg border border-slate-700">
-        <h1 className="text-2xl font-semibold text-center mb-6 text-slate-100">
-          Self Check-In
+    <div className="min-h-screen flex items-center justify-center px-2">
+      <div className="w-full max-w-md bg-card text-card-foreground p-2 rounded-xl shadow-lg border border-border">
+        
+        {/* Logo */}
+        <div className="flex justify-center mb-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/FAITH_CONNECT_FLAME_LOGO.svg"
+            alt="Faith Connect Logo"
+            className="h-40 w-40"
+          />
+        </div>
+
+        <h1 className="text-2xl font-semibold text-center mb-6">
+          Attendance Self Check-In
         </h1>
 
         {!date ? (
-          <div className="text-red-400 text-center text-sm">
+          <div className="text-red-500 text-center text-sm">
             Invalid or missing QR code. Please scan again.
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <label className="block text-sm text-slate-900">
-                Check-In Code
-              </label>
-              <input
-                type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase().trim())}
-                className="w-full px-3 py-2 rounded-lg bg-slate-700 text-slate-100 border border-slate-600 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter your code"
-                required
-              />
-            </div>
+          <div className="px-4 pb-6">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Field Group */}
+              <div className="flex flex-col gap-3">
+                <label className="text-sm font-medium px-1">
+                  Check-In Code
+                </label>
 
-            {error && (
-              <div className="text-red-400 text-center text-sm">{error}</div>
-            )}
-
-            {success && (
-              <div className="text-green-400 text-center text-sm">
-                {success}
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.toUpperCase().trim())}
+                  className="w-full px-4 py-3 rounded-lg bg-input text-foreground border border-input 
+                            placeholder:text-muted-foreground focus:outline-none focus:ring-2 
+                            focus:ring-primary"
+                  placeholder="Enter your code"
+                  required
+                />
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-blue-900 text-white font-medium transition-colors"
-            >
-              {loading ? "Checking..." : "Check In"}
-            </button>
-          </form>
+              {/* Messages */}
+              {error && (
+                <div className="text-red-500 text-center text-sm px-1">{error}</div>
+              )}
+
+              {success && (
+                <div className="text-green-600 text-center text-sm px-1">{success}</div>
+              )}
+
+              {/* Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 rounded-lg bg-primary hover:bg-primary/90 
+                          disabled:bg-primary/40 text-primary-foreground font-medium 
+                          transition-colors"
+              >
+                {loading ? "Checking..." : "Check In"}
+              </button>
+            </form>
+          </div>
         )}
       </div>
     </div>
