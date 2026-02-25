@@ -1,43 +1,43 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Input } from '@/app/components/ui/input';
-import { getServicePlans } from '@/app/lib/servicePlans';
-import type { ServicePlan } from '@/app/lib/types';
 import { PageHeader } from '@/app/components/page-header';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { Fab } from '@/app/components/ui/fab';
 import { Button } from '@/app/components/ui/button';
+
 import { useChurchId } from '@/app/hooks/useChurchId';
+import { useServicePlans } from '@/app/hooks/useServicePlans';
+import { useUserRoles } from '@/app/hooks/useUserRoles';
 
 export default function ServicePlanPage() {
+  // ALL HOOKS MUST RUN FIRST
   const { churchId, loading: churchLoading } = useChurchId();
-  const [plans, setPlans] = useState<ServicePlan[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { plans, loading: plansLoading, error, reload } = useServicePlans(churchId);
 
+  const {
+    isAdmin,
+    isServiceManager,
+    loading: rolesLoading
+  } = useUserRoles(churchId);
+
+  // Permissions (mirroring Set Lists)
+  const canManage = isAdmin || isServiceManager;
+  const canView = isAdmin || isServiceManager;
+
+  // Local UI state
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<'newest' | 'oldest' | 'title'>('newest');
   const [filter, setFilter] = useState<'all' | 'future' | 'past'>('all');
 
   const router = useRouter();
 
-  const loadPlans = useCallback(async () => {
-    if (!churchId) return;
-    setLoading(true);
-    const data = await getServicePlans(churchId);
-    setPlans(data);
-    setLoading(false);
-  }, [churchId]);
-
-  useEffect(() => {
-    if (!churchLoading && churchId) {
-      loadPlans();
-    }
-  }, [churchLoading, churchId, loadPlans]);
-
+  // FILTER + SORT MEMO
   const filteredAndSorted = useMemo(() => {
-    // Move `today` inside the memo so it doesn't need to be a dependency
+    if (!plans) return [];
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -58,20 +58,58 @@ export default function ServicePlanPage() {
 
     // SORT
     result.sort((a, b) => {
-      if (sort === 'newest') {
-        return b.dateTime.getTime() - a.dateTime.getTime();
-      }
-      if (sort === 'oldest') {
-        return a.dateTime.getTime() - b.dateTime.getTime();
-      }
-      if (sort === 'title') {
-        return a.title.localeCompare(b.title);
-      }
+      if (sort === 'newest') return b.dateTime.getTime() - a.dateTime.getTime();
+      if (sort === 'oldest') return a.dateTime.getTime() - b.dateTime.getTime();
+      if (sort === 'title') return a.title.localeCompare(b.title);
       return 0;
     });
 
     return result;
   }, [plans, search, sort, filter]);
+
+  // CONDITIONAL RETURNS AFTER HOOKS
+  if (churchLoading || plansLoading || rolesLoading) {
+    return (
+      <div className="p-6">
+        <PageHeader title="Service Plans" />
+        <p className="text-muted-foreground">Loading service plans…</p>
+      </div>
+    );
+  }
+
+  if (!churchId) {
+    return (
+      <div className="p-6">
+        <PageHeader title="Service Plans" />
+        <p className="text-muted-foreground">
+          Unable to determine church context.
+        </p>
+      </div>
+    );
+  }
+
+  if (!canView) {
+    return (
+      <div className="p-6">
+        <PageHeader title="Service Plans" />
+        <p className="text-muted-foreground">
+          You do not have permission to view service plans.
+        </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <PageHeader title="Service Plans" />
+        <p className="text-red-500">Failed to load service plans.</p>
+        <Button variant="outline" onClick={reload} className="mt-4">
+          Try Again
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -143,15 +181,15 @@ export default function ServicePlanPage() {
       </div>
 
       {/* Loading */}
-      {loading && <p>Loading service plans…</p>}
+      {plansLoading && <p>Loading service plans…</p>}
 
       {/* Empty */}
-      {!loading && filteredAndSorted.length === 0 && (
+      {!plansLoading && filteredAndSorted.length === 0 && (
         <p className="text-muted-foreground">No service plans found.</p>
       )}
 
       {/* Table */}
-      {!loading && filteredAndSorted.length > 0 && (
+      {!plansLoading && filteredAndSorted.length > 0 && (
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-muted-foreground">
@@ -185,7 +223,9 @@ export default function ServicePlanPage() {
         </table>
       )}
 
-      <Fab type="add" onClick={() => router.push('/service-plan/new')} />
+      {canManage && (
+        <Fab type="add" onClick={() => router.push('/service-plan/new')} />
+      )}
     </>
   );
 }
