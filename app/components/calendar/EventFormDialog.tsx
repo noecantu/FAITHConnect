@@ -6,15 +6,9 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 
-import { MobileDatePicker } from "@mui/x-date-pickers/MobileDatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { ThemeProvider } from "@mui/material/styles";
-import dayjs from "dayjs";
-
 import { format } from "date-fns";
 import { UseFormReturn } from "react-hook-form";
-import { Theme } from "@mui/material/styles";
+import Flatpickr from "react-flatpickr";
 import type { Event } from "@/app/lib/types";
 
 interface EventFormValues {
@@ -30,7 +24,6 @@ export function EventFormDialog({
   form,
   onSubmit,
   onOpenChange,
-  muiTheme,
 }: {
   open: boolean;
   isEditing: boolean;
@@ -39,7 +32,6 @@ export function EventFormDialog({
   form: UseFormReturn<EventFormValues>;
   onSubmit: (data: EventFormValues) => void;
   onOpenChange: (open: boolean) => void;
-  muiTheme: Theme;
 }) {
 
   return (
@@ -71,34 +63,22 @@ export function EventFormDialog({
                 <FormItem className="space-y-2">
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <ThemeProvider theme={muiTheme}>
-                      <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <MobileDatePicker
-                          slotProps={{
-                            textField: { fullWidth: true },
-                          }}
-                          value={dayjs(field.value)}
-                          onChange={(next) => {
-                            if (!next) return;
-                            field.onChange(next.toDate());
-                          }}
-                          onAccept={(next) => {
-                            if (!next) return;
-                            field.onChange(next.toDate());
-                          }}
-                          onClose={() => {
-                            // Force the picker to close on iPhone
-                            const el = document.activeElement;
-                            if (el instanceof HTMLElement) {
-                              el.blur();
-                            }
-                          }}
-                          closeOnSelect
-                          reduceAnimations
-                        />
-
-                      </LocalizationProvider>
-                    </ThemeProvider>
+                    <Flatpickr
+                      value={field.value}
+                      options={{
+                        dateFormat: "m-d-Y",
+                        defaultDate: field.value,
+                        allowInput: false,
+                        altInput: true,
+                        altFormat: "m-d-Y",
+                        monthSelectorType: "dropdown",
+                      }}
+                      onChange={([selected]) => {
+                        if (!selected) return;
+                        field.onChange(selected);
+                      }}
+                      className="block w-full bg-black/40 text-white border-white/20 rounded-md px-3 py-2 text-center"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
