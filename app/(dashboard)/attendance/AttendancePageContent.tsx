@@ -249,7 +249,7 @@ export default function AttendancePageContent() {
 
         {/* TODAY BUTTON */}
         <Button
-          variant="outline"
+          // variant="outline"
           onClick={() => {
             const today = new Date();
             setDate(today);
@@ -262,7 +262,7 @@ export default function AttendancePageContent() {
 
         {/* HISTORY BUTTON */}
         <Button
-          variant="outline"
+          // variant="outline"
           onClick={() => router.push("/attendance/history")}
           className="text-white/80 border-white/20"
         >

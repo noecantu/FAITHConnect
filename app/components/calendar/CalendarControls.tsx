@@ -115,7 +115,7 @@ export function CalendarControls({
 
             {/* Today */}
             <Button
-              variant="outline"
+              // variant="outline"
               onClick={month.goToday}
               className="w-full sm:w-20"
             >
