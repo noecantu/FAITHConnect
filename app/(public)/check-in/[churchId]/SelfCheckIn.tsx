@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Church } from "@/app/lib/types";
+import { Input } from "@/app/components/ui/input";
 
 interface SelfCheckInProps {
   church: Church;
@@ -81,16 +82,13 @@ export default function SelfCheckIn({ church, date }: SelfCheckInProps) {
                 <label className="text-sm font-medium px-1">
                   Check-In Code
                 </label>
-
-                <input
+                <Input
                   type="text"
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase().trim())}
-                  className="w-full px-4 py-3 rounded-lg bg-input text-foreground border border-input 
-                            placeholder:text-muted-foreground focus:outline-none focus:ring-2 
-                            focus:ring-primary"
                   placeholder="Enter your code"
                   required
+                  className="px-4 py-3 text-base"
                 />
               </div>
 
