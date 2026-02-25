@@ -36,7 +36,7 @@ import Image from "next/image";
 import { QRCodeCanvas } from "qrcode.react";
 import { X } from "lucide-react";
 
-export default function AttendancePageContent() {
+export default function AttendancePage() {
   const searchParams = useSearchParams();
   const urlDate = searchParams.get("date");
 
