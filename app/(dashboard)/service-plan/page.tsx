@@ -1,20 +1,18 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { Input } from '../components/ui/input';
-
-import { getServicePlans } from '../lib/servicePlans';
-import type { ServicePlan } from '../lib/types';
-
-import { PageHeader } from '../components/page-header';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Input } from '@/app/components/ui/input';
+import { getServicePlans } from '@/app/lib/servicePlans';
+import type { ServicePlan } from '@/app/lib/types';
+import { PageHeader } from '@/app/components/page-header';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
-import { Fab } from '../components/ui/fab';
-import { Button } from '../components/ui/button';
+import { Fab } from '@/app/components/ui/fab';
+import { Button } from '@/app/components/ui/button';
+import { useChurchId } from '@/app/hooks/useChurchId';
 
 export default function ServicePlanPage() {
-  const churchId = 'default-church';
-
+  const { churchId, loading: churchLoading } = useChurchId();
   const [plans, setPlans] = useState<ServicePlan[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,16 +22,19 @@ export default function ServicePlanPage() {
 
   const router = useRouter();
 
-  async function loadPlans() {
+  const loadPlans = useCallback(async () => {
+    if (!churchId) return;
     setLoading(true);
     const data = await getServicePlans(churchId);
     setPlans(data);
     setLoading(false);
-  }
+  }, [churchId]);
 
   useEffect(() => {
-    loadPlans();
-  }, []);
+    if (!churchLoading && churchId) {
+      loadPlans();
+    }
+  }, [churchLoading, churchId, loadPlans]);
 
   const filteredAndSorted = useMemo(() => {
     // Move `today` inside the memo so it doesn't need to be a dependency
