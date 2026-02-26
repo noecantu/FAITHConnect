@@ -146,42 +146,50 @@ export default function SetListsPage() {
 
       {/* Toolbar */}
       <div className="sticky top-16 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm">
-        <div className="flex fle  x-wrap items-center gap-3 py-3">
+        <div className="flex flex-wrap items-center gap-3 py-3 w-full">
 
-          <Input
-            className="flex-1 w-full"
-            placeholder="Search set lists..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+          {/* Search bar */}
+          <div className="w-full sm:flex-1 flex items-center gap-3">
+            <Input
+              className="w-full"
+              placeholder="Search set lists..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
 
-          <Select value={filter} onValueChange={handleFilterChange}>
-            <SelectTrigger className="w-[130px]">
-              <SelectValue placeholder="Filter" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="future">Future</SelectItem>
-              <SelectItem value="past">Past</SelectItem>
-            </SelectContent>
-          </Select>
+            {search.length > 0 && (
+              <Button variant="outline" onClick={() => setSearch('')}>
+                Clear
+              </Button>
+            )}
+          </div>
 
-          <Select value={sort} onValueChange={handleSortChange}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Sort" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="date-desc">Newest</SelectItem>
-              <SelectItem value="date-asc">Oldest</SelectItem>
-              <SelectItem value="title-asc">Title A–Z</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Controls */}
+          <div className="flex items-center gap-3 sm:ml-auto w-full sm:w-auto">
 
-          {search.length > 0 && (
-            <Button variant="outline" onClick={() => setSearch('')}>
-              Clear
-            </Button>
-          )}
+            <Select value={filter} onValueChange={handleFilterChange}>
+              <SelectTrigger className="w-[130px]">
+                <SelectValue placeholder="Filter" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="future">Future</SelectItem>
+                <SelectItem value="past">Past</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={sort} onValueChange={handleSortChange}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Sort" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date-desc">Newest</SelectItem>
+                <SelectItem value="date-asc">Oldest</SelectItem>
+                <SelectItem value="title-asc">Title A–Z</SelectItem>
+              </SelectContent>
+            </Select>
+
+          </div>
         </div>
       </div>
 
