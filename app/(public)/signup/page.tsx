@@ -125,7 +125,6 @@ export default function SignupPage() {
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   required
-                  className="bg-zinc-800/50 border-zinc-700 text-white"
                 />
               </div>
 
@@ -135,7 +134,6 @@ export default function SignupPage() {
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   required
-                  className="bg-zinc-800/50 border-zinc-700 text-white"
                 />
               </div>
 
@@ -146,7 +144,6 @@ export default function SignupPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-zinc-800/50 border-zinc-700 text-white"
                 />
               </div>
 
@@ -157,7 +154,6 @@ export default function SignupPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="bg-zinc-800/50 border-zinc-700 text-white"
                 />
               </div>
 
@@ -169,7 +165,6 @@ export default function SignupPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="bg-zinc-800/50 border-zinc-700 text-white"
                 />
               </div>
 

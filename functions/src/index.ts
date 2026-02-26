@@ -185,7 +185,7 @@ export const deleteUserByUid = onCall(async (request) => {
   }
 });
 
-export const createRootAdmin = onCall(async (request) => {
+export const createRootAdmin = onCall(async () => {
   // Protect this function so it can only run once
   const rootDoc = await admin.firestore().doc("system/rootAdmin").get();
   if (rootDoc.exists) {

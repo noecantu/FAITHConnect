@@ -59,15 +59,15 @@ export async function POST(req: Request) {
       );
 
     // 5. Create membership record
-    await adminDb
-      .collection("churches")
-      .doc(slug)
-      .collection("members")
-      .doc(uid)
-      .set({
-        roles: ["Admin"],
-        joinedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
+    // await adminDb
+    //   .collection("churches")
+    //   .doc(slug)
+    //   .collection("members")
+    //   .doc(uid)
+    //   .set({
+    //     roles: ["Admin"],
+    //     joinedAt: admin.firestore.FieldValue.serverTimestamp(),
+    //   });
 
     return NextResponse.json({ slug });
   } catch (error) {
