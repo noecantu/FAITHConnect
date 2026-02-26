@@ -327,22 +327,22 @@ export default function ChurchAdminDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <StatCard
               title="Members"
-              description="Total registered members"
+              description="Including Prospects"
               value={memberCount}
             />
             <StatCard
               title="Upcoming Services"
-              description="Scheduled from today forward"
+              description="Scheduled From Today"
               value={serviceCount}
             />
             <StatCard
               title="Events This Week"
-              description="Monday through Sunday"
+              description="Monday - Sunday"
               value={eventCount}
             />
             <StatCard
               title="Attendance This Week"
-              description="Total present Monday–Sunday"
+              description="Monday – Sunday"
               value={attendanceThisWeek}
             />
           </div>
@@ -350,8 +350,8 @@ export default function ChurchAdminDashboard() {
           {/* Quick Actions */}
           <Card className="border border-border bg-card/80">
             <CardHeader className="pb-3">
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>Jump into key areas of your church.</CardDescription>
+              <CardTitle>Quick Access</CardTitle>
+              <CardDescription>Main Areas</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <QuickAction href="/attendance" icon={CalendarCheck} label="Attendance" />
