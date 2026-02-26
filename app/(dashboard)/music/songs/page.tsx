@@ -139,30 +139,26 @@ export default function SongsPage() {
   
       {/* Sticky Search + Sort Bar */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="w-full flex items-center gap-2 py-2">
-  
-          {/* Search */}
-          <Input
-            className="w-full"
-            placeholder="Search songs..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-  
-          {/* Clear button (now BEFORE Sort) */}
-          {search.length > 0 && (
-            <Button
-              variant="outline"
-              onClick={() => setSearch('')}
-              className="shrink-0"
-            >
-              Clear
-            </Button>
-          )}
-  
-          {/* Sort */}
-          <div className="flex items-center gap-1 shrink-0">
-            <span className="text-sm text-muted-foreground"></span>
+        <div className="flex flex-wrap items-center gap-3 py-2 w-full">
+
+          {/* Search bar */}
+          <div className="w-full sm:flex-1 flex items-center gap-3">
+            <Input
+              className="w-full"
+              placeholder="Search songs..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+
+            {search.length > 0 && (
+              <Button variant="outline" onClick={() => setSearch('')}>
+                Clear
+              </Button>
+            )}
+          </div>
+
+          {/* Controls (Sort only) */}
+          <div className="flex w-full gap-3 sm:w-auto sm:ml-auto">
 
             <Select
               value={sortBy}
@@ -175,7 +171,7 @@ export default function SongsPage() {
                 });
               }}
             >
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="flex-1 min-w-0 sm:w-[150px]">
                 <SelectValue placeholder="Sort" />
               </SelectTrigger>
 
@@ -186,8 +182,9 @@ export default function SongsPage() {
                 <SelectItem value="bpm">Tempo</SelectItem>
               </SelectContent>
             </Select>
+
           </div>
-  
+
         </div>
       </div>
   

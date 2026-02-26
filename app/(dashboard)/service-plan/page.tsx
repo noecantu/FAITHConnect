@@ -166,10 +166,10 @@ export default function ServicePlanPage() {
           </div>
 
           {/* Controls */}
-          <div className="flex items-center gap-3 sm:ml-auto w-full sm:w-auto">
+          <div className="flex w-full gap-3 sm:w-auto sm:ml-auto">
 
             <Select value={filter} onValueChange={handleFilterChange}>
-              <SelectTrigger className="w-[130px]">
+              <SelectTrigger className="flex-1 min-w-0 sm:w-[130px]">
                 <SelectValue placeholder="Filter" />
               </SelectTrigger>
               <SelectContent>
@@ -180,7 +180,7 @@ export default function ServicePlanPage() {
             </Select>
 
             <Select value={sort} onValueChange={handleSortChange}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="flex-1 min-w-0 sm:w-[150px]">
                 <SelectValue placeholder="Sort" />
               </SelectTrigger>
               <SelectContent>
