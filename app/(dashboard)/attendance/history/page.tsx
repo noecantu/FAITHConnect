@@ -31,11 +31,11 @@ import { AttendanceHistoryControls } from '@/app/components/attendance/Attendanc
 // --------------------------------------------------
 export default function AttendanceHistoryPage() {
   const { churchId } = useChurchId();
-  const { data, loading, refresh } = useAttendanceHistory(churchId);
+  const { data, members, loading, refresh } = useAttendanceHistory(churchId);
   const router = useRouter();
 
   // Summaries (one per date)
-  const summary = summarizeAttendance(data);
+  const summary = summarizeAttendance(data, members);
 
   // MUST be above any conditional return
   const filters = useAttendanceFilters(summary);

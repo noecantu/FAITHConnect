@@ -110,6 +110,29 @@ export default function AttendancePageContent() {
     [members]
   );
 
+  const sortedMembers = [...activeMembers].sort((a, b) => {
+    const lastA = a.lastName.toLowerCase();
+    const lastB = b.lastName.toLowerCase();
+
+    if (lastA < lastB) return -1;
+    if (lastA > lastB) return 1;
+
+    // Last names match → compare first names
+    const firstA = a.firstName.toLowerCase();
+    const firstB = b.firstName.toLowerCase();
+
+    if (firstA < firstB) return -1;
+    if (firstA > firstB) return 1;
+
+    return 0;
+  });
+
+  const sortedVisitors = [...visitors].sort((a, b) => {
+    const nameA = a.name.toLowerCase();
+    const nameB = b.name.toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
+
   // QR Generator
   async function handleGenerateQr() {
     try {
@@ -312,10 +335,16 @@ export default function AttendancePageContent() {
                   if (!visitorName.trim()) return;
 
                   const id = `visitor-${Date.now()}`;
+
+                  // 1. Add visitor to visitor list
                   setVisitors((prev) => [
                     ...prev,
                     { id, name: visitorName.trim() },
                   ]);
+
+                  // 2. Mark visitor as PRESENT by default
+                  toggle(id);
+
                   setVisitorName("");
                 }}
               >
@@ -329,7 +358,7 @@ export default function AttendancePageContent() {
       {/* CARDS VIEW */}
       {attendanceView === "cards" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-3">
-          {[...activeMembers, ...visitors].map((m) => {
+          {[...sortedMembers, ...sortedVisitors].map((m) => {
             const isVisitor = !("firstName" in m);
             const id = m.id;
 
@@ -419,7 +448,7 @@ export default function AttendancePageContent() {
       {/* LIST VIEW */}
       {attendanceView === "list" && (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2">
-          {[...activeMembers, ...visitors].map((m) => {
+          {[...sortedMembers, ...sortedVisitors].map((m) => {
             const isVisitor = !("firstName" in m);
             const id = m.id;
 
