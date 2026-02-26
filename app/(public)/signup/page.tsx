@@ -16,13 +16,24 @@ export default function SignupPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
   const router = useRouter();
   const { toast } = useToast();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
+    if (password !== confirmPassword) {
+      toast({
+        title: "Passwords do not match",
+        description: "Please make sure both passwords are identical.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const { user } = await createUserWithEmailAndPassword(
@@ -107,6 +118,7 @@ export default function SignupPage() {
 
           <CardContent className="space-y-6">
             <form onSubmit={handleSignup} className="space-y-5">
+
               <div className="space-y-2">
                 <Label className="text-zinc-300">First Name</Label>
                 <Input
@@ -144,6 +156,18 @@ export default function SignupPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="bg-zinc-800/50 border-zinc-700 text-white"
+                />
+              </div>
+
+              {/* NEW: Confirm Password */}
+              <div className="space-y-2">
+                <Label className="text-zinc-300">Confirm Password</Label>
+                <Input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   className="bg-zinc-800/50 border-zinc-700 text-white"
                 />
