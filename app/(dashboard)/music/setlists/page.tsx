@@ -146,10 +146,10 @@ export default function SetListsPage() {
 
       {/* Toolbar */}
       <div className="sticky top-16 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm">
-        <div className="flex flex-wrap items-center gap-3 py-3">
+        <div className="flex fle  x-wrap items-center gap-3 py-3">
 
           <Input
-            className="w-full sm:max-w-xs"
+            className="flex-1 w-full"
             placeholder="Search set lists..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -216,14 +216,11 @@ export default function SetListsPage() {
               <div>
                 <h3 className="font-medium">{row.title}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {row.date ? format(row.date, 'M/d/yy, h:mm a') : '—'}
+                  {row.totalSets} sections | {row.totalSongs} songs
                 </p>
               </div>
-
-              <div className="flex items-center gap-2">
-                {row.totalSets} sections | {row.totalSongs} songs
-                {/* <Badge variant="secondary">{row.totalSets} sections</Badge>
-                <Badge variant="outline">{row.totalSongs} songs</Badge> */}
+              <div className="text-sm flex items-center gap-2">
+                {row.date ? format(row.date, 'M/d/yy, h:mm a') : '—'}
               </div>
             </div>
           </Card>

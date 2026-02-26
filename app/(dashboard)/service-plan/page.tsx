@@ -5,7 +5,6 @@ import { format } from 'date-fns';
 import { PageHeader } from '@/app/components/page-header';
 import { Input } from '@/app/components/ui/input';
 import { Button } from '@/app/components/ui/button';
-import { Badge } from '@/app/components/ui/badge';
 import { Card } from '@/app/components/ui/card';
 import {
   Select,
@@ -151,7 +150,7 @@ export default function ServicePlanPage() {
         <div className="flex flex-wrap items-center gap-3 py-3">
 
           <Input
-            className="w-full sm:max-w-xs"
+            className="flex-1 w-full"
             placeholder="Search service plans..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -221,11 +220,12 @@ export default function ServicePlanPage() {
                 <div>
                   <h3 className="font-medium">{plan.title}</h3>
                   <p className="text-sm text-muted-foreground">
-                    {format(plan.dateTime, 'M/d/yy, h:mm a')}
+                    {totalSections} sections
                   </p>
                 </div>
-
-                <Badge variant="secondary">{totalSections} sections</Badge>
+                <div className="text-sm flex items-center gap-2">
+                  {format(plan.dateTime, 'M/d/yy, h:mm a')}
+                </div>
               </div>
             </Card>
           );
