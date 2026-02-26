@@ -93,7 +93,6 @@ export default function AttendancePageContent() {
   // MEMBERS
   const { members, loading: membersLoading } = useMembers(churchId);
 
-  // ATTENDANCE
   const {
     records,
     visitors,
@@ -101,7 +100,9 @@ export default function AttendancePageContent() {
     toggle,
     save,
     loading: attendanceLoading,
-  } = useAttendance(churchId, dateString);
+    markAllPresent,
+    markAllAbsent,
+  } = useAttendance(churchId, dateString, members);
 
   const loading = rolesLoading || membersLoading || attendanceLoading;
 
@@ -353,6 +354,22 @@ export default function AttendancePageContent() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <Button
+          onClick={() => markAllPresent(members, visitors)}
+          variant="default"
+          className="w-full flex flex-col items-center justify-center text-center gap-1 border"
+        >
+          <span className="text-sm text-white/80">Mark All Present</span>
+        </Button>
+
+        <Button
+          onClick={() => markAllAbsent(members, visitors)}
+          variant="default"
+          className="w-full flex flex-col items-center justify-center text-center gap-1 border"
+        >
+          <span className="text-sm text-white/80">Mark All Absent</span>
+        </Button>
       </div>
 
       {/* CARDS VIEW */}

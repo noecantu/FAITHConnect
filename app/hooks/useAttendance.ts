@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase';
+import { Member } from '../lib/types';
 
 export type AttendanceRecords = Record<string, boolean>;
 
@@ -17,13 +18,22 @@ interface UseAttendanceResult {
   visitors: AttendanceVisitor[];
   setVisitors: React.Dispatch<React.SetStateAction<AttendanceVisitor[]>>;
   toggle: (id: string) => void;
+  markAllPresent: (
+    members: { id: string; status: string }[],
+    visitors: AttendanceVisitor[]
+  ) => void;
+  markAllAbsent: (
+    members: { id: string; status: string }[],
+    visitors: AttendanceVisitor[]
+  ) => void;
   save: () => Promise<void>;
   loading: boolean;
 }
 
 export function useAttendance(
   churchId: string | null,
-  dateString: string
+  dateString: string,
+  members: Member[]
 ): UseAttendanceResult {
   const [records, setRecords] = useState<AttendanceRecords>({});
   const [visitors, setVisitors] = useState<AttendanceVisitor[]>([]);
@@ -56,7 +66,7 @@ export function useAttendance(
     }
 
     setLoading(false);
-  }, [churchId, dateString]);
+  }, [churchId, dateString, members]); // ← members added here
 
   useEffect(() => {
     load();
@@ -65,7 +75,6 @@ export function useAttendance(
   const toggle = (id: string) => {
     setRecords((prev) => {
       const current = prev[id];
-      // default to false if undefined, then toggle
       const nextValue = current === undefined ? true : !current;
       return { ...prev, [id]: nextValue };
     });
@@ -82,12 +91,52 @@ export function useAttendance(
     });
   };
 
+  const markAllPresent = (
+    members: { id: string; status: string }[],
+    visitors: AttendanceVisitor[]
+  ) => {
+    const updated: AttendanceRecords = {};
+
+    for (const m of members) {
+      if (m.status !== 'Archived') {
+        updated[m.id] = true;
+      }
+    }
+
+    for (const v of visitors) {
+      updated[v.id] = true;
+    }
+
+    setRecords(updated);
+  };
+
+  const markAllAbsent = (
+    members: { id: string; status: string }[],
+    visitors: AttendanceVisitor[]
+  ) => {
+    const updated: AttendanceRecords = {};
+
+    for (const m of members) {
+      if (m.status !== 'Archived') {
+        updated[m.id] = false;
+      }
+    }
+
+    for (const v of visitors) {
+      updated[v.id] = false;
+    }
+
+    setRecords(updated);
+  };
+
   return {
     records,
     setRecords,
     visitors,
     setVisitors,
     toggle,
+    markAllPresent,
+    markAllAbsent,
     save,
     loading,
   };
