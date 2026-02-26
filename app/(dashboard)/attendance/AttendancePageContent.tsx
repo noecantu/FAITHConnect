@@ -102,7 +102,7 @@ export default function AttendancePageContent() {
     loading: attendanceLoading,
     markAllPresent,
     markAllAbsent,
-  } = useAttendance(churchId, dateString, members);
+  } = useAttendance(churchId, dateString);
 
   const loading = rolesLoading || membersLoading || attendanceLoading;
 

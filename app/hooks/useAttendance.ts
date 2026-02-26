@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase';
-import { Member } from '../lib/types';
 
 export type AttendanceRecords = Record<string, boolean>;
 
@@ -33,7 +32,6 @@ interface UseAttendanceResult {
 export function useAttendance(
   churchId: string | null,
   dateString: string,
-  members: Member[]
 ): UseAttendanceResult {
   const [records, setRecords] = useState<AttendanceRecords>({});
   const [visitors, setVisitors] = useState<AttendanceVisitor[]>([]);
@@ -66,7 +64,7 @@ export function useAttendance(
     }
 
     setLoading(false);
-  }, [churchId, dateString, members]); // ← members added here
+  }, [churchId, dateString]);
 
   useEffect(() => {
     load();

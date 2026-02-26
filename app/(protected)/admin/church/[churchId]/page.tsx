@@ -116,8 +116,15 @@ export default function ChurchAdminDashboard() {
         churchId as string,
         "members"
       );
-      const membersSnap = await getDocs(membersRef);
+
+      const membersQuery = query(
+        membersRef,
+        where("status", "!=", "Archived")
+      );
+
+      const membersSnap = await getDocs(membersQuery);
       setMemberCount(membersSnap.size);
+
 
       // ---------------------------
       // 3. Upcoming Services
