@@ -13,6 +13,7 @@ import { SetListSection } from '@/app/lib/types';
 import { useSongs } from '@/app/hooks/useSongs';
 import { SetListSectionEditor } from '@/app/components/music/SetListSectionEditor';
 import { Fab } from '@/app/components/ui/fab';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 
 export default function NewSetListPage() {
   const router = useRouter();
@@ -132,22 +133,29 @@ export default function NewSetListPage() {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Service Type</label>
-          <select
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-foreground">
+            Service Type
+          </label>
+
+          <Select
             value={serviceType ?? ""}
-            onChange={(e) =>
+            onValueChange={(value) =>
               setServiceType(
-                e.target.value === "" ? null : (e.target.value as "Sunday" | "Midweek" | "Special")
+                value === "" ? null : (value as "Sunday" | "Midweek" | "Special")
               )
             }
-            className="w-full border rounded p-2"
           >
-            <option value="">Select service type</option>
-            <option value="Sunday">Sunday</option>
-            <option value="Midweek">Midweek</option>
-            <option value="Special">Special</option>
-          </select>
+            <SelectTrigger className="w-full bg-muted text-foreground border border-border">
+              <SelectValue placeholder="Select service type" />
+            </SelectTrigger>
+
+            <SelectContent className="bg-popover text-foreground border border-border">
+              <SelectItem value="Sunday">Sunday</SelectItem>
+              <SelectItem value="Midweek">Midweek</SelectItem>
+              <SelectItem value="Special">Special</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Notes */}

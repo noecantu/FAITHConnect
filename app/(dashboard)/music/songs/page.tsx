@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Card } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { Separator } from '@/app/components/ui/separator';
@@ -14,18 +14,30 @@ import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { useRouter } from "next/navigation";
 import { Fab } from '@/app/components/ui/fab';
 import { FileText, Music } from "lucide-react";
+import { useSettings } from '@/app/hooks/use-settings';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/app/lib/firebase';
+import { useAuth } from '@/app/hooks/useAuth';
 
 export default function SongsPage() {
   const { churchId } = useChurchId();
   const { songs, loading } = useSongs(churchId);
   const { isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
   const canManage = isAdmin || isMusicManager;
-  
   const canView = isAdmin || isMusicMember || isMusicManager;
+  const { user } = useAuth();
 
-  const [sortBy, setSortBy] = useState<'title' | 'key' | 'bpm' | 'artist'>('title');
+  const { settings } = useSettings();
+  const savedSort = settings?.songSort ?? "title";
+  const [sortBy, setSortBy] = useState<"title" | "artist" | "key" | "bpm">(savedSort);
   const [search, setSearch] = useState('');
   const router = useRouter();
+
+  useEffect(() => {
+    if (settings?.songSort) {
+      setSortBy(settings.songSort);
+    }
+  }, [settings?.songSort]);
 
   const groupRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -57,7 +69,7 @@ export default function SongsPage() {
       </div>
     );
   }
-  
+
   // -----------------------------
   // FILTER SONGS BY SEARCH
   // -----------------------------
@@ -112,7 +124,7 @@ export default function SongsPage() {
   // -----------------------------
   // SUBTITLE TEXT
   // -----------------------------
-  const subtitleText = `${totalSongs} Total Songs | Sorted by ${
+  const subtitleText = `Total: ${totalSongs} | Sorted by ${
     sortBy === "bpm"
       ? "Tempo"
       : sortBy.charAt(0).toUpperCase() + sortBy.slice(1)
@@ -153,7 +165,16 @@ export default function SongsPage() {
   
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+              onChange={async (e) => {
+                const newSort = e.target.value as "title" | "artist" | "key" | "bpm";
+                setSortBy(newSort);
+
+                if (!user) return;
+                // Persist to Firestore
+                await updateDoc(doc(db, "users", user.id), {
+                  "settings.songSort": newSort,
+                });
+              }}
               className="border rounded px-2 py-1 text-sm bg-background"
             >
               <option value="title">Title</option>
@@ -177,10 +198,13 @@ export default function SongsPage() {
             className="p-6 space-y-4"
           >
 
-            <div>
+            <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">{groupKey}</h2>
-              <Separator />
+              <span className="text-sm text-muted-foreground">
+                Songs: {grouped[groupKey].length}
+              </span>
             </div>
+            <Separator />
 
             <div className="max-h-[300px] overflow-y-auto pr-2">
               <ul className="space-y-2">

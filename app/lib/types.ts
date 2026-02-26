@@ -274,6 +274,7 @@ export interface User {
     calendarView?: 'calendar' | 'list';
     cardView?: 'show' | 'hide';
     fiscalYear?: string;
+    songSort?: "title" | "artist" | "key" | "bpm";
   };
 }
 
