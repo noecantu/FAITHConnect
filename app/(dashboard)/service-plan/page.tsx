@@ -142,8 +142,8 @@ export default function ServicePlanPage() {
   return (
     <>
       <PageHeader
-        title={`Service Plans (${plans.length})`}
-        subtitle="Each row represents a full service plan."
+        title={`Service PLans`}
+        subtitle={`Total: ${plans.length}`}
       />
 
       {/* Toolbar */}

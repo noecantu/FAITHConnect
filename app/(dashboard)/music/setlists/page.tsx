@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { PageHeader } from '@/app/components/page-header';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
-import { Badge } from '@/app/components/ui/badge';
+// import { Badge } from '@/app/components/ui/badge';
 import { Card } from '@/app/components/ui/card';
 import {
   Select,
@@ -140,8 +140,8 @@ export default function SetListsPage() {
   return (
     <>
       <PageHeader
-        title={`Set Lists (${lists.length})`}
-        subtitle="Each row represents a full set list."
+        title={`Set Lists`}
+        subtitle={`Total: ${lists.length}`}
       />
 
       {/* Toolbar */}
@@ -221,8 +221,9 @@ export default function SetListsPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <Badge variant="secondary">{row.totalSets} sections</Badge>
-                <Badge variant="outline">{row.totalSongs} songs</Badge>
+                {row.totalSets} sections | {row.totalSongs} songs
+                {/* <Badge variant="secondary">{row.totalSets} sections</Badge>
+                <Badge variant="outline">{row.totalSongs} songs</Badge> */}
               </div>
             </div>
           </Card>
