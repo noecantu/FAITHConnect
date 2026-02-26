@@ -18,6 +18,7 @@ import { useSettings } from '@/app/hooks/use-settings';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase';
 import { useAuth } from '@/app/hooks/useAuth';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 
 export default function SongsPage() {
   const { churchId } = useChurchId();
@@ -161,27 +162,30 @@ export default function SongsPage() {
   
           {/* Sort */}
           <div className="flex items-center gap-1 shrink-0">
-            <span className="text-sm text-muted-foreground">Sort:</span>
-  
-            <select
+            <span className="text-sm text-muted-foreground"></span>
+
+            <Select
               value={sortBy}
-              onChange={async (e) => {
-                const newSort = e.target.value as "title" | "artist" | "key" | "bpm";
-                setSortBy(newSort);
+              onValueChange={async (newSort) => {
+                setSortBy(newSort as "title" | "artist" | "key" | "bpm");
 
                 if (!user) return;
-                // Persist to Firestore
                 await updateDoc(doc(db, "users", user.id), {
                   "settings.songSort": newSort,
                 });
               }}
-              className="border rounded px-2 py-1 text-sm bg-background"
             >
-              <option value="title">Title</option>
-              <option value="artist">Artist</option>
-              <option value="key">Key</option>
-              <option value="bpm">Tempo</option>
-            </select>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Sort" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="title">Title</SelectItem>
+                <SelectItem value="artist">Artist</SelectItem>
+                <SelectItem value="key">Key</SelectItem>
+                <SelectItem value="bpm">Tempo</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
   
         </div>
