@@ -1,19 +1,33 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Input } from '@/app/components/ui/input';
-import { PageHeader } from '@/app/components/page-header';
 import { format } from 'date-fns';
-import { useRouter } from 'next/navigation';
-import { Fab } from '@/app/components/ui/fab';
+import { PageHeader } from '@/app/components/page-header';
+import { Input } from '@/app/components/ui/input';
 import { Button } from '@/app/components/ui/button';
+import { Badge } from '@/app/components/ui/badge';
+import { Card } from '@/app/components/ui/card';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
+} from '@/app/components/ui/select';
+import { Fab } from '@/app/components/ui/fab';
 
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useServicePlans } from '@/app/hooks/useServicePlans';
 import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { useRouter } from 'next/navigation';
+
+// -----------------------------
+// TYPES
+// -----------------------------
+type SortType = 'newest' | 'oldest' | 'title';
+type FilterType = 'all' | 'future' | 'past';
 
 export default function ServicePlanPage() {
-  // ALL HOOKS MUST RUN FIRST
   const { churchId, loading: churchLoading } = useChurchId();
   const { plans, loading: plansLoading, error, reload } = useServicePlans(churchId);
 
@@ -23,19 +37,34 @@ export default function ServicePlanPage() {
     loading: rolesLoading
   } = useUserRoles(churchId);
 
-  // Permissions (mirroring Set Lists)
   const canManage = isAdmin || isServiceManager;
   const canView = isAdmin || isServiceManager;
 
-  // Local UI state
   const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<'newest' | 'oldest' | 'title'>('newest');
-  const [filter, setFilter] = useState<'all' | 'future' | 'past'>('all');
+  const [sort, setSort] = useState<SortType>('newest');
+  const [filter, setFilter] = useState<FilterType>('all');
 
   const router = useRouter();
 
-  // FILTER + SORT MEMO
-  const filteredAndSorted = useMemo(() => {
+  // -----------------------------
+  // TYPE-SAFE HANDLERS
+  // -----------------------------
+  const handleSortChange = (value: string) => {
+    if (value === 'newest' || value === 'oldest' || value === 'title') {
+      setSort(value);
+    }
+  };
+
+  const handleFilterChange = (value: string) => {
+    if (value === 'all' || value === 'future' || value === 'past') {
+      setFilter(value);
+    }
+  };
+
+  // -----------------------------
+  // FILTER + SORT
+  // -----------------------------
+  const filtered = useMemo(() => {
     if (!plans) return [];
 
     const today = new Date();
@@ -43,31 +72,31 @@ export default function ServicePlanPage() {
 
     let result = [...plans];
 
-    // SEARCH
     if (search.trim()) {
       const s = search.toLowerCase();
       result = result.filter((p) => p.title.toLowerCase().includes(s));
     }
 
-    // FILTER
     if (filter === 'future') {
       result = result.filter((p) => p.dateTime.getTime() >= today.getTime());
     } else if (filter === 'past') {
       result = result.filter((p) => p.dateTime.getTime() < today.getTime());
     }
 
-    // SORT
-    result.sort((a, b) => {
-      if (sort === 'newest') return b.dateTime.getTime() - a.dateTime.getTime();
-      if (sort === 'oldest') return a.dateTime.getTime() - b.dateTime.getTime();
-      if (sort === 'title') return a.title.localeCompare(b.title);
-      return 0;
-    });
+    if (sort === 'newest') {
+      result.sort((a, b) => b.dateTime.getTime() - a.dateTime.getTime());
+    } else if (sort === 'oldest') {
+      result.sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
+    } else if (sort === 'title') {
+      result.sort((a, b) => a.title.localeCompare(b.title));
+    }
 
     return result;
   }, [plans, search, sort, filter]);
 
-  // CONDITIONAL RETURNS AFTER HOOKS
+  // -----------------------------
+  // LOADING + PERMISSIONS
+  // -----------------------------
   if (churchLoading || plansLoading || rolesLoading) {
     return (
       <div className="p-6">
@@ -81,9 +110,7 @@ export default function ServicePlanPage() {
     return (
       <div className="p-6">
         <PageHeader title="Service Plans" />
-        <p className="text-muted-foreground">
-          Unable to determine church context.
-        </p>
+        <p className="text-muted-foreground">Unable to determine church context.</p>
       </div>
     );
   }
@@ -92,9 +119,7 @@ export default function ServicePlanPage() {
     return (
       <div className="p-6">
         <PageHeader title="Service Plans" />
-        <p className="text-muted-foreground">
-          You do not have permission to view service plans.
-        </p>
+        <p className="text-muted-foreground">You do not have permission to view service plans.</p>
       </div>
     );
   }
@@ -111,6 +136,9 @@ export default function ServicePlanPage() {
     );
   }
 
+  // -----------------------------
+  // RENDER
+  // -----------------------------
   return (
     <>
       <PageHeader
@@ -118,110 +146,91 @@ export default function ServicePlanPage() {
         subtitle="Each row represents a full service plan."
       />
 
-      {/* Sticky Search + Sort Bar */}
-      <div className="sticky top-16 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="w-full flex items-center gap-2 py-2">
+      {/* Toolbar */}
+      <div className="sticky top-16 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm">
+        <div className="flex flex-wrap items-center gap-3 py-3">
 
           <Input
-            className="w-full"
+            className="w-full sm:max-w-xs"
             placeholder="Search service plans..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
 
+          <Select value={filter} onValueChange={handleFilterChange}>
+            <SelectTrigger className="w-[130px]">
+              <SelectValue placeholder="Filter" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="future">Future</SelectItem>
+              <SelectItem value="past">Past</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={sort} onValueChange={handleSortChange}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Sort" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="oldest">Oldest</SelectItem>
+              <SelectItem value="title">Title A–Z</SelectItem>
+            </SelectContent>
+          </Select>
+
           {search.length > 0 && (
-            <Button
-              variant="outline"
-              onClick={() => setSearch('')}
-              className="shrink-0"
-            >
+            <Button variant="outline" onClick={() => setSearch('')}>
               Clear
             </Button>
           )}
-
-          <div className="flex items-center gap-3 shrink-0">
-
-            {/* Filter */}
-            <div className="flex items-center gap-1">
-              <span className="text-sm text-muted-foreground"> Filter: </span>
-
-              <select
-                value={filter}
-                onChange={(e) =>
-                  setFilter(e.target.value as 'all' | 'future' | 'past')
-                }
-                className="border rounded px-2 py-1 text-sm bg-background"
-              >
-                <option value="all">All</option>
-                <option value="future">Future</option>
-                <option value="past">Past</option>
-              </select>
-            </div>
-
-            {/* Sort */}
-            <div className="flex items-center gap-1">
-              <span className="text-sm text-muted-foreground"> Sort: </span>
-
-              <select
-                value={sort}
-                onChange={(e) =>
-                  setSort(e.target.value as 'newest' | 'oldest' | 'title')
-                }
-                className="border rounded px-2 py-1 text-sm bg-background"
-              >
-                <option value="newest">Newest</option>
-                <option value="oldest">Oldest</option>
-                <option value="title">Title A–Z</option>
-              </select>
-            </div>
-
-          </div>
-
         </div>
       </div>
 
-      {/* Loading */}
-      {plansLoading && <p>Loading service plans…</p>}
-
       {/* Empty */}
-      {!plansLoading && filteredAndSorted.length === 0 && (
-        <p className="text-muted-foreground">No service plans found.</p>
+      {filtered.length === 0 && (
+        <div className="py-20 text-center text-muted-foreground">
+          <p>No service plans found.</p>
+          {(search || filter !== 'all') && (
+            <Button
+              variant="ghost"
+              className="mt-3"
+              onClick={() => {
+                setSearch('');
+                setFilter('all');
+              }}
+            >
+              Clear filters
+            </Button>
+          )}
+        </div>
       )}
 
-      {/* Table */}
-      {!plansLoading && filteredAndSorted.length > 0 && (
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b text-muted-foreground">
-              <th className="text-left py-2 px-2">Event</th>
-              <th className="text-left py-2 px-2">Date</th>
-              <th className="text-left py-2 px-2">Sections</th>
-            </tr>
-          </thead>
+      {/* Card List */}
+      <div className="mt-4 space-y-3">
+        {filtered.map((plan) => {
+          const totalSections = plan.sections.length;
 
-          <tbody>
-            {filteredAndSorted.map((plan) => {
-              const totalSections = plan.sections.length;
-
-              return (
-                <tr
-                  key={plan.id}
-                  className="border-b hover:bg-accent cursor-pointer"
-                  onClick={() => router.push(`/service-plan/${plan.id}`)}
-                >
-                  <td className="py-2 px-2">{plan.title}</td>
-
-                  <td className="py-2 px-2">
+          return (
+            <Card
+              key={plan.id}
+              className="p-4 cursor-pointer transition-all hover:bg-accent hover:shadow-sm"
+              onClick={() => router.push(`/service-plan/${plan.id}`)}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium">{plan.title}</h3>
+                  <p className="text-sm text-muted-foreground">
                     {format(plan.dateTime, 'M/d/yy, h:mm a')}
-                  </td>
+                  </p>
+                </div>
 
-                  <td className="py-2 px-2">{totalSections}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
+                <Badge variant="secondary">{totalSections} sections</Badge>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
 
       {canManage && (
         <Fab type="add" onClick={() => router.push('/service-plan/new')} />

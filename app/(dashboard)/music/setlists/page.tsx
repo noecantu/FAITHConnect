@@ -5,16 +5,28 @@ import { format } from 'date-fns';
 import { PageHeader } from '@/app/components/page-header';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
+import { Badge } from '@/app/components/ui/badge';
+import { Card } from '@/app/components/ui/card';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
+} from '@/app/components/ui/select';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useSetLists } from '@/app/hooks/useSetLists';
 import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { useRouter } from "next/navigation";
 import { Fab } from '@/app/components/ui/fab';
 
+// -----------------------------
+// TYPES
+// -----------------------------
+type SortType = 'date-desc' | 'date-asc' | 'title-asc';
+type FilterType = 'all' | 'future' | 'past';
+
 export default function SetListsPage() {
-  // -----------------------------
-  // ALL HOOKS MUST RUN FIRST
-  // -----------------------------
   const { churchId } = useChurchId();
   const { lists, loading } = useSetLists(churchId);
 
@@ -29,20 +41,37 @@ export default function SetListsPage() {
   const canView = isAdmin || isMusicManager || isMusicMember;
 
   const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<'date-desc' | 'date-asc' | 'title-asc'>('date-desc');
-  const router = useRouter();
-  const [filter, setFilter] = useState<'all' | 'future' | 'past'>('all');
+  const [sort, setSort] = useState<SortType>('date-desc');
+  const [filter, setFilter] = useState<FilterType>('all');
 
+  const router = useRouter();
+
+  // -----------------------------
+  // TYPE-SAFE HANDLERS
+  // -----------------------------
+  const handleSortChange = (value: string) => {
+    if (value === 'date-desc' || value === 'date-asc' || value === 'title-asc') {
+      setSort(value);
+    }
+  };
+
+  const handleFilterChange = (value: string) => {
+    if (value === 'all' || value === 'future' || value === 'past') {
+      setFilter(value);
+    }
+  };
+
+  // -----------------------------
+  // FILTER + SORT
+  // -----------------------------
   const filtered = useMemo(() => {
     let result = lists;
 
-    // SEARCH
     if (search.trim()) {
       const s = search.toLowerCase();
       result = result.filter((l) => l.title.toLowerCase().includes(s));
     }
 
-    // FILTER
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -52,7 +81,6 @@ export default function SetListsPage() {
       result = result.filter((l) => l.dateTime.getTime() < today.getTime());
     }
 
-    // SORT
     if (sort === 'date-desc') {
       result = [...result].sort((a, b) => b.dateTime.getTime() - a.dateTime.getTime());
     } else if (sort === 'date-asc') {
@@ -65,7 +93,7 @@ export default function SetListsPage() {
   }, [lists, search, sort, filter]);
 
   // -----------------------------
-  // CONDITIONAL RETURNS AFTER HOOKS
+  // LOADING + PERMISSIONS
   // -----------------------------
   if (!churchId || loading || rolesLoading) {
     return (
@@ -87,6 +115,9 @@ export default function SetListsPage() {
     );
   }
 
+  // -----------------------------
+  // ROWS
+  // -----------------------------
   const rows = filtered.map((setList) => {
     const totalSets = setList.sections.length;
     const totalSongs = setList.sections.reduce(
@@ -108,102 +139,95 @@ export default function SetListsPage() {
   // -----------------------------
   return (
     <>
-
       <PageHeader
         title={`Set Lists (${lists.length})`}
         subtitle="Each row represents a full set list."
       />
 
-      {/* Sticky Search + Sort Bar */}
-      <div className="sticky top-16 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="w-full flex items-center gap-2 py-2">
+      {/* Toolbar */}
+      <div className="sticky top-16 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm">
+        <div className="flex flex-wrap items-center gap-3 py-3">
 
           <Input
-            className="w-full"
+            className="w-full sm:max-w-xs"
             placeholder="Search set lists..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
 
+          <Select value={filter} onValueChange={handleFilterChange}>
+            <SelectTrigger className="w-[130px]">
+              <SelectValue placeholder="Filter" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="future">Future</SelectItem>
+              <SelectItem value="past">Past</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={sort} onValueChange={handleSortChange}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Sort" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="date-desc">Newest</SelectItem>
+              <SelectItem value="date-asc">Oldest</SelectItem>
+              <SelectItem value="title-asc">Title A–Z</SelectItem>
+            </SelectContent>
+          </Select>
+
           {search.length > 0 && (
-            <Button
-              variant="outline"
-              onClick={() => setSearch('')}
-              className="shrink-0"
-            >
+            <Button variant="outline" onClick={() => setSearch('')}>
               Clear
             </Button>
           )}
-
-          <div className="flex items-center gap-3 shrink-0">
-
-            {/* Filter */}
-            <div className="flex items-center gap-1">
-              <span className="text-sm text-muted-foreground"> Filter: </span>
-
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value as 'all' | 'future' | 'past')}
-                className="border rounded px-2 py-1 text-sm bg-background"
-              >
-                <option value="all">All</option>
-                <option value="future">Future</option>
-                <option value="past">Past</option>
-              </select>
-            </div>
-
-            {/* Sort */}
-            <div className="flex items-center gap-1">
-              <span className="text-sm text-muted-foreground"> Sort: </span>
-
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value as 'date-desc' | 'date-asc' | 'title-asc')}
-                className="border rounded px-2 py-1 text-sm bg-background"
-              >
-                <option value="date-desc">Newest</option>
-                <option value="date-asc">Oldest</option>
-                <option value="title-asc">Title A–Z</option>
-              </select>
-            </div>
-
-          </div>
-
         </div>
       </div>
 
-      {/* List Table */}
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b text-muted-foreground">
-            <th className="text-left py-2 px-2">Event</th>
-            <th className="text-left py-2 px-2">Date</th>
-            <th className="text-left py-2 px-2">Sections</th>
-            <th className="text-left py-2 px-2">Songs</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {rows.map((row) => (
-            <tr
-              key={row.id}
-              className="border-b hover:bg-accent cursor-pointer"
-              onClick={() => router.push(`/music/setlists/${row.id}`)}
+      {/* Empty State */}
+      {rows.length === 0 && (
+        <div className="py-20 text-center text-muted-foreground">
+          <p>No set lists found.</p>
+          {(search || filter !== 'all') && (
+            <Button
+              variant="ghost"
+              className="mt-3"
+              onClick={() => {
+                setSearch('');
+                setFilter('all');
+              }}
             >
-              <td className="py-2 px-2">{row.title}</td>
+              Clear filters
+            </Button>
+          )}
+        </div>
+      )}
 
-              <td className="py-2 px-2">
-                {row.date ? format(row.date, 'M/d/yy, h:mm a') : '—'}
-              </td>
+      {/* Card List */}
+      <div className="mt-4 space-y-3">
+        {rows.map((row) => (
+          <Card
+            key={row.id}
+            className="p-4 cursor-pointer transition-all hover:bg-accent hover:shadow-sm"
+            onClick={() => router.push(`/music/setlists/${row.id}`)}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium">{row.title}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {row.date ? format(row.date, 'M/d/yy, h:mm a') : '—'}
+                </p>
+              </div>
 
-              <td className="py-2 px-2">{row.totalSets}</td>
-
-              <td className="py-2 px-2">{row.totalSongs}</td>
-            </tr>
-          ))}
-        </tbody>
-
-      </table>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">{row.totalSets} sections</Badge>
+                <Badge variant="outline">{row.totalSongs} songs</Badge>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
 
       {canManage && (
         <Fab
@@ -211,7 +235,6 @@ export default function SetListsPage() {
           onClick={() => router.push("/music/setlists/new")}
         />
       )}
-
     </>
   );
 }
