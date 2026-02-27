@@ -8,37 +8,22 @@ import {
   CardContent,
 } from '../components/ui/card';
 
-import { useToast } from '../hooks/use-toast';
 import { ContributionChart } from './contribution-chart';
-// import { ContributionSummary } from '@/app/contributions/contribution-summary';
 import { ContributionsTable } from './contributions-table';
 import { getColumns } from './columns';
 import { EditContributionDialog } from './edit-contribution-dialog';
 import { AddContributionDialog } from './add-contribution-dialog';
 import { getContributionSummaryText } from "./contribution-summary";
 
-// MUI theme
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 import { useChurchId } from '../hooks/useChurchId';
-import {
-  listenToContributions,
-  deleteContribution,
-} from '../lib/contributions';
+import { listenToContributions } from '../lib/contributions';
 import { listenToMembers } from '../lib/members';
 import { useUserRoles } from '../hooks/useUserRoles';
 
 import type { Contribution, Member } from '../lib/types';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '../components/ui/alert-dialog';
+
 import { useEffect, useMemo, useState } from 'react';
 import { Fab } from '../components/ui/fab';
 import { useSettings } from "../hooks/use-settings";
@@ -46,23 +31,27 @@ import { useAuth } from "../hooks/useAuth";
 import { updateDoc, doc, serverTimestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import React from 'react';
 
 // ------------------------------
 // Page Component
 // ------------------------------
 export default function ContributionsPage() {
   const [isClient, setIsClient] = useState(false);
-  const { toast } = useToast();
   const { churchId } = useChurchId();
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingContribution, setEditingContribution] = useState<Contribution | null>(null);
-  const [deletingContribution, setDeletingContribution] = useState<Contribution | null>(null);
+
+  // NEW: row-click edit dialog state
+  const [selected, setSelected] = React.useState<Contribution | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+
   const { isFinance } = useUserRoles(churchId);
   const { fiscalYear } = useSettings();
   const { user } = useAuth();
 
+  // Filter by fiscal year
   const filteredContributions = useMemo(() => {
     if (fiscalYear === "all") return contributions;
 
@@ -70,18 +59,25 @@ export default function ContributionsPage() {
       const year = new Date(c.date).getFullYear();
       return year === Number(fiscalYear);
     });
-  }, [contributions, fiscalYear]);  
+  }, [contributions, fiscalYear]);
+
   const summaryText = getContributionSummaryText(filteredContributions, fiscalYear);
-  
+
+  // Row click → open edit dialog
+  function handleRowClick(contribution: Contribution) {
+    setSelected(contribution);
+    setIsDialogOpen(true);
+  }
+
   async function handleFiscalYearChange(value: string) {
     if (!user?.id) return;
-  
+
     await updateDoc(doc(db, "users", user.id), {
       "settings.fiscalYear": value,
       updatedAt: serverTimestamp(),
     });
   }
-  
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -90,57 +86,26 @@ export default function ContributionsPage() {
   useEffect(() => {
     if (!churchId) return;
 
-    const unsubscribe = listenToContributions(
-      churchId,
-      setContributions,
-    );
-
+    const unsubscribe = listenToContributions(churchId, setContributions);
     return () => unsubscribe();
   }, [churchId]);
 
+  // Listen to members
   useEffect(() => {
     if (!churchId) return;
 
-    const unsubscribe = listenToMembers(
-      churchId,
-      setMembers,
-    );
-
+    const unsubscribe = listenToMembers(churchId, setMembers);
     return () => unsubscribe();
   }, [churchId]);
 
-  const handleDelete = async () => {
-    if (!churchId || !deletingContribution) return;
-
-    try {
-      await deleteContribution(churchId, deletingContribution.id);
-      toast({
-        title: 'Contribution Deleted',
-        description: 'The contribution has been successfully deleted.',
-      });
-      setDeletingContribution(null);
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: 'Error deleting contribution',
-        description: (error as Error).message || 'Please try again.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const columns = useMemo(
-    () => getColumns(setEditingContribution, setDeletingContribution),
-    []
-  );
+  // Columns WITHOUT edit/delete icons
+  const columns = useMemo(() => getColumns(), []);
 
   const darkTheme = createTheme({
     palette: { mode: 'dark' },
   });
 
-  if (!isClient) {
-    return null;
-  }
+  if (!isClient) return null;
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -176,64 +141,49 @@ export default function ContributionsPage() {
         </div>
       </PageHeader>
 
+      {/* Chart */}
       <div className="grid gap-8">
-        {/* Full-width Chart */}
         <Card className="h-full flex flex-col">
           <CardHeader>
             <CardTitle>Contribution Overview</CardTitle>
           </CardHeader>
           <CardContent className="flex-1">
-          <ContributionChart data={filteredContributions} />
+            <ContributionChart data={filteredContributions} />
           </CardContent>
         </Card>
       </div>
 
-      {/* Full-width table */}
+      {/* Table */}
       <div className="mt-8">
         <Card>
           <CardHeader>
             <CardTitle>All Contributions</CardTitle>
           </CardHeader>
           <CardContent>
-          <ContributionsTable columns={columns} data={filteredContributions} />
+            <ContributionsTable
+              columns={columns}
+              data={filteredContributions}
+              onRowClick={handleRowClick}
+            />
           </CardContent>
         </Card>
       </div>
 
-      <AddContributionDialog 
+      {/* Add Contribution */}
+      <AddContributionDialog
         isOpen={isAddDialogOpen}
         onClose={() => setIsAddDialogOpen(false)}
         members={members}
         churchId={churchId}
       />
 
+      {/* Edit Contribution */}
       <EditContributionDialog
-        isOpen={!!editingContribution}
-        onClose={() => setEditingContribution(null)}
-        contribution={editingContribution}
+        contribution={selected}
         members={members}
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
       />
-
-      <AlertDialog
-        open={!!deletingContribution}
-        onOpenChange={() => setDeletingContribution(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              contribution record for {deletingContribution?.memberName}.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
-              Continue
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {isFinance && (
         <Fab
@@ -241,7 +191,6 @@ export default function ContributionsPage() {
           onClick={() => setIsAddDialogOpen(true)}
         />
       )}
-
     </ThemeProvider>
   );
 }

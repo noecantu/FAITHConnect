@@ -1,14 +1,9 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Trash2 } from "lucide-react";
-import { Button } from '../components/ui/button';
 import type { Contribution } from '../lib/types';
 
-export const getColumns = (
-  onEdit: (contribution: Contribution) => void,
-  onDelete: (contribution: Contribution) => void
-): ColumnDef<Contribution>[] => [
+export const getColumns = (): ColumnDef<Contribution>[] => [
   {
     accessorKey: 'memberName',
     header: 'Member Name',
@@ -41,31 +36,4 @@ export const getColumns = (
     accessorKey: 'contributionType',
     header: 'Type',
   },
-  {
-    id: "actions",
-    header: "Action",
-    cell: ({ row }) => {
-      const contribution = row.original;
-
-      return (
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onEdit(contribution)}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onDelete(contribution)}
-          >
-            <Trash2 className="h-4 w-4 text-red-500" />
-          </Button>
-        </div>
-      );
-    },
-  }
 ];
