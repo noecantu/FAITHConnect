@@ -1,5 +1,5 @@
 // app/admin/page.tsx
-import { adminDb } from "@/lib/firebase/firebaseAdmin";
+import { adminDb } from "@/app/lib/firebase/firebaseAdmin";
 import AdminHomeClient from "./AdminHomeClient";
 
 export default async function AdminHomePage() {

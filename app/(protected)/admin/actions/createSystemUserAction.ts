@@ -1,8 +1,8 @@
 // app/admin/actions/createSystemUserAction.ts
 "use server";
 
-import { adminAuth, adminDb } from "@/lib/firebase/firebaseAdmin";
-import { logSystemEvent } from "@/lib/system/logging";
+import { adminAuth, adminDb } from "@/app/lib/firebase/firebaseAdmin";
+import { logSystemEvent } from "@/app/lib/system/logging";
 import { serverTimestamp } from "firebase/firestore";
 
 export interface CreateSystemUserInput {

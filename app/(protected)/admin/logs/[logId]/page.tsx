@@ -1,8 +1,8 @@
 // app/admin/logs/[logId]/page.tsx
 
-import { adminDb } from "@/lib/firebase/firebaseAdmin";
+import { adminDb } from "@/app/lib/firebase/firebaseAdmin";
 import LogDetailView from "./LogDetailView";
-import { normalizeFirestore } from "@/lib/normalize";
+import { normalizeFirestore } from "@/app/lib/normalize";
 
 export default async function LogDetailPage({
   params,

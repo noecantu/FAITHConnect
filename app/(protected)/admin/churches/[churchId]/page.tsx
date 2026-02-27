@@ -1,7 +1,7 @@
 import MasterChurchDetailsClient from "./MasterChurchDetailsClient";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
-import { normalizeFirestore } from "@/lib/normalize";
+import { normalizeFirestore } from "@/app/lib/normalize";
 
 if (!getApps().length) {
   initializeApp({

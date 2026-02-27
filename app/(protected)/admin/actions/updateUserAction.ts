@@ -1,7 +1,7 @@
 "use server";
 
-import { adminDb } from "@/lib/firebase/firebaseAdmin";
-import { logSystemEvent } from "@/lib/system/logging";
+import { adminDb } from "@/app/lib/firebase/firebaseAdmin";
+import { logSystemEvent } from "@/app/lib/system/logging";
 
 export interface UpdateUserInput {
   userId: string;

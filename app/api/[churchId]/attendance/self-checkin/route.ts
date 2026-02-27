@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebase/firebaseAdmin";
+import { adminDb } from "@/app/lib/firebase/firebaseAdmin";
 
 type AttendanceData = {
   records: Record<string, boolean>;

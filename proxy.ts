@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { adminAuth, adminDb } from "@/lib/firebase/server";
+import { adminAuth, adminDb } from "@/app/lib/firebase/server";
 
 export async function proxy(req: NextRequest) {
   const url = req.nextUrl.clone();

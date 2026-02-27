@@ -1,8 +1,8 @@
 // app/admin/users/[id]/page.tsx
 
-import { adminDb } from "@/lib/firebase/firebaseAdmin";
+import { adminDb } from "@/app/lib/firebase/firebaseAdmin";
 import EditUserForm from "./EditUserForm";
-import { normalizeFirestore } from "@/lib/normalize";
+import { normalizeFirestore } from "@/app/lib/normalize";
 
 export default async function UserProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id: userId } = await params;

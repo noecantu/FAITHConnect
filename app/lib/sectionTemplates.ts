@@ -8,40 +8,38 @@ export interface SectionTemplate {
 
 export const SECTION_TEMPLATES: SectionTemplate[] = [
   {
-    id: 'opening',
-    title: 'Opening',
-    defaultNotes: 'Service start or commencement.',
+    id: "opening",
+    title: "Opening",
+    defaultNotes: "Service start or commencement.",
   },
   {
-    id: 'praise',
-    title: 'Praise',
-    defaultNotes: 'Upbeat songs to open the service.',
+    id: "praise",
+    title: "Praise",
+    defaultNotes: "Upbeat songs to open the service.",
   },
   {
-    id: 'worship',
-    title: 'Worship',
-    defaultNotes: 'Slower, reflective songs for worship.',
+    id: "worship",
+    title: "Worship",
+    defaultNotes: "Slower, reflective songs for worship.",
   },
   {
-    id: 'offering',
-    title: 'Offering',
-    defaultNotes: 'Prepare hearts for giving.',
+    id: "offering",
+    title: "Offering",
+    defaultNotes: "Prepare hearts for giving.",
   },
   {
-    id: 'message',
-    title: 'Message',
-    defaultNotes: 'Sermon or preaching time.',
+    id: "message",
+    title: "Message",
+    defaultNotes: "Sermon or preaching time.",
   },
   {
-    id: 'altar-call',
-    title: 'Altar Call',
-    defaultNotes: 'Prayer, ministry, and response.',
+    id: "altar-call",
+    title: "Altar Call",
+    defaultNotes: "Prayer, ministry, and response.",
   },
   {
-    id: 'special-song',
-    title: 'Special Song',
-    defaultNotes: 'Solo or featured performance.',
+    id: "special-song",
+    title: "Special Song",
+    defaultNotes: "Solo or featured performance.",
   },
 ];
-
-export const SECTION_TITLES = SECTION_TEMPLATES.map(t => t.title);

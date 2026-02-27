@@ -1,8 +1,8 @@
 // app/admin/settings/health/page.tsx
 
-import { adminDb, adminAuth } from "@/lib/firebase/firebaseAdmin";
+import { adminDb, adminAuth } from "@/app/lib/firebase/firebaseAdmin";
 import HealthDashboard from "./HealthDashboard";
-import { normalizeFirestore } from "@/lib/normalize";
+import { normalizeFirestore } from "@/app/lib/normalize";
 import type { UserRecord, UserInfo } from "firebase-admin/auth";
 
 export default async function HealthPage() {

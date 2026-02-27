@@ -4,10 +4,14 @@ import {
   persistentLocalCache,
   persistentMultipleTabManager,
   memoryLocalCache,
-  Firestore,
 } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { getAuth, createUserWithEmailAndPassword, setPersistence, browserLocalPersistence } from "firebase/auth";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence,
+} from "firebase/auth";
 
 // --- App singleton ---
 const firebaseConfig = {
@@ -23,15 +27,14 @@ const firebaseConfig = {
 const app: FirebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // --- Firestore singleton ---
-// Give it an initial value of undefined so TS is satisfied
-let dbInstance: Firestore | undefined = undefined;
+let dbInstance;
 
 if (!dbInstance) {
   const useMemoryCache = process.env.NODE_ENV === "development";
 
   dbInstance = initializeFirestore(app, {
     localCache: useMemoryCache
-      ? memoryLocalCache() // prevents IndexedDB corruption during hot reload
+      ? memoryLocalCache()
       : persistentLocalCache({
           tabManager: persistentMultipleTabManager(),
         }),
@@ -43,20 +46,18 @@ export const db = dbInstance;
 // Storage + Auth
 export const storage = getStorage(app);
 export const auth = getAuth(app);
-setPersistence(auth, browserLocalPersistence);
 
-// Secondary user creation unchanged
+// Ensure persistence is set safely
+setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+// Secondary user creation
 export async function createSecondaryUser(email: string, password: string) {
   const secondaryAppName = "secondaryApp";
 
   let secondaryApp: FirebaseApp;
 
   const existingApp = getApps().find((a) => a.name === secondaryAppName);
-  if (existingApp) {
-    secondaryApp = existingApp;
-  } else {
-    secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
-  }
+  secondaryApp = existingApp ?? initializeApp(firebaseConfig, secondaryAppName);
 
   const secondaryAuth = getAuth(secondaryApp);
 

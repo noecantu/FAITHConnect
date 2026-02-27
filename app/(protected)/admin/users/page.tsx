@@ -1,6 +1,6 @@
-import { adminDb } from "@/lib/firebase/firebaseAdmin";
+import { adminDb } from "@/app/lib/firebase/firebaseAdmin";
 import UsersClient from "./UsersClient";
-import { normalizeFirestore } from "@/lib/normalize";
+import { normalizeFirestore } from "@/app/lib/normalize";
 import type { QueryDocumentSnapshot, DocumentData } from "firebase-admin/firestore";
 
 function normalizeUser(doc: QueryDocumentSnapshot<DocumentData>) {

@@ -1,8 +1,8 @@
 // app/admin/logs/page.tsx
 
-import { adminDb } from "@/lib/firebase/firebaseAdmin";
+import { adminDb } from "@/app/lib/firebase/firebaseAdmin";
 import ActivityLogTable from "./ActivityLogTable";
-import { normalizeFirestore } from "@/lib/normalize";
+import { normalizeFirestore } from "@/app/lib/normalize";
 
 export default async function ActivityLogsPage() {
   const snap = await adminDb
