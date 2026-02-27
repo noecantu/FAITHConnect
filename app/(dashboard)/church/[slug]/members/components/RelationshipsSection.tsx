@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   Card,
@@ -11,8 +11,6 @@ import {
   FormItem,
   FormLabel,
   FormControl,
-  // FormField,
-  // FormMessage,
 } from "@/app/components/ui/form";
 import {
   Select,
@@ -21,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/components/ui/select";
-// import { Input } from "@/app/components/ui/input";
 import { Button } from "@/app/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { useToast } from "@/app/hooks/use-toast";
@@ -35,8 +32,6 @@ type Props = {
   append: (value: {
     memberIds: [string, string];
     type: string;
-    // anniversary?: string;
-    id?: string;
   }) => void;
   remove: (index: number) => void;
   allMembers: Member[];
@@ -56,6 +51,9 @@ export function RelationshipsSection({
   currentMemberId,
 }: Props) {
   const { toast } = useToast();
+
+  const tempMember = form.watch("__temp_rel_member");
+  const tempType = form.watch("__temp_rel_type");
 
   return (
     <Card>
@@ -108,6 +106,7 @@ export function RelationshipsSection({
             <FormItem>
               <FormLabel>Member</FormLabel>
               <Select
+                value={tempMember}
                 onValueChange={(val) => form.setValue("__temp_rel_member", val)}
               >
                 <FormControl>
@@ -128,6 +127,7 @@ export function RelationshipsSection({
             <FormItem>
               <FormLabel>Relationship</FormLabel>
               <Select
+                value={tempType}
                 onValueChange={(val) => form.setValue("__temp_rel_type", val)}
               >
                 <FormControl>
@@ -150,17 +150,17 @@ export function RelationshipsSection({
             type="button"
             variant="outline"
             onClick={() => {
-              const { __temp_rel_member, __temp_rel_type } = form.getValues();
-
-              if (__temp_rel_member && __temp_rel_type) {
+              if (tempMember && tempType) {
                 append({
-                  memberIds: [currentMemberId, __temp_rel_member],
-                  type: __temp_rel_type,
+                  memberIds: [currentMemberId, tempMember],
+                  type: tempType,
                 });
+
+                form.setValue("__temp_rel_member", "");
+                form.setValue("__temp_rel_type", "");
               } else {
                 toast({
                   title: "Please select a member and relationship type.",
-                  variant: "destructive",
                 });
               }
             }}
@@ -168,24 +168,6 @@ export function RelationshipsSection({
             Add
           </Button>
         </div>
-
-        {/* <FormField
-          control={form.control}
-          name="anniversary"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Anniversary</FormLabel>
-              <FormControl>
-                <Input
-                  type="date"
-                  value={field.value || ""}
-                  onChange={(e) => field.onChange(e.target.value)}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        /> */}
       </CardContent>
     </Card>
   );

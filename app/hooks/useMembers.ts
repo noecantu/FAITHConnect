@@ -1,33 +1,30 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { listenToMembers as listenToMembersFromLib } from '../lib/members';
-import type { Member } from '../lib/types';
+import { useEffect, useState } from "react";
+import { listenToMembers } from "@/app/lib/members";
+import type { Member } from "@/app/lib/types";
 
 export function useMembers(churchId: string | null) {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Effect 1 — handle synchronous state resets
   useEffect(() => {
     if (!churchId) {
       setMembers([]);
       setLoading(false);
-    } else {
-      setLoading(true);
+      return;
     }
-  }, [churchId]);
 
-  // Effect 2 — Firestore subscription
-  useEffect(() => {
-    if (!churchId) return;
+    setLoading(true);
 
-    const unsubscribe = listenToMembersFromLib(churchId, (data) => {
-      setMembers(data);
+    const unsubscribe = listenToMembers(churchId, (loaded) => {
+      setMembers(loaded);
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe?.();
+    };
   }, [churchId]);
 
   return { members, loading };

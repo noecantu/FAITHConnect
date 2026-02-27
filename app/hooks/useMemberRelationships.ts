@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useFieldArray, type UseFormReturn } from "react-hook-form";
@@ -6,7 +6,6 @@ import { useFieldArray, type UseFormReturn } from "react-hook-form";
 import { listenToMembers } from "../lib/members";
 import type { Member } from "../lib/types";
 import { useChurchId } from "./useChurchId";
-
 import type { MemberFormValues } from "../lib/memberForm.schema";
 
 export function useMemberRelationships({
@@ -22,14 +21,16 @@ export function useMemberRelationships({
   const [allMembers, setAllMembers] = useState<Member[]>([]);
 
   useEffect(() => {
-    if (!churchId) return;
+    if (!churchId) {
+      setAllMembers([]);
+      return;
+    }
 
-    const unsubscribe = listenToMembers(
-      churchId,
-      (members) => setAllMembers(members),
-    );
+    const unsubscribe = listenToMembers(churchId, (loaded) => {
+      setAllMembers(loaded);
+    });
 
-    return () => unsubscribe();
+    return () => unsubscribe?.();
   }, [churchId]);
 
   const { fields, append, remove } = useFieldArray({
@@ -50,14 +51,13 @@ export function useMemberRelationships({
     return allMembers
       .filter((m) => !isEditMode || m.id !== member?.id)
       .sort((a, b) => {
-        const nameA = `${a.lastName}, ${a.firstName}`.toLowerCase();
-        const nameB = `${b.lastName}, ${b.firstName}`.toLowerCase();
+        const nameA = `${a.lastName || ""}, ${a.firstName || ""}`.toLowerCase();
+        const nameB = `${b.lastName || ""}, ${b.firstName || ""}`.toLowerCase();
         return nameA.localeCompare(nameB);
       });
   }, [allMembers, isEditMode, member]);
 
   return {
-    allMembers,
     fields,
     append,
     remove,
@@ -65,4 +65,3 @@ export function useMemberRelationships({
     availableMembers,
   };
 }
-

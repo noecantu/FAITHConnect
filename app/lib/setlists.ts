@@ -20,25 +20,15 @@ import type { SetList, SetListFirestore, SetListSection } from './types';
 import { nanoid } from 'nanoid';
 import { fromDateString, toDateTime } from './date-utils';
 
-export function setListDoc(churchId: string, setListId: string) {
+function setListDoc(churchId: string, setListId: string) {
   return doc(db, `churches/${churchId}/setlists/${setListId}`);
 }
 
-// -----------------------------------------------------
-// Collection reference
-// -----------------------------------------------------
-export function setListsCollection(churchId: string) {
-  return collection(
-    db,
-    'churches',
-    churchId,
-    'setlists'
-  ) as CollectionReference<SetListFirestore>;
+function setListsCollection(churchId: string) {
+  return collection(db, 'churches', churchId, 'setlists') as CollectionReference<SetListFirestore>;
 }
 
-// -----------------------------------------------------
 // Real-time listener
-// -----------------------------------------------------
 export function listenToSetLists(
   churchId: string,
   callback: (lists: SetList[]) => void,
@@ -46,7 +36,6 @@ export function listenToSetLists(
 ) {
   if (!churchId || !userId) return () => {};
 
-  // IMPORTANT: sort by dateString, not Timestamp
   const q = query(setListsCollection(churchId), orderBy('dateString', 'desc'));
 
   return onSnapshot(
@@ -86,9 +75,7 @@ export function listenToSetLists(
   );
 }
 
-// -----------------------------------------------------
 // Create Set List
-// -----------------------------------------------------
 export async function createSetList(
   churchId: string | null,
   data: {
@@ -154,9 +141,7 @@ export async function createSetList(
   } as SetList;
 }
 
-// -----------------------------------------------------
 // Update Set List
-// -----------------------------------------------------
 export async function updateSetList(
   churchId: string,
   setListId: string,
@@ -191,9 +176,7 @@ export async function updateSetList(
   await updateDoc(setListDoc(cid, setListId), payload);
 }
 
-// -----------------------------------------------------
 // Delete Set List
-// -----------------------------------------------------
 export async function deleteSetList(
   churchId: string | null,
   setListId: string,
@@ -205,9 +188,7 @@ export async function deleteSetList(
   router.push("/music/setlists");
 }
 
-// -----------------------------------------------------
 // Get Set List by ID
-// -----------------------------------------------------
 export async function getSetListById(
   churchId: string,
   id: string
