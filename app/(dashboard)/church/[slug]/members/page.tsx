@@ -121,9 +121,6 @@ export default function MembersPage() {
             </div>
           </RadioGroup>
 
-          <Button onClick={() => router.push(`/church/${churchId}/members/new`)}>
-            Add Member
-          </Button>
         </div>
       </PageHeader>
 
