@@ -33,8 +33,6 @@ import {
 
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -46,6 +44,7 @@ import { Button } from "../ui/button";
 import { useToast } from "@/app/hooks/use-toast";
 import { useUserRoles } from "@/app/hooks/useUserRoles";
 import { useChurchId } from "@/app/hooks/useChurchId";
+import { AlertDialogAction, AlertDialogCancel } from "@radix-ui/react-alert-dialog";
 
 type MenuItem = {
   href: string;
