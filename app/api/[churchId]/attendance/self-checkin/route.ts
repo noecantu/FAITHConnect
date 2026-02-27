@@ -11,7 +11,6 @@ export async function POST(
   context: { params: Promise<{ churchId: string }> }
 ) {
   try {
-    // ✅ MUST AWAIT PARAMS IN NEXT.JS 15
     const { churchId } = await context.params;
 
     const { code: rawCode, date } = await req.json();
@@ -20,6 +19,20 @@ export async function POST(
     if (!code || !date) {
       return NextResponse.json(
         { error: "Missing code or date" },
+        { status: 400 }
+      );
+    }
+
+    // 🔒 Enforce same-day check-in
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    const today = `${yyyy}-${mm}-${dd}`;
+
+    if (date !== today) {
+      return NextResponse.json(
+        { error: "This check-in link has expired. Please scan today's QR code." },
         { status: 400 }
       );
     }
@@ -72,3 +85,4 @@ export async function POST(
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+

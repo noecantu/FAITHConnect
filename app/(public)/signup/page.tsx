@@ -103,8 +103,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <Card className="backdrop-blur-xl bg-zinc-900/60 border-zinc-800 shadow-2xl">
+        <Card className="w-full max-w-sm bg-card">
           <CardHeader className="text-center space-y-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -171,16 +170,7 @@ export default function SignupPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="
-                  w-full
-                  bg-slate-700 
-                  hover:bg-slate-600 
-                  text-white 
-                  font-medium 
-                  border 
-                  border-slate-600 
-                  shadow-sm
-                "
+                className="w-full"
               >
                 {isLoading ? 'Creating...' : 'Create Account'}
               </Button>
@@ -188,7 +178,6 @@ export default function SignupPage() {
             </form>
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }
