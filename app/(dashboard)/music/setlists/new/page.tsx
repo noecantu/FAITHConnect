@@ -15,17 +15,20 @@ import { SetListSectionEditor } from '@/app/components/music/SetListSectionEdito
 import { Fab } from '@/app/components/ui/fab';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 
+import Flatpickr from "react-flatpickr";
+import dayjs from "dayjs";
+
 export default function NewSetListPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
   const { songs: allSongs } = useSongs(churchId);
   const { isAdmin, isMusicManager } = useUserRoles(churchId);
   const canCreate = isAdmin || isMusicManager;
-  
+
   // Form state
   const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('10:30');
+  const [dateString, setDateString] = useState(dayjs().format("YYYY-MM-DD"));
+  const [timeString, setTimeString] = useState("10:30"); // default time
   const [notes, setNotes] = useState('');
   const [sections, setSections] = useState<SetListSection[]>([]);
   const [saving, setSaving] = useState(false);
@@ -50,31 +53,18 @@ export default function NewSetListPage() {
       </div>
     );
   }
-  
+
+  // Reconstruct full JS Date for Flatpickr
+  const fullDate = dayjs(`${dateString}T${timeString}`).toDate();
+
   const handleSave = async () => {
     if (!title.trim()) return;
-
     setSaving(true);
-
-    const baseDate = date ? new Date(date) : new Date();
-
-    let hours = 10;
-    let minutes = 30;
-
-    if (time) {
-      const parts = time.split(':').map(Number);
-      if (parts.length === 2) {
-        hours = parts[0];
-        minutes = parts[1];
-      }
-    }
-
-    baseDate.setHours(hours, minutes, 0, 0);
 
     const newSetList = {
       title: title.trim(),
-      dateString: baseDate.toISOString().slice(0, 10),
-      timeString: time,
+      dateString,
+      timeString,
       sections,
       createdBy: "system",
       serviceType: serviceType ?? null,
@@ -83,7 +73,7 @@ export default function NewSetListPage() {
 
     const created = await createSetList(churchId, newSetList);
     router.push(`/music/setlists/${created.id}`);
-  }; 
+  };
 
   return (
     <div className="space-y-6">
@@ -101,28 +91,32 @@ export default function NewSetListPage() {
           />
         </div>
 
-        {/* Date */}
+        {/* Date & Time */}
         <div>
-          <label className="block text-sm font-medium mb-1">Date</label>
+          <label className="block text-sm font-medium mb-1">Date & Time</label>
 
-          <Input
-            type="date"
-            value={date || ""}
-            onChange={(e) => setDate(e.target.value)}
+          <Flatpickr
+            value={fullDate ?? []}
+            options={{
+              enableTime: true,
+              time_24hr: false,
+              dateFormat: "Y-m-d H:i",
+              altInput: true,
+              altFormat: "F j, Y h:i K",
+              allowInput: false,
+              static: true,
+            }}
+            onChange={(selectedDates) => {
+              const d = selectedDates?.[0];
+              if (!d) return;
+
+              setDateString(dayjs(d).format("YYYY-MM-DD"));
+              setTimeString(dayjs(d).format("HH:mm"));
+            }}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Event Time</label>
-          <Input
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            className="w-full h-10"
-            style={{ width: '100%' }}
-          />
-        </div>
-                
         {/* Sections */}
         <div className="space-y-2">
           <label className="block text-sm font-medium">Sections & Songs</label>
@@ -133,6 +127,7 @@ export default function NewSetListPage() {
           />
         </div>
 
+        {/* Service Type */}
         <div className="space-y-1">
           <label className="block text-sm font-medium text-foreground">
             Service Type
@@ -172,9 +167,8 @@ export default function NewSetListPage() {
       <Fab
         type="save"
         onClick={handleSave}
-        disabled={saving || !title.trim() || !date}
+        disabled={saving || !title.trim() || !dateString}
       />
-
     </div>
   );
 }

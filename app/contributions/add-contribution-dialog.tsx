@@ -34,6 +34,8 @@ import {
 import { useToast } from '../hooks/use-toast';
 import { addContribution } from '../lib/contributions';
 import type { Contribution, Member } from '../lib/types';
+import Flatpickr from "react-flatpickr";
+import dayjs from 'dayjs';
 
 const contributionSchema = z.object({
   memberId: z.string().optional(),
@@ -168,7 +170,7 @@ export function AddContributionDialog({
               onSubmit={form.handleSubmit(onSubmit)}
               className="space-y-4"
             >
-              {/* Date */}
+              {/* DATE */}
               <FormField
                 control={form.control}
                 name="date"
@@ -176,11 +178,24 @@ export function AddContributionDialog({
                   <FormItem>
                     <FormLabel>Date</FormLabel>
                     <FormControl>
-                      <Input
-                        type="date"
-                        value={field.value || ""}
-                        onChange={(e) => field.onChange(e.target.value)}
-                      />
+                      <div className="relative">
+                        <Flatpickr
+                          value={field.value ? dayjs(field.value).toDate() : []}
+                          options={{
+                            dateFormat: "Y-m-d",
+                            altInput: true,
+                            altFormat: "F j, Y",
+                            allowInput: false,
+                            static: true,
+                          }}
+                          onChange={(selectedDates) => {
+                            const d = selectedDates?.[0];
+                            if (!d) return;
+                            field.onChange(dayjs(d).toDate());
+                          }}
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

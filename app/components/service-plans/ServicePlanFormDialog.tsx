@@ -31,27 +31,13 @@ import type { ServicePlan, ServicePlanSection } from '@/app/lib/types';
 import { useMembers } from '@/app/hooks/useMembers';
 import { useSongs } from '@/app/hooks/useSongs';
 
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import Flatpickr from "react-flatpickr";
 import dayjs from 'dayjs';
 import { SectionEditor } from './SectionEditor';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { SECTION_TEMPLATES } from '@/app/lib/sectionTemplates';
 
-// ------------------------------------------------------
-// THEME
-// ------------------------------------------------------
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-  },
-});
-
-// ------------------------------------------------------
 // ZOD SCHEMAS — NEW ARCHITECTURE
-// ------------------------------------------------------
 const sectionSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(1, 'Section title is required'),
@@ -73,9 +59,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-// ------------------------------------------------------
 // SUBMIT HANDLER — NEW ARCHITECTURE
-// ------------------------------------------------------
 async function handleServicePlanSubmit(
   values: FormValues,
   plan: ServicePlan | null,
@@ -109,9 +93,7 @@ async function handleServicePlanSubmit(
   onClose();
 }
 
-// ------------------------------------------------------
 // COMPONENT
-// ------------------------------------------------------
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -130,7 +112,6 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
     defaultValues: {
       title: plan?.title ?? '',
 
-      // NEW: canonical string fields
       dateString: plan?.dateString ?? dayjs().format('YYYY-MM-DD'),
       timeString: plan?.timeString ?? '10:00',
 
@@ -188,60 +169,43 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                 )}
               />
 
-              {/* Date */}
+              {/* Date and Time */}
               <FormField
                 control={form.control}
                 name="dateString"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date</FormLabel>
+                    <FormLabel>Date & Time</FormLabel>
                     <FormControl>
-                      <ThemeProvider theme={darkTheme}>
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                          <MobileDatePicker
-                            value={dayjs(field.value)}
-                            onChange={(next) => {
-                              if (!next) return;
-                              field.onChange(next.format('YYYY-MM-DD'));
-                            }}
-                            slotProps={{
-                              textField: {
-                                fullWidth: true,
-                                sx: {
-                                  '& .MuiInputBase-root': {
-                                    backgroundColor: 'transparent',
-                                    color: 'text.primary',
-                                    fontSize: '0.875rem',
-                                    borderRadius: '0.5rem',
-                                    border: '1px solid hsl(var(--input))',
-                                  },
-                                  '& .MuiOutlinedInput-notchedOutline': {
-                                    border: 'none',
-                                  },
-                                  '& .MuiInputBase-input': {
-                                    padding: '0.5rem 0.75rem',
-                                  },
-                                },
-                              },
-                            }}
-                          />
-                        </LocalizationProvider>
-                      </ThemeProvider>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <div className="relative">
+                        <Flatpickr
+                          value={
+                            field.value && form.getValues("timeString")
+                              ? dayjs(`${field.value}T${form.getValues("timeString")}`).toDate()
+                              : []
+                          }
+                          options={{
+                            enableTime: true,
+                            time_24hr: false, // or true if you prefer
+                            dateFormat: "Y-m-d H:i",
+                            altInput: true,
+                            altFormat: "F j, Y h:i K",
+                            allowInput: false,
+                            static: true,
+                          }}
+                          onChange={(selectedDates) => {
+                            const d = selectedDates?.[0];
+                            if (!d) return;
 
-              {/* Time */}
-              <FormField
-                control={form.control}
-                name="timeString"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Time</FormLabel>
-                    <FormControl>
-                      <Input type="time" {...field} />
+                            const dateStr = dayjs(d).format("YYYY-MM-DD");
+                            const timeStr = dayjs(d).format("HH:mm");
+
+                            form.setValue("dateString", dateStr);
+                            form.setValue("timeString", timeStr);
+                          }}
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

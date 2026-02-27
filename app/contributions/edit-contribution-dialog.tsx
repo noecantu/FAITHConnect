@@ -42,11 +42,7 @@ import { useChurchId } from '../hooks/useChurchId';
 import { updateContribution, deleteContribution } from '../lib/contributions';
 import type { Contribution, Member } from '../lib/types';
 
-// MUI date pickers
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import Flatpickr from "react-flatpickr";
 import { StandardDialogLayout } from '../components/layout/StandardDialogLayout';
 
 const contributionSchema = z.object({
@@ -84,12 +80,6 @@ export function EditContributionDialog({
       category: 'Tithes',
       contributionType: 'Digital Transfer',
       date: new Date(),
-    },
-  });
-
-  const darkTheme = createTheme({
-    palette: {
-      mode: 'dark',
     },
   });
 
@@ -195,42 +185,23 @@ export function EditContributionDialog({
                   <FormItem>
                     <FormLabel>Date</FormLabel>
                     <FormControl>
-                      <div className="w-full">
-                        <ThemeProvider theme={darkTheme}>
-                          <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <MobileDatePicker
-                              slotProps={{
-                                textField: {
-                                  fullWidth: true,
-                                  sx: {
-                                    '& .MuiInputBase-root': {
-                                      backgroundColor: 'transparent',
-                                      color: 'text.primary',
-                                      fontSize: '0.875rem',
-                                      borderRadius: '0.5rem',
-                                      border: '1px solid hsl(var(--input))',
-                                    },
-                                    '& .MuiInputBase-root:hover': {
-                                      borderColor: 'hsl(var(--input))',
-                                    },
-                                    '& .MuiOutlinedInput-notchedOutline': {
-                                      border: 'none',
-                                    },
-                                    '& .MuiInputBase-input': {
-                                      padding: '0.5rem 0.75rem',
-                                      height: 'auto',
-                                    },
-                                  },
-                                },
-                              }}
-                              value={dayjs(field.value)}
-                              onChange={(next) => {
-                                if (!next) return;
-                                field.onChange(next.toDate());
-                              }}
-                            />
-                          </LocalizationProvider>
-                        </ThemeProvider>
+                      <div className="relative">
+                        <Flatpickr
+                          value={field.value ? dayjs(field.value).toDate() : []}
+                          options={{
+                            dateFormat: "Y-m-d",
+                            altInput: true,
+                            altFormat: "F j, Y",
+                            allowInput: false,
+                            static: true,
+                          }}
+                          onChange={(selectedDates) => {
+                            const d = selectedDates?.[0];
+                            if (!d) return;
+                            field.onChange(dayjs(d).toDate());
+                          }}
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        />
                       </div>
                     </FormControl>
                     <FormMessage />

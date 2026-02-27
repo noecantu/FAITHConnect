@@ -5,8 +5,7 @@ import { format } from 'date-fns';
 import { PageHeader } from '@/app/components/page-header';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
-// import { Badge } from '@/app/components/ui/badge';
-import { Card } from '@/app/components/ui/card';
+  import { Card } from '@/app/components/ui/card';
 import {
   Select,
   SelectTrigger,
@@ -20,9 +19,7 @@ import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { useRouter } from "next/navigation";
 import { Fab } from '@/app/components/ui/fab';
 
-// -----------------------------
 // TYPES
-// -----------------------------
 type SortType = 'date-desc' | 'date-asc' | 'title-asc';
 type FilterType = 'all' | 'future' | 'past';
 
@@ -46,9 +43,7 @@ export default function SetListsPage() {
 
   const router = useRouter();
 
-  // -----------------------------
   // TYPE-SAFE HANDLERS
-  // -----------------------------
   const handleSortChange = (value: string) => {
     if (value === 'date-desc' || value === 'date-asc' || value === 'title-asc') {
       setSort(value);
@@ -61,9 +56,7 @@ export default function SetListsPage() {
     }
   };
 
-  // -----------------------------
   // FILTER + SORT
-  // -----------------------------
   const filtered = useMemo(() => {
     let result = lists;
 
@@ -92,9 +85,7 @@ export default function SetListsPage() {
     return result;
   }, [lists, search, sort, filter]);
 
-  // -----------------------------
   // LOADING + PERMISSIONS
-  // -----------------------------
   if (!churchId || loading || rolesLoading) {
     return (
       <div className="p-6">
@@ -115,9 +106,7 @@ export default function SetListsPage() {
     );
   }
 
-  // -----------------------------
   // ROWS
-  // -----------------------------
   const rows = filtered.map((setList) => {
     const totalSets = setList.sections.length;
     const totalSongs = setList.sections.reduce(
@@ -134,9 +123,7 @@ export default function SetListsPage() {
     };
   });
 
-  // -----------------------------
   // RENDER
-  // -----------------------------
   return (
     <>
       <PageHeader
