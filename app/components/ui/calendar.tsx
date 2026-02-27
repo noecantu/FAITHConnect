@@ -1,13 +1,10 @@
 "use client"
 
-import * as React from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
-
+import { DayPicker, type DayPickerProps } from "react-day-picker"
 import { cn } from "@/app/lib/utils"
 import { buttonVariants } from "./button"
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>
+export type CalendarProps = DayPickerProps
 
 function Calendar({
   className,
@@ -31,6 +28,10 @@ function Calendar({
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
+
+        /* THIS is how icons are styled in your version */
+        nav_icon: "h-4 w-4",
+
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
         head_cell:
@@ -53,18 +54,11 @@ function Calendar({
         day_hidden: "invisible",
         ...classNames,
       }}
-      components={{
-        IconLeft: ({ className, ...props }) => (
-          <ChevronLeft className={cn("h-4 w-4", className)} {...props} />
-        ),
-        IconRight: ({ className, ...props }) => (
-          <ChevronRight className={cn("h-4 w-4", className)} {...props} />
-        ),
-      }}
       {...props}
     />
   )
 }
+
 Calendar.displayName = "Calendar"
 
 export { Calendar }

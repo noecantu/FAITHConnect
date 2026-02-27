@@ -61,7 +61,7 @@ export function DeleteServicePlanDialog({
                 toast({
                   title: 'Service Plan Deleted',
                   description: `“${plan.title}” has been removed.`,
-                  variant: 'destructive',
+                  // variant: 'destructive',
                 });
 
                 onOpenChange(false);

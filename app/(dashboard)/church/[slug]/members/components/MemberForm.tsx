@@ -107,7 +107,7 @@ export default function MemberForm({
       toast({
         title: "Error",
         description: "Failed to create login.",
-        variant: "destructive",
+        // variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -129,7 +129,7 @@ export default function MemberForm({
       toast({
         title: "Error",
         description: "Failed to send reset email.",
-        variant: "destructive",
+        // variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -172,7 +172,7 @@ export default function MemberForm({
       toast({
         title: "Error",
         description: "Failed to save member.",
-        variant: "destructive",
+        // variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -191,7 +191,7 @@ export default function MemberForm({
         <StatusSection form={form} />
 
         <RelationshipsSection
-          currentMemberId={""} form={form}
+          allMembers={[]} currentMemberId={""} form={form}
           {...relationships}        />
 
         <LoginAccessSection

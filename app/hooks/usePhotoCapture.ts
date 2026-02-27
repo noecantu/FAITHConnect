@@ -62,7 +62,7 @@ export function usePhotoCapture({
         console.error("Error accessing camera:", error);
         setHasCameraPermission(false);
         toast({
-          variant: "destructive",
+          // variant: "destructive",
           title: "Camera Access Denied",
           description:
             "Please enable camera permissions in your browser settings to use this app.",

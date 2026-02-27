@@ -46,7 +46,6 @@ export function CalendarDialogs({
   dialogs,
   selectedDayEvents,
   form,
-  muiTheme,
   canManage,
 }: CalendarDialogsProps) {
   const {
@@ -90,7 +89,6 @@ export function CalendarDialogs({
           setIsFormOpen(open);
           if (!open) setEditEvent(null);
         }}
-        muiTheme={muiTheme}
       />
 
       {selectedDate && (

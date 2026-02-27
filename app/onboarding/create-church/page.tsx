@@ -55,7 +55,7 @@ export default function CreateChurchPage() {
       toast({
         title: "Error",
         description: "Could not create church. Please try again.",
-        variant: "destructive",
+        // variant: "destructive",
       });
     } finally {
       setLoading(false);

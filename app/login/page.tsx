@@ -90,7 +90,7 @@ export default function LoginPage() {
       toast({
         title: 'Login Failed',
         description: 'The email or password you entered is incorrect.',
-        variant: 'destructive',
+        // variant: 'destructive',
       });
     } finally {
       setIsLoading(false);

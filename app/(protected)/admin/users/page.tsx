@@ -10,13 +10,6 @@ function normalizeUser(doc: QueryDocumentSnapshot<DocumentData>) {
   };
 }
 
-// function normalizeChurch(doc: QueryDocumentSnapshot<DocumentData>) {
-//   return {
-//     id: doc.id,
-//     ...normalizeFirestore(doc.data()),
-//   };
-// }
-
 export default async function UsersPage() {
   const usersSnap = await adminDb
     .collection("users")
@@ -24,9 +17,6 @@ export default async function UsersPage() {
     .get();
 
   const users = usersSnap.docs.map(normalizeUser);
-
-  // const churchesSnap = await adminDb.collection("churches").get();
-  // const churches = churchesSnap.docs.map(normalizeChurch);
 
   return <UsersClient users={users} />;
 }

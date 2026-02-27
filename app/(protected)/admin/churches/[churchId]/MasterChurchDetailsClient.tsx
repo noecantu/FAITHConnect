@@ -15,8 +15,6 @@ import {
 import { Button } from "@/app/components/ui/button";
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -24,6 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/app/components/ui/alert-dialog";
 import type { Church } from "@/app/lib/types";
+import { AlertDialogAction, AlertDialogCancel } from "@radix-ui/react-alert-dialog";
 
 export default function MasterChurchDetailsClient({
   church,

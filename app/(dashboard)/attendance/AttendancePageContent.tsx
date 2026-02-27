@@ -165,7 +165,7 @@ export default function AttendancePageContent() {
       toast({
         title: "Error",
         description: "Something went wrong.",
-        variant: "destructive",
+        // variant: "destructive",
       });
     } finally {
       setQrLoading(false);

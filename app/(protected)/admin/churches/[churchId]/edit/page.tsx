@@ -68,7 +68,7 @@ export default function EditChurchPage() {
       toast({
         title: "Invalid church ID",
         description: "Unable to save changes.",
-        variant: "destructive",
+        // variant: "destructive",
       });
       return;
     }
@@ -94,7 +94,7 @@ export default function EditChurchPage() {
       toast({
         title: "Error updating church",
         description: (error as Error).message || "Please try again.",
-        variant: "destructive",
+        // variant: "destructive",
       });
     }
   };

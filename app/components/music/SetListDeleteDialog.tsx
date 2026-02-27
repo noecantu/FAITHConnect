@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '../ui/alert-dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from '../ui/alert-dialog';
 import { Button } from '../ui/button';
 import { deleteSetList } from '@/app/lib/setlists';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { SetList } from '@/app/lib/types';
 import { useRouter } from "next/navigation";
+import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dialog';
 
 export function SetListDeleteDialog({ setList }: { setList: SetList }) {
   const [open, setOpen] = useState(false);

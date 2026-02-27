@@ -87,7 +87,7 @@ export default function AddUserPage() {
       toast({
         title: "Error",
         description: error.message,
-        variant: "destructive",
+        // variant: "destructive",
       });
     } finally {
       setLoading(false);

@@ -23,12 +23,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 export default function SongsPage() {
   const { churchId } = useChurchId();
   const { songs, loading } = useSongs(churchId);
-  const { isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
+
+  // UPDATED: useUserRoles no longer accepts churchId
+  const { isAdmin, isMusicManager, isMusicMember } = useUserRoles();
+
   const canManage = isAdmin || isMusicManager;
   const canView = isAdmin || isMusicMember || isMusicManager;
-  const { user } = useAuth();
 
+  const { user } = useAuth();
   const { settings } = useSettings();
+
   const savedSort = settings?.songSort ?? "title";
   const [sortBy, setSortBy] = useState<"title" | "artist" | "key" | "bpm">(savedSort);
   const [search, setSearch] = useState('');
@@ -52,7 +56,7 @@ export default function SongsPage() {
       }
     }
   }
-  
+
   if (!churchId || loading) {
     return (
       <div className="p-6">
@@ -71,9 +75,7 @@ export default function SongsPage() {
     );
   }
 
-  // -----------------------------
-  // FILTER SONGS BY SEARCH
-  // -----------------------------
+  // FILTER
   const filteredSongs = songs.filter((song) => {
     const q = search.toLowerCase();
     return (
@@ -83,9 +85,7 @@ export default function SongsPage() {
     );
   });
 
-  // -----------------------------
-  // GROUPING LOGIC
-  // -----------------------------
+  // GROUPING
   function groupSongs(list: Song[], sortBy: 'title' | 'key' | 'bpm' | 'artist') {
     return list.reduce((acc, song) => {
       let groupKey = '';
@@ -108,9 +108,7 @@ export default function SongsPage() {
 
   const grouped = groupSongs(filteredSongs, sortBy);
 
-  // -----------------------------
   // SORT GROUP KEYS
-  // -----------------------------
   const sortedGroupKeys = Object.keys(grouped).sort((a, b) => {
     if (sortBy === 'bpm') {
       const numA = parseInt(a);
@@ -122,26 +120,22 @@ export default function SongsPage() {
 
   const totalSongs = songs.length;
 
-  // -----------------------------
-  // SUBTITLE TEXT
-  // -----------------------------
   const subtitleText = `Total: ${totalSongs} | Sorted by ${
     sortBy === "bpm"
       ? "Tempo"
       : sortBy.charAt(0).toUpperCase() + sortBy.slice(1)
   }`;
-  
+
   return (
     <div className="space-y-6">
 
-      {/* HEADER WITH ADD BUTTON */}
       <PageHeader title="Songs" subtitle={subtitleText}/>
-  
+
       {/* Sticky Search + Sort Bar */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex flex-wrap items-center gap-3 py-2 w-full">
 
-          {/* Search bar */}
+          {/* Search */}
           <div className="w-full sm:flex-1 flex items-center gap-3">
             <Input
               className="w-full"
@@ -157,9 +151,8 @@ export default function SongsPage() {
             )}
           </div>
 
-          {/* Controls (Sort only) */}
+          {/* Sort */}
           <div className="flex w-full gap-3 sm:w-auto sm:ml-auto">
-
             <Select
               value={sortBy}
               onValueChange={async (newSort) => {
@@ -182,12 +175,11 @@ export default function SongsPage() {
                 <SelectItem value="bpm">Tempo</SelectItem>
               </SelectContent>
             </Select>
-
           </div>
 
         </div>
       </div>
-  
+
       {/* GROUPED SECTIONS */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {sortedGroupKeys.map((groupKey) => (
@@ -198,7 +190,6 @@ export default function SongsPage() {
             }}
             className="p-6 space-y-4"
           >
-
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">{groupKey}</h2>
               <span className="text-sm text-muted-foreground">
@@ -223,12 +214,10 @@ export default function SongsPage() {
                               </p>
                             </div>
 
-                            {/* Transparent Blue & Green Pills */}
                             <div className="flex items-center gap-2 ml-2">
                               {song.lyrics && (
                                 <FileText size={16} className="text-blue-400/40" />
                               )}
-
                               {song.chords && (
                                 <Music size={16} className="text-green-400/40" />
                               )}
@@ -251,7 +240,7 @@ export default function SongsPage() {
           onClick={() => router.push("/music/songs/new")}
         />
       )}
-      
+
       {/* Alphabet Index */}
       <div
         className="fixed right-2 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-1 

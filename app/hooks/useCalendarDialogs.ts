@@ -98,7 +98,7 @@ export function useCalendarDialogs(
       toast({
         title: 'Permission Denied',
         description: 'You do not have permission to edit events.',
-        variant: 'destructive',
+        // variant: 'destructive',
       });
       return;
     }
@@ -124,7 +124,7 @@ export function useCalendarDialogs(
       toast({
         title: 'Permission Denied',
         description: 'You do not have permission to add events.',
-        variant: 'destructive',
+        // variant: 'destructive',
       });
       return;
     }
@@ -148,7 +148,7 @@ export function useCalendarDialogs(
       toast({
         title: 'No church selected',
         description: 'Please select a church before deleting events.',
-        variant: 'destructive',
+        // variant: 'destructive',
       });
       return;
     }
@@ -164,7 +164,7 @@ export function useCalendarDialogs(
       toast({
         title: 'Error deleting event',
         description: 'Please try again.',
-        variant: 'destructive',
+        // variant: 'destructive',
       });
     }
   }
@@ -177,7 +177,7 @@ export function useCalendarDialogs(
       toast({
         title: 'No church selected',
         description: 'Please select a church before saving events.',
-        variant: 'destructive',
+        // variant: 'destructive',
       });
       return;
     }
@@ -186,7 +186,7 @@ export function useCalendarDialogs(
       toast({
         title: 'Permission Denied',
         description: 'You do not have permission to manage events.',
-        variant: 'destructive',
+        // variant: 'destructive',
       });
       return;
     }
@@ -232,7 +232,7 @@ export function useCalendarDialogs(
       toast({
         title: 'Error saving event',
         description: 'Please try again.',
-        variant: 'destructive',
+        // variant: 'destructive',
       });
     }
   }

@@ -2,7 +2,7 @@
 
 import { useAuth } from './useAuth';
 
-export function useUserRoles(churchId: string | null) {
+export function useUserRoles() {
   const { user, loading: authLoading } = useAuth();
 
   const roles = user?.roles ?? [];
