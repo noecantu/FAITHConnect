@@ -9,7 +9,7 @@ import { Textarea } from '@/app/components/ui/textarea';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { useSongs } from '@/app/hooks/useSongs';
-import { getSetListById, updateSetList } from '@/app/lib/setlists';
+import { getSetlistById, updateSetlist } from "@/app/(dashboard)/music/setlists/actions";
 import { SetList, SetListSection } from '@/app/lib/types';
 import { SetListSectionEditor } from '@/app/components/music/SetListSectionEditor';
 import { Fab } from '@/app/components/ui/fab';
@@ -22,7 +22,7 @@ export default function EditSetListPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
   const { songs: allSongs } = useSongs(churchId);
-  const { isAdmin, isMusicManager } = useUserRoles(churchId);
+  const { isAdmin, isMusicManager } = useUserRoles();
   const canEdit = isAdmin || isMusicManager;
 
   const [setList, setSetList] = useState<SetList | null>(null);
@@ -40,7 +40,7 @@ export default function EditSetListPage() {
     if (!churchId || !id) return;
 
     const load = async () => {
-      const data = await getSetListById(churchId, id as string);
+      const data = await getSetlistById(churchId, id as string);
       setSetList(data);
       setLoading(false);
 
@@ -114,7 +114,7 @@ export default function EditSetListPage() {
       updatedAt: Date.now(),
     };
 
-    await updateSetList(churchId, setList.id, updated);
+    await updateSetlist(churchId, setList.id, updated);
     router.push(`/music/setlists/${setList.id}`);
   };
 
