@@ -36,12 +36,12 @@ const StatusBadge = ({ status }: { status: Member['status'] }) => {
   if (status === 'Active') return null;
 
   if (status === 'Prospect') {
-    return <Badge variant="default">Prospect</Badge>;
+    return <Badge className="bg-yellow-700 text-white">Prospect</Badge>;
   }
 
   if (status === 'Archived') {
     return (
-      <Badge className="bg-muted text-foreground/70 border border-border">
+      <Badge className="bg-black text-foreground/70">
         Archived
       </Badge>
     );
