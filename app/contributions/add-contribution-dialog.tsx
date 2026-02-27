@@ -135,7 +135,7 @@ export function AddContributionDialog({
       toast({
         title: "Error adding contribution",
         description: (error as Error).message || "Please try again.",
-        variant: "destructive",
+        // variant: "destructive",
       });
     }
   }

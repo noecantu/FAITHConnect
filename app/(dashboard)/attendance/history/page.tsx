@@ -18,13 +18,12 @@ import {
   AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction
 } from '@/app/components/ui/alert-dialog';
 
 import { Trash } from 'lucide-react';
 import { useAttendanceFilters } from '@/app/hooks/useAttendanceFilters';
 import { AttendanceHistoryControls } from '@/app/components/attendance/AttendanceHistoryControls';
+import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dialog';
 
 // --------------------------------------------------
 // Page Component

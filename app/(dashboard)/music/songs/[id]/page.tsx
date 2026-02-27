@@ -14,8 +14,6 @@ import { Separator } from '@/app/components/ui/separator';
 import { Copy, Pencil, Trash } from 'lucide-react';
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -26,13 +24,14 @@ import {
 import { useToast } from '@/app/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu';
 import { Fab } from '@/app/components/ui/fab';
+import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dialog';
 
 export default function SongDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const { churchId } = useChurchId();
   const { roles, isAdmin } = useUserRoles(churchId);
-  const canEdit = isAdmin || roles.includes('WorshipLeader');
+  const canEdit = isAdmin || roles.includes('MusicManager');
 
   const [song, setSong] = useState<Song | null>(null);
   const [loading, setLoading] = useState(true);

@@ -16,12 +16,11 @@ export function useAuth(): { user: User | null; loading: boolean } {
     let unsubscribeUserDoc: (() => void) | null = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
-console.log("🔥 Firebase Auth state changed:", firebaseUser);
+      if (!isActive) return;
 
-      // Always reset loading when auth state changes
-      if (isActive) {
-        setLoading(true);
-      }
+      // Reset loading whenever auth state changes
+      setLoading(true);
+
       // Clean up previous Firestore listener
       if (unsubscribeUserDoc) {
         unsubscribeUserDoc();
@@ -30,14 +29,12 @@ console.log("🔥 Firebase Auth state changed:", firebaseUser);
 
       // Logged out
       if (!firebaseUser) {
-        if (isActive) {
-          setUser(null);
-          setLoading(false);
-        }
+        setUser(null);
+        setLoading(false);
         return;
       }
 
-      // Logged in → now wait for Firestore user doc
+      // Logged in → listen to Firestore user doc
       const userRef = doc(db, "users", firebaseUser.uid);
 
       unsubscribeUserDoc = onSnapshot(
@@ -52,7 +49,7 @@ console.log("🔥 Firebase Auth state changed:", firebaseUser);
           }
 
           const data = snap.data() as Partial<User>;
-console.log("Firestore user doc:", data);
+
           const mergedUser: User = {
             id: firebaseUser.uid,
             email: firebaseUser.email ?? "",
@@ -67,7 +64,7 @@ console.log("Firestore user doc:", data);
               fiscalYear: data.settings?.fiscalYear ?? undefined,
             },
           };
-console.log("Merged user:", mergedUser);
+
           setUser(mergedUser);
           setLoading(false);
         },

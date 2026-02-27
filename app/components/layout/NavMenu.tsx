@@ -195,7 +195,7 @@ export function NavMenu() {
       toast({
         title: "Logout Failed",
         description: "Could not log you out. Please try again.",
-        variant: "destructive",
+        // variant: "destructive",
       });
     }
   };

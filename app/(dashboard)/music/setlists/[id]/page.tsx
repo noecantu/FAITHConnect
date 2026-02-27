@@ -13,8 +13,9 @@ import { Fab } from '@/app/components/ui/fab';
 import { useRouter } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu';
 import { Copy, Pencil, Trash } from 'lucide-react';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/app/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/app/components/ui/alert-dialog';
 import { getSectionColor } from '@/app/lib/sectionColors';
+import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dialog';
 
 export default function SetListDetailPage() {
   const { id } = useParams();

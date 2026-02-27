@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { listenToSongs } from '../lib/songs';
-import type { Song } from '../lib/types';
+import { useEffect, useState } from "react";
+import type { Song } from "@/app/lib/types";
+import { getSongs } from "@/app/lib/songs"; 
 
 export function useSongs(churchId: string | null) {
   const [songs, setSongs] = useState<Song[]>([]);
@@ -11,21 +11,25 @@ export function useSongs(churchId: string | null) {
   useEffect(() => {
     if (!churchId) {
       setSongs([]);
+      setLoading(false);
       return;
     }
 
+    let active = true;
     setLoading(true);
 
-    const unsubscribe = listenToSongs(
-      churchId,
-      (list) => {
-        setSongs(list);
-        setLoading(false);
-      },
-      "use-songs-hook"
-    );
+    (async () => {
+      try {
+        const list = await getSongs(churchId);
+        if (active) setSongs(list);
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
 
-    return () => unsubscribe();
+    return () => {
+      active = false;
+    };
   }, [churchId]);
 
   return { songs, loading };

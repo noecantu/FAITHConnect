@@ -28,8 +28,6 @@ import {
 } from '../components/ui/select';
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -44,6 +42,7 @@ import type { Contribution, Member } from '../lib/types';
 
 import Flatpickr from "react-flatpickr";
 import { StandardDialogLayout } from '../components/layout/StandardDialogLayout';
+import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dialog';
 
 const contributionSchema = z.object({
   memberId: z.string().min(1, 'Member is required'),
@@ -113,7 +112,7 @@ export function EditContributionDialog({
       toast({
         title: 'Error updating contribution',
         description: (error as Error).message || 'Please try again.',
-        variant: 'destructive',
+        // variant: 'destructive',
       });
     }
   }
@@ -134,7 +133,7 @@ export function EditContributionDialog({
       toast({
         title: 'Error deleting contribution',
         description: (error as Error).message || 'Please try again.',
-        variant: 'destructive',
+        // variant: 'destructive',
       });
     }
   }

@@ -69,7 +69,7 @@ export default function EditUserForm({
       toast({
         title: "Not Authorized",
         description: "You must be logged in as an admin.",
-        variant: "destructive",
+        // variant: "destructive",
       });
       return;
     }
