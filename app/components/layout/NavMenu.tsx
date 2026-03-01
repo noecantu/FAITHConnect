@@ -59,7 +59,7 @@ export function NavMenu() {
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false);
   const { toast } = useToast();
   const { churchId } = useChurchId();
-  const { roles = [], isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
+  const { roles = [], isAdmin, isMusicManager, isMusicMember } = useUserRoles();
 
   // Hide NavMenu during onboarding (AFTER hooks)
   const isOnboarding = pathname.startsWith("/onboarding");
@@ -203,7 +203,7 @@ export function NavMenu() {
   // --- UI ---
   return (
     <>
-      <DropdownMenu modal={false}>
+      <DropdownMenu modal={true}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
             <Menu />

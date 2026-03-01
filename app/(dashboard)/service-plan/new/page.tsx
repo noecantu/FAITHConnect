@@ -13,7 +13,7 @@ export default function NewServicePlanPage() {
       isOpen={true}
       onClose={() => router.back()}
       churchId={churchId!}
-      plan={null} // null = Add mode
+      plan={null}
     />
   );
 }

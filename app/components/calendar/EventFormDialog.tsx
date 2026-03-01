@@ -35,7 +35,7 @@ export function EventFormDialog({
 }) {
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
       <StandardDialogLayout
         title={isEditing ? "Edit Event" : "Add New Event"}
         description={

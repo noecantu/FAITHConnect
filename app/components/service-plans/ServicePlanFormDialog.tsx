@@ -104,7 +104,7 @@ interface Props {
 export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props) {
   const isEdit = !!plan;
 
-  const { members } = useMembers(churchId);
+  const { members } = useMembers();
   const { songs } = useSongs(churchId);
 
   const form = useForm<FormValues>({
@@ -133,7 +133,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
   });
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose} modal={false}>
+    <Dialog open={isOpen} onOpenChange={onClose} modal={true}>
       <DialogContent
         className="w-[95vw] max-w-3xl max-h-[85dvh] flex flex-col p-0"
         onOpenAutoFocus={(e) => e.preventDefault()}

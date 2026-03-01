@@ -31,7 +31,7 @@ export function DeleteServicePlanDialog({
   router,
 }: DeleteServicePlanDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
       <DialogPortal>
         <DialogContent
           className="w-[95vw] max-w-md max-h-[85dvh] flex flex-col p-0"

@@ -20,10 +20,8 @@ import { useServicePlans } from '@/app/hooks/useServicePlans';
 import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { useRouter } from 'next/navigation';
 
-// -----------------------------
 // TYPES
-// -----------------------------
-type SortType = 'newest' | 'oldest' | 'title';
+type SortType = "date-desc" | "date-asc" | "title-asc";
 type FilterType = 'all' | 'future' | 'past';
 
 export default function ServicePlanPage() {
@@ -34,22 +32,20 @@ export default function ServicePlanPage() {
     isAdmin,
     isServiceManager,
     loading: rolesLoading
-  } = useUserRoles(churchId);
+  } = useUserRoles();
 
   const canManage = isAdmin || isServiceManager;
   const canView = isAdmin || isServiceManager;
 
   const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<SortType>('newest');
+  const [sort, setSort] = useState<SortType>("date-desc");
   const [filter, setFilter] = useState<FilterType>('all');
 
   const router = useRouter();
 
-  // -----------------------------
   // TYPE-SAFE HANDLERS
-  // -----------------------------
   const handleSortChange = (value: string) => {
-    if (value === 'newest' || value === 'oldest' || value === 'title') {
+    if (value === "date-desc" || value === "date-asc" || value === "title-asc") {
       setSort(value);
     }
   };
@@ -60,9 +56,7 @@ export default function ServicePlanPage() {
     }
   };
 
-  // -----------------------------
   // FILTER + SORT
-  // -----------------------------
   const filtered = useMemo(() => {
     if (!plans) return [];
 
@@ -82,20 +76,18 @@ export default function ServicePlanPage() {
       result = result.filter((p) => p.dateTime.getTime() < today.getTime());
     }
 
-    if (sort === 'newest') {
+    if (sort === "date-desc") {
       result.sort((a, b) => b.dateTime.getTime() - a.dateTime.getTime());
-    } else if (sort === 'oldest') {
+    } else if (sort === "date-asc") {
       result.sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
-    } else if (sort === 'title') {
+    } else if (sort === "title-asc") {
       result.sort((a, b) => a.title.localeCompare(b.title));
     }
 
     return result;
   }, [plans, search, sort, filter]);
 
-  // -----------------------------
   // LOADING + PERMISSIONS
-  // -----------------------------
   if (churchLoading || plansLoading || rolesLoading) {
     return (
       <div className="p-6">
@@ -135,13 +127,11 @@ export default function ServicePlanPage() {
     );
   }
 
-  // -----------------------------
   // RENDER
-  // -----------------------------
   return (
     <>
       <PageHeader
-        title={`Service PLans`}
+        title={`Service Plans`}
         subtitle={`Total: ${plans.length}`}
       />
 
