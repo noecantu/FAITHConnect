@@ -47,7 +47,7 @@ export default function ContributionsPage() {
   const [selected, setSelected] = React.useState<Contribution | null>(null);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
-  const { isFinance } = useUserRoles(churchId);
+  const { isFinance } = useUserRoles();
   const { fiscalYear } = useSettings();
   const { user } = useAuth();
 
