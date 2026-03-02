@@ -11,7 +11,7 @@ import {
 import { ContributionChart } from '@/app/components/contributions/ContributionChart';
 import { ContributionsTable } from '@/app/components/contributions/ContributionsTable';
 import { getColumns } from '@/app/components/contributions/Columns';
-import { EditContributionDialog } from '@/app/components/contributions/EditContribution-Dalog';
+import { EditContributionDialog } from '@/app/components/contributions/EditContributionDialog';
 import { AddContributionDialog } from '@/app/components/contributions/AddContributionDialog';
 import { getContributionSummaryText } from "@/app/components/contributions/ContributionSummary";
 
