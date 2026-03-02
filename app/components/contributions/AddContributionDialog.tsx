@@ -3,13 +3,17 @@
 import * as React from 'react';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import dayjs from 'dayjs';
+import { useForm, UseFormReturn } from 'react-hook-form';
 
-import { Button } from '../components/ui/button';
+import { Button } from '@/app/components/ui/button';
 import {
   Dialog,
-} from '../components/ui/dialog';
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/app/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -17,128 +21,125 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '../components/ui/form';
-import { Input } from '../components/ui/input';
+} from '@/app/components/ui/form';
+import { Input } from '@/app/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../components/ui/select';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '../components/ui/alert-dialog';
+} from '@/app/components/ui/select';
 
-import { useToast } from '../hooks/use-toast';
-import { useChurchId } from '../hooks/useChurchId';
-import { updateContribution, deleteContribution } from '../lib/contributions';
-import type { Contribution, Member } from '../lib/types';
-
+import { useToast } from '@/app/hooks/use-toast';
+import { addContribution } from '@/app/lib/contributions';
+import type { Contribution, Member } from '@/app/lib/types';
 import Flatpickr from "react-flatpickr";
-import { StandardDialogLayout } from '../components/layout/StandardDialogLayout';
-import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dialog';
+import dayjs from 'dayjs';
 
 const contributionSchema = z.object({
-  memberId: z.string().min(1, 'Member is required'),
+  memberId: z.string().optional(),
+  customContributorName: z.string().optional(),
   amount: z.coerce.number().positive('Amount must be positive'),
   category: z.enum(['Tithes', 'Offering', 'Donation', 'Other']),
   contributionType: z.enum(['Digital Transfer', 'Cash', 'Check', 'Other']),
-  date: z.date(),
-});
+  date: z.string().min(1, 'Date is required'),
+}).refine(
+  (data) => data.memberId || data.customContributorName,
+  {
+    message: "Select a member or enter a contributor name",
+    path: ["memberId"],
+  }
+);
 
 type ContributionFormValues = z.infer<typeof contributionSchema>;
 
-interface EditContributionDialogProps {
-  contribution: Contribution | null;
-  members: Member[];
+interface AddContributionDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  members: Member[];
+  churchId: string | null;
 }
 
-export function EditContributionDialog({
-  contribution,
-  members,
+export function AddContributionDialog({
   isOpen,
   onClose,
-}: EditContributionDialogProps) {
+  members,
+  churchId,
+}: AddContributionDialogProps) {
   const { toast } = useToast();
-  const { churchId } = useChurchId();
-  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = React.useState(false);
 
   const form = useForm<ContributionFormValues>({
     resolver: zodResolver(contributionSchema),
     defaultValues: {
       memberId: '',
+      customContributorName: "",
       amount: 0,
       category: 'Tithes',
       contributionType: 'Digital Transfer',
-      date: new Date(),
+      date: "",
     },
   });
 
-  React.useEffect(() => {
-    if (contribution) {
-      form.reset({
-        memberId: contribution.memberId,
-        amount: contribution.amount,
-        category: contribution.category,
-        contributionType: contribution.contributionType,
-        date: new Date(contribution.date),
-      });
-    }
-  }, [contribution, form]);
-
   async function onSubmit(values: ContributionFormValues) {
-    if (!churchId || !contribution) return;
+    if (!churchId) return;
+
+    let memberId: string | undefined = undefined;
+    let memberName: string;
+
+    // Determine member or custom contributor
+    if (values.memberId && values.memberId !== "custom") {
+      const member = members.find((m) => m.id === values.memberId);
+      memberId = values.memberId;
+      memberName = member
+        ? `${member.firstName} ${member.lastName}`
+        : "Unknown Member";
+    } else {
+      memberName = values.customContributorName || "Unknown Contributor";
+    }
+
+    // Build Firestore-safe payload (no undefined fields)
+    const payload: Omit<Contribution, "id"> = {
+      memberName,
+      amount: values.amount,
+      category: values.category,
+      contributionType: values.contributionType,
+      date: values.date,
+    };
+
+    // Only include memberId if it is a REAL member ID
+    if (memberId) {
+      payload.memberId = memberId;
+    }
 
     try {
-      await updateContribution(churchId, contribution.id, {
-        ...values,
-        date: values.date.toISOString(),
-      });      
+      await addContribution(churchId, payload);
+
       toast({
-        title: 'Contribution Updated',
-        description: 'The contribution details have been saved.',
+        title: "Contribution Added",
+        description: `Added ${values.amount} (${values.contributionType}) for ${memberName}.`,
       });
+
+      form.reset({
+        memberId: "",
+        customContributorName: "",
+        amount: 0,
+        category: "Tithes",
+        contributionType: "Digital Transfer",
+        date: "",
+      });
+
       onClose();
     } catch (error) {
       console.error(error);
       toast({
-        title: 'Error updating contribution',
-        description: (error as Error).message || 'Please try again.',
-        // variant: 'destructive',
+        title: "Error adding contribution",
+        description: (error as Error).message || "Please try again.",
+        // variant: "destructive",
       });
     }
   }
 
-  async function handleDelete() {
-    if (!churchId || !contribution) return;
-
-    try {
-      await deleteContribution(churchId, contribution.id);
-      toast({
-        title: 'Contribution Deleted',
-        description: 'The contribution has been successfully deleted.',
-      });
-      setIsDeleteAlertOpen(false);
-      onClose();
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: 'Error deleting contribution',
-        description: (error as Error).message || 'Please try again.',
-        // variant: 'destructive',
-      });
-    }
-  }
-
-  // Sort members by Last Name, First Name
   const sortedMembers = React.useMemo(() => {
     return [...members].sort((a, b) => {
       const nameA = `${a.lastName}, ${a.firstName}`.toLowerCase();
@@ -148,35 +149,27 @@ export function EditContributionDialog({
   }, [members]);
 
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <StandardDialogLayout
-          title="Edit Contribution"
-          description="Update the details of this contribution."
-          onClose={onClose}
-          footer={
-            <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => setIsDeleteAlertOpen(true)}
-              >
-                Delete
-              </Button>
-          
-              <Button type="submit" form="edit-contribution-form">
-                Save Changes
-              </Button>
-            </div>
-          }                              
-        >
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent
+        className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        {/* Header (non-scrollable) */}
+        <DialogHeader className="shrink-0 px-6 pt-6">
+          <DialogTitle>Add Contribution</DialogTitle>
+          <DialogDescription>
+            Record a new financial contribution.
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Scrollable content */}
+        <div className="flex-grow overflow-y-auto px-6 py-4">
           <Form {...form}>
             <form
-              id="edit-contribution-form"
+              id="add-contribution-form"
               onSubmit={form.handleSubmit(onSubmit)}
               className="space-y-4"
             >
-              {/* DATE */}
               <FormField
                 control={form.control}
                 name="date"
@@ -186,7 +179,7 @@ export function EditContributionDialog({
                     <FormControl>
                       <div className="relative">
                         <Flatpickr
-                          value={field.value ? dayjs(field.value).toDate() : []}
+                          value={field.value ? [dayjs(field.value).toDate()] : []}
                           options={{
                             dateFormat: "Y-m-d",
                             altInput: true,
@@ -197,7 +190,7 @@ export function EditContributionDialog({
                           onChange={(selectedDates) => {
                             const d = selectedDates?.[0];
                             if (!d) return;
-                            field.onChange(dayjs(d).toDate());
+                            field.onChange(d);
                           }}
                           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                         />
@@ -208,14 +201,22 @@ export function EditContributionDialog({
                 )}
               />
 
-              {/* MEMBER */}
+              {/* Member */}
               <FormField
                 control={form.control}
                 name="memberId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Member</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select
+                      value={field.value}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        if (value !== "custom") {
+                          form.setValue("customContributorName", "");
+                        }
+                      }}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a member" />
@@ -223,12 +224,14 @@ export function EditContributionDialog({
                       </FormControl>
                       <SelectContent>
                         {sortedMembers
-                          .filter((m) => m.status === 'Active')
+                          .filter((m) => m.status === "Active")
                           .map((member) => (
                             <SelectItem key={member.id} value={member.id}>
                               {member.lastName}, {member.firstName}
                             </SelectItem>
                           ))}
+
+                        <SelectItem value="custom">Not a member</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -236,7 +239,9 @@ export function EditContributionDialog({
                 )}
               />
 
-              {/* AMOUNT */}
+              <CustomContributorField form={form} />
+
+              {/* Amount */}
               <FormField
                 control={form.control}
                 name="amount"
@@ -244,14 +249,23 @@ export function EditContributionDialog({
                   <FormItem>
                     <FormLabel>Amount</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" {...field} />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          field.onChange(v === "" ? 0 : Number(v));
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* CATEGORY */}
+              {/* Category */}
               <FormField
                 control={form.control}
                 name="category"
@@ -276,7 +290,7 @@ export function EditContributionDialog({
                 )}
               />
 
-              {/* CONTRIBUTION TYPE */}
+              {/* Contribution Type */}
               <FormField
                 control={form.control}
                 name="contributionType"
@@ -302,24 +316,35 @@ export function EditContributionDialog({
               />
             </form>
           </Form>
-        </StandardDialogLayout>
-      </Dialog>
+        </div>
 
-      {/* DELETE CONFIRMATION */}
-      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the contribution record.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Continue</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+        {/* Footer (non-scrollable) */}
+        <DialogFooter className="shrink-0 border-t px-6 pb-6 pt-4 flex justify-end gap-2">
+          <Button type="submit" form="add-contribution-form">
+            Add Contribution
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CustomContributorField({ form }: { form: UseFormReturn<ContributionFormValues> }) {
+  if (form.watch("memberId") !== "custom") return null;
+
+  return (
+    <FormField
+      control={form.control}
+      name="customContributorName"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Contributor Name</FormLabel>
+          <FormControl>
+            <Input placeholder="Enter contributor name" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import type { Contribution } from '../lib/types';
+import type { Contribution } from '@/app/lib/types';
 
 export function getContributionSummaryText(
   contributions: Contribution[],

@@ -1,36 +1,36 @@
 'use client';
 
-import { PageHeader } from '../components/page-header';
+import { PageHeader } from '@/app/components/page-header';
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
-} from '../components/ui/card';
+} from '@/app/components/ui/card';
 
-import { ContributionChart } from './contribution-chart';
-import { ContributionsTable } from './contributions-table';
-import { getColumns } from './columns';
-import { EditContributionDialog } from './edit-contribution-dialog';
-import { AddContributionDialog } from './add-contribution-dialog';
-import { getContributionSummaryText } from "./contribution-summary";
+import { ContributionChart } from '@/app/components/contributions/ContributionChart';
+import { ContributionsTable } from '@/app/components/contributions/ContributionsTable';
+import { getColumns } from '@/app/components/contributions/Columns';
+import { EditContributionDialog } from '@/app/components/contributions/EditContribution-Dalog';
+import { AddContributionDialog } from '@/app/components/contributions/AddContributionDialog';
+import { getContributionSummaryText } from "@/app/components/contributions/ContributionSummary";
 
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
-import { useChurchId } from '../hooks/useChurchId';
-import { listenToContributions } from '../lib/contributions';
-import { listenToMembers } from '../lib/members';
-import { useUserRoles } from '../hooks/useUserRoles';
+import { useChurchId } from '@/app/hooks/useChurchId';
+import { listenToContributions } from '@/app/lib/contributions';
+import { listenToMembers } from '@/app/lib/members';
+import { useUserRoles } from '@/app/hooks/useUserRoles';
 
-import type { Contribution, Member } from '../lib/types';
+import type { Contribution, Member } from '@/app/lib/types';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Fab } from '../components/ui/fab';
-import { useSettings } from "../hooks/use-settings";
-import { useAuth } from "../hooks/useAuth";
+import { Fab } from '@/app/components/ui/fab';
+import { useSettings } from "@/app/hooks/use-settings";
+import { useAuth } from "@/app/hooks/useAuth";
 import { updateDoc, doc, serverTimestamp } from "firebase/firestore";
-import { db } from "../lib/firebase";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { db } from "@/app/lib/firebase";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import React from 'react';
 
 // ------------------------------

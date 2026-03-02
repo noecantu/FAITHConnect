@@ -9,7 +9,7 @@ import {
   YAxis,
   Tooltip,
 } from 'recharts';
-import type { Contribution } from '../lib/types';
+import type { Contribution } from '@/app/lib/types';
 
 interface ContributionChartProps {
   data: Contribution[];

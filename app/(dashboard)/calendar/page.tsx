@@ -4,29 +4,29 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
-import { PageHeader } from '../components/page-header';
-import { Fab } from '../components/ui/fab';
+import { PageHeader } from '@/app/components/page-header';
+import { Fab } from '@/app/components/ui/fab';
 
-import { useAuth } from '../hooks/useAuth';
-import { useChurchId } from '../hooks/useChurchId';
-import { useUserRoles } from '../hooks/useUserRoles';
-import { useSettings } from '../hooks/use-settings';
+import { useAuth } from '@/app/hooks/useAuth';
+import { useChurchId } from '@/app/hooks/useChurchId';
+import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { useSettings } from '@/app/hooks/use-settings';
 
-import { useCalendarEvents } from '../hooks/useCalendarEvents';
-import { useCalendarMonth } from '../hooks/useCalendarMonth';
-import { useCalendarView } from '../hooks/useCalendarView';
-import { useCalendarFilters } from '../hooks/useCalendarFilters';
-import { useCalendarDialogs } from '../hooks/useCalendarDialogs';
+import { useCalendarEvents } from '@/app/hooks/useCalendarEvents';
+import { useCalendarMonth } from '@/app/hooks/useCalendarMonth';
+import { useCalendarView } from '@/app/hooks/useCalendarView';
+import { useCalendarFilters } from '@/app/hooks/useCalendarFilters';
+import { useCalendarDialogs } from '@/app/hooks/useCalendarDialogs';
 
-import { CalendarControls } from '../components/calendar/CalendarControls';
-import { CalendarViewSwitcher } from '../components/calendar/CalendarViewSwitcher';
-import { CalendarDialogs } from '../components/calendar/CalendarDialogs';
+import { CalendarControls } from '@/app/components/calendar/CalendarControls';
+import { CalendarViewSwitcher } from '@/app/components/calendar/CalendarViewSwitcher';
+import { CalendarDialogs } from '@/app/components/calendar/CalendarDialogs';
 
-import { dateKey } from '../lib/calendar/utils';
+import { dateKey } from '@/app/lib/calendar/utils';
 import { createTheme } from '@mui/material/styles';
-import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
+import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
 import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db } from '@/app/lib/firebase';
 
 // ------------------------------
 // Schema

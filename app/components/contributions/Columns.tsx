@@ -1,7 +1,7 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
-import type { Contribution } from '../lib/types';
+import type { Contribution } from '@/app/lib/types';
 
 export const getColumns = (): ColumnDef<Contribution>[] => [
   {
