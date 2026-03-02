@@ -9,29 +9,26 @@ import { Textarea } from '@/app/components/ui/textarea';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { useSongs } from '@/app/hooks/useSongs';
-import { getSetlistById, updateSetlist } from "@/app/(dashboard)/music/setlists/actions";
+import { getSetListById, updateSetList } from '@/app/lib/setlists';
 import { SetList, SetListSection } from '@/app/lib/types';
 import { SetListSectionEditor } from '@/app/components/music/SetListSectionEditor';
 import { Fab } from '@/app/components/ui/fab';
-
-import Flatpickr from "react-flatpickr";
-import dayjs from "dayjs";
 
 export default function EditSetListPage() {
   const { id } = useParams();
   const router = useRouter();
   const { churchId } = useChurchId();
   const { songs: allSongs } = useSongs(churchId);
-  const { isAdmin, isMusicManager } = useUserRoles();
+  const { isAdmin, isMusicManager } = useUserRoles(churchId);
   const canEdit = isAdmin || isMusicManager;
-
+  
   const [setList, setSetList] = useState<SetList | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Form state
   const [title, setTitle] = useState('');
-  const [dateString, setDateString] = useState('');
-  const [timeString, setTimeString] = useState('');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
   const [notes, setNotes] = useState('');
   const [sections, setSections] = useState<SetListSection[]>([]);
   const [saving, setSaving] = useState(false);
@@ -40,14 +37,13 @@ export default function EditSetListPage() {
     if (!churchId || !id) return;
 
     const load = async () => {
-      const data = await getSetlistById(churchId, id as string);
+      const data = await getSetListById(churchId, id as string);
       setSetList(data);
       setLoading(false);
 
       if (data) {
         setTitle(data.title);
-        setDateString(data.dateString);
-        setTimeString(data.timeString ?? "10:00");
+        setDate(data.dateString);
         setSections(data.sections ?? []);
         setNotes(data.serviceNotes?.notes ?? '');
       }
@@ -55,7 +51,13 @@ export default function EditSetListPage() {
 
     load();
   }, [churchId, id]);
-
+  
+  useEffect(() => {
+    if (setList?.date) {
+      setTime(setList.timeString);
+    }
+  }, [setList]);    
+  
   if (!churchId) {
     return (
       <div className="p-6">
@@ -94,18 +96,15 @@ export default function EditSetListPage() {
     );
   }
 
-  // Reconstruct full JS Date for Flatpickr
-  const fullDate = dayjs(`${dateString}T${timeString}`).toDate();
-
   const handleSave = async () => {
-    if (!title.trim() || !dateString || !timeString) return;
-
+    if (!title.trim() || !date || !time) return;
+  
     setSaving(true);
-
+  
     const updated = {
       title: title.trim(),
-      dateString,
-      timeString,
+      dateString: date,
+      timeString: time,
       sections,
       serviceNotes: {
         ...setList.serviceNotes,
@@ -113,17 +112,16 @@ export default function EditSetListPage() {
       },
       updatedAt: Date.now(),
     };
-
-    await updateSetlist(churchId, setList.id, updated);
+  
+    await updateSetList(churchId, setList.id, updated);
     router.push(`/music/setlists/${setList.id}`);
-  };
+  };  
 
   return (
     <div className="space-y-6">
       <PageHeader title="Edit Set List" />
 
       <Card className="p-6 space-y-4">
-
         {/* Title */}
         <div>
           <label className="block text-sm font-medium mb-1">Set List Title</label>
@@ -134,29 +132,25 @@ export default function EditSetListPage() {
           />
         </div>
 
-        {/* Date & Time */}
+        {/* Date */}
         <div>
-          <label className="block text-sm font-medium mb-1">Date & Time</label>
+          <label className="block text-sm font-medium mb-1">Date</label>
 
-          <Flatpickr
-            value={fullDate ?? []}
-            options={{
-              enableTime: true,
-              time_24hr: false,
-              dateFormat: "Y-m-d H:i",
-              altInput: true,
-              altFormat: "F j, Y h:i K",
-              allowInput: false,
-              static: true,
-            }}
-            onChange={(selectedDates) => {
-              const d = selectedDates?.[0];
-              if (!d) return;
+          <Input
+            type="date"
+            value={date || ""}
+            onChange={(e) => setDate(e.target.value)}
+          />
+        </div>
 
-              setDateString(dayjs(d).format("YYYY-MM-DD"));
-              setTimeString(dayjs(d).format("HH:mm"));
-            }}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+        <div>
+          <label className="block text-sm font-medium mb-1">Event Time</label>
+          <Input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="w-full h-10"
+            style={{ width: '100%' }}
           />
         </div>
 
@@ -182,11 +176,13 @@ export default function EditSetListPage() {
 
       </Card>
 
+      {/* Save FAB */}
       <Fab
         type="save"
         onClick={handleSave}
-        disabled={saving || !title.trim() || !dateString}
+        disabled={saving || !title.trim() || !date}
       />
+
     </div>
   );
 }

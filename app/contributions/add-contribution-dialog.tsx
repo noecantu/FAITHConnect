@@ -170,7 +170,6 @@ export function AddContributionDialog({
               onSubmit={form.handleSubmit(onSubmit)}
               className="space-y-4"
             >
-              {/* DATE */}
               <FormField
                 control={form.control}
                 name="date"
