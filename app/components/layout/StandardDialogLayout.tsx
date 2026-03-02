@@ -28,7 +28,7 @@ export function StandardDialogLayout({
 }: StandardDialogLayoutProps) {
   return (
     <DialogContent
-      className={`w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0 ${className}`}
+      className={`w-[95vw] max-w-3xl max-h-[85dvh] flex flex-col p-0 ${className}`}
       onOpenAutoFocus={(e) => e.preventDefault()}
     >
       {/* Close Button */}

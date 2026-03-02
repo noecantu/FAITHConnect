@@ -9,9 +9,10 @@ import { Button } from '../ui/button';
 import { createSetList, updateSetList } from '@/app/lib/setlists';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { SetList } from '@/app/lib/types';
-import { Popover, PopoverTrigger, PopoverContent } from "../ui/popover";
-import { Calendar } from "../ui/calendar";
+// import { Popover, PopoverTrigger, PopoverContent } from "../ui/popover";
+// import { Calendar } from "../ui/calendar";
 import { format } from "date-fns";
+import Flatpickr from "react-flatpickr";
 
 export function SetListEditorDialog({
   children,
@@ -38,7 +39,7 @@ export function SetListEditorDialog({
   );
 
   // Calendar popover
-  const [openCalendar, setOpenCalendar] = useState(false);
+  // const [openCalendar, setOpenCalendar] = useState(false);
 
   // Convert dateString → Date for the calendar UI only
   const parsedDate = new Date(`${dateString}T00:00:00`);
@@ -88,32 +89,24 @@ export function SetListEditorDialog({
             <Input value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
 
-          {/* Date */}
-          <div>
+          <div className="w-full">
             <Label>Date</Label>
 
-            <Popover open={openCalendar} onOpenChange={setOpenCalendar}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
-                  {parsedDate ? format(parsedDate, "PPP") : "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={parsedDate}
-                  onSelect={(d) => {
-                    if (!d) return;
-                    setDateString(format(d, "yyyy-MM-dd"));
-                    setOpenCalendar(false);
-                  }}
-                />
-              </PopoverContent>
-            </Popover>
+            <Flatpickr
+              value={parsedDate ? parsedDate : []}
+              options={{
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "F j, Y",
+                static: true,
+                monthSelectorType: "static",
+              }}
+              onChange={(selectedDates) => {
+                if (!selectedDates?.[0]) return;
+                setDateString(format(selectedDates[0], "yyyy-MM-dd"));
+              }}
+              className="flatpickr-input w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
           </div>
 
           {/* Time */}

@@ -73,7 +73,7 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
     return (
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline">+ Add Section</Button>
+          <Button variant="default">+ Add Section</Button>
         </PopoverTrigger>
 
         <PopoverContent className="w-56 p-2 space-y-1">
