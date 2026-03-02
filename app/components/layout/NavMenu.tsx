@@ -59,7 +59,7 @@ export function NavMenu() {
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false);
   const { toast } = useToast();
   const { churchId } = useChurchId();
-  const { roles = [], isAdmin, isMusicManager, isMusicMember } = useUserRoles();
+  const { roles = [], isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
 
   // Hide NavMenu during onboarding (AFTER hooks)
   const isOnboarding = pathname.startsWith("/onboarding");
@@ -233,12 +233,18 @@ export function NavMenu() {
             </AlertDialogDescription>
           </AlertDialogHeader>
 
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleLogout}>
-              Log Out
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel asChild>
+              <Button variant="outline">Cancel</Button>
+            </AlertDialogCancel>
+
+            <AlertDialogAction asChild>
+              <Button variant="default" onClick={handleLogout}>
+                Log Out
+              </Button>
             </AlertDialogAction>
           </AlertDialogFooter>
+
         </AlertDialogContent>
       </AlertDialog>
     </>

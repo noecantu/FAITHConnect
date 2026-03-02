@@ -11,7 +11,7 @@ import { SetListEditorDialog } from '../SetListEditorDialog';
 export default function SetListsPage() {
   const { churchId } = useChurchId();
   const { lists, loading } = useSetLists(churchId);
-  const { isAdmin, isMusicManager } = useUserRoles();
+  const { isAdmin, isMusicManager } = useUserRoles(churchId);
 
   const canManage = isAdmin || isMusicManager;
 
