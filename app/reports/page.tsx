@@ -22,12 +22,10 @@ import { MemberFieldSelect } from '@/app/components/reports/MemberFieldSelect';
 // Preview table components
 import { MemberPreviewTable } from '@/app/components/reports/MemberPreviewTable';
 import { ContributionPreviewTable } from '@/app/components/reports/ContributionPreviewTable';
-import { useChurchId } from '@/app/hooks/useChurchId';
 import { ContributionRangeSelect } from '@/app/components/reports/ContributionRangeSelect';
 
 export default function ReportsPage() {
-  const { churchId } = useChurchId();
-  const { members } = useMembers(churchId);
+  const { members } = useMembers();
   const { contributions } = useContributions();
 
   const [reportType, setReportType] =

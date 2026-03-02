@@ -13,7 +13,7 @@ export function useServicePlanDetail() {
   const { id } = useParams();
   const { churchId } = useChurchId();
 
-  const { members, loading: membersLoading } = useMembers(churchId);
+  const { members, loading: membersLoading } = useMembers();
   const { songs, loading: songsLoading } = useSongs(churchId);
 
   const {

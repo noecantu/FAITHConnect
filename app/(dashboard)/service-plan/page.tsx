@@ -32,7 +32,7 @@ export default function ServicePlanPage() {
     isAdmin,
     isServiceManager,
     loading: rolesLoading
-  } = useUserRoles();
+  } = useUserRoles(churchId);
 
   const canManage = isAdmin || isServiceManager;
   const canView = isAdmin || isServiceManager;

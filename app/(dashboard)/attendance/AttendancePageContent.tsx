@@ -91,7 +91,7 @@ export default function AttendancePageContent() {
   } = useUserRoles(churchId);
 
   // MEMBERS
-  const { members, loading: membersLoading } = useMembers(churchId);
+  const { members, loading: membersLoading } = useMembers();
 
   const {
     records,

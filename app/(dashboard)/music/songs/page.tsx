@@ -23,16 +23,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 export default function SongsPage() {
   const { churchId } = useChurchId();
   const { songs, loading } = useSongs(churchId);
-
-  // UPDATED: useUserRoles no longer accepts churchId
-  const { isAdmin, isMusicManager, isMusicMember } = useUserRoles();
-
+  const { isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
   const canManage = isAdmin || isMusicManager;
   const canView = isAdmin || isMusicMember || isMusicManager;
-
   const { user } = useAuth();
   const { settings } = useSettings();
-
   const savedSort = settings?.songSort ?? "title";
   const [sortBy, setSortBy] = useState<"title" | "artist" | "key" | "bpm">(savedSort);
   const [search, setSearch] = useState('');
@@ -210,7 +205,7 @@ export default function SongsPage() {
                             <div>
                               <h3 className="font-medium">{song.title}</h3>
                               <p className="text-sm text-muted-foreground">
-                                Key: {song.key || '—'} • Tempo: {song.bpm ?? '—'}
+                                Key: {song.key || '—'} • Tempo: {song.bpm ?? '—'} • Signature: {song.timeSignature ?? '—'}
                               </p>
                             </div>
 

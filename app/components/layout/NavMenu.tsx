@@ -136,21 +136,20 @@ export function NavMenu() {
             </DropdownMenuSubTrigger>
 
             <DropdownMenuSubContent>
-              <Link href="/music/songs">
-                <DropdownMenuItem
-                  className={pathname.startsWith("/music/songs") ? "bg-accent" : ""}
-                >
-                  <Music className="mr-2 h-4 w-4" />
-                  <span>Songs</span>
-                </DropdownMenuItem>
-              </Link>
-
               <Link href="/music/setlists">
                 <DropdownMenuItem
                   className={pathname.startsWith("/music/setlists") ? "bg-accent" : ""}
                 >
                   <ListMusic className="mr-2 h-4 w-4" />
                   <span>Set Lists</span>
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/music/songs">
+                <DropdownMenuItem
+                  className={pathname.startsWith("/music/songs") ? "bg-accent" : ""}
+                >
+                  <Music className="mr-2 h-4 w-4" />
+                  <span>Songs</span>
                 </DropdownMenuItem>
               </Link>
             </DropdownMenuSubContent>
