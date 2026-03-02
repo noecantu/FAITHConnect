@@ -4,15 +4,13 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageHeader } from '@/app/components/page-header';
 import { Card } from '@/app/components/ui/card';
-import { Input } from '@/app/components/ui/input';
-import { Textarea } from '@/app/components/ui/textarea';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { useSongs } from '@/app/hooks/useSongs';
 import { getSetListById, updateSetList } from '@/app/lib/setlists';
-import { SetList, SetListSection } from '@/app/lib/types';
-import { SetListSectionEditor } from '@/app/components/music/SetListSectionEditor';
+import { SetList } from '@/app/lib/types';
 import { Fab } from '@/app/components/ui/fab';
+import { SetListForm } from '@/app/components/music/SetListForm';
 
 export default function EditSetListPage() {
   const { id } = useParams();
@@ -21,16 +19,9 @@ export default function EditSetListPage() {
   const { songs: allSongs } = useSongs(churchId);
   const { isAdmin, isMusicManager } = useUserRoles(churchId);
   const canEdit = isAdmin || isMusicManager;
-  
+
   const [setList, setSetList] = useState<SetList | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Form state
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
-  const [notes, setNotes] = useState('');
-  const [sections, setSections] = useState<SetListSection[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -40,24 +31,11 @@ export default function EditSetListPage() {
       const data = await getSetListById(churchId, id as string);
       setSetList(data);
       setLoading(false);
-
-      if (data) {
-        setTitle(data.title);
-        setDate(data.dateString);
-        setSections(data.sections ?? []);
-        setNotes(data.serviceNotes?.notes ?? '');
-      }
     };
 
     load();
   }, [churchId, id]);
-  
-  useEffect(() => {
-    if (setList?.date) {
-      setTime(setList.timeString);
-    }
-  }, [setList]);    
-  
+
   if (!churchId) {
     return (
       <div className="p-6">
@@ -96,93 +74,51 @@ export default function EditSetListPage() {
     );
   }
 
-  const handleSave = async () => {
-    if (!title.trim() || !date || !time) return;
-  
+  const handleSubmit = async (data: {
+    title: string;
+    dateString: string;
+    timeString: string;
+    sections: any[];
+    notes: string;
+  }) => {
     setSaving(true);
-  
-    const updated = {
-      title: title.trim(),
-      dateString: date,
-      timeString: time,
-      sections,
+
+    await updateSetList(churchId, setList.id, {
+      ...data,
       serviceNotes: {
         ...setList.serviceNotes,
-        notes: notes.trim(),
+        notes: data.notes,
       },
-      updatedAt: Date.now(),
-    };
-  
-    await updateSetList(churchId, setList.id, updated);
+    });
+
     router.push(`/music/setlists/${setList.id}`);
-  };  
+  };
 
   return (
     <div className="space-y-6">
       <PageHeader title="Edit Set List" />
 
       <Card className="p-6 space-y-4">
-        {/* Title */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Set List Title</label>
-          <Input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter Title"
-          />
-        </div>
-
-        {/* Date */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Date</label>
-
-          <Input
-            type="date"
-            value={date || ""}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Event Time</label>
-          <Input
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            className="w-full h-10"
-            style={{ width: '100%' }}
-          />
-        </div>
-
-        {/* Sections */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium">Sections & Songs</label>
-          <SetListSectionEditor
-            sections={sections}
-            onChange={setSections}
-            allSongs={allSongs}
-          />
-        </div>
-
-        {/* Notes */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Notes</label>
-          <Textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Any special instructions, transitions, or reminders."
-          />
-        </div>
-
+        <SetListForm
+          mode="edit"
+          initial={setList}
+          allSongs={allSongs}
+          onSubmit={handleSubmit}
+        />
       </Card>
 
-      {/* Save FAB */}
       <Fab
         type="save"
-        onClick={handleSave}
-        disabled={saving || !title.trim() || !date}
-      />
+        onClick={() => {
+          // Trigger the form's submit handler
+          const hiddenButton = document.querySelector(
+            'button[type="submit"]'
+          ) as HTMLButtonElement | null;
 
+          hiddenButton?.click();
+        }}
+        disabled={saving}
+      />
     </div>
   );
 }

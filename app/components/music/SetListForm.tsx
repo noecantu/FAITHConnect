@@ -1,0 +1,110 @@
+'use client';
+
+import { useState } from 'react';
+import Flatpickr from 'react-flatpickr';
+import { format } from 'date-fns';
+
+import { Input } from '@/app/components/ui/input';
+import { Textarea } from '@/app/components/ui/textarea';
+import { Label } from '@/app/components/ui/label';
+import { SetList, SetListSection } from '@/app/lib/types';
+import { SetListSectionEditor } from '@/app/components/music/SetListSectionEditor';
+
+interface SetListFormProps {
+  mode: 'create' | 'edit';
+  initial?: SetList;
+  allSongs?: any[];
+  onSubmit: (data: {
+    title: string;
+    dateString: string;
+    timeString: string;
+    sections: SetListSection[];
+    notes: string;
+  }) => void;
+}
+
+export function SetListForm({ initial, allSongs, onSubmit }: SetListFormProps) {
+  const [title, setTitle] = useState(initial?.title ?? '');
+  const [dateString, setDateString] = useState(
+    initial?.dateString ?? new Date().toISOString().substring(0, 10)
+  );
+  const [timeString, setTimeString] = useState(initial?.timeString ?? '09:00');
+  const [sections, setSections] = useState<SetListSection[]>(initial?.sections ?? []);
+  const [notes, setNotes] = useState(initial?.serviceNotes?.notes ?? '');
+
+  const handleSubmit = () => {
+    onSubmit({
+      title: title.trim(),
+      dateString,
+      timeString,
+      sections,
+      notes: notes.trim(),
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Title */}
+      <div>
+        <Label>Title</Label>
+        <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+      </div>
+
+    {/* Date & Time */}
+    <div className="w-full flex flex-col space-y-1">
+    <Label>Date & Time</Label>
+
+    <Flatpickr
+        value={
+        dateString && timeString
+            ? new Date(`${dateString}T${timeString}`)
+            : undefined
+        }
+        options={{
+        enableTime: true,
+        time_24hr: false,
+        dateFormat: "Y-m-d H:i",
+        altInput: true,
+        altFormat: "F j, Y h:i K",
+        static: true,
+        monthSelectorType: "static",
+        }}
+        onChange={(selectedDates) => {
+        if (!selectedDates[0]) return;
+
+        const d = selectedDates[0];
+        setDateString(format(d, "yyyy-MM-dd"));
+        setTimeString(format(d, "HH:mm"));
+        }}
+        className="flatpickr-input w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+    />
+    </div>
+
+      {/* Sections */}
+      <div className="space-y-2">
+        <Label>Sections & Songs</Label>
+        <SetListSectionEditor
+          sections={sections}
+          onChange={setSections}
+          allSongs={allSongs ?? []}
+        />
+      </div>
+
+      {/* Notes */}
+      <div>
+        <Label>Notes</Label>
+        <Textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Any special instructions, transitions, or reminders."
+        />
+      </div>
+
+      {/* Submit */}
+      <button
+        onClick={handleSubmit}
+        className="hidden"
+      />
+    </div>
+  );
+}
