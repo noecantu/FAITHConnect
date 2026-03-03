@@ -1,19 +1,19 @@
 'use client';
 
-import { useState } from 'react';
-import { nanoid } from 'nanoid';
+import { useState, useEffect, useCallback } from 'react';
 import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
 import { SetListSection, Song } from '@/app/lib/types';
 import { SectionSongList } from './SectionSongList';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { SECTION_TEMPLATES } from '@/app/lib/sectionTemplates';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { getSectionColor } from '@/app/lib/sectionColors';
-
-const SECTION_TITLES = SECTION_TEMPLATES.map(t => t.title);
+import { useChurchId } from '@/app/hooks/useChurchId';
+import { db } from '@/app/lib/firebase';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import SectionNameSelectionDialog from '@/app/components/music/SectionNameSelectionDialog';
+import { nanoid } from "nanoid";
 
 interface Props {
   sections: SetListSection[];
@@ -21,7 +21,40 @@ interface Props {
   allSongs: Song[];
 }
 
+interface SectionName {
+  id: string;
+  title: string;
+}
+
 export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
+  const { churchId, loading: churchLoading } = useChurchId();
+
+  const [sectionNames, setSectionNames] = useState<SectionName[]>([]);
+  const [isSectionNameDialogOpen, setIsSectionNameDialogOpen] = useState(false);
+  const [justAddedId, setJustAddedId] = useState<string | null>(null);
+
+  const fetchSectionNames = useCallback(async () => {
+    if (!db || !churchId) return;
+
+    try {
+      const ref = collection(db, 'churches', churchId, 'sectionNames');
+      const q = query(ref, orderBy('title'));
+      const snap = await getDocs(q);
+
+      const fetched: SectionName[] = snap.docs.map((d) => ({
+        id: d.id,
+        title: d.data().title as string,
+      }));
+
+      setSectionNames(fetched);
+    } catch (err) {
+      console.error('Error fetching section names:', err);
+    }
+  }, [churchId]);
+
+  useEffect(() => {
+    if (churchId) fetchSectionNames();
+  }, [churchId, fetchSectionNames]);
 
   const updateSection = (id: string, updated: Partial<SetListSection>) => {
     onChange(sections.map((s) => (s.id === id ? { ...s, ...updated } : s)));
@@ -39,78 +72,18 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
     onChange(updated);
   };
 
-  /* ---------------------------------------------
-     Add Section Dropdown
-  ---------------------------------------------- */
-  function AddSectionDropdown() {
-    const [open, setOpen] = useState(false);
-    const [custom, setCustom] = useState('');
-
-    const handleAdd = (title: string, notes?: string, songIds?: string[]) => {
-      const newSection: SetListSection = {
-        id: nanoid(),
-        title,
-        songs:
-        songIds?.map((songId) => {
-          const song = allSongs.find((s) => s.id === songId);
-
-          return {
-            id: nanoid(),
-            songId,
-            title: song?.title ?? '', 
-            key: song?.key ?? '',
-            notes: '',
-          };
-        }) ?? [],
-        notes: notes ?? '',
-      };
-
-      onChange([...sections, newSection]);
-      setOpen(false);
-      setCustom('');
-    };
-
-    return (
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="default">+ Add Section</Button>
-        </PopoverTrigger>
-
-        <PopoverContent className="w-56 p-2 space-y-1">
-
-          {/* Shared templates */}
-          {SECTION_TEMPLATES.map((tpl) => (
-            <button
-              key={tpl.id}
-              className="w-full text-left px-2 py-1 hover:bg-accent rounded"
-              onClick={() => handleAdd(tpl.title, tpl.defaultNotes, tpl.defaultSongIds)}
-            >
-              {tpl.title}
-            </button>
-          ))}
-
-          <div className="border-t my-2" />
-
-          {/* Custom section */}
-          <Input
-            placeholder="Custom section…"
-            value={custom}
-            onChange={(e) => setCustom(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && custom.trim()) {
-                handleAdd(custom.trim());
-              }
-            }}
-          />
-        </PopoverContent>
-      </Popover>
-    );
-  }
+  if (churchLoading || !churchId) return null;
 
   return (
     <div className="space-y-4">
 
-      <AddSectionDropdown />
+      {/* Add Section → directly opens dialog */}
+      <Button
+        variant="default"
+        onClick={() => setIsSectionNameDialogOpen(true)}
+      >
+        + Add Section
+      </Button>
 
       <div className="space-y-4">
         {sections.map((section, index) => (
@@ -157,12 +130,12 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
               </div>
             </div>
 
-            {/* Title */}
+            {/* Title Select */}
             <Select
               value={section.title}
               onValueChange={(value) => {
-                if (value === "__custom") {
-                  updateSection(section.id, { title: "__custom" });
+                if (value === '__custom') {
+                  updateSection(section.id, { title: '__custom' });
                 } else {
                   updateSection(section.id, { title: value });
                 }
@@ -173,20 +146,20 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
               </SelectTrigger>
 
               <SelectContent>
-                {SECTION_TITLES.map((title) => (
-                  <SelectItem key={title} value={title}>
-                    {title}
+                {sectionNames.map((sn) => (
+                  <SelectItem key={sn.id} value={sn.title}>
+                    {sn.title}
                   </SelectItem>
                 ))}
                 <SelectItem value="__custom">Custom…</SelectItem>
               </SelectContent>
             </Select>
 
-            {section.title === "__custom" && (
+            {section.title === '__custom' && (
               <Input
                 autoFocus
                 placeholder="Custom section name"
-                value={section.title === "__custom" ? "" : section.title}
+                value={section.title === '__custom' ? '' : section.title}
                 onChange={(e) =>
                   updateSection(section.id, { title: e.target.value })
                 }
@@ -201,10 +174,46 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
               onChange={(songs) => updateSection(section.id, { songs })}
               allSongs={allSongs}
             />
-
           </Card>
         ))}
       </div>
+
+      {/* Dialog for selecting or creating section names */}
+      <SectionNameSelectionDialog
+        isOpen={isSectionNameDialogOpen}
+        onOpenChange={setIsSectionNameDialogOpen}
+        onSelect={async (newId) => {
+          if (!newId) return;
+
+          // Fetch the selected section name directly
+          const ref = collection(db, 'churches', churchId, 'sectionNames');
+          const snap = await getDocs(ref);
+
+          const freshNames = snap.docs.map((d) => ({
+            id: d.id,
+            title: d.data().title as string,
+          }));
+
+          const sn = freshNames.find(s => s.id === newId);
+          if (!sn) {
+            console.warn("Section name not found for ID:", newId);
+            return;
+          }
+
+          const newSection: SetListSection = {
+            id: nanoid(),
+            title: sn.title,
+            songs: [],
+            notes: '',
+          };
+
+          onChange([...sections, newSection]);
+
+          setJustAddedId(newId);
+          setSectionNames(freshNames);
+        }}
+        churchId={churchId}
+      />
     </div>
   );
 }

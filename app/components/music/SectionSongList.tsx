@@ -85,7 +85,7 @@ export function SectionSongList({
                 className="w-full text-left px-2 py-1 hover:bg-accent rounded"
                 onClick={() => addSong(song)}
               >
-                {song.title}
+                {song.title} • {song.key} • {song.bpm} • {song.timeSignature}
               </button>
             ))}
           </Card>
