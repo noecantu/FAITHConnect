@@ -161,29 +161,37 @@ function SongItem({
       </div>
 
       {/* Song content */}
-      <div className="flex-1 space-y-2">
-        <p className="font-medium">{entry.title}</p>
+        <div className="flex-1 space-y-2">
+          {/* Title */}
+          <p className="font-medium">{entry.title}</p>
 
-        {/* Key override */}
-        <div>
-          <label className="text-xs text-muted-foreground">Key</label>
-          <Input
-            value={entry.key}
-            onChange={(e) => onUpdate({ key: e.target.value })}
-            className="w-24"
-          />
-        </div>
+          {/* Metadata Row: Key + BPM + Time Signature */}
+          <div className="text-xs text-muted-foreground flex gap-4">
+            <span>Key: {entry.key ?? '—'}</span>
+            <span>BPM: {entry.bpm ?? '—'}</span>
+            <span>Time: {entry.timeSignature ?? '—'}</span>
+          </div>
 
-        {/* Notes */}
-        <div>
-          <label className="text-xs text-muted-foreground">Notes</label>
-          <Input
-            value={entry.notes ?? ''}
-            onChange={(e) => onUpdate({ notes: e.target.value })}
-            placeholder="Optional notes"
-          />
+          {/* Key override */}
+          {/* <div>
+            <label className="text-xs text-muted-foreground">Key Override</label>
+            <Input
+              value={entry.key}
+              onChange={(e) => onUpdate({ key: e.target.value })}
+              className="w-24"
+            />
+          </div> */}
+
+          {/* Notes */}
+          <div>
+            <label className="text-xs text-muted-foreground">Notes</label>
+            <Input
+              value={entry.notes ?? ''}
+              onChange={(e) => onUpdate({ notes: e.target.value })}
+              placeholder="Optional notes"
+            />
+          </div>
         </div>
-      </div>
 
       {/* Remove */}
       <Button variant="outline" size="icon" onClick={onRemove}>

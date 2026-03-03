@@ -110,7 +110,6 @@ export default function EditSetListPage() {
       <Fab
         type="save"
         onClick={() => {
-          // Trigger the form's submit handler
           const hiddenButton = document.querySelector(
             'button[type="submit"]'
           ) as HTMLButtonElement | null;

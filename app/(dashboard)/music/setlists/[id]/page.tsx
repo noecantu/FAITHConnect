@@ -16,6 +16,7 @@ import { Copy, Pencil, Trash } from 'lucide-react';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/app/components/ui/alert-dialog';
 import { getSectionColor } from '@/app/lib/sectionColors';
 import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dialog';
+import { Button } from '@/app/components/ui/button';
 
 export default function SetListDetailPage() {
   const { id } = useParams();
@@ -200,11 +201,16 @@ export default function SetListDetailPage() {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>
+                    <Button variant="default" onClick={() => deleteSetList(churchId, setList.id, router)}>
+                      Cancel
+                    </Button>
+                  </AlertDialogCancel>
                   <AlertDialogAction
-                    onClick={() => deleteSetList(churchId, setList.id, router)}
                   >
+                  <Button variant="destructive" onClick={() => deleteSetList(churchId, setList.id, router)}>
                     Delete
+                  </Button>
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

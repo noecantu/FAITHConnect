@@ -83,7 +83,7 @@ export default function SongSelectionDialog({
               <SelectItem value="title">Title</SelectItem>
               <SelectItem value="key">Key</SelectItem>
               <SelectItem value="bpm">Tempo</SelectItem>
-              <SelectItem value="time">Time Sig</SelectItem>
+              <SelectItem value="time">Signature</SelectItem>
             </SelectContent>
           </Select>
         </div>

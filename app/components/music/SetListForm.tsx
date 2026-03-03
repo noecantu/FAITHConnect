@@ -102,6 +102,7 @@ export function SetListForm({ initial, allSongs, onSubmit }: SetListFormProps) {
 
       {/* Submit */}
       <button
+        type="submit"
         onClick={handleSubmit}
         className="hidden"
       />
