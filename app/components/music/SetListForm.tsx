@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Flatpickr from 'react-flatpickr';
 import { format } from 'date-fns';
 
@@ -21,9 +21,10 @@ interface SetListFormProps {
     sections: SetListSection[];
     notes: string;
   }) => void;
+  onReady?: (submitFn: () => void) => void;
 }
 
-export function SetListForm({ initial, allSongs, onSubmit }: SetListFormProps) {
+export function SetListForm({ initial, allSongs, onSubmit, onReady }: SetListFormProps) {
   const [title, setTitle] = useState(initial?.title ?? '');
   const [dateString, setDateString] = useState(
     initial?.dateString ?? new Date().toISOString().substring(0, 10)
@@ -42,6 +43,10 @@ export function SetListForm({ initial, allSongs, onSubmit }: SetListFormProps) {
     });
   };
 
+    useEffect(() => {
+      onReady?.(handleSubmit);
+    }, [title, dateString, timeString, sections, notes]);
+    
   return (
     <div className="space-y-4">
       {/* Title */}

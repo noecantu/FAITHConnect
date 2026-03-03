@@ -23,6 +23,7 @@ export default function EditSetListPage() {
   const [setList, setSetList] = useState<SetList | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [submitForm, setSubmitForm] = useState<() => void>(() => () => {});
 
   useEffect(() => {
     if (!churchId || !id) return;
@@ -104,18 +105,13 @@ export default function EditSetListPage() {
           initial={setList}
           allSongs={allSongs}
           onSubmit={handleSubmit}
+          onReady={(fn) => setSubmitForm(() => fn)}
         />
       </Card>
 
       <Fab
         type="save"
-        onClick={() => {
-          const hiddenButton = document.querySelector(
-            'button[type="submit"]'
-          ) as HTMLButtonElement | null;
-
-          hiddenButton?.click();
-        }}
+        onClick={() => submitForm()}
         disabled={saving}
       />
     </div>

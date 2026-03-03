@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/app/components/page-header';
 import { Card } from '@/app/components/ui/card';
@@ -16,6 +17,9 @@ export default function NewSetListPage() {
   const { songs: allSongs } = useSongs(churchId);
   const { isAdmin, isMusicManager } = useUserRoles(churchId);
   const canCreate = isAdmin || isMusicManager;
+
+  const [saving, setSaving] = useState(false);
+  const [submitForm, setSubmitForm] = useState<() => void>(() => () => {});
 
   if (!churchId) {
     return (
@@ -44,6 +48,8 @@ export default function NewSetListPage() {
     sections: any[];
     notes: string;
   }) => {
+    setSaving(true);
+
     const newSetList = {
       title: data.title,
       dateString: data.dateString,
@@ -68,18 +74,14 @@ export default function NewSetListPage() {
           initial={undefined}
           allSongs={allSongs}
           onSubmit={handleSubmit}
+          onReady={(fn) => setSubmitForm(() => fn)}
         />
       </Card>
 
       <Fab
         type="save"
-        onClick={() => {
-          const hiddenButton = document.querySelector(
-            'button[type="submit"]'
-          ) as HTMLButtonElement | null;
-
-          hiddenButton?.click();
-        }}
+        onClick={() => submitForm()}
+        disabled={saving}
       />
     </div>
   );
