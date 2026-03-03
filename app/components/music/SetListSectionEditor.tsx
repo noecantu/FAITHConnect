@@ -5,7 +5,7 @@ import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
-import { SetListSection, Song } from '@/app/lib/types';
+import { SetListSection, SetListSongEntry, Song } from '@/app/lib/types';
 import { SectionSongList } from './SectionSongList';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { getSectionColor } from '@/app/lib/sectionColors';
@@ -13,6 +13,7 @@ import { useChurchId } from '@/app/hooks/useChurchId';
 import { db } from '@/app/lib/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import SectionNameSelectionDialog from '@/app/components/music/SectionNameSelectionDialog';
+import SongSelectionDialog from '@/app/components/music/SongSelectionDialog';
 import { nanoid } from "nanoid";
 
 interface Props {
@@ -32,6 +33,10 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
   const [sectionNames, setSectionNames] = useState<SectionName[]>([]);
   const [isSectionNameDialogOpen, setIsSectionNameDialogOpen] = useState(false);
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
+
+  // Song dialog state
+  const [isSongDialogOpen, setIsSongDialogOpen] = useState(false);
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
 
   const fetchSectionNames = useCallback(async () => {
     if (!db || !churchId) return;
@@ -77,7 +82,7 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
   return (
     <div className="space-y-4">
 
-      {/* Add Section → directly opens dialog */}
+      {/* Add Section → opens dialog */}
       <Button
         variant="default"
         onClick={() => setIsSectionNameDialogOpen(true)}
@@ -130,7 +135,7 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
               </div>
             </div>
 
-            {/* Title Select */}
+            {/* Section Title Select */}
             <Select
               value={section.title}
               onValueChange={(value) => {
@@ -167,6 +172,17 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
               />
             )}
 
+            {/* Add Song Button */}
+            <Button
+              variant="outline"
+              onClick={() => {
+                setActiveSectionId(section.id);
+                setIsSongDialogOpen(true);
+              }}
+            >
+              + Add Song
+            </Button>
+
             {/* Songs */}
             <SectionSongList
               sectionId={section.id}
@@ -178,27 +194,23 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
         ))}
       </div>
 
-      {/* Dialog for selecting or creating section names */}
+      {/* Section Name Dialog */}
       <SectionNameSelectionDialog
         isOpen={isSectionNameDialogOpen}
         onOpenChange={setIsSectionNameDialogOpen}
         onSelect={async (newId) => {
           if (!newId) return;
 
-          // Fetch the selected section name directly
+          // Fetch fresh names to avoid stale state
           const ref = collection(db, 'churches', churchId, 'sectionNames');
           const snap = await getDocs(ref);
-
           const freshNames = snap.docs.map((d) => ({
             id: d.id,
             title: d.data().title as string,
           }));
 
-          const sn = freshNames.find(s => s.id === newId);
-          if (!sn) {
-            console.warn("Section name not found for ID:", newId);
-            return;
-          }
+          const sn = freshNames.find((s) => s.id === newId);
+          if (!sn) return;
 
           const newSection: SetListSection = {
             id: nanoid(),
@@ -208,11 +220,40 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
           };
 
           onChange([...sections, newSection]);
-
           setJustAddedId(newId);
           setSectionNames(freshNames);
         }}
         churchId={churchId}
+      />
+
+      {/* Song Selection Dialog */}
+      <SongSelectionDialog
+        isOpen={isSongDialogOpen}
+        onOpenChange={setIsSongDialogOpen}
+        songs={allSongs}
+        onSelect={(songId) => {
+          if (!activeSectionId) return;
+
+          const section = sections.find((s) => s.id === activeSectionId);
+          if (!section) return;
+
+          const song = allSongs.find((s) => s.id === songId);
+          if (!song) return;
+
+          const entry: SetListSongEntry = {
+            id: nanoid(),
+            songId: song.id,
+            title: song.title,
+            key: song.key,
+            bpm: song.bpm,
+            timeSignature: song.timeSignature,
+            notes: '',
+          };
+
+          updateSection(activeSectionId, {
+            songs: [...section.songs, entry],
+          });
+        }}
       />
     </div>
   );
