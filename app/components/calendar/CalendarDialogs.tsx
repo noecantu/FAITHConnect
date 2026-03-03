@@ -89,6 +89,7 @@ export function CalendarDialogs({
           setIsFormOpen(open);
           if (!open) setEditEvent(null);
         }}
+        onDelete={(id) => setDeleteId(id)}
       />
 
       {selectedDate && (

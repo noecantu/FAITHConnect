@@ -2,7 +2,15 @@ import { Dialog } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { StandardDialogLayout } from "../layout/StandardDialogLayout";
 
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "../ui/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "../ui/form";
+
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 
@@ -20,10 +28,12 @@ interface EventFormValues {
 export function EventFormDialog({
   open,
   isEditing,
+  event,
   selectedDate,
   form,
   onSubmit,
   onOpenChange,
+  onDelete,
 }: {
   open: boolean;
   isEditing: boolean;
@@ -32,8 +42,8 @@ export function EventFormDialog({
   form: UseFormReturn<EventFormValues>;
   onSubmit: (data: EventFormValues) => void;
   onOpenChange: (open: boolean) => void;
+  onDelete?: (id: string) => void;
 }) {
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
       <StandardDialogLayout
@@ -45,16 +55,29 @@ export function EventFormDialog({
         }
         onClose={() => onOpenChange(false)}
         footer={
-          <>
+          <div className="flex justify-end w-full gap-2">
+            {isEditing && onDelete && event && (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => onDelete(event.id)}
+              >
+                Delete
+              </Button>
+            )}
+
             <Button type="submit" form="event-form">
               {isEditing ? "Save Changes" : "Add Event"}
             </Button>
-          </>
+          </div>
         }
       >
         <Form {...form}>
-          <form id="event-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-
+          <form
+            id="event-form"
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4"
+          >
             {/* DATE */}
             <FormField
               control={form.control}
@@ -108,13 +131,16 @@ export function EventFormDialog({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Event details..." {...field} value={field.value ?? ""} />
+                    <Textarea
+                      placeholder="Event details..."
+                      {...field}
+                      value={field.value ?? ""}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
           </form>
         </Form>
       </StandardDialogLayout>
