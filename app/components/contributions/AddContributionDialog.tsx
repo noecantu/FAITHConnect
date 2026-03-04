@@ -77,7 +77,7 @@ export function AddContributionDialog({
       amount: 0,
       category: 'Tithes',
       contributionType: 'Digital Transfer',
-      date: "",
+      date: dayjs().format("YYYY-MM-DD"),
     },
   });
 
@@ -126,7 +126,7 @@ export function AddContributionDialog({
         amount: 0,
         category: "Tithes",
         contributionType: "Digital Transfer",
-        date: "",
+        date: dayjs().format("YYYY-MM-DD"),
       });
 
       onClose();
@@ -190,7 +190,7 @@ export function AddContributionDialog({
                           onChange={(selectedDates) => {
                             const d = selectedDates?.[0];
                             if (!d) return;
-                            field.onChange(d);
+                            field.onChange(dayjs(d).format("YYYY-MM-DD"));
                           }}
                           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                         />
