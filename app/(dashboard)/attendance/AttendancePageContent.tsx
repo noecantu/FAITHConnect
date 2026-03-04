@@ -300,7 +300,9 @@ export default function AttendancePageContent() {
           onClick={handleGenerateQr}
           variant="default"
           disabled={qrLoading}
-          className="w-full flex flex-col items-center justify-center text-center gap-1 border"
+          className="w-full flex flex-col items-center justify-center text-center 
+           bg-yellow-700/80 hover:bg-yellow-900/80 active:bg-yellow-950/80
+           gap-1 transition-colors"
         >
           <span className="text-sm text-white/80">
             {qrLoading ? "Generating..." : "Generate QR"}
@@ -312,7 +314,9 @@ export default function AttendancePageContent() {
           <DialogTrigger asChild>
             <Button
               variant="default"
-              className="w-full flex flex-col items-center justify-center text-center gap-1 border"
+              className="w-full flex flex-col items-center justify-center text-center 
+           bg-cyan-700/80 hover:bg-cyan-900/80 active:bg-cyan-950/80
+           gap-1 transition-colors"
             >
               <span className="text-sm text-white/80">Add Visitor</span>
             </Button>
