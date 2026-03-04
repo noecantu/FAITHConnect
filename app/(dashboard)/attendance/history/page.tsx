@@ -95,8 +95,8 @@ export default function AttendanceHistoryPage() {
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
-                          variant="destructive"
-                          className="h-8 px-3 border-white/20 text-white/80 hover:text-white hover:bg-white/10"
+                          variant="ghost"
+                          className="h-8 px-3 text-red-800 hover:text-red-600"
                           onClick={() => setDeleteTarget(s.dateString)}
                         >
                           <Trash className="h-4 w-4" />
@@ -112,10 +112,8 @@ export default function AttendanceHistoryPage() {
                             This action cannot be undone. This will permanently remove all attendance records for this date.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
-
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-
                           <AlertDialogAction
                             onClick={async () => {
                               if (!deleteTarget || !churchId) return;
