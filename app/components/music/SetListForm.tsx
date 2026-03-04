@@ -57,17 +57,30 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady }: SetListFor
       </div>
 
       {/* Date & Time */}
-      <div className="w-full space-y-1">
-        <Label>Date & Time</Label>
-        <div className="w-full">
-          <CenteredDateTimeFields
-            dateString={dateString}
-            timeString={timeString}
-            onDateChange={setDateString}
-            onTimeChange={setTimeString}
-          />
-        </div>
-      </div>
+      <Flatpickr
+          value={
+          dateString && timeString
+              ? new Date(`${dateString}T${timeString}`)
+              : undefined
+          }
+          options={{
+          enableTime: true,
+          time_24hr: false,
+          dateFormat: "Y-m-d H:i",
+          altInput: true,
+          altFormat: "F j, Y h:i K",
+          static: true,
+          monthSelectorType: "static",
+          }}
+          onChange={(selectedDates) => {
+          if (!selectedDates[0]) return;
+
+          const d = selectedDates[0];
+          setDateString(format(d, "yyyy-MM-dd"));
+          setTimeString(format(d, "HH:mm"));
+          }}
+          className="flatpickr-input w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+      />
 
       {/* Sections */}
       <div className="space-y-2">
