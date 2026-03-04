@@ -9,6 +9,7 @@ import { useSongs } from '@/app/hooks/useSongs';
 import { createSetList } from '@/app/lib/setlists';
 import { Fab } from '@/app/components/ui/fab';
 import { SetListForm } from '@/app/components/music/SetListForm';
+import { SetListSection } from '@/app/lib/types';
 
 export default function NewSetListPage() {
   const router = useRouter();
@@ -44,8 +45,13 @@ export default function NewSetListPage() {
     title: string;
     dateString: string;
     timeString: string;
-    sections: any[];
-    notes: string;
+    sections: SetListSection[];
+    serviceType: "Sunday" | "Midweek" | "Special" | null;
+    serviceNotes: {
+      theme: string | null;
+      scripture: string | null;
+      notes: string | null;
+    };
   }) => {
     setSaving(true);
 
@@ -54,9 +60,13 @@ export default function NewSetListPage() {
       dateString: data.dateString,
       timeString: data.timeString,
       sections: data.sections,
-      createdBy: "system",
-      serviceType: null,
-      serviceNotes: { notes: data.notes },
+      createdBy: "system", // or user.id if you want real attribution
+      serviceType: data.serviceType,
+      serviceNotes: {
+        theme: data.serviceNotes.theme,
+        scripture: data.serviceNotes.scripture,
+        notes: data.serviceNotes.notes,
+      },
     };
 
     const created = await createSetList(churchId, newSetList);

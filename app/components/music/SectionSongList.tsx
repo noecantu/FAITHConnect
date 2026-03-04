@@ -67,31 +67,6 @@ export function SectionSongList({
   return (
     <div className="space-y-3">
 
-      {/* Search to add songs */}
-      <div>
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onFocus={() => setShowList(true)}
-          onBlur={() => setTimeout(() => setShowList(false), 150)}
-          placeholder="Add song to this section…"
-        />
-
-        {showList && filtered.length > 0 && (
-          <Card className="mt-2 p-2 space-y-1 max-h-48 overflow-y-auto">
-            {filtered.map((song) => (
-              <button
-                key={song.id}
-                className="w-full text-left px-2 py-1 hover:bg-accent rounded"
-                onClick={() => addSong(song)}
-              >
-                {song.title} • {song.key} • {song.bpm} • {song.timeSignature}
-              </button>
-            ))}
-          </Card>
-        )}
-      </div>
-
       {/* Song list */}
       <div className="space-y-3">
         {normalized.map((entry, index) => (

@@ -127,7 +127,6 @@ export async function createSetlist(
   );
 }
 
-// Update
 export async function updateSetlist(
   churchId: string,
   id: string,
@@ -144,10 +143,25 @@ export async function updateSetlist(
     } | null;
   }>
 ) {
-  await updateDoc(setlistDoc(churchId, id), {
-    ...data,
-    updatedAt: serverTimestamp(),
-  });
+  const payload: any = {};
+
+  if (data.title !== undefined) payload.title = data.title;
+  if (data.dateString !== undefined) payload.dateString = data.dateString;
+  if (data.timeString !== undefined) payload.timeString = data.timeString;
+  if (data.sections !== undefined) payload.sections = data.sections;
+  if (data.serviceType !== undefined) payload.serviceType = data.serviceType;
+
+  if (data.serviceNotes !== undefined) {
+    payload.serviceNotes = {
+      theme: data.serviceNotes?.theme ?? null,
+      scripture: data.serviceNotes?.scripture ?? null,
+      notes: data.serviceNotes?.notes ?? null,
+    };
+  }
+
+  payload.updatedAt = serverTimestamp();
+
+  await updateDoc(setlistDoc(churchId, id), payload);
 }
 
 // Delete

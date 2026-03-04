@@ -82,6 +82,40 @@ export default function SetListDetailPage() {
       <PageHeader title={setList.title} subtitle={formattedDate}>
       </PageHeader>
 
+      {/* Overview */}
+      {(setList.serviceType ||
+        setList.serviceNotes?.theme ||
+        setList.serviceNotes?.scripture ||
+        setList.serviceNotes?.notes) && (
+        <Card className="p-4 space-y-2 bg-white/5 border-white/10">
+          <h2 className="text-lg font-semibold">Overview</h2>
+
+          {setList.serviceType && (
+            <p className="text-sm text-muted-foreground">
+              <span className="font-medium">Service Type:</span> {setList.serviceType}
+            </p>
+          )}
+
+          {setList.serviceNotes?.theme && (
+            <p className="text-sm text-muted-foreground">
+              <span className="font-medium">Theme:</span> {setList.serviceNotes.theme}
+            </p>
+          )}
+
+          {setList.serviceNotes?.scripture && (
+            <p className="text-sm text-muted-foreground">
+              <span className="font-medium">Scripture:</span> {setList.serviceNotes.scripture}
+            </p>
+          )}
+
+          {setList.serviceNotes?.notes && (
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              <span className="font-medium">Notes:</span> {setList.serviceNotes.notes}
+            </p>
+          )}
+        </Card>
+      )}
+
       {/* Sections */}
       <div className="space-y-6">
         {setList.sections.map((section) => (

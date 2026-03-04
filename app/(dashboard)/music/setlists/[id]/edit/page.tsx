@@ -80,15 +80,25 @@ export default function EditSetListPage() {
     dateString: string;
     timeString: string;
     sections: any[];
-    notes: string;
+    serviceType: "Sunday" | "Midweek" | "Special" | null;
+    serviceNotes: {
+      theme: string | null;
+      scripture: string | null;
+      notes: string | null;
+    };
   }) => {
     setSaving(true);
 
     await updateSetList(churchId, setList.id, {
-      ...data,
+      title: data.title,
+      dateString: data.dateString,
+      timeString: data.timeString,
+      sections: data.sections,
+      serviceType: data.serviceType,
       serviceNotes: {
-        ...setList.serviceNotes,
-        notes: data.notes,
+        theme: data.serviceNotes.theme,
+        scripture: data.serviceNotes.scripture,
+        notes: data.serviceNotes.notes,
       },
     });
 
