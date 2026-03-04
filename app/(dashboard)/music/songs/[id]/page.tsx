@@ -288,9 +288,18 @@ export default function SongDetailPage() {
                 </AlertDialogHeader>
 
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDuplicate}>
-                    Duplicate
+                  <AlertDialogCancel asChild>
+                    <Button variant="outline">
+                      Cancel
+                    </Button>
+                  </AlertDialogCancel>
+                  <AlertDialogAction asChild>
+                    <Button
+                      variant="default"
+                      onClick={(handleDuplicate)}
+                    >
+                      Duplicate
+                    </Button>
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -315,9 +324,18 @@ export default function SongDetailPage() {
                 </AlertDialogHeader>
 
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>
-                    Delete
+                  <AlertDialogCancel asChild>
+                    <Button variant="outline">
+                      Cancel
+                    </Button>
+                  </AlertDialogCancel>
+                  <AlertDialogAction asChild>
+                    <Button
+                      variant="destructive"
+                      onClick={(handleDelete)}
+                    >
+                      Delete
+                    </Button>
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

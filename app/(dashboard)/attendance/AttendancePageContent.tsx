@@ -358,7 +358,9 @@ export default function AttendancePageContent() {
         <Button
           onClick={() => markAllPresent(members, visitors)}
           variant="default"
-          className="w-full flex flex-col items-center justify-center text-center gap-1 border"
+          className="w-full flex flex-col items-center justify-center text-center 
+           bg-green-700/80 hover:bg-green-900/80 active:bg-green-950/80
+           gap-1 transition-colors"
         >
           <span className="text-sm text-white/80">Mark All Present</span>
         </Button>
@@ -366,7 +368,9 @@ export default function AttendancePageContent() {
         <Button
           onClick={() => markAllAbsent(members, visitors)}
           variant="default"
-          className="w-full flex flex-col items-center justify-center text-center gap-1 border"
+          className="w-full flex flex-col items-center justify-center text-center
+           bg-red-700/80 hover:bg-red-900/80 active:bg-red-950/80
+           gap-1 transition-colors"
         >
           <span className="text-sm text-white/80">Mark All Absent</span>
         </Button>
