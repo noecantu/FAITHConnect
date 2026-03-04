@@ -210,7 +210,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   font-size: 0.9rem !important;
   font-weight: 500 !important;
   color: white !important;
-  width: auto !important;
+  width: fit-content !important;
   margin: 0 !important;
 }
 
@@ -317,8 +317,8 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 /* Fix Flatpickr altInput overflow on iPhone */
 .flatpickr-input,
 .flatpickr-alt-input {
-  width: 100% !important;
-  max-width: 100% !important;
+  width: fit-content !important;
+  max-width: fit-content !important;
   display: block !important;
   box-sizing: border-box !important;
   min-width: 0 !important;
