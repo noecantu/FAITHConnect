@@ -17,6 +17,9 @@ import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFoo
 import { getSectionColor } from '@/app/lib/sectionColors';
 import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dialog';
 import { Button } from '@/app/components/ui/button';
+import { duplicateSetList } from '@/app/lib/duplicateSetList';
+import { useToast } from '@/app/hooks/use-toast';
+import { useAuth } from '@/app/hooks/useAuth';
 
 export default function SetListDetailPage() {
   const { id } = useParams();
@@ -25,6 +28,8 @@ export default function SetListDetailPage() {
   const { isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
   const canView = isAdmin || isMusicManager || isMusicMember;
   const canEdit = isAdmin || isMusicManager;
+  const { toast } = useToast();
+  const { user } = useAuth();
 
   const [setList, setSetList] = useState<SetList | null>(null);
   const [loading, setLoading] = useState(true);
@@ -170,14 +175,22 @@ export default function SetListDetailPage() {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => {
-                      // TODO: duplicateSetList()
-                    }}
-                  >
-                    Duplicate
-                  </AlertDialogAction>
+                  <AlertDialogCancel asChild>
+                    <Button variant="outline">
+                      Cancel
+                    </Button>
+                  </AlertDialogCancel>
+                    <AlertDialogAction asChild>
+                      <Button
+                        variant="default"
+                        onClick={() => {
+                          if (!churchId) return;
+                          duplicateSetList(churchId, setList.id, router, toast, user);
+                        }}
+                      >
+                        Duplicate
+                      </Button>
+                    </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -201,16 +214,19 @@ export default function SetListDetailPage() {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>
-                    <Button variant="default" onClick={() => deleteSetList(churchId, setList.id, router)}>
+                  <AlertDialogCancel asChild>
+                    <Button variant="outline">
                       Cancel
                     </Button>
                   </AlertDialogCancel>
-                  <AlertDialogAction
-                  >
-                  <Button variant="destructive" onClick={() => deleteSetList(churchId, setList.id, router)}>
-                    Delete
-                  </Button>
+
+                  <AlertDialogAction asChild>
+                    <Button
+                      variant="destructive"
+                      onClick={() => deleteSetList(churchId, setList.id, router)}
+                    >
+                      Delete
+                    </Button>
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

@@ -78,11 +78,11 @@ export default function NewSetListPage() {
           />
         </div>
 
-      {/* <Fab
+      <Fab
         type="save"
         onClick={() => submitForm()}
         disabled={saving}
-      /> */}
+      />
     </div>
   );
 }

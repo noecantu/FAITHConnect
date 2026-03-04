@@ -9,7 +9,6 @@ import { Textarea } from '@/app/components/ui/textarea';
 import { Label } from '@/app/components/ui/label';
 import { SetList, SetListSection } from '@/app/lib/types';
 import { SetListSectionEditor } from '@/app/components/music/SetListSectionEditor';
-import { CenteredDateTimeFields } from "@/app/components/music/CenteredDateTimeFields";
 
 interface SetListFormProps {
   mode: 'create' | 'edit';
