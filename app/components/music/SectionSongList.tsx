@@ -172,16 +172,6 @@ function SongItem({
             <span>Time: {entry.timeSignature ?? '—'}</span>
           </div>
 
-          {/* Key override */}
-          {/* <div>
-            <label className="text-xs text-muted-foreground">Key Override</label>
-            <Input
-              value={entry.key}
-              onChange={(e) => onUpdate({ key: e.target.value })}
-              className="w-24"
-            />
-          </div> */}
-
           {/* Notes */}
           <div>
             <label className="text-xs text-muted-foreground">Notes</label>

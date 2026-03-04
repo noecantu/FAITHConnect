@@ -68,21 +68,21 @@ export default function NewSetListPage() {
     <div className="space-y-6">
       <PageHeader title="Create New Set List" />
 
-      <Card className="p-6 space-y-4">
-        <SetListForm
-          mode="create"
-          initial={undefined}
-          allSongs={allSongs}
-          onSubmit={handleSubmit}
-          onReady={(fn) => setSubmitForm(() => fn)}
-        />
-      </Card>
+        <div className="p-6 space-y-6">
+          <SetListForm
+            mode="create"
+            initial={undefined}
+            allSongs={allSongs}
+            onSubmit={handleSubmit}
+            onReady={(fn) => setSubmitForm(() => fn)}
+          />
+        </div>
 
-      <Fab
+      {/* <Fab
         type="save"
         onClick={() => submitForm()}
         disabled={saving}
-      />
+      /> */}
     </div>
   );
 }

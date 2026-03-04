@@ -313,3 +313,10 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   background: transparent !important;
   border: none !important;
 }
+
+.flatpickr-input,
+.flatpickr-alt-input {
+  width: 100% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
