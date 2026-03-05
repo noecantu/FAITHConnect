@@ -16,11 +16,11 @@ export function AttendanceChart({ data }: { data: AttendanceSummaryItem[] }) {
   return (
     <div className="w-full h-80">
       <ResponsiveContainer>
-        <LineChart data={data} margin={{ bottom: 40 }}>
+        <LineChart data={data} margin={{ bottom: 60 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="dateString"
-            tickFormatter={(value) => format(new Date(value), 'MMM d')}
+            tickFormatter={(value) => format(new Date(value), 'MM-dd-yy')}
             angle={-45}
             textAnchor="end"
             tick={{ fill: '#6b7280' }}
