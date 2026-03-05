@@ -52,6 +52,7 @@ export function ContributionChart({ data }: ContributionChartProps) {
             tickFormatter={(value) => `$${value}`}
           />
           <Tooltip
+            cursor={{ fill: "transparent" }}
             contentStyle={{
               background: "hsl(var(--background))",
               borderColor: "hsl(var(--border))",
