@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { Member, Contribution, Address } from '../lib/types';
+import { Member, Contribution, Address, AttendanceRecord } from '../lib/types';
 
 import {
   generateMembersPDF,
@@ -11,9 +11,10 @@ import {
 } from '../lib/reports';
 
 interface UseReportExportsProps {
-  reportType: 'members' | 'contributions';
+  reportType: 'members' | 'contributions' | 'attendance';
   filteredMembers: Member[];
   filteredContributions: Contribution[];
+  filteredAttendance: AttendanceRecord[];
   selectedFields: string[];
 }
 

@@ -4,8 +4,8 @@ import { Label } from "../ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
 
 interface Props {
-  value: 'members' | 'contributions';
-  onChange: (v: 'members' | 'contributions') => void;
+  value: 'members' | 'contributions' | 'attendance';
+  onChange: (v: 'members' | 'contributions' | 'attendance') => void;
 }
 
 export function ReportTypeSelect({ value, onChange }: Props) {
@@ -22,8 +22,9 @@ export function ReportTypeSelect({ value, onChange }: Props) {
         </SelectTrigger>
 
         <SelectContent className="max-h-64 overflow-y-auto">
-          <SelectItem value="members">Member List</SelectItem>
+          <SelectItem value="attendance">Attendance</SelectItem>
           <SelectItem value="contributions">Contributions</SelectItem>
+          <SelectItem value="members">Member List</SelectItem>
         </SelectContent>
       </Select>
     </div>

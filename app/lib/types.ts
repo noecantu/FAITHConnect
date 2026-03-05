@@ -9,6 +9,14 @@ export type Address = {
   zip?: string;
 };
 
+export interface AttendanceRecord {
+  id: string;
+  date: string;
+  memberId?: string;
+  visitorId?: string;
+  visitorName?: string;
+}
+
 export interface AttendanceSummaryItem {
   dateString: string;
   present: number;

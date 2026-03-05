@@ -2,10 +2,12 @@
 
 import { useMemo } from 'react';
 import { Member, Contribution } from '../lib/types';
+import { AttendanceRecord } from './useAttendanceForReports';
 
 interface UseReportFiltersProps {
   members: Member[];
   contributions: Contribution[];
+  attendance: AttendanceRecord[];
 
   selectedMembers: string[];
   selectedStatus: string[];
@@ -13,21 +15,24 @@ interface UseReportFiltersProps {
   selectedCategories: string[];
   selectedContributionTypes: string[];
 
-  // NEW
-  contributionRange: 'week' | 'month' | 'year';
-  reportType: 'members' | 'contributions';
+  reportRange: 'week' | 'month' | 'year';
+  reportType: 'members' | 'contributions' | 'attendance';
+
+  selectedDate?: string | null;
 }
 
 export function useReportFilters({
   members,
   contributions,
+  attendance,
   selectedMembers,
   selectedStatus,
   selectedFY,
   selectedCategories,
   selectedContributionTypes,
-  contributionRange,
+  reportRange,
   reportType,
+  selectedDate,
 }: UseReportFiltersProps) {
 
   /**
@@ -78,7 +83,7 @@ export function useReportFilters({
     // Apply range filter (week, month)
     const now = new Date();
 
-    if (contributionRange === "month") {
+    if (reportRange === "month") {
       const currentMonth = now.getMonth();
       const currentYear = now.getFullYear();
 
@@ -91,11 +96,11 @@ export function useReportFilters({
       });
     }
 
-    if (contributionRange === "week") {
+    if (reportRange === "week") {
       list = list.filter((c) => {
         const d = new Date(c.date);
         const diffDays = (now.getTime() - d.getTime()) / 86400000;
-        return diffDays <= 7; // last 7 days
+        return diffDays <= 7;
       });
     }
 
@@ -133,13 +138,56 @@ export function useReportFilters({
     selectedStatus,
     selectedCategories,
     selectedContributionTypes,
-    contributionRange,   // REQUIRED
-    reportType,          // REQUIRED
+    reportRange,
+    reportType,
   ]);
+
+    /**
+     * Filtered Attendance
+     */
+    const filteredAttendance = useMemo(() => {
+      if (reportType !== "attendance") return [];
+      if (selectedMembers.length === 0) return [];
+
+      let list = attendance;
+
+      // Specific date filter
+      if (selectedDate) {
+        list = list.filter(a => a.date.startsWith(selectedDate));
+      }
+
+      // Range filters only apply when no specific date is selected
+      if (!selectedDate) {
+        const now = new Date();
+
+        if (reportRange === "month") {
+          const m = now.getMonth();
+          const y = now.getFullYear();
+          list = list.filter((a) => {
+            const d = new Date(a.date);
+            return d.getMonth() === m && d.getFullYear() === y;
+          });
+        }
+
+        if (reportRange === "week") {
+          list = list.filter((a) => {
+            const d = new Date(a.date);
+            const diff = (now.getTime() - d.getTime()) / 86400000;
+            return diff <= 7;
+          });
+        }
+      }
+
+      // Member filter
+      list = list.filter((a) => a.memberId && selectedMembers.includes(a.memberId));
+
+      return list;
+    }, [attendance, reportType, reportRange, selectedMembers, selectedDate]);
 
   return {
     availableYears,
     filteredMembers,
     filteredContributions,
+    filteredAttendance,
   };
 }

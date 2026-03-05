@@ -6,8 +6,10 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/app/components/ui/ca
 import { Separator } from '@/app/components/ui/separator';
 import { Button } from '@/app/components/ui/button';
 
+import { useChurchId } from "@/app/hooks/useChurchId";
 import { useMembers } from '@/app/hooks/useMembers';
 import { useContributions } from '@/app/hooks/use-contributions';
+import { useAttendanceForReports } from '@/app/hooks/useAttendanceForReports';
 
 import { useReportFilters } from '@/app/hooks/useReportFilters';
 import { useReportExports } from '@/app/hooks/useReportExports';
@@ -18,25 +20,40 @@ import { MemberSelect } from '@/app/components/reports/MemberSelect';
 import { StatusSelect } from '@/app/components/reports/StatusSelect';
 import { YearSelect } from '@/app/components/reports/YearSelect';
 import { MemberFieldSelect } from '@/app/components/reports/MemberFieldSelect';
+import { ReportRangeSelect } from '@/app/components/reports/ReportRangeSelect';
 
 // Preview table components
 import { MemberPreviewTable } from '@/app/components/reports/MemberPreviewTable';
 import { ContributionPreviewTable } from '@/app/components/reports/ContributionPreviewTable';
-import { ContributionRangeSelect } from '@/app/components/reports/ContributionRangeSelect';
+import { AttendancePreviewTable } from '@/app/components/reports/AttendancePreviewTable';
+
+import { PageHeader } from '../components/page-header';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/app/components/ui/select";
 
 export default function ReportsPage() {
   const { members } = useMembers();
   const { contributions } = useContributions();
+  const { churchId } = useChurchId();
+
+  const { attendance } = useAttendanceForReports(churchId);
 
   const [reportType, setReportType] =
-    useState<'members' | 'contributions'>('members');
-    const [contributionRange, setContributionRange] =
+    useState<'members' | 'contributions' | 'attendance'>('members');
+
+  const [reportRange, setReportRange] =
     useState<'week' | 'month' | 'year'>('year');
 
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
   const [selectedFY, setSelectedFY] = useState<string[]>([]);
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const statusOptions = [
     { label: "Active", value: "Active" },
@@ -70,24 +87,31 @@ export default function ReportsPage() {
     notes: "Notes",
   };
 
-  // Filtering logic (Option A)
+  // Filtering logic
   const {
     availableYears,
     filteredMembers,
     filteredContributions,
+    filteredAttendance,
   } = useReportFilters({
     members,
     contributions,
+    attendance,
     selectedMembers,
     selectedStatus,
     selectedFY,
     selectedCategories: [],
     selectedContributionTypes: [],
-    contributionRange,
+    reportRange,
     reportType,
+    selectedDate,
   });
 
-  // Export logic (Option B)
+  const availableAttendanceDates = Array.from(
+    new Set(attendance.map(a => a.date.split("T")[0]))
+  );
+  
+  // Export logic
   const {
     exportPDF,
     exportExcel,
@@ -96,11 +120,26 @@ export default function ReportsPage() {
     reportType,
     filteredMembers,
     filteredContributions,
+    filteredAttendance,
     selectedFields,
   });
 
+  function formatDateString(dateStr: string) {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
   return (
     <div className="flex flex-col lg:flex-row gap-6">
+      <PageHeader
+        title={`Reports`}
+        subtitle={`Select a report type below.`}
+      />
 
       {/* LEFT PANEL — Filters */}
       <Card className="w-full lg:w-80 h-fit">
@@ -129,10 +168,10 @@ export default function ReportsPage() {
             />
           )}
 
-          {reportType === "contributions" && (
-            <ContributionRangeSelect
-              value={contributionRange}
-              onChange={setContributionRange}
+          {(reportType === "contributions" || reportType === "attendance") && (
+            <ReportRangeSelect
+              value={reportRange}
+              onChange={setReportRange}
             />
           )}
 
@@ -152,6 +191,31 @@ export default function ReportsPage() {
             />
           )}
 
+          {reportType === "attendance" && (
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-white/70">Date</label>
+
+              <Select
+                value={selectedDate ?? "all"}
+                onValueChange={(v) => setSelectedDate(v === "all" ? null : v)}
+              >
+                <SelectTrigger className="bg-black/20 border-white/20 text-white">
+                  <SelectValue placeholder="All Dates" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="all">All Dates</SelectItem>
+
+                  {availableAttendanceDates.map((d) => (
+                    <SelectItem key={d} value={d}>
+                      {formatDateString(d)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
         </CardContent>
       </Card>
 
@@ -164,29 +228,45 @@ export default function ReportsPage() {
         <CardContent className="space-y-6">
 
           <div className="text-sm text-muted-foreground">
-            {reportType === 'members' ? (
+            {reportType === 'members' && (
               <p>Members Selected: {filteredMembers.length}</p>
-            ) : (
+            )}
+
+            {reportType === 'contributions' && (
               <>
                 <p>Contributions: {filteredContributions.length}</p>
-                <p>
-                  Year: {selectedFY.length === 0 ? "No Year Selected" : selectedFY.join(", ")}
-                </p>
+                <p>Year: {selectedFY.length === 0 ? "No Year Selected" : selectedFY.join(", ")}</p>
+              </>
+            )}
+
+            {reportType === 'attendance' && (
+              <>
+                <p>Attendance Records: {filteredAttendance.length}</p>
+                <p>Range: {reportRange}</p>
               </>
             )}
           </div>
 
           <div className="border rounded-md overflow-hidden">
-            {reportType === "members" ? (
+            {reportType === "members" && (
               <MemberPreviewTable
                 members={filteredMembers}
                 selectedFields={selectedFields}
                 fieldLabelMap={fieldLabelMap}
                 formatField={formatField}
               />
-            ) : (
+            )}
+
+            {reportType === "contributions" && (
               <ContributionPreviewTable
                 contributions={filteredContributions}
+                members={members}
+              />
+            )}
+
+            {reportType === "attendance" && (
+              <AttendancePreviewTable
+                attendance={filteredAttendance}
                 members={members}
               />
             )}

@@ -1,14 +1,14 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
-interface ContributionRangeSelectProps {
+interface ReportRangeSelectProps {
   value: 'week' | 'month' | 'year';
   onChange: (v: 'week' | 'month' | 'year') => void;
 }
 
-export function ContributionRangeSelect({
+export function ReportRangeSelect({
   value,
   onChange,
-}: ContributionRangeSelectProps) {
+}: ReportRangeSelectProps) {
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger>
