@@ -21,7 +21,7 @@ interface SetListFormProps {
     dateString: string;
     timeString: string;
     sections: SetListSection[];
-    serviceType: 'Sunday' | 'Midweek' | 'Special' | null;
+    serviceType: string | null;
     serviceNotes: {
       theme: string | null;
       scripture: string | null;
@@ -40,9 +40,10 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady }: SetListFor
   const [sections, setSections] = useState<SetListSection[]>(initial?.sections ?? []);
 
   // NEW: service metadata fields
-  const [serviceType, setServiceType] = useState<"Sunday" | "Midweek" | "Special" | "">(
-    initial?.serviceType ?? ""
-  );
+  // const [serviceType, setServiceType] = useState<"Sunday" | "Midweek" | "Special" | "">(
+  //   initial?.serviceType ?? ""
+  // );
+  const [serviceType, setServiceType] = useState(initial?.serviceType ?? '');
   const [theme, setTheme] = useState(initial?.serviceNotes?.theme ?? '');
   const [scripture, setScripture] = useState(initial?.serviceNotes?.scripture ?? '');
   const [notes, setNotes] = useState(initial?.serviceNotes?.notes ?? '');
@@ -53,7 +54,7 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady }: SetListFor
       dateString,
       timeString,
       sections,
-      serviceType: serviceType || null,
+      serviceType,
       serviceNotes: {
         theme: theme.trim() || null,
         scripture: scripture.trim() || null,
@@ -113,20 +114,11 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady }: SetListFor
         {/* Service Type */}
         <div>
           <Label>Service Type</Label>
-          <select
+          <Input
             value={serviceType}
-            onChange={(e) =>
-              setServiceType(
-                e.target.value as "Sunday" | "Midweek" | "Special" | ""
-              )
-            }
-            className="w-full rounded-md border bg-background p-2"
-          >
-            <option value="">Select type…</option>
-            <option value="Sunday">Sunday</option>
-            <option value="Midweek">Midweek</option>
-            <option value="Special">Special</option>
-          </select>
+            onChange={(e) => setServiceType(e.target.value)}
+            placeholder="Optional: Sunday Service, Mid-Week, Special, etc."
+          />
         </div>
 
         {/* Theme */}

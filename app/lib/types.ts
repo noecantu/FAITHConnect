@@ -178,7 +178,7 @@ export interface SetList {
   createdBy: string;
   createdAt: number;
   updatedAt: number;
-  serviceType: 'Sunday' | 'Midweek' | 'Special' | null;
+  serviceType?: string | null;
   serviceNotes?: {
     theme?: string | null;
     scripture?: string | null;
