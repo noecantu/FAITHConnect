@@ -11,10 +11,8 @@ import { MemberInfoSection } from "./MemberInfoSection";
 import { StatusSection } from "./StatusSection";
 import { RelationshipsSection } from "./RelationshipsSection";
 import { PhotoSection } from "./PhotoSection";
-import { LoginAccessSection } from "./LoginAccessSection";
 
-import { getFunctions, httpsCallable } from "firebase/functions";
-import { app, db } from "@/app/lib/firebase";
+import { db } from "@/app/lib/firebase";
 import { doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 
 import type { Member } from "@/app/lib/types";
@@ -81,60 +79,7 @@ export default function MemberForm({
   });
 
   // FIREBASE FUNCTIONS
-  const functions = getFunctions(app, "us-central1");
-  const createMemberLogin = httpsCallable(functions, "createMemberLogin");
-  const sendPasswordReset = httpsCallable(functions, "sendPasswordReset");
-
   const [isLoading, setIsLoading] = useState(false);
-
-  // LOGIN HANDLERS
-  async function handleCreateLogin() {
-    if (!member) return;
-
-    setIsLoading(true);
-    try {
-      await createMemberLogin({
-        email: form.watch("email"),
-        memberId: member.id,
-        churchId,
-      });
-
-      toast({
-        title: "Login Created",
-        description: "A password reset email has been sent.",
-      });
-    } catch {
-      toast({
-        title: "Error",
-        description: "Failed to create login.",
-        // variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function handleSendReset() {
-    if (!member?.userId) return;
-
-    setIsLoading(true);
-    try {
-      await sendPasswordReset({ userId: member.userId });
-
-      toast({
-        title: "Reset Email Sent",
-        description: "A password reset email has been sent.",
-      });
-    } catch {
-      toast({
-        title: "Error",
-        description: "Failed to send reset email.",
-        // variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }
 
   // SUBMIT HANDLER
   async function onSubmit(values: MemberFormValues) {
