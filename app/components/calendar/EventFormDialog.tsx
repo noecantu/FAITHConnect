@@ -20,7 +20,7 @@ import Flatpickr from "react-flatpickr";
 import type { Event } from "@/app/lib/types";
 
 interface EventFormValues {
-  date: Date;
+  date: string;
   title: string;
   description?: string;
 }
@@ -44,34 +44,38 @@ export function EventFormDialog({
   onOpenChange: (open: boolean) => void;
   onDelete?: (id: string) => void;
 }) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
-      <StandardDialogLayout
-        title={isEditing ? "Edit Event" : "Add New Event"}
-        description={
-          isEditing
-            ? "Update the details of this event."
-            : `Add a new event for ${format(selectedDate, "PPP")}.`
-        }
-        onClose={() => onOpenChange(false)}
-        footer={
-          <div className="flex justify-end w-full gap-2">
-            {isEditing && onDelete && event && (
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => onDelete(event.id)}
-              >
-                Delete
-              </Button>
-            )}
-
-            <Button type="submit" form="event-form">
-              {isEditing ? "Save Changes" : "Add Event"}
-            </Button>
-          </div>
-        }
+return (
+      <Dialog
+        open={open}
+        onOpenChange={onOpenChange}
+        modal={false}
       >
+        <StandardDialogLayout
+          title={isEditing ? "Edit Event" : "Add New Event"}
+          description={
+            isEditing
+              ? "Update the details of this event."
+              : `Add a new event for ${format(selectedDate, "PPP")}.`
+          }
+          onClose={() => onOpenChange(false)}
+          footer={
+            <div className="flex justify-end w-full gap-2">
+              {isEditing && onDelete && event && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => onDelete(event.id)}
+                >
+                  Delete
+                </Button>
+              )}
+
+              <Button type="submit" form="event-form">
+                {isEditing ? "Save Changes" : "Add Event"}
+              </Button>
+            </div>
+          }
+        >
         <Form {...form}>
           <form
             id="event-form"
@@ -87,19 +91,19 @@ export function EventFormDialog({
                   <FormLabel>Date</FormLabel>
                   <FormControl>
                     <Flatpickr
-                      value={field.value}
-                      options={{
-                        dateFormat: "m-d-Y",
-                        defaultDate: field.value,
-                        allowInput: false,
-                        altInput: true,
-                        altFormat: "m-d-Y",
-                        monthSelectorType: "dropdown",
-                      }}
-                      onChange={([selected]) => {
-                        if (!selected) return;
-                        field.onChange(selected);
-                      }}
+                    defaultValue={field.value}
+                    options={{
+                      defaultDate: field.value,
+                      allowInput: false,
+                      altInput: true,
+                      altFormat: "m-d-Y",
+                      dateFormat: "m-d-Y",
+                      monthSelectorType: "dropdown",
+                    }}
+                    onChange={([selected]) => {
+                      if (!selected) return;
+                      field.onChange(selected);
+                    }}
                       className="block w-full bg-black/40 text-white border-white/20 rounded-md px-3 py-2 text-center"
                     />
                   </FormControl>

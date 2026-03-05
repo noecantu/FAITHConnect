@@ -9,6 +9,8 @@ import { Textarea } from '@/app/components/ui/textarea';
 import { Label } from '@/app/components/ui/label';
 import { SetList, SetListSection } from '@/app/lib/types';
 import { SetListSectionEditor } from '@/app/components/music/SetListSectionEditor';
+import confirmDatePlugin from "flatpickr/dist/plugins/confirmDate/confirmDate";
+import "flatpickr/dist/plugins/confirmDate/confirmDate.css";
 
 interface SetListFormProps {
   mode: 'create' | 'edit';
@@ -74,23 +76,30 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady }: SetListFor
 
       {/* Date & Time */}
       <Flatpickr
-        value={
+        defaultValue={
           dateString && timeString
-            ? new Date(`${dateString}T${timeString}`)
+            ? `${dateString} ${timeString}`
             : undefined
         }
         options={{
           enableTime: true,
           time_24hr: false,
           dateFormat: "Y-m-d H:i",
-          altInput: true,
-          altFormat: "F j, Y h:i K",
-          static: true,
-          monthSelectorType: "static",
+          altInput: false,
+          closeOnSelect: false,
+          plugins: [
+            confirmDatePlugin({
+              confirmIcon: "<i class='fa fa-check'></i>",
+              confirmText: "OK",
+              showAlways: true,
+              theme: "light"
+            })
+          ]
         }}
-        onChange={(selectedDates) => {
-          if (!selectedDates[0]) return;
-          const d = selectedDates[0];
+        onClose={(_, __, instance) => {
+          const d = instance.selectedDates[0];
+          if (!d) return;
+
           setDateString(format(d, "yyyy-MM-dd"));
           setTimeString(format(d, "HH:mm"));
         }}

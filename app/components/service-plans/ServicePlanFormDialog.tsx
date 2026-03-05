@@ -36,6 +36,9 @@ import dayjs from 'dayjs';
 import { SectionEditor } from './SectionEditor';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { SECTION_TEMPLATES } from '@/app/lib/sectionTemplates';
+import { useState } from 'react';
+import confirmDatePlugin from 'flatpickr/dist/plugins/confirmDate/confirmDate';
+import { format } from "date-fns";
 
 // ZOD SCHEMAS — NEW ARCHITECTURE
 const sectionSchema = z.object({
@@ -103,7 +106,14 @@ interface Props {
 
 export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props) {
   const isEdit = !!plan;
+  // Local state for date/time — identical to Set Lists
+  const [localDateString, setLocalDateString] = useState(
+    plan?.dateString ?? dayjs().format("YYYY-MM-DD")
+  );
 
+  const [localTimeString, setLocalTimeString] = useState(
+    plan?.timeString ?? "10:00"
+  );
   const { members } = useMembers();
   const { songs } = useSongs(churchId);
 
@@ -139,9 +149,9 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader className="shrink-0 px-6 pt-6">
-          <DialogTitle>{isEdit ? 'Edit Service Plan' : 'Add Service Plan'}</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit Service Plan" : "Add Service Plan"}</DialogTitle>
           <DialogDescription>
-            {isEdit ? 'Update this service plan.' : 'Create a new service plan.'}
+            {isEdit ? "Update this service plan." : "Create a new service plan."}
           </DialogDescription>
         </DialogHeader>
 
@@ -150,7 +160,16 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
             <form
               id="service-plan-form"
               onSubmit={form.handleSubmit((values) =>
-                handleServicePlanSubmit(values, plan, churchId, onClose)
+                handleServicePlanSubmit(
+                  {
+                    ...values,
+                    dateString: localDateString,
+                    timeString: localTimeString,
+                  },
+                  plan,
+                  churchId,
+                  onClose
+                )
               )}
               className="space-y-6"
             >
@@ -169,48 +188,45 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                 )}
               />
 
-              {/* Date and Time */}
-              <FormField
-                control={form.control}
-                name="dateString"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date & Time</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Flatpickr
-                          value={
-                            field.value && form.getValues("timeString")
-                              ? dayjs(`${field.value}T${form.getValues("timeString")}`).toDate()
-                              : []
-                          }
-                          options={{
-                            enableTime: true,
-                            time_24hr: false, // or true if you prefer
-                            dateFormat: "Y-m-d H:i",
-                            altInput: true,
-                            altFormat: "F j, Y h:i K",
-                            allowInput: false,
-                            static: true,
-                          }}
-                          onChange={(selectedDates) => {
-                            const d = selectedDates?.[0];
-                            if (!d) return;
+              {/* Date & Time */}
+              <FormItem>
+                <FormLabel>Date & Time</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Flatpickr
+                      defaultValue={
+                        localDateString && localTimeString
+                          ? `${localDateString} ${localTimeString}`
+                          : undefined
+                      }
+                      options={{
+                        enableTime: true,
+                        time_24hr: false,
+                        dateFormat: "Y-m-d H:i",
+                        altInput: false,
+                        closeOnSelect: false,
+                        plugins: [
+                          confirmDatePlugin({
+                            confirmIcon: "<i class='fa fa-check'></i>",
+                            confirmText: "OK",
+                            showAlways: true,
+                            theme: "light",
+                          }),
+                        ],
+                      }}
+                      onClose={(_, __, instance) => {
+                        const d = instance.selectedDates[0];
+                        if (!d) return;
 
-                            const dateStr = dayjs(d).format("YYYY-MM-DD");
-                            const timeStr = dayjs(d).format("HH:mm");
-
-                            form.setValue("dateString", dateStr);
-                            form.setValue("timeString", timeStr);
-                          }}
-                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                        setLocalDateString(format(d, "yyyy-MM-dd"));
+                        setLocalTimeString(format(d, "HH:mm"));
+                      }}
+                      className="flatpickr-input w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
 
               {/* Notes */}
               <FormField
@@ -245,7 +261,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                               title: tpl.title,
                               personId: tpl.defaultPersonId ?? null,
                               songIds: tpl.defaultSongIds ?? [],
-                              notes: tpl.defaultNotes ?? '',
+                              notes: tpl.defaultNotes ?? "",
                             })
                           }
                         >
@@ -256,10 +272,10 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                       <DropdownMenuItem
                         onClick={() =>
                           append({
-                            title: '',
+                            title: "",
                             personId: null,
                             songIds: [],
-                            notes: '',
+                            notes: "",
                           })
                         }
                       >
@@ -289,7 +305,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
 
         <DialogFooter className="shrink-0 border-t px-6 pb-6 pt-4 flex justify-end gap-2">
           <Button type="submit" form="service-plan-form">
-            {isEdit ? 'Save Changes' : 'Create Service Plan'}
+            {isEdit ? "Save Changes" : "Create Service Plan"}
           </Button>
         </DialogFooter>
       </DialogContent>

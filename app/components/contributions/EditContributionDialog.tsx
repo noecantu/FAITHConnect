@@ -186,21 +186,22 @@ export function EditContributionDialog({
                     <FormControl>
                       <div className="relative">
                         <Flatpickr
-                          value={field.value ? dayjs(field.value).toDate() : []}
+                          defaultValue={field.value ? dayjs(field.value).format("YYYY-MM-DD") : undefined}
                           options={{
-                            dateFormat: "Y-m-d",
-                            altInput: true,
-                            altFormat: "F j, Y",
-                            allowInput: false,
-                            static: true,
-                          }}
-                          onChange={(selectedDates) => {
-                            const d = selectedDates?.[0];
-                            if (!d) return;
-                            field.onChange(dayjs(d).toDate());
-                          }}
-                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                        />
+                          dateFormat: "Y-m-d",
+                          altInput: true,
+                          altFormat: "F j, Y",
+                          allowInput: false,
+                          static: true,
+                          closeOnSelect: true,
+                        }}
+                        onChange={(selectedDates) => {
+                          const d = selectedDates?.[0];
+                          if (!d) return;
+                          field.onChange(dayjs(d).format("YYYY-MM-DD"));
+                        }}
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      />
                       </div>
                     </FormControl>
                     <FormMessage />

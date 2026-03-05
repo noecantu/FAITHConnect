@@ -254,22 +254,22 @@ export default function AttendancePageContent() {
 
         {/* FLATPICKR DATE PICKER */}
         <Flatpickr
-          value={date}
-          options={{
-            dateFormat: "m-d-Y",
-            defaultDate: date,
-            allowInput: false,
-            altInput: true,
-            altFormat: "m-d-Y",
-            monthSelectorType: "dropdown",
-          }}
-          onChange={([selected]) => {
-            if (!selected) return;
-            setDate(selected);
-            router.push(`/attendance?date=${format(selected, "yyyy-MM-dd")}`);
-          }}
-          className="w-full sm:w-[150px] bg-black/40 text-white border-white/20 rounded-md px-3 py-2 text-center"
-        />
+        defaultValue={format(date, "MM-dd-yyyy")}
+        options={{
+          dateFormat: "m-d-Y",
+          allowInput: false,
+          altInput: true,
+          altFormat: "m-d-Y",
+          monthSelectorType: "dropdown",
+          closeOnSelect: true,
+        }}
+        onChange={([selected]) => {
+          if (!selected) return;
+          setDate(selected);
+          router.push(`/attendance?date=${format(selected, "yyyy-MM-dd")}`);
+        }}
+        className="w-full sm:w-[150px] bg-black/40 text-white border-white/20 rounded-md px-3 py-2 text-center"
+      />
 
         {/* TODAY BUTTON */}
         <Button

@@ -324,3 +324,23 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   min-width: 0 !important;
 }
 
+.flatpickr-confirm {
+  background-color: rgb(51 65 85) !important;
+  color: white !important;
+  border: 1px solid rgb(71 85 105) !important;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.flatpickr-confirm:hover {
+  background-color: rgb(71 85 105) !important;
+  border-color: rgb(100 116 139) !important;
+}
+
+.flatpickr-confirm:active {
+  background-color: rgb(51 65 85 / 0.85) !important;
+}

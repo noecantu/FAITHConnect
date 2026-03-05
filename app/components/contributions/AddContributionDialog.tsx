@@ -179,13 +179,14 @@ export function AddContributionDialog({
                     <FormControl>
                       <div className="relative">
                         <Flatpickr
-                          value={field.value ? [dayjs(field.value).toDate()] : []}
+                          defaultValue={field.value || undefined}
                           options={{
                             dateFormat: "Y-m-d",
                             altInput: true,
                             altFormat: "F j, Y",
                             allowInput: false,
                             static: true,
+                            closeOnSelect: true,
                           }}
                           onChange={(selectedDates) => {
                             const d = selectedDates?.[0];

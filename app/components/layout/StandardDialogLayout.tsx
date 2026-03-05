@@ -30,6 +30,8 @@ export function StandardDialogLayout({
     <DialogContent
       className={`w-[95vw] max-w-3xl max-h-[85dvh] flex flex-col p-0 ${className}`}
       onOpenAutoFocus={(e) => e.preventDefault()}
+      onPointerDownOutside={(e) => e.preventDefault()}
+      onInteractOutside={(e) => e.preventDefault()}
     >
       {/* Close Button */}
       <button
