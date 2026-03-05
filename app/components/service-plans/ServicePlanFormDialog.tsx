@@ -143,10 +143,22 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
   });
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose} modal={true}>
+    <Dialog open={isOpen} onOpenChange={onClose} modal={false}>
       <DialogContent
         className="w-[95vw] max-w-3xl max-h-[85dvh] flex flex-col p-0"
         onOpenAutoFocus={(e) => e.preventDefault()}
+        onInteractOutside={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest(".flatpickr-calendar")) {
+            e.preventDefault();
+          }
+        }}
+        onPointerDownOutside={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest(".flatpickr-calendar")) {
+            e.preventDefault();
+          }
+        }}
       >
         <DialogHeader className="shrink-0 px-6 pt-6">
           <DialogTitle>{isEdit ? "Edit Service Plan" : "Add Service Plan"}</DialogTitle>
@@ -194,11 +206,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                 <FormControl>
                   <div className="relative">
                     <Flatpickr
-                      defaultValue={
-                        localDateString && localTimeString
-                          ? `${localDateString} ${localTimeString}`
-                          : undefined
-                      }
+                      value={`${localDateString} ${localTimeString}`}
                       options={{
                         enableTime: true,
                         time_24hr: false,
@@ -213,6 +221,10 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                             theme: "light",
                           }),
                         ],
+                      }}
+                      onOpen={() => {
+                        const dialog = document.querySelector("[role='dialog']");
+                        if (dialog) dialog.setAttribute("data-allow-focus", "true");
                       }}
                       onClose={(_, __, instance) => {
                         const d = instance.selectedDates[0];
