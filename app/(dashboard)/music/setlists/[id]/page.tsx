@@ -87,7 +87,7 @@ export default function SetListDetailPage() {
         setList.serviceNotes?.theme ||
         setList.serviceNotes?.scripture ||
         setList.serviceNotes?.notes) && (
-        <Card className="p-4 space-y-2 bg-white/5 border-white/10">
+        <Card className="p-4 space-y-2 bg-black border-white/25">
           <h2 className="text-lg font-semibold">Overview</h2>
 
           {setList.serviceType && (

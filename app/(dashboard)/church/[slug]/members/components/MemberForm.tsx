@@ -194,15 +194,6 @@ export default function MemberForm({
           allMembers={[]} currentMemberId={""} form={form}
           {...relationships}        />
 
-        <LoginAccessSection
-          hasUserAccount={!!member?.userId}
-          email={form.watch("email")}
-          onEmailChange={(value) => form.setValue("email", value)}
-          onCreateLogin={handleCreateLogin}
-          onSendReset={handleSendReset}
-          isLoading={isLoading}
-        />
-
         <PhotoSection form={form} {...photo} />
 
         <Fab
