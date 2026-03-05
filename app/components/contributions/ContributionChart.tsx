@@ -59,7 +59,12 @@ export function ContributionChart({ data }: ContributionChartProps) {
             }}
             formatter={(value: number) => [`$${value}`, "Total"]}
           />
-          <Bar dataKey="total" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
+          <Bar
+            dataKey="total"
+            fill="hsl(var(--chart-1))"
+            radius={[4, 4, 0, 0]}
+            activeBar={{ fill: "hsl(var(--chart-1) / 0.4)" }}
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>
