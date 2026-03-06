@@ -16,6 +16,7 @@ export interface AttendanceRecord {
   memberName?: string;
   visitorId?: string;
   visitorName?: string;
+  attended: boolean;
 }
 
 export interface AttendanceSummaryItem {

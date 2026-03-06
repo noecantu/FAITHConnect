@@ -35,6 +35,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/app/components/ui/select";
+import { AttendanceRecord, Contribution, Member } from '../lib/types';
 
 export default function ReportsPage() {
   const { members } = useMembers();
@@ -132,6 +133,91 @@ export default function ReportsPage() {
       month: "short",
       day: "numeric",
       year: "numeric",
+    });
+  }
+
+  function sortMembersByName(members: Member[]) {
+    return [...members].sort((a, b) => {
+      const lastA = (a.lastName ?? "").toLowerCase();
+      const lastB = (b.lastName ?? "").toLowerCase();
+
+      if (lastA < lastB) return -1;
+      if (lastA > lastB) return 1;
+
+      const firstA = (a.firstName ?? "").toLowerCase();
+      const firstB = (b.firstName ?? "").toLowerCase();
+
+      if (firstA < firstB) return -1;
+      if (firstA > firstB) return 1;
+
+      return 0;
+    });
+  }
+
+  function sortContributionsByMemberName(contributions: Contribution[], members: Member[]) {
+    return [...contributions].sort((a, b) => {
+      const memberA = members.find(m => m.id === a.memberId);
+      const memberB = members.find(m => m.id === b.memberId);
+
+      const lastA = (memberA?.lastName ?? "").toLowerCase();
+      const lastB = (memberB?.lastName ?? "").toLowerCase();
+
+      if (lastA < lastB) return -1;
+      if (lastA > lastB) return 1;
+
+      const firstA = (memberA?.firstName ?? "").toLowerCase();
+      const firstB = (memberB?.firstName ?? "").toLowerCase();
+
+      if (firstA < firstB) return -1;
+      if (firstA > firstB) return 1;
+
+      return 0;
+    });
+  }
+
+  function sortAttendanceByMemberName(records: AttendanceRecord[], members: Member[]) {
+    return [...records].sort((a, b) => {
+      const memberA = members.find(m => m.id === a.memberId);
+      const memberB = members.find(m => m.id === b.memberId);
+
+      const lastA = (memberA?.lastName ?? "").toLowerCase();
+      const lastB = (memberB?.lastName ?? "").toLowerCase();
+
+      if (lastA < lastB) return -1;
+      if (lastA > lastB) return 1;
+
+      const firstA = (memberA?.firstName ?? "").toLowerCase();
+      const firstB = (memberB?.firstName ?? "").toLowerCase();
+
+      if (firstA < firstB) return -1;
+      if (firstA > firstB) return 1;
+
+      return 0;
+    });
+  }
+
+  function sortAttendance(records: AttendanceRecord[], members: Member[]) {
+    return [...records].sort((a, b) => {
+      // 1. Sort by date
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      if (dateA !== dateB) return dateA - dateB;
+
+      // 2. Lookup members
+      const memberA = members.find(m => m.id === a.memberId);
+      const memberB = members.find(m => m.id === b.memberId);
+
+      const lastA = (memberA?.lastName ?? "").toLowerCase();
+      const lastB = (memberB?.lastName ?? "").toLowerCase();
+      if (lastA < lastB) return -1;
+      if (lastA > lastB) return 1;
+
+      const firstA = (memberA?.firstName ?? "").toLowerCase();
+      const firstB = (memberB?.firstName ?? "").toLowerCase();
+      if (firstA < firstB) return -1;
+      if (firstA > firstB) return 1;
+
+      return 0;
     });
   }
 
@@ -260,36 +346,38 @@ export default function ReportsPage() {
             {reportType === 'attendance' && (
               <>
                 <p>Attendance Records: {filteredAttendance.length}</p>
-                <p>Range: {reportRange}</p>
+                <p>Range: {reportRange.charAt(0).toUpperCase() + reportRange.slice(1)}</p>
               </>
             )}
           </div>
 
           <div className="border rounded-md overflow-x-auto">
             <div className="min-w-max">
+
+              {reportType === "attendance" && (
+                <AttendancePreviewTable
+                  attendance={sortAttendance(filteredAttendance, members)}
+                  members={sortMembersByName(members)}
+                />
+              )}
+
+              {reportType === "contributions" && (
+                <ContributionPreviewTable
+                  contributions={sortContributionsByMemberName(filteredContributions, members)}
+                  members={sortMembersByName(members)}
+                  selectedFields={selectedFields}
+                />
+              )}
+
               {reportType === "members" && (
                 <MemberPreviewTable
-                  members={filteredMembers}
+                  members={sortMembersByName(filteredMembers)}
                   selectedFields={selectedFields}
                   fieldLabelMap={fieldLabelMap}
                   formatField={formatField}
                 />
               )}
 
-              {reportType === "contributions" && (
-                <ContributionPreviewTable
-                  contributions={filteredContributions}
-                  members={members}
-                  selectedFields={selectedFields}
-                />
-              )}
-
-              {reportType === "attendance" && (
-                <AttendancePreviewTable
-                  attendance={filteredAttendance}
-                  members={members}
-                />
-              )}
             </div>
           </div>
           <Separator />

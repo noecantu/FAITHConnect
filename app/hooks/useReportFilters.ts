@@ -35,9 +35,7 @@ export function useReportFilters({
   selectedDate,
 }: UseReportFiltersProps) {
 
-  /**
-   * Available fiscal years (derived from contributions)
-   */
+  // Available fiscal years (derived from contributions)
   const availableYears = useMemo(() => {
     const years = new Set<string>();
     contributions.forEach((c) => {
@@ -46,9 +44,7 @@ export function useReportFilters({
     return Array.from(years).sort((a, b) => Number(b) - Number(a));
   }, [contributions]);
 
-  /**
-   * Filtered Members
-   */
+  // Filtered Members
   const filteredMembers = useMemo(() => {
     if (selectedMembers.length === 0) return [];
 
@@ -65,9 +61,7 @@ export function useReportFilters({
     return list;
   }, [members, selectedMembers, selectedStatus]);
 
-  /**
-   * Filtered Contributions
-   */
+  // Filtered Contributions
   const filteredContributions = useMemo(() => {
     if (reportType !== "contributions") return [];
     if (selectedMembers.length === 0) return [];
@@ -142,9 +136,7 @@ export function useReportFilters({
     reportType,
   ]);
 
-    /**
-     * Filtered Attendance
-     */
+    // Filtered Attendance
     const filteredAttendance = useMemo(() => {
       if (reportType !== "attendance") return [];
       if (selectedMembers.length === 0) return [];
