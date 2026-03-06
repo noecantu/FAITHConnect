@@ -88,7 +88,7 @@ export function useReportExports({
     if (reportType === "members") {
       generateMembersPDF(filteredMembers, selectedFields, logoBase64);
     } else if (reportType === "contributions") {
-      generateContributionsPDF(filteredContributions, logoBase64);
+      generateContributionsPDF(filteredContributions, selectedFields, logoBase64);
     } else if (reportType === "attendance") {
       generateAttendancePDF(filteredAttendance, logoBase64);
     }
@@ -106,7 +106,7 @@ export function useReportExports({
     if (reportType === "members") {
       generateMembersExcel(filteredMembers, selectedFields);
     } else if (reportType === "contributions") {
-      generateContributionsExcel(filteredContributions);
+      generateContributionsExcel(filteredContributions, selectedFields);
     } else if (reportType === "attendance") {
       generateAttendanceExcel(filteredAttendance);
     }
