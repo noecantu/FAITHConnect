@@ -6,15 +6,19 @@ import type { UseFormReturn } from "react-hook-form";
 import { useToast } from "./use-toast";
 import type { Member } from "../lib/types";
 import type { MemberFormValues } from "../lib/memberForm.schema";
+import { ref, uploadBytes, deleteObject, getDownloadURL } from "firebase/storage";
+import { storage } from "../lib/firebase";
 
 export function usePhotoCapture({
   form,
   member,
+  churchId,
   isOpen,
   initialUrl,
 }: {
   form: UseFormReturn<MemberFormValues>;
   member: Member | undefined;
+  churchId: string;
   isOpen: boolean;
   initialUrl: string | null;
 }) {
@@ -44,6 +48,33 @@ export function usePhotoCapture({
       setPreviewUrl(null);
     }
   }, [photoFile, member, isOpen, initialUrl]);
+
+  useEffect(() => {
+    async function uploadPhoto() {
+      if (!photoFile) return;
+
+      try {
+        const storageRef = ref(
+          storage,
+          `churches/${churchId}/members/${member?.id ?? "new"}/profile.jpg`
+
+        );
+
+        await uploadBytes(storageRef, photoFile);
+        const url = await getDownloadURL(storageRef);
+
+        form.setValue("profilePhotoUrl", url, { shouldDirty: true });
+      } catch (err) {
+        console.error("Photo upload failed:", err);
+        toast({
+          title: "Upload Failed",
+          description: "Could not upload the photo. Please try again.",
+        });
+      }
+    }
+
+    uploadPhoto();
+  }, [photoFile]);
 
   useEffect(() => {
     if (!isTakingPhoto) return;
@@ -106,6 +137,24 @@ export function usePhotoCapture({
     }
   };
 
+  const handleRemovePhoto = async () => {
+    const url = form.getValues("profilePhotoUrl");
+
+    if (url) {
+      try {
+        const path = decodeURIComponent(url.split("/o/")[1].split("?")[0]);
+        const storageRef = ref(storage, path);
+        await deleteObject(storageRef);
+      } catch (err) {
+        console.error("Failed to delete photo:", err);
+      }
+    }
+
+    form.setValue("photoFile", null, { shouldDirty: true });
+    form.setValue("profilePhotoUrl", "", { shouldDirty: true });
+    setPreviewUrl(null);
+  };
+
   return {
     previewUrl,
     isTakingPhoto,
@@ -115,5 +164,6 @@ export function usePhotoCapture({
     canvasRef,
     fileInputRef,
     handleCapturePhoto,
+    handleRemovePhoto,
   };
 }

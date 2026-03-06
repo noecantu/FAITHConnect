@@ -110,6 +110,7 @@ export type Member = {
   id: string;
   userId?: string | null;
   checkInCode: string;
+  qrCode?: string;
   firstName: string;
   lastName: string;
   email?: string;

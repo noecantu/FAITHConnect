@@ -30,6 +30,7 @@ export function listenToMembers(
           id: docSnap.id,
           userId: raw.userId ?? null,
           checkInCode: raw.checkInCode ?? "",
+          qrCode: raw.qrCode ?? "",
           firstName: raw.firstName ?? "",
           lastName: raw.lastName ?? "",
           email: raw.email ?? "",

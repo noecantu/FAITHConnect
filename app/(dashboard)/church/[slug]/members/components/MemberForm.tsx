@@ -22,6 +22,9 @@ import { memberSchema } from "@/app/lib/memberForm.schema";
 import { useMemberRelationships } from "@/app/hooks/useMemberRelationships";
 import { usePhotoCapture } from "@/app/hooks/usePhotoCapture";
 import { Fab } from "@/app/components/ui/fab";
+import QRCode from "qrcode";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { storage } from "@/app/lib/firebase";
 
 export interface StandaloneMemberFormProps {
   churchId: string;
@@ -60,6 +63,8 @@ export default function MemberForm({
       roles: [],
       __temp_rel_member: "",
       __temp_rel_type: "",
+      checkInCode: "",
+      qrCode: "",
     }
   });
 
@@ -74,7 +79,8 @@ export default function MemberForm({
   const photo = usePhotoCapture({
     form,
     member,
-    isOpen: true, // standalone form is always open
+    churchId,
+    isOpen: true,
     initialUrl: member?.profilePhotoUrl ?? null,
   });
 
@@ -87,10 +93,13 @@ export default function MemberForm({
 
     try {
       if (isEditing) {
+        // Remove non-Firestore fields
+        const { photoFile, __temp_rel_member, __temp_rel_type, ...cleanValues } = values;
+
         await updateDoc(
           doc(db, "churches", churchId, "members", member!.id),
           {
-            ...values,
+            ...cleanValues,
             updatedAt: serverTimestamp(),
           }
         );
@@ -99,15 +108,34 @@ export default function MemberForm({
       } else {
         const newId = crypto.randomUUID();
 
+        // Remove non-Firestore fields
+        const { photoFile, __temp_rel_member, __temp_rel_type, ...cleanValues } = values;
+
+        // 1. Create the member document first (without QR code)
         await setDoc(
           doc(db, "churches", churchId, "members", newId),
           {
             id: newId,
             churchId,
-            ...values,
+            ...cleanValues,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
           }
+        );
+
+        // 2. Generate QR code
+        const qrValue = `${window.location.origin}/check-in/${churchId}?code=${cleanValues.checkInCode}`;
+        const qrBase64 = await QRCode.toDataURL(qrValue);
+
+        // 3. Upload QR code to Firebase Storage
+        const qrRef = ref(storage, `churches/${churchId}/members/${newId}/qr.png`);
+        await uploadString(qrRef, qrBase64, "data_url");
+        const qrUrl = await getDownloadURL(qrRef);
+
+        // 4. Save QR code URL to Firestore
+        await updateDoc(
+          doc(db, "churches", churchId, "members", newId),
+          { qrCode: qrUrl }
         );
 
         onSuccess?.(newId);
@@ -139,7 +167,13 @@ export default function MemberForm({
           allMembers={[]} currentMemberId={""} form={form}
           {...relationships}        />
 
-        <PhotoSection form={form} {...photo} />
+        <PhotoSection
+          form={form}
+          previewUrl={photo.previewUrl}
+          fileInputRef={photo.fileInputRef}
+          setIsTakingPhoto={photo.setIsTakingPhoto}
+          handleRemovePhoto={photo.handleRemovePhoto}
+        />
 
         <Fab
           type="save"

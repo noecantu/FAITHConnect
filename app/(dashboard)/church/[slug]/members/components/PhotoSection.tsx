@@ -15,7 +15,7 @@ import {
   CardTitle,
   CardContent,
 } from "@/app/components/ui/card";
-import { Camera, Upload } from "lucide-react";
+import { Camera, Trash, Upload } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import type { MemberFormValues } from "@/app/lib/memberForm.schema";
 
@@ -24,6 +24,7 @@ type Props = {
   previewUrl: string | null;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   setIsTakingPhoto: (open: boolean) => void;
+  handleRemovePhoto: () => void;
 };
 
 export function PhotoSection({
@@ -31,6 +32,7 @@ export function PhotoSection({
   previewUrl,
   fileInputRef,
   setIsTakingPhoto,
+  handleRemovePhoto,
 }: Props) {
   return (
     <Card>
@@ -67,6 +69,14 @@ export function PhotoSection({
           >
             <Camera className="mr-2 h-4 w-4" />
             Take Photo
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleRemovePhoto}
+          >
+            <Trash className="mr-2 h-4 w-4" />
+            Remove
           </Button>
         </div>
         <FormField

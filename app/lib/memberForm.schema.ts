@@ -52,6 +52,9 @@ export const memberSchema = z.object({
   // These temp fields are used internally by your UI
   __temp_rel_member: z.string().optional(),
   __temp_rel_type: z.string().optional(),
+  checkInCode: z.string().optional(),
+  qrCode: z.string().optional(),
+  profilePhotoUrl: z.string().optional(),
 });
 
 // ⭐ TypeScript now ALWAYS matches the schema — no drift, no mismatches

@@ -175,26 +175,26 @@ export default function ReportsPage() {
     });
   }
 
-  function sortAttendanceByMemberName(records: AttendanceRecord[], members: Member[]) {
-    return [...records].sort((a, b) => {
-      const memberA = members.find(m => m.id === a.memberId);
-      const memberB = members.find(m => m.id === b.memberId);
+  // function sortAttendanceByMemberName(records: AttendanceRecord[], members: Member[]) {
+  //   return [...records].sort((a, b) => {
+  //     const memberA = members.find(m => m.id === a.memberId);
+  //     const memberB = members.find(m => m.id === b.memberId);
 
-      const lastA = (memberA?.lastName ?? "").toLowerCase();
-      const lastB = (memberB?.lastName ?? "").toLowerCase();
+  //     const lastA = (memberA?.lastName ?? "").toLowerCase();
+  //     const lastB = (memberB?.lastName ?? "").toLowerCase();
 
-      if (lastA < lastB) return -1;
-      if (lastA > lastB) return 1;
+  //     if (lastA < lastB) return -1;
+  //     if (lastA > lastB) return 1;
 
-      const firstA = (memberA?.firstName ?? "").toLowerCase();
-      const firstB = (memberB?.firstName ?? "").toLowerCase();
+  //     const firstA = (memberA?.firstName ?? "").toLowerCase();
+  //     const firstB = (memberB?.firstName ?? "").toLowerCase();
 
-      if (firstA < firstB) return -1;
-      if (firstA > firstB) return 1;
+  //     if (firstA < firstB) return -1;
+  //     if (firstA > firstB) return 1;
 
-      return 0;
-    });
-  }
+  //     return 0;
+  //   });
+  // }
 
   function sortAttendance(records: AttendanceRecord[], members: Member[]) {
     return [...records].sort((a, b) => {

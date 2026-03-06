@@ -18,8 +18,8 @@ export default function NewMemberPage() {
 
       <MemberForm
         churchId={churchId ?? ""}
-        onSuccess={(newMemberId: string) => {
-          router.push(`/church/${churchId}/members/${newMemberId}`);
+        onSuccess={() => {
+          router.push(`/church/${churchId}/members`);
         }}
       />
     </div>

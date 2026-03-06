@@ -56,15 +56,13 @@ const contributionFieldLabelMap: Record<string, string> = {
   notes: "Notes",
 };
 
-// Member Reports
-export function generateMembersPDF(
+export async function generateMembersPDF(
   members: Member[],
   selectedFields: string[],
   logoBase64?: string
 ) {
   const datePrefix = format(new Date(), "yyyy-MM-dd");
-  const orientation =
-    selectedFields.length > 4 ? "landscape" : "portrait";
+  const orientation = selectedFields.length > 4 ? "landscape" : "portrait";
 
   const doc = new jsPDF({
     orientation,
@@ -72,38 +70,95 @@ export function generateMembersPDF(
     format: "letter",
   });
 
-  // Header: Logo + Centered Title
-  // Logo (left)
-  if (logoBase64) {
-    doc.addImage(logoBase64, "PNG", 40, 20, 100, 0); // width=100, height auto
+  // -----------------------------
+  // 1. Preload QR images (sync-safe)
+  // -----------------------------
+  const qrImages: Record<string, string | null> = {};
+
+  for (const m of members) {
+    const qrUrl = m.qrCode ?? m.profilePhotoUrl ?? null; // adjust as needed
+
+    if (!qrUrl) {
+      qrImages[m.id] = null;
+      continue;
+    }
+
+    try {
+      const res = await fetch(qrUrl);
+      const blob = await res.blob();
+      const reader = await new Promise<string>((resolve) => {
+        const fr = new FileReader();
+        fr.onloadend = () => resolve(fr.result as string);
+        fr.readAsDataURL(blob);
+      });
+
+      qrImages[m.id] = reader;
+    } catch {
+      qrImages[m.id] = null;
+    }
   }
 
-  // Centered title
+  // -----------------------------
+  // 2. Header
+  // -----------------------------
+  if (logoBase64) {
+    doc.addImage(logoBase64, "PNG", 40, 20, 100, 0);
+  }
+
   const pageWidth = doc.internal.pageSize.getWidth();
   doc.setFontSize(18);
   doc.text("Member Directory Report", pageWidth / 2, 50, { align: "center" });
 
-  // Table
+  // -----------------------------
+  // 3. Table columns + rows
+  // -----------------------------
   const tableColumn = ["Name", ...selectedFields.map(f => fieldLabelMap[f])];
 
   const tableRows = members.map(m => [
     `${m.firstName} ${m.lastName}`,
-    ...selectedFields.map(f => formatField(m[f as keyof Member]))
+    ...selectedFields.map(f => {
+      if (f === "checkInCode") return m.checkInCode ?? "—";
+      if (f === "qrCode") return ""; // placeholder, image drawn later
+      return formatField(m[f as keyof Member]);
+    })
   ]);
 
+  // -----------------------------
+  // 4. Render table with QR images
+  // -----------------------------
   autoTable(doc, {
     head: [tableColumn],
     body: tableRows,
     startY: 80,
     styles: { fontSize: 10 },
     tableWidth: "auto",
-    columnStyles: { 0: { cellWidth: "auto" } },
+    columnStyles: {
+      0: { cellWidth: "auto" },
+      ...(selectedFields.includes("qrCode")
+        ? { [selectedFields.indexOf("qrCode") + 1]: { cellWidth: 70 } }
+        : {})
+    },
     alternateRowStyles: { fillColor: [245, 245, 245] },
+
+    didDrawCell: (data) => {
+      const qrColIndex = selectedFields.indexOf("qrCode") + 1;
+      if (data.column.index !== qrColIndex) return;
+
+      const member = members[data.row.index];
+      const base64 = qrImages[member.id];
+      if (!base64) return;
+
+      const { x, y, width, height } = data.cell;
+      const size = Math.min(width - 4, height - 4);
+
+      doc.addImage(base64, "PNG", x + 2, y + 2, size, size);
+    }
   });
 
-  // Footer (aligned to table)
+  // -----------------------------
+  // 5. Footer
+  // -----------------------------
   const pageCount = doc.getNumberOfPages();
-
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
 
@@ -111,22 +166,17 @@ export function generateMembersPDF(
     const pageHeight = doc.internal.pageSize.getHeight();
     const footerY = pageHeight - 20;
 
-    const left = 40;
-    const right = pageWidth - 40;
-
     doc.setFontSize(10);
 
-    // Left footer text
     doc.text(
       `Generated on ${format(new Date(), "MM/dd/yyyy hh:mm a")}`,
-      left,
+      40,
       footerY
     );
 
-    // Right footer text
     doc.text(
       `Page ${i} of ${pageCount}`,
-      right,
+      pageWidth - 40,
       footerY,
       { align: "right" }
     );
