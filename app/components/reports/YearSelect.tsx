@@ -21,10 +21,9 @@ export function YearSelect({ years, value, onChange }: Props) {
       : value.join(", ");
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-0">
       <div className="flex justify-between items-center">
         <Label>Year</Label>
-
         <Button
           variant="ghost"
           size="sm"

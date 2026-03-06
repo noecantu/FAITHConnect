@@ -192,8 +192,10 @@ export default function ReportsPage() {
           )}
 
           {reportType === "attendance" && (
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-white/70">Date</label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white">
+                Date
+              </label>
 
               <Select
                 value={selectedDate ?? "all"}

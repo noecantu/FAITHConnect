@@ -19,7 +19,7 @@ export function MemberFieldSelect({ options, value, onChange }: Props) {
   const allValues = options.map((o) => o.value);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-0">
       <div className="flex justify-between items-center">
         <Label>Fields to Export</Label>
 

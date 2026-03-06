@@ -10,15 +10,20 @@ export function ReportRangeSelect({
   onChange,
 }: ReportRangeSelectProps) {
   return (
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger>
-        <SelectValue placeholder="Range" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="week">This Week</SelectItem>
-        <SelectItem value="month">This Month</SelectItem>
-        <SelectItem value="year">This Year</SelectItem>
-      </SelectContent>
-    </Select>
+    <div className="space-y-2">
+      <label className="text-sm font-medium text-white">
+        Time Frame
+      </label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger>
+          <SelectValue placeholder="Range" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="week">This Week</SelectItem>
+          <SelectItem value="month">This Month</SelectItem>
+          <SelectItem value="year">This Year</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
   );
 }

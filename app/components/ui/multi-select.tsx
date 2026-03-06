@@ -14,7 +14,7 @@ import {
   CommandGroup,
   CommandItem,
 } from './command';
-import { Check } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/app/lib/utils';
 
 type Option = {
@@ -52,9 +52,13 @@ export function MultiSelect({
           variant="outline"
           className="w-full justify-between"
         >
-          {value.length === 0
-            ? placeholder
-            : `${value.length} selected`}
+          <span>
+            {value.length === 0
+              ? placeholder
+              : `${value.length} selected`}
+          </span>
+
+          <ChevronDown className="h-4 w-4 opacity-50" />
         </Button>
       </PopoverTrigger>
 

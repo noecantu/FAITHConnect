@@ -1,8 +1,8 @@
 'use client';
 
-import { Label } from "../ui/label";
-import { Button } from "../ui/button";
-import { MultiSelect } from "../ui/multi-select";
+import { Label } from "@/app/components/ui/label";
+import { Button } from "@/app/components/ui/button";
+import { MultiSelect } from "@/app/components/ui/multi-select";
 import { Member } from "@/app/lib/types";
 import React from "react";
 
@@ -34,10 +34,9 @@ export function MemberSelect({ members, value, onChange }: Props) {
   }, [members]);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-0">
       <div className="flex justify-between items-center">
         <Label>Select Members</Label>
-
         <Button
           variant="ghost"
           size="sm"
