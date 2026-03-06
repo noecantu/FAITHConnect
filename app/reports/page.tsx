@@ -44,10 +44,10 @@ export default function ReportsPage() {
   const { attendance } = useAttendanceForReports(churchId, members);
 
   const [reportType, setReportType] =
-    useState<'members' | 'contributions' | 'attendance'>('members');
+    useState<'members' | 'contributions' | 'attendance'>('attendance');
 
   const [reportRange, setReportRange] =
-    useState<'week' | 'month' | 'year'>('year');
+    useState<'week' | 'month' | 'year'>('week');
 
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
