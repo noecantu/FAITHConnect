@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import type { Member, Contribution } from './types';
+import type { Member, Contribution, AttendanceRecord } from './types';
 import { format } from 'date-fns';
 import { FieldValue } from '../lib/report-types';
 import { Address } from '../lib/types';
@@ -34,9 +34,7 @@ function formatField(value: FieldValue): string {
   return String(value);
 }
 
-// ---------------------------------
 // Field label map (for dynamic fields)
-// ---------------------------------
 const fieldLabelMap: Record<string, string> = {
   email: "Email",
   phoneNumber: "Phone Number",
@@ -48,9 +46,17 @@ const fieldLabelMap: Record<string, string> = {
   roles: "Roles",
 };
 
-// ---------------------------------
+// Contribution field labels
+const contributionFieldLabelMap: Record<string, string> = {
+  memberName: "Member Name",
+  date: "Date",
+  amount: "Amount",
+  category: "Category",
+  contributionType: "Type",
+  notes: "Notes",
+};
+
 // Member Reports
-// ---------------------------------
 export function generateMembersPDF(
   members: Member[],
   selectedFields: string[],
@@ -66,10 +72,7 @@ export function generateMembersPDF(
     format: "letter",
   });
 
-  // -------------------------
   // Header: Logo + Centered Title
-  // -------------------------
-
   // Logo (left)
   if (logoBase64) {
     doc.addImage(logoBase64, "PNG", 40, 20, 100, 0); // width=100, height auto
@@ -80,10 +83,7 @@ export function generateMembersPDF(
   doc.setFontSize(18);
   doc.text("Member Directory Report", pageWidth / 2, 50, { align: "center" });
 
-  // -------------------------
   // Table
-  // -------------------------
-
   const tableColumn = ["Name", ...selectedFields.map(f => fieldLabelMap[f])];
 
   const tableRows = members.map(m => [
@@ -94,17 +94,14 @@ export function generateMembersPDF(
   autoTable(doc, {
     head: [tableColumn],
     body: tableRows,
-    startY: 80, // pushed down so it doesn't overlap header
+    startY: 80,
     styles: { fontSize: 10 },
     tableWidth: "auto",
     columnStyles: { 0: { cellWidth: "auto" } },
     alternateRowStyles: { fillColor: [245, 245, 245] },
   });
 
-  // -------------------------
   // Footer (aligned to table)
-  // -------------------------
-
   const pageCount = doc.getNumberOfPages();
 
   for (let i = 1; i <= pageCount; i++) {
@@ -114,8 +111,8 @@ export function generateMembersPDF(
     const pageHeight = doc.internal.pageSize.getHeight();
     const footerY = pageHeight - 20;
 
-    const left = 40;               // autoTable default margin
-    const right = pageWidth - 40;  // autoTable default margin
+    const left = 40;
+    const right = pageWidth - 40;
 
     doc.setFontSize(10);
 
@@ -166,13 +163,16 @@ export function generateMembersExcel(
   XLSX.writeFile(workbook, `${datePrefix} Member Directory Report.xlsx`);
 }
 
-// ---------------------------------
 // Contribution Reports (UNCHANGED except footer alignment)
-// ---------------------------------
-export function generateContributionsPDF(contributions: Contribution[], logoBase64?: string) {
+export function generateContributionsPDF(
+  contributions: Contribution[],
+  selectedFields: string[],
+  logoBase64?: string
+) {
   const datePrefix = format(new Date(), "yyyy-MM-dd");
 
-  const tableColumn = ["Member Name", "Date", "Amount", "Category", "Type"];
+  const tableColumn = selectedFields.map(f => contributionFieldLabelMap[f]);
+
   const orientation = tableColumn.length > 4 ? "landscape" : "portrait";
 
   const doc = new jsPDF({
@@ -189,12 +189,112 @@ export function generateContributionsPDF(contributions: Contribution[], logoBase
   doc.setFontSize(18);
   doc.text("Contributions Report", pageWidth / 2, 50, { align: "center" });
 
-  const tableRows = contributions.map(c => [
-    c.memberName,
-    format(new Date(c.date), "MM/dd/yyyy"),
-    `$${c.amount.toFixed(2)}`,
-    c.category,
-    c.contributionType,
+  const tableRows = contributions.map(c =>
+    selectedFields.map(f => {
+      if (f === "date") return format(new Date(c.date), "MM/dd/yyyy");
+      if (f === "amount") return `$${c.amount.toFixed(2)}`;
+      return formatField(c[f as keyof Contribution]);
+    })
+  );
+
+  autoTable(doc, {
+    head: [tableColumn],
+    body: tableRows,
+    startY: 80,
+    styles: { fontSize: 10, cellWidth: "wrap" },
+    alternateRowStyles: { fillColor: [245, 245, 245] },
+  });
+
+  // Footer
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const footerY = pageHeight - 20;
+
+    doc.setFontSize(10);
+
+    doc.text(
+      `Generated on ${format(new Date(), "MM/dd/yyyy hh:mm a")}`,
+      40,
+      footerY
+    );
+
+    doc.text(
+      `Page ${i} of ${pageCount}`,
+      pageWidth - 40,
+      footerY,
+      { align: "right" }
+    );
+  }
+
+  doc.save(`${datePrefix} Contributions Report.pdf`);
+}
+
+export function generateContributionsExcel(
+  contributions: Contribution[],
+  selectedFields: string[]
+) {
+  const datePrefix = format(new Date(), "yyyy-MM-dd");
+
+  const worksheet = XLSX.utils.json_to_sheet(
+    contributions.map(c => {
+      const row: Record<string, string> = {};
+
+      selectedFields.forEach(f => {
+        const label = contributionFieldLabelMap[f];
+
+        if (f === "date") {
+          row[label] = format(new Date(c.date), "MM/dd/yyyy");
+        } else if (f === "amount") {
+          row[label] = String(c.amount);
+        } else {
+          row[label] = formatField(c[f as keyof Contribution]);
+        }
+      });
+
+      return row;
+    })
+  );
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Contributions");
+
+  XLSX.writeFile(workbook, `${datePrefix} Contribution Report.xlsx`);
+}
+
+export function generateAttendancePDF(
+  records: AttendanceRecord[],
+  logoBase64?: string
+) {
+  const datePrefix = format(new Date(), "yyyy-MM-dd");
+
+  const tableColumn = ["Date", "Name", "Type", "Status"];
+  const orientation = tableColumn.length > 4 ? "landscape" : "portrait";
+
+  const doc = new jsPDF({
+    orientation,
+    unit: "pt",
+    format: "letter",
+  });
+
+  // Header: Logo + Centered Title
+  if (logoBase64) {
+    doc.addImage(logoBase64, "PNG", 40, 20, 100, 0);
+  }
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  doc.setFontSize(18);
+  doc.text("Attendance Report", pageWidth / 2, 50, { align: "center" });
+
+  // Table rows
+  const tableRows = records.map(r => [
+    format(new Date(r.date), "MM/dd/yyyy"),
+    r.memberName ?? r.visitorName ?? "Unknown",
+    r.memberId ? "Member" : "Visitor",
+    "Present",
   ]);
 
   autoTable(doc, {
@@ -203,12 +303,10 @@ export function generateContributionsPDF(contributions: Contribution[], logoBase
     startY: 80,
     styles: { fontSize: 10, cellWidth: "wrap" },
     alternateRowStyles: { fillColor: [245, 245, 245] },
-    columnStyles: { 0: { cellWidth: 140 } },
+    columnStyles: { 1: { cellWidth: 140 } },
   });
 
-  // -------------------------
   // Footer (aligned to table)
-  // -------------------------
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
@@ -236,22 +334,23 @@ export function generateContributionsPDF(contributions: Contribution[], logoBase
     );
   }
 
-  doc.save(`${datePrefix} Contributions Report.pdf`);
+  doc.save(`${datePrefix} Attendance Report.pdf`);
 }
 
-export function generateContributionsExcel(contributions: Contribution[]) {
+export function generateAttendanceExcel(records: AttendanceRecord[]) {
   const datePrefix = format(new Date(), "yyyy-MM-dd");
 
-  const worksheet = XLSX.utils.json_to_sheet(contributions.map(c => ({
-    "Member Name": c.memberName,
-    "Date": format(new Date(c.date), 'MM/dd/yyyy'),
-    "Amount": c.amount,
-    "Category": c.category,
-    "Type": c.contributionType,
-  })));
+  const worksheet = XLSX.utils.json_to_sheet(
+    records.map(r => ({
+      Date: format(new Date(r.date), "MM/dd/yyyy"),
+      Name: r.memberName ?? r.visitorName ?? "Unknown",
+      Type: r.memberId ? "Member" : "Visitor",
+      Status: "Present",
+    }))
+  );
 
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Contributions");
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
 
-  XLSX.writeFile(workbook, `${datePrefix} Contribution Report.xlsx`);
+  XLSX.writeFile(workbook, `${datePrefix} Attendance Report.xlsx`);
 }

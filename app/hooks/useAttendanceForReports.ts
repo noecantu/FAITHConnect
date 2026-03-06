@@ -3,17 +3,22 @@
 import { useEffect, useState, useCallback } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase';
+import { Member } from '../lib/types';
 
 export interface AttendanceRecord {
   id: string;
   date: string;
   memberId?: string;
+  memberName?: string;
   visitorId?: string;
   visitorName?: string;
   attended: boolean;
 }
 
-export function useAttendanceForReports(churchId: string | null) {
+export function useAttendanceForReports(
+  churchId: string | null,
+  members: Member[]
+) {
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,7 +31,7 @@ export function useAttendanceForReports(churchId: string | null) {
 
     setLoading(true);
 
-    const colRef = collection(db, 'churches', churchId, 'attendance');
+    const colRef = collection(db, "churches", churchId, "attendance");
     const snap = await getDocs(colRef);
 
     const rows: AttendanceRecord[] = [];
@@ -38,12 +43,21 @@ export function useAttendanceForReports(churchId: string | null) {
       // Flatten records
       if (data.records) {
         Object.entries(data.records).forEach(([id, attended]) => {
+          const isVisitor = id.startsWith("visitor-");
+
+          const member = !isVisitor
+            ? members.find((m) => m.id === id)
+            : undefined;
+
           rows.push({
             id: `${date}-${id}`,
             date,
             attended: Boolean(attended),
-            memberId: id.startsWith('visitor-') ? undefined : id,
-            visitorId: id.startsWith('visitor-') ? id : undefined,
+            memberId: isVisitor ? undefined : id,
+            memberName: member
+              ? `${member.firstName} ${member.lastName}`
+              : undefined,
+            visitorId: isVisitor ? id : undefined,
           });
         });
       }
@@ -57,6 +71,7 @@ export function useAttendanceForReports(churchId: string | null) {
             attended: true,
             visitorId: v.id,
             visitorName: v.name,
+            memberName: undefined,
           });
         });
       }
@@ -64,7 +79,7 @@ export function useAttendanceForReports(churchId: string | null) {
 
     setAttendance(rows);
     setLoading(false);
-  }, [churchId]);
+  }, [churchId, members]);
 
   useEffect(() => {
     load();

@@ -41,7 +41,7 @@ export default function ReportsPage() {
   const { contributions } = useContributions();
   const { churchId } = useChurchId();
 
-  const { attendance } = useAttendanceForReports(churchId);
+  const { attendance } = useAttendanceForReports(churchId, members);
 
   const [reportType, setReportType] =
     useState<'members' | 'contributions' | 'attendance'>('members');
@@ -73,6 +73,7 @@ export default function ReportsPage() {
     { label: "QR Code", value: "qrCode" },
     { label: "Notes", value: "notes" },
   ];
+  
 
   const fieldLabelMap: Record<string, string> = {
     status: "Status",
@@ -159,6 +160,21 @@ export default function ReportsPage() {
             value={selectedMembers}
             onChange={setSelectedMembers}
           />
+
+          {reportType === "contributions" && (
+            <MemberFieldSelect
+              options={[
+                { label: "Member", value: "memberName" },
+                { label: "Amount", value: "amount" },
+                { label: "Date", value: "date" },
+                { label: "Category", value: "category" },
+                { label: "Type", value: "contributionType" },
+                { label: "Notes", value: "notes" },
+              ]}
+              value={selectedFields}
+              onChange={setSelectedFields}
+            />
+          )}
 
           {reportType === "members" && (
             <StatusSelect
@@ -249,31 +265,33 @@ export default function ReportsPage() {
             )}
           </div>
 
-          <div className="border rounded-md overflow-hidden">
-            {reportType === "members" && (
-              <MemberPreviewTable
-                members={filteredMembers}
-                selectedFields={selectedFields}
-                fieldLabelMap={fieldLabelMap}
-                formatField={formatField}
-              />
-            )}
+          <div className="border rounded-md overflow-x-auto">
+            <div className="min-w-max">
+              {reportType === "members" && (
+                <MemberPreviewTable
+                  members={filteredMembers}
+                  selectedFields={selectedFields}
+                  fieldLabelMap={fieldLabelMap}
+                  formatField={formatField}
+                />
+              )}
 
-            {reportType === "contributions" && (
-              <ContributionPreviewTable
-                contributions={filteredContributions}
-                members={members}
-              />
-            )}
+              {reportType === "contributions" && (
+                <ContributionPreviewTable
+                  contributions={filteredContributions}
+                  members={members}
+                  selectedFields={selectedFields}
+                />
+              )}
 
-            {reportType === "attendance" && (
-              <AttendancePreviewTable
-                attendance={filteredAttendance}
-                members={members}
-              />
-            )}
+              {reportType === "attendance" && (
+                <AttendancePreviewTable
+                  attendance={filteredAttendance}
+                  members={members}
+                />
+              )}
+            </div>
           </div>
-
           <Separator />
 
           <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4">

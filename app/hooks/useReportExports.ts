@@ -1,14 +1,16 @@
 'use client';
 
 import { useCallback } from 'react';
-import { Member, Contribution, Address, AttendanceRecord } from '../lib/types';
+import { Member, Contribution, Address, AttendanceRecord } from '@/app/lib/types';
 
 import {
   generateMembersPDF,
   generateMembersExcel,
   generateContributionsPDF,
-  generateContributionsExcel
-} from '../lib/reports';
+  generateContributionsExcel,
+  generateAttendancePDF,
+  generateAttendanceExcel,
+} from '@/app/lib/reports';
 
 interface UseReportExportsProps {
   reportType: 'members' | 'contributions' | 'attendance';
@@ -22,12 +24,11 @@ export function useReportExports({
   reportType,
   filteredMembers,
   filteredContributions,
+  filteredAttendance,
   selectedFields,
 }: UseReportExportsProps) {
 
-  /**
-   * Convert PNG to Base64 for PDF header logo
-   */
+  // Convert PNG to Base64 for PDF header logo
   const loadPngAsBase64 = useCallback(async (path: string): Promise<string | undefined> => {
     try {
       const res = await fetch(path);
@@ -43,10 +44,8 @@ export function useReportExports({
     }
   }, []);
 
-  /**
-   * Format fields for preview + export
-   */
-    type FieldValue =
+  // Format fields for preview + export
+  type FieldValue =
     | string
     | number
     | null
@@ -55,65 +54,67 @@ export function useReportExports({
     | Address
     | { type?: string }[];
 
-    const formatField = useCallback((value: FieldValue): string => {
+  const formatField = useCallback((value: FieldValue): string => {
     if (value == null) return "—";
 
     // Arrays of primitives
     if (Array.isArray(value) && value.every(v => typeof v === "string")) {
-        return value.join(", ");
+      return value.join(", ");
     }
 
     // Address object
     if (typeof value === "object" && "street" in value) {
-        const addr = value as Address;
-        return [
+      const addr = value as Address;
+      return [
         addr.street,
         addr.city,
         addr.state,
         addr.zip
-        ].filter(Boolean).join(", ");
+      ].filter(Boolean).join(", ");
     }
 
     // Array of relationship objects
     if (Array.isArray(value) && value.length > 0 && typeof value[0] === "object") {
-        return value.map(r => r.type ?? "—").join(", ");
+      return value.map(r => r.type ?? "—").join(", ");
     }
 
     return String(value);
-    }, []);
+  }, []);
 
-  /**
-   * Export PDF
-   */
+  // Export PDF
   const exportPDF = useCallback(async () => {
     const logoBase64 = await loadPngAsBase64("/FAITH_CONNECT_FLAME_LOGO.png");
 
     if (reportType === "members") {
       generateMembersPDF(filteredMembers, selectedFields, logoBase64);
-    } else {
+    } else if (reportType === "contributions") {
       generateContributionsPDF(filteredContributions, logoBase64);
+    } else if (reportType === "attendance") {
+      generateAttendancePDF(filteredAttendance, logoBase64);
     }
   }, [
     reportType,
     filteredMembers,
     filteredContributions,
+    filteredAttendance,
     selectedFields,
     loadPngAsBase64,
   ]);
 
-  /**
-   * Export Excel
-   */
+  // Export Excel
   const exportExcel = useCallback(() => {
     if (reportType === "members") {
       generateMembersExcel(filteredMembers, selectedFields);
-    } else {
+    } else if (reportType === "contributions") {
       generateContributionsExcel(filteredContributions);
+    } else if (reportType === "attendance") {
+      generateAttendanceExcel(filteredAttendance);
     }
   }, [
     reportType,
     filteredMembers,
     filteredContributions,
+    filteredAttendance,
     selectedFields,
   ]);
 

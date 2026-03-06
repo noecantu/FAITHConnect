@@ -13,6 +13,7 @@ export interface AttendanceRecord {
   id: string;
   date: string;
   memberId?: string;
+  memberName?: string;
   visitorId?: string;
   visitorName?: string;
 }

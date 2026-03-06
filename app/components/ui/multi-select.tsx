@@ -16,6 +16,7 @@ import {
 } from './command';
 import { Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/app/lib/utils';
+import { DropdownTrigger } from './dropdown-trigger';
 
 type Option = {
   label: string;
@@ -48,19 +49,13 @@ export function MultiSelect({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className="w-full justify-between"
-        >
-          <span>
-            {value.length === 0
-              ? placeholder
-              : `${value.length} selected`}
-          </span>
-
-          <ChevronDown className="h-4 w-4 opacity-50" />
+        <Button variant="outline" className="w-full p-0">
+          <DropdownTrigger>
+            {value.length === 0 ? placeholder : `${value.length} selected`}
+          </DropdownTrigger>
         </Button>
       </PopoverTrigger>
+
 
       <PopoverContent className="p-0 w-full">
         <Command>
