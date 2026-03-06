@@ -135,12 +135,12 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
+  <div className="space-y-6">
       <PageHeader
-        title={`Reports`}
-        subtitle={`Select a report type below.`}
+      title={`Reports`}
+      subtitle={`Select a report type below.`}
       />
-
+    <div className="flex flex-col lg:flex-row gap-6">
       {/* LEFT PANEL — Filters */}
       <Card className="w-full lg:w-80 h-fit">
         <CardHeader>
@@ -292,5 +292,6 @@ export default function ReportsPage() {
       </Card>
 
     </div>
+  </div>
   );
 }

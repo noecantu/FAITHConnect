@@ -36,7 +36,7 @@ export default function UserDashboardPage({
       const res = await fetch("/api/users/me");
       const profile: UserProfile = await res.json();
 
-          console.log("User profile from /api/users/me:", profile); // ← THIS ONE
+          console.log("User profile from /api/users/me:", profile);
 
       setUser(profile);
       setLoadingUser(false);

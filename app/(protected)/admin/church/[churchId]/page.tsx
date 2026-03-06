@@ -27,6 +27,7 @@ import {
   CalendarCheck,
   CalendarHeart,
   Calendar,
+  FileText,
   Music,
   UserPlus,
 } from "lucide-react";
@@ -357,6 +358,7 @@ export default function ChurchAdminDashboard() {
               <QuickAction href="/attendance" icon={CalendarCheck} label="Attendance" />
               <QuickAction href="/calendar" icon={Calendar} label="Events" />
               <QuickAction href="/church/${churchId}/members" icon={UserPlus} label="Members" />
+              <QuickAction href="/reports" icon={FileText} label="Reports" />
               <QuickAction href="/music/setlists" icon={Music} label="Set Lists" />
               <QuickAction href="/service-plan" icon={CalendarHeart} label="Service Plans" />
             </CardContent>
