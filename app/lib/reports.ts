@@ -42,6 +42,8 @@ const fieldLabelMap: Record<string, string> = {
   baptismDate: "Baptism Date",
   anniversary: "Anniversary",
   address: "Address",
+  checkInCode: "Check-In Code",
+  qrCode: "QR Code",
   notes: "Notes",
   roles: "Roles",
 };
@@ -141,6 +143,7 @@ export async function generateMembersPDF(
     alternateRowStyles: { fillColor: [245, 245, 245] },
 
     didDrawCell: (data) => {
+      if (data.section !== "body") return;
       const qrColIndex = selectedFields.indexOf("qrCode") + 1;
       if (data.column.index !== qrColIndex) return;
 
