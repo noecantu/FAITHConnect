@@ -31,6 +31,7 @@ interface UseAttendanceResult {
 
 export function useAttendance(
   churchId: string | null,
+  members: { id: string; firstName: string; lastName: string; status: string }[],
   dateString: string,
 ): UseAttendanceResult {
   const [records, setRecords] = useState<AttendanceRecords>({});
@@ -54,6 +55,7 @@ export function useAttendance(
       const data = snap.data() as {
         records?: AttendanceRecords;
         visitors?: AttendanceVisitor[];
+        membersSnapshot?: any[];
       };
 
       setRecords(data.records || {});
@@ -86,6 +88,12 @@ export function useAttendance(
     await setDoc(ref, {
       records,
       visitors,
+      membersSnapshot: members.map(m => ({
+        id: m.id,
+        firstName: m.firstName,
+        lastName: m.lastName,
+        status: m.status,
+      })),
     });
   };
 

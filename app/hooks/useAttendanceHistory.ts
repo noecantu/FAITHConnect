@@ -8,6 +8,12 @@ import type { Member } from '@/app/lib/types';
 export interface AttendanceHistoryItem {
   dateString: string;
   records: Record<string, boolean>;
+  membersSnapshot: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    status: string;
+  }[];
 }
 
 export function useAttendanceHistory(churchId: string | null) {
@@ -29,23 +35,20 @@ export function useAttendanceHistory(churchId: string | null) {
     const attendanceRef = collection(db, 'churches', churchId, 'attendance');
     const attendanceSnap = await getDocs(attendanceRef);
 
-    const items: AttendanceHistoryItem[] = attendanceSnap.docs.map((d) => ({
-      dateString: d.id,
-      records: d.data().records || {},
-    }));
+    const items: AttendanceHistoryItem[] = attendanceSnap.docs.map((d) => {
+      const data = d.data();
+
+      return {
+        dateString: d.id,
+        records: data.records || {},
+        membersSnapshot: data.membersSnapshot || [], // NEW
+      };
+    });
 
     items.sort((a, b) => a.dateString.localeCompare(b.dateString));
 
-    // Members
-    const membersRef = collection(db, 'churches', churchId, 'members');
-    const membersSnap = await getDocs(membersRef);
-    const memberList: Member[] = membersSnap.docs.map((d) => ({
-      id: d.id,
-      ...(d.data() as Omit<Member, 'id'>),
-    }));
-
     setData(items);
-    setMembers(memberList);
+    setMembers(members);
     setLoading(false);
   }, [churchId]);
 
