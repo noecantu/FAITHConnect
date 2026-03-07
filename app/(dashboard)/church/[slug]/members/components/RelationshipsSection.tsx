@@ -150,6 +150,11 @@ export function RelationshipsSection({
             type="button"
             variant="outline"
             onClick={() => {
+              if (!currentMemberId) {
+                toast({ title: "Cannot add a relationship until this member has an ID." });
+                return;
+              }
+
               if (tempMember && tempType) {
                 append({
                   memberIds: [currentMemberId, tempMember],

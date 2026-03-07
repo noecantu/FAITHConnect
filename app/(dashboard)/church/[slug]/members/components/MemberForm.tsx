@@ -13,7 +13,7 @@ import { RelationshipsSection } from "./RelationshipsSection";
 import { PhotoSection } from "./PhotoSection";
 
 import { db, storage } from "@/app/lib/firebase";
-import { doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, updateDoc, serverTimestamp, getDoc } from "firebase/firestore";
 
 import type { Member } from "@/app/lib/types";
 import type { MemberFormValues } from "@/app/lib/memberForm.schema";
@@ -249,11 +249,58 @@ export default function MemberForm({
       if (isEditing) {
         const { photoFile, __temp_rel_member, __temp_rel_type, ...cleanValues } = values;
 
+        // 1. Update THIS member
         await updateDoc(
           doc(db, "churches", churchId, "members", member!.id),
           { ...cleanValues, updatedAt: serverTimestamp() }
         );
 
+        // ⭐ 2. UPDATE THE OTHER MEMBER(S) WITH THE INVERSE RELATIONSHIP
+        if (cleanValues.relationships && cleanValues.relationships.length > 0) {
+          for (const rel of cleanValues.relationships) {
+            const [idA, idB] = rel.memberIds;
+
+            // Determine the "other" member
+            const otherId = idA === member!.id ? idB : idA;
+
+            const otherRef = doc(db, "churches", churchId, "members", otherId);
+            const otherSnap = await getDoc(otherRef);
+
+            if (otherSnap.exists()) {
+              const otherData = otherSnap.data();
+
+              const otherRels = Array.isArray(otherData.relationships)
+                ? otherData.relationships
+                : [];
+
+              // Check if inverse already exists
+              const hasInverse = otherRels.some((r: any) => {
+                return (
+                  Array.isArray(r.memberIds) &&
+                  r.memberIds.includes(member!.id) &&
+                  r.type === rel.type
+                );
+              });
+
+              if (!hasInverse) {
+                const updated = [
+                  ...otherRels,
+                  {
+                    memberIds: [otherId, member!.id].sort(),
+                    type: rel.type,
+                  },
+                ];
+
+                await updateDoc(otherRef, {
+                  relationships: updated,
+                  updatedAt: serverTimestamp(),
+                });
+              }
+            }
+          }
+        }
+
+        // 3. Continue as normal
         onSuccess?.(member!.id);
       } else {
         const newId = crypto.randomUUID();
@@ -317,10 +364,14 @@ export default function MemberForm({
         <StatusSection form={form} />
 
         <RelationshipsSection
-          allMembers={[]}
-          currentMemberId={""}
           form={form}
-          {...relationships}
+          currentMemberId={member?.id ?? ""}
+          allMembers={relationships.allMembers}
+          availableMembers={relationships.availableMembers}
+          relationshipOptions={relationships.relationshipOptions}
+          fields={relationships.fields}
+          append={relationships.append}
+          remove={relationships.remove}
         />
 
         <PhotoSection

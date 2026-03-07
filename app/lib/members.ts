@@ -56,7 +56,12 @@ export function listenToMembers(
             : undefined,
           familyId: raw.familyId ?? null,
           notes: raw.notes ?? "",
-          relationships: raw.relationships ?? [],
+          relationships: Array.isArray(raw.relationships)
+          ? raw.relationships.map((rel: any) => ({
+              ...rel,
+              memberIds: [...rel.memberIds].sort() as [string, string],
+            }))
+          : [],
         };
 
       });

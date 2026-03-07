@@ -47,6 +47,14 @@ export default function EditMemberPage() {
               ? data.anniversary.toDate().toISOString().substring(0, 10)
               : data.anniversary
             : "",
+          relationships: Array.isArray(data.relationships)
+            ? data.relationships
+                .map((rel: any) => ({
+                  ...rel,
+                  memberIds: [...rel.memberIds].filter(Boolean).sort(),
+                }))
+                .filter((rel) => rel.memberIds.length === 2)
+            : [],
         } as Member);
       } else {
         setMember(null);

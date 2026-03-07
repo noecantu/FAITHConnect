@@ -63,5 +63,6 @@ export function useMemberRelationships({
     remove,
     relationshipOptions,
     availableMembers,
+    allMembers,
   };
 }
