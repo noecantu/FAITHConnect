@@ -53,31 +53,10 @@ export function PhotoSection({
             <span className="text-sm text-muted-foreground">No Photo</span>
           )}
         </div>
-        <div className="flex gap-2 justify-center">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            Upload
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setIsTakingPhoto(true)}
-          >
-            <Camera className="mr-2 h-4 w-4" />
-            Take Photo
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleRemovePhoto}
-          >
-            <Trash className="mr-2 h-4 w-4" />
-            Remove
-          </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <Button className="w-full sm:w-auto">Upload</Button>
+          <Button className="w-full sm:w-auto">Take Photo</Button>
+          <Button variant="destructive" className="w-full sm:w-auto">Remove</Button>
         </div>
         <FormField
           control={form.control}
