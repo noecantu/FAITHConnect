@@ -278,9 +278,15 @@ export default function MemberForm({
         // 2. Generate QR code using the correct check-in code
         const qrValue = `${window.location.origin}/check-in/${churchId}?code=${checkInCode}`;
         const qrBase64 = await QRCode.toDataURL(qrValue);
+        const safeFirst = cleanValues.firstName.replace(/\s+/g, "");
+        const safeLast = cleanValues.lastName.replace(/\s+/g, "");
+        const fileName = `QRCode_${safeFirst}${safeLast}.png`;
 
         // 3. Upload QR code to Firebase Storage
-        const qrRef = ref(storage, `churches/${churchId}/members/${newId}/qr.png`);
+        const qrRef = ref(
+          storage,
+          `churches/${churchId}/members/${newId}/${fileName}`
+        );
         await uploadString(qrRef, qrBase64, "data_url");
         const qrUrl = await getDownloadURL(qrRef);
 

@@ -245,7 +245,7 @@ export default function ChurchAdminDashboard() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen text-foreground">
-        Loading church dashboard…
+        Loading Church Dashboard…
       </div>
     );
   }
@@ -253,7 +253,7 @@ export default function ChurchAdminDashboard() {
   if (!church) {
     return (
       <div className="flex justify-center items-center min-h-screen text-foreground">
-        Loading church dashboard…
+        Loading Church Dashboard…
       </div>
     );
   }
