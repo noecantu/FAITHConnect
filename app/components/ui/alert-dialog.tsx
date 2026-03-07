@@ -134,5 +134,7 @@ export {
   AlertDialogFooter,
   AlertDialogTitle,
   AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
 };
 

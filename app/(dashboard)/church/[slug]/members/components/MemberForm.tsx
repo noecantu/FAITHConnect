@@ -12,7 +12,7 @@ import { StatusSection } from "./StatusSection";
 import { RelationshipsSection } from "./RelationshipsSection";
 import { PhotoSection } from "./PhotoSection";
 
-import { db } from "@/app/lib/firebase";
+import { db, storage } from "@/app/lib/firebase";
 import { doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 
 import type { Member } from "@/app/lib/types";
@@ -21,10 +21,34 @@ import { memberSchema } from "@/app/lib/memberForm.schema";
 
 import { useMemberRelationships } from "@/app/hooks/useMemberRelationships";
 import { usePhotoCapture } from "@/app/hooks/usePhotoCapture";
-import { Fab } from "@/app/components/ui/fab";
+
 import QRCode from "qrcode";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
-import { storage } from "@/app/lib/firebase";
+
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/app/components/ui/dropdown-menu";
+
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/app/components/ui/alert-dialog";
+
+import { Button } from "@/app/components/ui/button";
+import { Fab } from "@/app/components/ui/fab";
+import { Check, Trash, QrCode, FileUser } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { deleteMember } from "@/app/lib/deleteMember";
 
 export interface StandaloneMemberFormProps {
   churchId: string;
@@ -32,6 +56,147 @@ export interface StandaloneMemberFormProps {
   onSuccess?: (id: string) => void;
 }
 
+/* -------------------------------------------------------
+   FAB MENU COMPONENT
+------------------------------------------------------- */
+function MemberFabMenu({
+  isEditing,
+  member,
+  churchId,
+  form,
+  isLoading,
+  onSubmit,
+}: {
+  isEditing: boolean;
+  member?: Member;
+  churchId: string;
+  form: any;
+  isLoading: boolean;
+  onSubmit: () => void;
+}) {
+  const router = useRouter();
+  const [showCheckInCode, setShowCheckInCode] = useState(false);
+
+  function downloadQR(url: string) {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "member-qr.png";
+    link.click();
+  }
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Fab type="menu" disabled={isLoading} />
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent
+          side="top"
+          align="end"
+          className="min-w-0 w-10 bg-white/10 backdrop-blur-sm border border-white/10 p-1"
+        >
+          {/* SAVE */}
+          <DropdownMenuItem
+            className="flex items-center justify-center p-2"
+            onClick={onSubmit}
+          >
+            <Check className="h-4 w-4" />
+          </DropdownMenuItem>
+
+          {/* QR DOWNLOAD */}
+          {member?.qrCode && (
+            <DropdownMenuItem
+              className="flex items-center justify-center p-2"
+              onClick={() => downloadQR(member.qrCode!)}
+            >
+            <QrCode className="h-4 w-4" />
+            </DropdownMenuItem>
+          )}
+
+          {/* VIEW CHECK-IN CODE */}
+          {isEditing && (
+            <DropdownMenuItem
+              className="flex items-center justify-center p-2"
+              onClick={() => setShowCheckInCode(true)}
+            >
+              <FileUser className="h-4 w-4" />
+            </DropdownMenuItem>
+          )}
+
+          {/* DELETE */}
+          {isEditing && member && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem
+                  className="flex items-center justify-center p-2"
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  <Trash className="h-4 w-4" />
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+
+              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete this member?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently remove “
+                    {member.firstName} {member.lastName}”.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+
+                <AlertDialogFooter>
+                  <AlertDialogCancel asChild>
+                    <Button variant="outline">Cancel</Button>
+                  </AlertDialogCancel>
+
+                  <AlertDialogAction asChild>
+                    <Button
+                      variant="destructive"
+                      onClick={() =>
+                        deleteMember(churchId, member.id, router, toast)
+                      }
+                    >
+                      Delete
+                    </Button>
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* CHECK-IN CODE DIALOG */}
+      {showCheckInCode && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+          <div className="bg-white/10 backdrop-blur-sm border border-white/10 p-6 rounded-lg">
+            <h2 className="text-lg font-bold mb-4">Check-In Code</h2>
+            <p className="text-3xl font-mono tracking-widest text-center">
+              {form.getValues("checkInCode")}
+            </p>
+            <Button className="mt-4 w-full" onClick={() => setShowCheckInCode(false)}>
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function generateCheckInCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 4; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
+
+/* -------------------------------------------------------
+   MAIN MEMBER FORM
+------------------------------------------------------- */
 export default function MemberForm({
   churchId,
   member,
@@ -39,43 +204,34 @@ export default function MemberForm({
 }: StandaloneMemberFormProps) {
   const isEditing = !!member;
 
-  // FORM SETUP
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(memberSchema),
-    defaultValues: member ?? {
-      firstName: "",
-      lastName: "",
-      email: "",
-      phoneNumber: "",
-      birthday: "",
-      baptismDate: "",
-      anniversary: "",
-      status: "Active",
-      address: {
-        street: "",
-        city: "",
-        state: "",
-        zip: "",
-      },
-      notes: "",
-      relationships: [],
+    defaultValues: {
+      firstName: member?.firstName ?? "",
+      lastName: member?.lastName ?? "",
+      email: member?.email ?? "",
+      phoneNumber: member?.phoneNumber ?? "",
+      birthday: member?.birthday ?? "",
+      baptismDate: member?.baptismDate ?? "",
+      anniversary: member?.anniversary ?? "",
+      status: member?.status ?? "Active",
+      address: member?.address ?? { street: "", city: "", state: "", zip: "" },
+      notes: member?.notes ?? "",
+      relationships: member?.relationships ?? [],
       photoFile: null,
-      roles: [],
       __temp_rel_member: "",
       __temp_rel_type: "",
-      checkInCode: "",
-      qrCode: "",
-    }
+      checkInCode: member?.checkInCode ?? "",
+      qrCode: member?.qrCode ?? "",
+    },
   });
 
-  // RELATIONSHIPS HOOK
   const relationships = useMemberRelationships({
     form,
     member,
     isEditMode: isEditing,
   });
 
-  // PHOTO HOOK
   const photo = usePhotoCapture({
     form,
     member,
@@ -84,47 +240,43 @@ export default function MemberForm({
     initialUrl: member?.profilePhotoUrl ?? null,
   });
 
-  // FIREBASE FUNCTIONS
   const [isLoading, setIsLoading] = useState(false);
 
-  // SUBMIT HANDLER
   async function onSubmit(values: MemberFormValues) {
     setIsLoading(true);
 
     try {
       if (isEditing) {
-        // Remove non-Firestore fields
         const { photoFile, __temp_rel_member, __temp_rel_type, ...cleanValues } = values;
 
         await updateDoc(
           doc(db, "churches", churchId, "members", member!.id),
-          {
-            ...cleanValues,
-            updatedAt: serverTimestamp(),
-          }
+          { ...cleanValues, updatedAt: serverTimestamp() }
         );
 
         onSuccess?.(member!.id);
       } else {
         const newId = crypto.randomUUID();
-
-        // Remove non-Firestore fields
         const { photoFile, __temp_rel_member, __temp_rel_type, ...cleanValues } = values;
 
-        // 1. Create the member document first (without QR code)
+        // Generate a check-in code if missing
+        const checkInCode = cleanValues.checkInCode || generateCheckInCode();
+
+        // 1. Create the member document first (with check-in code)
         await setDoc(
           doc(db, "churches", churchId, "members", newId),
           {
             id: newId,
             churchId,
             ...cleanValues,
+            checkInCode, // <-- ensure it is saved
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
           }
         );
 
-        // 2. Generate QR code
-        const qrValue = `${window.location.origin}/check-in/${churchId}?code=${cleanValues.checkInCode}`;
+        // 2. Generate QR code using the correct check-in code
+        const qrValue = `${window.location.origin}/check-in/${churchId}?code=${checkInCode}`;
         const qrBase64 = await QRCode.toDataURL(qrValue);
 
         // 3. Upload QR code to Firebase Storage
@@ -142,17 +294,12 @@ export default function MemberForm({
       }
     } catch (err) {
       console.error(err);
-      toast({
-        title: "Error",
-        description: "Failed to save member.",
-        // variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to save member." });
     } finally {
       setIsLoading(false);
     }
   }
 
-  // RENDER
   return (
     <Form {...form}>
       <form
@@ -164,8 +311,11 @@ export default function MemberForm({
         <StatusSection form={form} />
 
         <RelationshipsSection
-          allMembers={[]} currentMemberId={""} form={form}
-          {...relationships}        />
+          allMembers={[]}
+          currentMemberId={""}
+          form={form}
+          {...relationships}
+        />
 
         <PhotoSection
           form={form}
@@ -174,16 +324,20 @@ export default function MemberForm({
           setIsTakingPhoto={photo.setIsTakingPhoto}
           handleRemovePhoto={photo.handleRemovePhoto}
         />
-
-        <Fab
-          type="save"
-          disabled={isLoading}
-          onClick={() => {
-            const formEl = document.getElementById("member-form") as HTMLFormElement;
-            formEl?.requestSubmit();
-          }}
-        />
       </form>
+
+      {/* ⭐ FAB MENU OUTSIDE THE FORM ⭐ */}
+      <MemberFabMenu
+        isEditing={isEditing}
+        member={member}
+        churchId={churchId}
+        form={form}
+        isLoading={isLoading}
+        onSubmit={() => {
+          const formEl = document.getElementById("member-form") as HTMLFormElement;
+          formEl?.requestSubmit();
+        }}
+      />
     </Form>
   );
 }
