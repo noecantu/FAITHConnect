@@ -431,7 +431,7 @@ export default function AttendancePageContent() {
             return (
               <Card
                 key={id}
-                className="relative group p-4 flex flex-col items-center text-center gap-2 cursor-pointer"
+                className="relative group p-3 flex flex-col items-center text-center gap-1.5 cursor-pointer"
                 onClick={() => {
                   if (!editable) return;
                   toggle(id);
@@ -439,24 +439,25 @@ export default function AttendancePageContent() {
               >
                 {isVisitor && (
                   <button
-                onClick={(e) => {
-                  if (!editable) return;
-                  e.stopPropagation();
-                  setVisitors((prev) => prev.filter((v) => v.id !== id));
-                }}
+                    onClick={(e) => {
+                      if (!editable) return;
+                      e.stopPropagation();
+                      setVisitors((prev) => prev.filter((v) => v.id !== id));
+                    }}
                     className="
-                      absolute top-2 right-2
-                      h-5 w-5 flex items-center justify-center
+                      absolute top-1.5 right-1.5
+                      h-4 w-4 flex items-center justify-center
                       rounded-full bg-black/40 border border-white/10
                       text-white/60 hover:text-white hover:bg-black/60
                       opacity-0 group-hover:opacity-100 transition
                     "
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-2.5 w-2.5" />
                   </button>
                 )}
 
-                <div className="w-16 h-16 relative flex items-center justify-center rounded-md border border-slate-300 bg-slate-700/40 overflow-hidden">
+                {/* PHOTO / INITIALS */}
+                <div className="w-14 h-14 relative flex items-center justify-center rounded-md border border-slate-300 bg-slate-700/40 overflow-hidden">
                   {photo ? (
                     <Image
                       src={photo}
@@ -466,30 +467,31 @@ export default function AttendancePageContent() {
                       className="object-cover rounded-md"
                     />
                   ) : (
-                    <span className="text-white/70 text-xs font-medium tracking-wide">
+                    <span className="text-white/70 text-[11px] font-medium tracking-wide">
                       {isVisitor ? "Visitor" : initials}
                     </span>
                   )}
                 </div>
 
+                {/* NAME */}
                 <span
                   className="
-                    font-medium leading-tight
-                    line-clamp-2
+                    text-[11px] font-medium leading-tight
                     text-center
                     w-full
                     max-w-[80px]
-                    h-[2.5rem]
+                    line-clamp-2
                   "
                 >
                   {name}
                 </span>
 
+                {/* STATUS */}
                 <span
                   className={
                     present
-                      ? "text-green-600 font-semibold text-sm"
-                      : "text-red-600 font-semibold text-sm"
+                      ? "text-green-500 font-semibold text-[11px]"
+                      : "text-red-500 font-semibold text-[11px]"
                   }
                 >
                   {present ? "Present" : "Absent"}
@@ -520,8 +522,17 @@ export default function AttendancePageContent() {
                   toggle(id);
                 }}
               >
-                <span className="font-medium">{name}</span>
-                <span className={present ? "text-green-500" : "text-red-500"}>
+                <span className="text-xs font-medium text-white/90">
+                  {name}
+                </span>
+
+                <span
+                  className={
+                    present
+                      ? "text-[11px] text-green-500 font-semibold"
+                      : "text-[11px] text-red-500 font-semibold"
+                  }
+                >
                   {present ? "Present" : "Absent"}
                 </span>
               </div>
