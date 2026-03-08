@@ -12,9 +12,6 @@ import { StatusSection } from "./StatusSection";
 import { RelationshipsSection } from "./RelationshipsSection";
 import { PhotoSection } from "./PhotoSection";
 
-import { db, storage } from "@/app/lib/firebase";
-import { doc, setDoc, updateDoc, serverTimestamp, getDoc } from "firebase/firestore";
-
 import type { Member } from "@/app/lib/types";
 import type { MemberFormValues } from "@/app/lib/memberForm.schema";
 import { memberSchema } from "@/app/lib/memberForm.schema";
@@ -24,6 +21,7 @@ import { usePhotoCapture } from "@/app/hooks/usePhotoCapture";
 
 import QRCode from "qrcode";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { storage } from "@/app/lib/firebase";
 
 import {
   DropdownMenu,
@@ -48,13 +46,9 @@ import { Button } from "@/app/components/ui/button";
 import { Fab } from "@/app/components/ui/fab";
 import { Check, Trash, QrCode, FileUser } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { deleteMember } from "@/app/lib/deleteMember";
 
-export interface StandaloneMemberFormProps {
-  churchId: string;
-  member?: Member;
-  onSuccess?: (id: string) => void;
-}
+import { deleteMember } from "@/app/lib/deleteMember";
+import { addMember, updateMember } from "@/app/lib/members";
 
 /* -------------------------------------------------------
    FAB MENU COMPONENT
@@ -110,7 +104,7 @@ function MemberFabMenu({
               className="flex items-center justify-center p-2"
               onClick={() => downloadQR(member.qrCode!)}
             >
-            <QrCode className="h-4 w-4" />
+              <QrCode className="h-4 w-4" />
             </DropdownMenuItem>
           )}
 
@@ -185,6 +179,9 @@ function MemberFabMenu({
   );
 }
 
+/* -------------------------------------------------------
+   UTILS
+------------------------------------------------------- */
 function generateCheckInCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "";
@@ -201,7 +198,11 @@ export default function MemberForm({
   churchId,
   member,
   onSuccess,
-}: StandaloneMemberFormProps) {
+}: {
+  churchId: string;
+  member?: Member;
+  onSuccess?: (id: string) => void;
+}) {
   const isEditing = !!member;
 
   const form = useForm<MemberFormValues>({
@@ -247,105 +248,41 @@ export default function MemberForm({
     setIsLoading(true);
 
     try {
+      const { photoFile, __temp_rel_member, __temp_rel_type, ...cleanValues } = values;
+
       if (isEditing) {
-        const { photoFile, __temp_rel_member, __temp_rel_type, ...cleanValues } = values;
-
-        // 1. Update THIS member
-        await updateDoc(
-          doc(db, "churches", churchId, "members", member!.id),
-          { ...cleanValues, updatedAt: serverTimestamp() }
-        );
-
-        // ⭐ 2. UPDATE THE OTHER MEMBER(S) WITH THE INVERSE RELATIONSHIP
-        if (cleanValues.relationships && cleanValues.relationships.length > 0) {
-          for (const rel of cleanValues.relationships) {
-            const [idA, idB] = rel.memberIds;
-
-            // Determine the "other" member
-            const otherId = idA === member!.id ? idB : idA;
-
-            const otherRef = doc(db, "churches", churchId, "members", otherId);
-            const otherSnap = await getDoc(otherRef);
-
-            if (otherSnap.exists()) {
-              const otherData = otherSnap.data();
-
-              const otherRels = Array.isArray(otherData.relationships)
-                ? otherData.relationships
-                : [];
-
-              // Check if inverse already exists
-              const hasInverse = otherRels.some((r: any) => {
-                return (
-                  Array.isArray(r.memberIds) &&
-                  r.memberIds.includes(member!.id) &&
-                  r.type === rel.type
-                );
-              });
-
-              if (!hasInverse) {
-                const updated = [
-                  ...otherRels,
-                  {
-                    memberIds: [otherId, member!.id].sort(),
-                    type: rel.type,
-                  },
-                ];
-
-                await updateDoc(otherRef, {
-                  relationships: updated,
-                  updatedAt: serverTimestamp(),
-                });
-              }
-            }
-          }
-        }
-
-        // 3. Continue as normal
+        // ⭐ Use your original, correct transactional update
+        await updateMember(churchId, member!.id, cleanValues);
         onSuccess?.(member!.id);
       } else {
-        // ⭐ 1. Use tempId if it exists (Option B)
+        // ⭐ Use tempId if it exists
         const tempId = form.getValues("tempId");
         const newId = tempId ?? crypto.randomUUID();
 
-        const { photoFile, __temp_rel_member, __temp_rel_type, ...cleanValues } = values;
-
-        // Generate a check-in code if missing
+        // Generate check-in code if missing
         const checkInCode = cleanValues.checkInCode || generateCheckInCode();
 
-        // ⭐ 2. Create the member document using newId (NOT Firestore auto-ID)
-        await setDoc(
-          doc(db, "churches", churchId, "members", newId),
-          {
-            id: newId,
-            churchId,
-            ...cleanValues,
-            checkInCode,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-          }
-        );
+        // ⭐ Create member using your original addMember logic
+        await addMember(churchId, {
+          id: newId,
+          ...cleanValues,
+          checkInCode,
+        });
 
-        // ⭐ 3. Generate QR code using the correct check-in code
+        // ⭐ Generate QR code
         const qrValue = `${window.location.origin}/check-in/${churchId}?code=${checkInCode}`;
         const qrBase64 = await QRCode.toDataURL(qrValue);
         const safeFirst = cleanValues.firstName.replace(/\s+/g, "");
         const safeLast = cleanValues.lastName.replace(/\s+/g, "");
         const fileName = `QRCode_${safeFirst}${safeLast}.png`;
 
-        // ⭐ 4. Upload QR code to the correct folder (same newId)
-        const qrRef = ref(
-          storage,
-          `churches/${churchId}/members/${newId}/${fileName}`
-        );
+        // Upload QR code
+        const qrRef = ref(storage, `churches/${churchId}/members/${newId}/${fileName}`);
         await uploadString(qrRef, qrBase64, "data_url");
         const qrUrl = await getDownloadURL(qrRef);
 
-        // ⭐ 5. Save QR code URL to Firestore
-        await updateDoc(
-          doc(db, "churches", churchId, "members", newId),
-          { qrCode: qrUrl }
-        );
+        // ⭐ Update QR code URL
+        await updateMember(churchId, newId, { qrCode: qrUrl });
 
         onSuccess?.(newId);
       }

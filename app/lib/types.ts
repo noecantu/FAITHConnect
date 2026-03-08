@@ -122,7 +122,7 @@ export type Member = {
   baptismDate?: string;
   familyId?: string;
   notes?: string;
-  relationships?: Relationship[];
+  relationships: Relationship[];
   anniversary?: string;
 };
 

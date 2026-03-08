@@ -202,43 +202,35 @@ export default function MemberCard({
 
         {/* RELATIONSHIPS */}
         {member.relationships && member.relationships.length > 0 && (
-          <CardFooter className="flex-col items-start pt-0">
+          <CardFooter className="flex-col items-start pt-0 px-6">
             <Separator className="mb-4 w-full" />
-            <div className="space-y-2 text-sm w-full">
-              {member.relationships.map((rel) => {
-                const relatedMemberId = rel.memberIds.find(
-                  (id) => id !== member.id
-                );
-                const relatedMember = allMembers.find(
-                  (m) => m.id === relatedMemberId
-                );
+
+            <div className="space-y-2 text-sm text-muted-foreground w-full">
+              {member.relationships.map((rel, index) => {
+                const relatedMemberId = rel.memberIds.find(id => id !== member.id)
+                const relatedMember = allMembers.find(m => m.id === relatedMemberId)
 
                 return (
-                  <div key={relatedMemberId}>
-                    <span className="font-medium text-foreground">
-                      {rel.type}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {' '}
-                      of{' '}
+                  <div key={`${rel.type}-${rel.memberIds.join("-")}-${index}`}>
+                    <span className="font-medium text-foreground">{rel.type}</span>
+                    <span>
+                      {' '}of{' '}
                       {relatedMember ? (
                         <button
                           className="text-blue-600 hover:underline p-0 bg-transparent border-none"
                           onClick={(e) => {
-                            e.stopPropagation();
+                            e.stopPropagation()
                             searchAction?.(
                               `${relatedMember.firstName} ${relatedMember.lastName}`
-                            );
+                            )
                           }}
                         >
                           {relatedMember.firstName} {relatedMember.lastName}
                         </button>
-                      ) : (
-                        '...'
-                      )}
+                      ) : '...'}
                     </span>
                   </div>
-                );
+                )
               })}
             </div>
           </CardFooter>
@@ -329,43 +321,33 @@ export default function MemberCard({
 
       {/* RELATIONSHIPS */}
       {member.relationships && member.relationships.length > 0 && (
-        <CardFooter className="flex-col items-start pt-0">
+        <CardFooter className="flex-col items-start pt-0 px-6">
           <Separator className="mb-4 w-full" />
-          <div className="space-y-2 text-sm w-full">
-            {member.relationships.map((rel) => {
-              const relatedMemberId = rel.memberIds.find(
-                (id) => id !== member.id
-              );
-              const relatedMember = allMembers.find(
-                (m) => m.id === relatedMemberId
-              );
+
+          <div className="space-y-2 text-sm text-muted-foreground w-full">
+            {member.relationships.map((rel, index) => {
+              const relatedMemberId = rel.memberIds.find(id => id !== member.id)
+              const relatedMember = allMembers.find(m => m.id === relatedMemberId)
 
               return (
-                <div key={relatedMemberId}>
-                  <span className="font-medium text-foreground">
-                    {rel.type}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {' '}
-                    of{' '}
+                <div key={`${rel.type}-${rel.memberIds.join("-")}-${index}`}>
+                  <span className="font-medium text-foreground">{rel.type}</span>
+                  <span>
+                    {' '}of{' '}
                     {relatedMember ? (
                       <button
                         className="text-blue-600 hover:underline p-0 bg-transparent border-none"
                         onClick={(e) => {
-                          e.stopPropagation();
-                          searchAction?.(
-                            `${relatedMember.firstName} ${relatedMember.lastName}`
-                          );
+                          e.stopPropagation()
+                          searchAction?.(`${relatedMember.firstName} ${relatedMember.lastName}`)
                         }}
                       >
                         {relatedMember.firstName} {relatedMember.lastName}
                       </button>
-                    ) : (
-                      '...'
-                    )}
+                    ) : '...'}
                   </span>
                 </div>
-              );
+              )
             })}
           </div>
         </CardFooter>
