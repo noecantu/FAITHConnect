@@ -24,6 +24,7 @@ import { Trash } from 'lucide-react';
 import { useAttendanceFilters } from '@/app/hooks/useAttendanceFilters';
 import { AttendanceHistoryControls } from '@/app/components/attendance/AttendanceHistoryControls';
 import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dialog';
+import { AttendanceStackedChart } from '@/app/components/attendance/attendance-stackedchart';
 
 // --------------------------------------------------
 // Page Component
@@ -32,6 +33,7 @@ export default function AttendanceHistoryPage() {
   const { churchId } = useChurchId();
   const { data, loading, refresh } = useAttendanceHistory(churchId);
   const router = useRouter();
+  const [chartMode, setChartMode] = useState<"line" | "stacked">("line");
 
   // Summaries (one per date)
   const summary = summarizeAttendance(data);
@@ -53,12 +55,31 @@ export default function AttendanceHistoryPage() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Attendance History" />
+        <div className="flex gap-2">
+          <Button
+            variant={chartMode === "line" ? "default" : "outline"}
+            onClick={() => setChartMode("line")}
+          >
+            Line Chart
+          </Button>
+
+          <Button
+            variant={chartMode === "stacked" ? "default" : "outline"}
+            onClick={() => setChartMode("stacked")}
+          >
+            Stacked Bar
+          </Button>
+        </div>
 
       {/* ⭐ Controls identical to Calendar List View */}
       <AttendanceHistoryControls filters={filters} />
 
       {/* CHART */}
-      <AttendanceChart data={summary} />
+      {chartMode === "line" ? (
+        <AttendanceChart data={summary} />
+      ) : (
+        <AttendanceStackedChart data={summary} />
+      )}
 
       {/* TABLE */}
       <div className="space-y-2">
@@ -83,7 +104,6 @@ export default function AttendanceHistoryPage() {
                 >
                   <td className="py-2 px-2">{s.dateString}</td>
 
-                  {/* ⭐ NEW FIELDS */}
                   <td className="py-2 px-2">{s.membersPresent}</td>
                   <td className="py-2 px-2">{s.membersAbsent}</td>
                   <td className="py-2 px-2">{s.visitorCount}</td>

@@ -21,7 +21,10 @@ export function AttendanceChart({ data }: { data: AttendanceSummaryItem[] }) {
 
           <XAxis
             dataKey="dateString"
-            tickFormatter={(value) => format(new Date(value), 'MM-dd-yy')}
+            tickFormatter={(value) => {
+              const [year, month, day] = value.split('-').map(Number);
+              return format(new Date(year, month - 1, day), 'MM-dd-yy');
+            }}
             angle={-45}
             textAnchor="end"
             tick={{ fill: '#6b7280' }}
@@ -49,14 +52,14 @@ export function AttendanceChart({ data }: { data: AttendanceSummaryItem[] }) {
           />
 
           {/* Optional: Visitors */}
-          {/* 
+          
           <Line
             type="monotone"
             dataKey="visitorCount"
             stroke="#60a5fa"
             strokeWidth={2}
           />
-          */}
+         
         </LineChart>
       </ResponsiveContainer>
     </div>
