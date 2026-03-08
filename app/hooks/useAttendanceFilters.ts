@@ -5,8 +5,9 @@ export type AttendanceSort = "newest" | "oldest";
 
 export interface AttendanceSummary {
   dateString: string;
-  present: number;
-  absent: number;
+  membersPresent: number;
+  membersAbsent: number;
+  visitorCount: number;
   percentage: number;
 }
 

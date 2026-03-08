@@ -21,9 +21,9 @@ export interface AttendanceRecord {
 
 export interface AttendanceSummaryItem {
   dateString: string;
-  present: number;
-  absent: number;
-  total: number;
+  membersPresent: number;
+  membersAbsent: number;
+  visitorCount: number;
   percentage: number;
 }
 

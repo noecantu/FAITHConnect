@@ -5,25 +5,35 @@ export function summarizeAttendance(history: AttendanceHistoryItem[]) {
     const snapshot = item.membersSnapshot || [];
     const records = item.records || {};
 
-    // Only count Active members from the snapshot
-    const activeMembers = snapshot.filter(
-      (m) => m.status === "Active"
-    );
+    // Active members from the snapshot
+    const activeMembers = snapshot.filter((m) => m.status === "Active");
+    const activeIds = new Set(activeMembers.map((m) => m.id));
 
-    const present = activeMembers.filter(
+    // Members present
+    const membersPresent = activeMembers.filter(
       (m) => records[m.id] === true
     ).length;
 
-    const absent = activeMembers.length - present;
+    // Members absent
+    const membersAbsent = activeMembers.length - membersPresent;
 
-    const total = activeMembers.length;
+    // Visitors = records not belonging to snapshot members
+    const visitorCount = Object.keys(records).filter(
+      (id) => !activeIds.has(id)
+    ).length;
+
+    // Total members for percentage
+    const totalMembers = activeMembers.length;
+
+    const percentage =
+      totalMembers === 0 ? 0 : membersPresent / totalMembers;
 
     return {
       dateString: item.dateString,
-      present,
-      absent,
-      total,
-      percentage: total === 0 ? 0 : present / total,
+      membersPresent,
+      membersAbsent,
+      visitorCount,
+      percentage,
     };
   });
 }

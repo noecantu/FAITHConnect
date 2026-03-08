@@ -30,11 +30,11 @@ import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dial
 // --------------------------------------------------
 export default function AttendanceHistoryPage() {
   const { churchId } = useChurchId();
-  const { data, members, loading, refresh } = useAttendanceHistory(churchId);
+  const { data, loading, refresh } = useAttendanceHistory(churchId);
   const router = useRouter();
 
   // Summaries (one per date)
-  const summary = summarizeAttendance(data, members);
+  const summary = summarizeAttendance(data);
 
   // MUST be above any conditional return
   const filters = useAttendanceFilters(summary);
@@ -67,9 +67,9 @@ export default function AttendanceHistoryPage() {
             <thead>
               <tr className="border-b text-muted-foreground">
                 <th className="text-left py-2 px-2">Date</th>
-                <th className="text-left py-2 px-2">Present</th>
-                <th className="text-left py-2 px-2">Absent</th>
-                <th className="text-left py-2 px-2">Percent</th>
+                <th className="text-left py-2 px-2">Members Present</th>
+                <th className="text-left py-2 px-2">Members Absent</th>
+                <th className="text-left py-2 px-2">Visitors</th>
                 <th className="text-left py-2 px-2">Action</th>
               </tr>
             </thead>
@@ -82,11 +82,11 @@ export default function AttendanceHistoryPage() {
                   onClick={() => router.push(`/attendance?date=${s.dateString}`)}
                 >
                   <td className="py-2 px-2">{s.dateString}</td>
-                  <td className="py-2 px-2">{s.present}</td>
-                  <td className="py-2 px-2">{s.absent}</td>
-                  <td className="py-2 px-2">
-                    {Math.round(s.percentage * 100)}%
-                  </td>
+
+                  {/* ⭐ NEW FIELDS */}
+                  <td className="py-2 px-2">{s.membersPresent}</td>
+                  <td className="py-2 px-2">{s.membersAbsent}</td>
+                  <td className="py-2 px-2">{s.visitorCount}</td>
 
                   <td
                     className="py-2 px-2"
@@ -112,17 +112,27 @@ export default function AttendanceHistoryPage() {
                             This action cannot be undone. This will permanently remove all attendance records for this date.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
+
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={async () => {
-                              if (!deleteTarget || !churchId) return;
-                              await deleteAttendanceDay(churchId, deleteTarget);
-                              setDeleteTarget(null);
-                              refresh();
-                            }}
-                          >
-                            Delete
+                          <AlertDialogCancel asChild>
+                            <Button variant="outline" className="w-full">
+                              Cancel
+                            </Button>
+                          </AlertDialogCancel>
+
+                          <AlertDialogAction asChild>
+                            <Button
+                              variant="destructive"
+                              className="w-full"
+                              onClick={async () => {
+                                if (!deleteTarget || !churchId) return;
+                                await deleteAttendanceDay(churchId, deleteTarget);
+                                setDeleteTarget(null);
+                                refresh();
+                              }}
+                            >
+                              Delete
+                            </Button>
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>

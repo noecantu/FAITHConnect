@@ -223,6 +223,7 @@ export default function MemberForm({
       __temp_rel_type: "",
       checkInCode: member?.checkInCode ?? "",
       qrCode: member?.qrCode ?? "",
+      tempId: member?.id ?? undefined,
     },
   });
 
@@ -303,33 +304,36 @@ export default function MemberForm({
         // 3. Continue as normal
         onSuccess?.(member!.id);
       } else {
-        const newId = crypto.randomUUID();
+        // ⭐ 1. Use tempId if it exists (Option B)
+        const tempId = form.getValues("tempId");
+        const newId = tempId ?? crypto.randomUUID();
+
         const { photoFile, __temp_rel_member, __temp_rel_type, ...cleanValues } = values;
 
         // Generate a check-in code if missing
         const checkInCode = cleanValues.checkInCode || generateCheckInCode();
 
-        // 1. Create the member document first (with check-in code)
+        // ⭐ 2. Create the member document using newId (NOT Firestore auto-ID)
         await setDoc(
           doc(db, "churches", churchId, "members", newId),
           {
             id: newId,
             churchId,
             ...cleanValues,
-            checkInCode, // <-- ensure it is saved
+            checkInCode,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
           }
         );
 
-        // 2. Generate QR code using the correct check-in code
+        // ⭐ 3. Generate QR code using the correct check-in code
         const qrValue = `${window.location.origin}/check-in/${churchId}?code=${checkInCode}`;
         const qrBase64 = await QRCode.toDataURL(qrValue);
         const safeFirst = cleanValues.firstName.replace(/\s+/g, "");
         const safeLast = cleanValues.lastName.replace(/\s+/g, "");
         const fileName = `QRCode_${safeFirst}${safeLast}.png`;
 
-        // 3. Upload QR code to Firebase Storage
+        // ⭐ 4. Upload QR code to the correct folder (same newId)
         const qrRef = ref(
           storage,
           `churches/${churchId}/members/${newId}/${fileName}`
@@ -337,7 +341,7 @@ export default function MemberForm({
         await uploadString(qrRef, qrBase64, "data_url");
         const qrUrl = await getDownloadURL(qrRef);
 
-        // 4. Save QR code URL to Firestore
+        // ⭐ 5. Save QR code URL to Firestore
         await updateDoc(
           doc(db, "churches", churchId, "members", newId),
           { qrCode: qrUrl }

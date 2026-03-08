@@ -53,16 +53,30 @@ export function usePhotoCapture({
     async function uploadPhoto() {
       if (!photoFile) return;
 
+      // 1. Determine the correct ID to use
+      let id = member?.id;
+
+      // 2. If no member ID yet, use or create a tempId
+      if (!id) {
+        id = form.getValues("tempId");
+
+        if (!id) {
+          id = crypto.randomUUID();
+          form.setValue("tempId", id, { shouldDirty: true });
+        }
+      }
+
       try {
+        // 3. Upload using the stable ID (real or temp)
         const storageRef = ref(
           storage,
-          `churches/${churchId}/members/${member?.id ?? "new"}/profile.jpg`
-
+          `churches/${churchId}/members/${id}/profile.jpg`
         );
 
         await uploadBytes(storageRef, photoFile);
         const url = await getDownloadURL(storageRef);
 
+        // 4. Save the URL to the form
         form.setValue("profilePhotoUrl", url, { shouldDirty: true });
       } catch (err) {
         console.error("Photo upload failed:", err);
@@ -74,7 +88,7 @@ export function usePhotoCapture({
     }
 
     uploadPhoto();
-  }, [photoFile]);
+  }, [photoFile, member?.id]);
 
   useEffect(() => {
     if (!isTakingPhoto) return;

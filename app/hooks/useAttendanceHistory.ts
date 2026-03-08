@@ -41,7 +41,7 @@ export function useAttendanceHistory(churchId: string | null) {
       return {
         dateString: d.id,
         records: data.records || {},
-        membersSnapshot: data.membersSnapshot || [], // NEW
+        membersSnapshot: data.membersSnapshot || [],
       };
     });
 

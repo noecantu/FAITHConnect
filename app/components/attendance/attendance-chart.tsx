@@ -18,6 +18,7 @@ export function AttendanceChart({ data }: { data: AttendanceSummaryItem[] }) {
       <ResponsiveContainer>
         <LineChart data={data} margin={{ bottom: 60 }}>
           <CartesianGrid strokeDasharray="3 3" />
+
           <XAxis
             dataKey="dateString"
             tickFormatter={(value) => format(new Date(value), 'MM-dd-yy')}
@@ -26,10 +27,36 @@ export function AttendanceChart({ data }: { data: AttendanceSummaryItem[] }) {
             tick={{ fill: '#6b7280' }}
             tickMargin={12}
           />
+
           <YAxis tick={{ fill: '#6b7280' }} />
+
           <Tooltip contentStyle={{ backgroundColor: 'white', color: 'black' }} />
-          <Line type="monotone" dataKey="present" stroke="#4ade80" strokeWidth={2} />
-          <Line type="monotone" dataKey="absent" stroke="#f87171" strokeWidth={2} />
+
+          {/* Members Present */}
+          <Line
+            type="monotone"
+            dataKey="membersPresent"
+            stroke="#4ade80"
+            strokeWidth={2}
+          />
+
+          {/* Members Absent */}
+          <Line
+            type="monotone"
+            dataKey="membersAbsent"
+            stroke="#f87171"
+            strokeWidth={2}
+          />
+
+          {/* Optional: Visitors */}
+          {/* 
+          <Line
+            type="monotone"
+            dataKey="visitorCount"
+            stroke="#60a5fa"
+            strokeWidth={2}
+          />
+          */}
         </LineChart>
       </ResponsiveContainer>
     </div>

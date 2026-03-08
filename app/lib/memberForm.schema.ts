@@ -55,6 +55,7 @@ export const memberSchema = z.object({
   checkInCode: z.string().optional(),
   qrCode: z.string().optional(),
   profilePhotoUrl: z.string().optional(),
+  tempId: z.string().optional(),
 });
 
 // ⭐ TypeScript now ALWAYS matches the schema — no drift, no mismatches
