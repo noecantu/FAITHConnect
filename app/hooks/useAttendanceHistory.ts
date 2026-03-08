@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase';
-import type { Member } from '@/app/lib/types';
 
 export interface AttendanceHistoryItem {
   dateString: string;
@@ -18,20 +17,17 @@ export interface AttendanceHistoryItem {
 
 export function useAttendanceHistory(churchId: string | null) {
   const [data, setData] = useState<AttendanceHistoryItem[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     if (!churchId) {
       setData([]);
-      setMembers([]);
       setLoading(false);
       return;
     }
 
     setLoading(true);
 
-    // Attendance
     const attendanceRef = collection(db, 'churches', churchId, 'attendance');
     const attendanceSnap = await getDocs(attendanceRef);
 
@@ -48,7 +44,6 @@ export function useAttendanceHistory(churchId: string | null) {
     items.sort((a, b) => a.dateString.localeCompare(b.dateString));
 
     setData(items);
-    setMembers(members);
     setLoading(false);
   }, [churchId]);
 
@@ -56,5 +51,5 @@ export function useAttendanceHistory(churchId: string | null) {
     load();
   }, [load]);
 
-  return { data, members, loading, refresh: load };
+  return { data, loading, refresh: load };
 }

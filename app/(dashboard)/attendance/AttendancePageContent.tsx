@@ -43,10 +43,16 @@ export default function AttendancePageContent() {
     const [y, m, d] = dateString.split("-").map(Number);
     return new Date(y, m - 1, d);
   }
-
+  
   const initialDate = urlDate ? parseLocalDate(urlDate) : new Date();
   const [date, setDate] = useState(initialDate);
   const dateString = format(date, "yyyy-MM-dd");
+
+  const todayString = format(new Date(), "yyyy-MM-dd");
+  const isToday = dateString === todayString;
+
+  const correcting = searchParams.get("correcting") === "true";
+  const editable = isToday || correcting;
 
   const { churchId } = useChurchId();
   const router = useRouter();
@@ -97,12 +103,13 @@ export default function AttendancePageContent() {
     records,
     visitors,
     setVisitors,
+    membersSnapshot,
     toggle,
     save,
-    loading: attendanceLoading,
     markAllPresent,
     markAllAbsent,
-  } = useAttendance(churchId, members, dateString);
+    loading: attendanceLoading,
+  } = useAttendance(churchId, members, dateString, editable);
 
   const loading = rolesLoading || membersLoading || attendanceLoading;
 
@@ -133,6 +140,9 @@ export default function AttendancePageContent() {
     const nameB = b.name.toLowerCase();
     return nameA.localeCompare(nameB);
   });
+
+  const displayMembers = editable ? sortedMembers : membersSnapshot;
+  const displayVisitors = sortedVisitors;
 
   // QR Generator
   async function handleGenerateQr() {
@@ -291,6 +301,19 @@ export default function AttendancePageContent() {
         >
           History
         </Button>
+
+        {/* CORRECT THIS DATE (History Mode Only) */}
+        {!editable && (
+          <Button
+            variant="default"
+            onClick={() => {
+              router.push(`/attendance?date=${dateString}&correcting=true`);
+            }}
+            className="text-white/80 border-white/20"
+          >
+            Correct this date
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -298,7 +321,7 @@ export default function AttendancePageContent() {
         <Button
           onClick={handleGenerateQr}
           variant="default"
-          disabled={qrLoading}
+          disabled={qrLoading || !editable}
           className="w-full flex flex-col items-center justify-center text-center 
            bg-yellow-700/80 hover:bg-yellow-900/80 active:bg-yellow-950/80
            gap-1 transition-colors"
@@ -310,7 +333,7 @@ export default function AttendancePageContent() {
 
         {/* ADD VISITOR */}
         <Dialog>
-          <DialogTrigger asChild>
+          <DialogTrigger asChild disabled={!editable}>
             <Button
               variant="default"
               className="w-full flex flex-col items-center justify-center text-center 
@@ -359,18 +382,20 @@ export default function AttendancePageContent() {
         </Dialog>
 
         <Button
-          onClick={() => markAllPresent(members, visitors)}
+          onClick={() => editable && markAllPresent(members, visitors)}
           variant="default"
-          className="w-full flex flex-col items-center justify-center text-center 
-           bg-green-700/80 hover:bg-green-900/80 active:bg-green-950/80
-           gap-1 transition-colors"
-        >
+          disabled={!editable}
+          className="w-full flex flex-col items-center justify-center text-center
+            bg-green-700/80 hover:bg-green-900/80 active:bg-green-950/80
+            gap-1 transition-colors"
+         >
           <span className="text-sm text-white/80">Mark All Present</span>
         </Button>
 
         <Button
-          onClick={() => markAllAbsent(members, visitors)}
+          onClick={() => editable && markAllAbsent(members, visitors)}
           variant="default"
+          disabled={!editable}
           className="w-full flex flex-col items-center justify-center text-center
            bg-red-700/80 hover:bg-red-900/80 active:bg-red-950/80
            gap-1 transition-colors"
@@ -382,19 +407,21 @@ export default function AttendancePageContent() {
       {/* CARDS VIEW */}
       {attendanceView === "cards" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-3">
-          {[...sortedMembers, ...sortedVisitors].map((m) => {
+          {[...displayMembers, ...displayVisitors].map((m) => {
             const isVisitor = !("firstName" in m);
             const id = m.id;
 
             const name = isVisitor ? m.name : `${m.firstName} ${m.lastName}`;
 
             const photo =
-              !isVisitor && m.profilePhotoUrl ? m.profilePhotoUrl : null;
+              !isVisitor && typeof (m as any).profilePhotoUrl === "string"
+                ? (m as any).profilePhotoUrl
+                : null;
 
             const initials = isVisitor
               ? m.name
                   .split(" ")
-                  .map((n) => n[0])
+                  .map((n: string) => n[0])
                   .join("")
                   .toUpperCase()
               : null;
@@ -405,14 +432,18 @@ export default function AttendancePageContent() {
               <Card
                 key={id}
                 className="relative group p-4 flex flex-col items-center text-center gap-2 cursor-pointer"
-                onClick={() => toggle(id)}
+                onClick={() => {
+                  if (!editable) return;
+                  toggle(id);
+                }}
               >
                 {isVisitor && (
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setVisitors((prev) => prev.filter((v) => v.id !== id));
-                    }}
+                onClick={(e) => {
+                  if (!editable) return;
+                  e.stopPropagation();
+                  setVisitors((prev) => prev.filter((v) => v.id !== id));
+                }}
                     className="
                       absolute top-2 right-2
                       h-5 w-5 flex items-center justify-center
@@ -472,7 +503,7 @@ export default function AttendancePageContent() {
       {/* LIST VIEW */}
       {attendanceView === "list" && (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2">
-          {[...sortedMembers, ...sortedVisitors].map((m) => {
+          {[...displayMembers, ...displayVisitors].map((m) => {
             const isVisitor = !("firstName" in m);
             const id = m.id;
 
@@ -484,7 +515,10 @@ export default function AttendancePageContent() {
               <div
                 key={id}
                 className="flex items-center justify-between p-3 rounded-md border border-white/10 bg-white/5 cursor-pointer"
-                onClick={() => toggle(id)}
+                onClick={() => {
+                  if (!editable) return;
+                  toggle(id);
+                }}
               >
                 <span className="font-medium">{name}</span>
                 <span className={present ? "text-green-500" : "text-red-500"}>
@@ -498,11 +532,16 @@ export default function AttendancePageContent() {
 
       {/* SAVE BUTTON */}
       <Fab
-        onClick={async () => {
-          await save();
-          toast({ title: "Attendance saved" });
-        }}
-        type={"save"}
+        onClick={
+          editable
+            ? async () => {
+                await save();
+                toast({ title: "Attendance saved" });
+              }
+            : undefined
+        }
+        disabled={!editable}
+        type="save"
       />
 
       <Dialog open={qrOpen} onOpenChange={setQrOpen}>

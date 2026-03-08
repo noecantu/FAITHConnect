@@ -14,18 +14,32 @@ export type AttendanceVisitor = {
 interface UseAttendanceResult {
   records: AttendanceRecords;
   setRecords: React.Dispatch<React.SetStateAction<AttendanceRecords>>;
+
   visitors: AttendanceVisitor[];
   setVisitors: React.Dispatch<React.SetStateAction<AttendanceVisitor[]>>;
+
+  // Snapshot of members for history mode
+  membersSnapshot: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    status: string;
+  }[];
+
   toggle: (id: string) => void;
+
   markAllPresent: (
     members: { id: string; status: string }[],
     visitors: AttendanceVisitor[]
   ) => void;
+
   markAllAbsent: (
     members: { id: string; status: string }[],
     visitors: AttendanceVisitor[]
   ) => void;
+
   save: () => Promise<void>;
+
   loading: boolean;
 }
 
@@ -33,15 +47,21 @@ export function useAttendance(
   churchId: string | null,
   members: { id: string; firstName: string; lastName: string; status: string }[],
   dateString: string,
+  editable: boolean = true
 ): UseAttendanceResult {
   const [records, setRecords] = useState<AttendanceRecords>({});
   const [visitors, setVisitors] = useState<AttendanceVisitor[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [membersSnapshot, setMembersSnapshot] = useState<
+    { id: string; firstName: string; lastName: string; status: string }[]
+  >([]);
+
   const load = useCallback(async () => {
     if (!churchId) {
       setRecords({});
       setVisitors([]);
+      setMembersSnapshot([]);
       setLoading(false);
       return;
     }
@@ -55,14 +75,21 @@ export function useAttendance(
       const data = snap.data() as {
         records?: AttendanceRecords;
         visitors?: AttendanceVisitor[];
-        membersSnapshot?: any[];
+        membersSnapshot?: {
+          id: string;
+          firstName: string;
+          lastName: string;
+          status: string;
+        }[];
       };
 
       setRecords(data.records || {});
       setVisitors(data.visitors || []);
+      setMembersSnapshot(data.membersSnapshot || []);
     } else {
       setRecords({});
       setVisitors([]);
+      setMembersSnapshot([]);
     }
 
     setLoading(false);
@@ -73,6 +100,8 @@ export function useAttendance(
   }, [load]);
 
   const toggle = (id: string) => {
+    if (!editable) return;
+
     setRecords((prev) => {
       const current = prev[id];
       const nextValue = current === undefined ? true : !current;
@@ -81,14 +110,14 @@ export function useAttendance(
   };
 
   const save = async () => {
-    if (!churchId) return;
+    if (!churchId || !editable) return;
 
     const ref = doc(db, 'churches', churchId, 'attendance', dateString);
 
     await setDoc(ref, {
       records,
       visitors,
-      membersSnapshot: members.map(m => ({
+      membersSnapshot: members.map((m) => ({
         id: m.id,
         firstName: m.firstName,
         lastName: m.lastName,
@@ -101,6 +130,8 @@ export function useAttendance(
     members: { id: string; status: string }[],
     visitors: AttendanceVisitor[]
   ) => {
+    if (!editable) return;
+
     const updated: AttendanceRecords = {};
 
     for (const m of members) {
@@ -120,6 +151,8 @@ export function useAttendance(
     members: { id: string; status: string }[],
     visitors: AttendanceVisitor[]
   ) => {
+    if (!editable) return;
+
     const updated: AttendanceRecords = {};
 
     for (const m of members) {
@@ -140,6 +173,7 @@ export function useAttendance(
     setRecords,
     visitors,
     setVisitors,
+    membersSnapshot,
     toggle,
     markAllPresent,
     markAllAbsent,
