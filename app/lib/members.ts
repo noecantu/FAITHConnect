@@ -87,6 +87,8 @@ export async function addMember(
       payload.birthday = Timestamp.fromDate(new Date(data.birthday));
     if (data.anniversary)
       payload.anniversary = Timestamp.fromDate(new Date(data.anniversary));
+    if (data.baptismDate)
+      payload.baptismDate = Timestamp.fromDate(new Date(data.baptismDate));
 
     payload.createdAt = serverTimestamp();
     payload.updatedAt = serverTimestamp();
@@ -123,6 +125,8 @@ export async function updateMember(
         payload.birthday = Timestamp.fromDate(new Date(data.birthday));
       if (data.anniversary)
         payload.anniversary = Timestamp.fromDate(new Date(data.anniversary));
+      if (data.baptismDate)
+        payload.baptismDate = Timestamp.fromDate(new Date(data.baptismDate));
       payload.updatedAt = serverTimestamp();
 
       transaction.update(memberRef, removeUndefineds(payload));
@@ -214,6 +218,9 @@ export async function updateMember(
       payload.birthday = Timestamp.fromDate(new Date(data.birthday));
     if (data.anniversary)
       payload.anniversary = Timestamp.fromDate(new Date(data.anniversary));
+    if (data.baptismDate)
+      payload.baptismDate = Timestamp.fromDate(new Date(data.baptismDate));
+
     payload.updatedAt = serverTimestamp();
 
     transaction.update(memberRef, removeUndefineds(payload));
@@ -279,23 +286,27 @@ export function listenToMembers(
 
       return {
         id: doc.id,
+        userId: raw.userId ?? null,
         checkInCode: raw.checkInCode ?? "",
         qrCode: raw.qrCode ?? "",
-        firstName: raw.firstName,
-        lastName: raw.lastName,
-        email: raw.email,
-        phoneNumber: raw.phoneNumber,
+        firstName: raw.firstName ?? "",
+        lastName: raw.lastName ?? "",
+        email: raw.email ?? "",
+        phoneNumber: raw.phoneNumber ?? "",
         profilePhotoUrl: raw.profilePhotoUrl ?? "",
-        status: raw.status,
-        address: raw.address,
-        birthday:
-          raw.birthday?.toDate?.()?.toISOString().split("T")[0] ?? undefined,
-        familyId: raw.familyId,
+        status: raw.status ?? "",
+        address: raw.address ?? null,
+        birthday: raw.birthday?.toDate().toISOString().split("T")[0],
+        baptismDate: raw.baptismDate?.toDate().toISOString().split("T")[0],
+        anniversary: raw.anniversary?.toDate().toISOString().split("T")[0],
+        familyId: raw.familyId ?? null,
         notes: raw.notes ?? "",
-        relationships: raw.relationships,
-        anniversary:
-          raw.anniversary?.toDate?.()?.toISOString().split("T")[0] ??
-          undefined,
+        relationships: Array.isArray(raw.relationships)
+          ? raw.relationships.map((rel: any) => ({
+              ...rel,
+              memberIds: rel.memberIds as [string, string],
+            }))
+          : [],
       };
     });
 
