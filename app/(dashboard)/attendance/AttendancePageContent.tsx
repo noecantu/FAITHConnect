@@ -4,12 +4,13 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { format } from "date-fns";
 import Flatpickr from "react-flatpickr";
+
 import { PageHeader } from "@/app/components/page-header";
 import { Card } from "@/app/components/ui/card";
 import { Fab } from "@/app/components/ui/fab";
 import { Input } from "@/app/components/ui/input";
 import { Button } from "@/app/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
+
 import {
   Dialog,
   DialogTrigger,
@@ -25,126 +26,77 @@ import { useUserRoles } from "@/app/hooks/useUserRoles";
 import { useMembers } from "@/app/hooks/useMembers";
 import { useAttendance } from "@/app/hooks/useAttendance";
 import { useToast } from "@/app/hooks/use-toast";
-import { useSettings } from "@/app/hooks/use-settings";
-import { useAuth } from "@/app/hooks/useAuth";
 
-import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase";
-
-import Image from "next/image";
 import { QRCodeCanvas } from "qrcode.react";
 import { X } from "lucide-react";
+import { cn } from "@/app/lib/utils";
 
 export default function AttendancePageContent() {
   const searchParams = useSearchParams();
   const urlDate = searchParams.get("date");
 
-  function parseLocalDate(dateString: string) {
+  function parseLocalDate(dateString: string): Date {
     const [y, m, d] = dateString.split("-").map(Number);
     return new Date(y, m - 1, d);
   }
-  
+
   const initialDate = urlDate ? parseLocalDate(urlDate) : new Date();
   const [date, setDate] = useState(initialDate);
   const dateString = format(date, "yyyy-MM-dd");
 
-  const todayString = format(new Date(), "yyyy-MM-dd");
-  const isToday = dateString === todayString;
-
-  const correcting = searchParams.get("correcting") === "true";
-  const editable = isToday || correcting;
-
-  const { churchId } = useChurchId();
   const router = useRouter();
   const { toast } = useToast();
-  const { user } = useAuth();
 
+  const { churchId } = useChurchId();
+
+  const [visitorName, setVisitorName] = useState("");
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
   const [qrLoading, setQrLoading] = useState(false);
 
-  const [attendanceView, setAttendanceView] = useState<"cards" | "list">(
-    "cards"
-  );
-  const [visitorName, setVisitorName] = useState("");
-
-  function fallbackCopy(text: string) {
-    const textarea = document.createElement("textarea");
-    textarea.value = text;
-    textarea.style.position = "fixed";
-    textarea.style.opacity = "0";
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand("copy");
-    document.body.removeChild(textarea);
-  }
-
-  // SETTINGS
-  const { settings } = useSettings();
-  const savedAttendanceView = settings?.attendanceView ?? "cards";
-
-  useEffect(() => {
-    if (savedAttendanceView && savedAttendanceView !== attendanceView) {
-      setAttendanceView(savedAttendanceView);
-    }
-  }, [attendanceView, savedAttendanceView]);
-
   // ROLES
-  const {
-    isAdmin,
-    isAttendanceManager,
-    loading: rolesLoading,
-  } = useUserRoles(churchId);
+  const { isAdmin, isAttendanceManager, loading: rolesLoading } =
+    useUserRoles(churchId);
 
   // MEMBERS
   const { members, loading: membersLoading } = useMembers();
 
+  // ATTENDANCE
   const {
     records,
     visitors,
     setVisitors,
-    membersSnapshot,
     toggle,
     save,
+    loading: attendanceLoading,
     markAllPresent,
     markAllAbsent,
-    loading: attendanceLoading,
-  } = useAttendance(churchId, members, dateString, editable);
+  } = useAttendance(churchId, members, dateString);
 
   const loading = rolesLoading || membersLoading || attendanceLoading;
 
+  // SORT MEMBERS
   const activeMembers = useMemo(
     () => members.filter((m) => m.status !== "Archived"),
     [members]
   );
 
-  const sortedMembers = [...activeMembers].sort((a, b) => {
-    const lastA = a.lastName.toLowerCase();
-    const lastB = b.lastName.toLowerCase();
+  const sortedMembers = useMemo(() => {
+    return [...activeMembers].sort((a, b) => {
+      const lastA = a.lastName.toLowerCase();
+      const lastB = b.lastName.toLowerCase();
+      if (lastA !== lastB) return lastA.localeCompare(lastB);
+      return a.firstName.toLowerCase().localeCompare(b.firstName.toLowerCase());
+    });
+  }, [activeMembers]);
 
-    if (lastA < lastB) return -1;
-    if (lastA > lastB) return 1;
+  const sortedVisitors = useMemo(() => {
+    return [...visitors].sort((a, b) =>
+      a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+    );
+  }, [visitors]);
 
-    // Last names match → compare first names
-    const firstA = a.firstName.toLowerCase();
-    const firstB = b.firstName.toLowerCase();
-
-    if (firstA < firstB) return -1;
-    if (firstA > firstB) return 1;
-
-    return 0;
-  });
-
-  const sortedVisitors = [...visitors].sort((a, b) => {
-    const nameA = a.name.toLowerCase();
-    const nameB = b.name.toLowerCase();
-    return nameA.localeCompare(nameB);
-  });
-
-  const displayMembers = editable ? sortedMembers : membersSnapshot;
-  const displayVisitors = sortedVisitors;
-
-  // QR Generator
+  // QR GENERATOR
   async function handleGenerateQr() {
     try {
       setQrLoading(true);
@@ -161,9 +113,16 @@ export default function AttendancePageContent() {
       setQrOpen(true);
 
       try {
-        navigator.clipboard.writeText(url);
+        await navigator.clipboard.writeText(url);
       } catch {
-        fallbackCopy(url);
+        const textarea = document.createElement("textarea");
+        textarea.value = url;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
       }
 
       toast({
@@ -175,14 +134,13 @@ export default function AttendancePageContent() {
       toast({
         title: "Error",
         description: "Something went wrong.",
-        // variant: "destructive",
       });
     } finally {
       setQrLoading(false);
     }
   }
 
-  // Sync date when URL changes (safe: only reacts to navigation, not typing)
+  // Sync date when URL changes
   useEffect(() => {
     if (urlDate) {
       setDate(parseLocalDate(urlDate));
@@ -225,63 +183,28 @@ export default function AttendancePageContent() {
   // MAIN RENDER
   return (
     <>
-      {/* PAGE HEADER */}
-      <PageHeader title="Attendance" subtitle={dateString}>
-        <div className="flex items-center gap-4">
-          <RadioGroup
-            value={attendanceView}
-            onValueChange={async (v: "cards" | "list") => {
-              setAttendanceView(v);
-
-              if (user?.id) {
-                await updateDoc(doc(db, "users", user.id), {
-                  "settings.attendanceView": v,
-                  updatedAt: serverTimestamp(),
-                });
-              }
-            }}
-            className="flex items-center gap-4"
-          >
-            <div className="flex items-center gap-1">
-              <RadioGroupItem value="cards" id="view-cards" />
-              <label htmlFor="view-cards" className="text-sm">
-                Cards
-              </label>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <RadioGroupItem value="list" id="view-list" />
-              <label htmlFor="view-list" className="text-sm">
-                List
-              </label>
-            </div>
-          </RadioGroup>
-        </div>
-      </PageHeader>
+      <PageHeader title="Attendance" subtitle={dateString} />
 
       {/* DATE PICKER + TODAY + HISTORY */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 mb-4">
-
-        {/* FLATPICKR DATE PICKER */}
         <Flatpickr
-        defaultValue={format(date, "MM-dd-yyyy")}
-        options={{
-          dateFormat: "m-d-Y",
-          allowInput: false,
-          altInput: true,
-          altFormat: "m-d-Y",
-          monthSelectorType: "dropdown",
-          closeOnSelect: true,
-        }}
-        onChange={([selected]) => {
-          if (!selected) return;
-          setDate(selected);
-          router.push(`/attendance?date=${format(selected, "yyyy-MM-dd")}`);
-        }}
-        className="w-full sm:w-[150px] bg-black/40 text-white border-white/20 rounded-md px-3 py-2 text-center"
-      />
+          defaultValue={format(date, "MM-dd-yyyy")}
+          options={{
+            dateFormat: "m-d-Y",
+            allowInput: false,
+            altInput: true,
+            altFormat: "m-d-Y",
+            monthSelectorType: "dropdown",
+            closeOnSelect: true,
+          }}
+          onChange={([selected]) => {
+            if (!selected) return;
+            setDate(selected);
+            router.push(`/attendance?date=${format(selected, "yyyy-MM-dd")}`);
+          }}
+          className="w-full sm:w-[150px] bg-black/40 text-white border-white/20 rounded-md px-3 py-2 text-center"
+        />
 
-        {/* TODAY BUTTON */}
         <Button
           variant="outline"
           onClick={() => {
@@ -294,51 +217,36 @@ export default function AttendancePageContent() {
           Today
         </Button>
 
-        {/* HISTORY BUTTON */}
         <Button
           onClick={() => router.push("/attendance/history")}
           className="text-white/80 border-white/20"
         >
           History
         </Button>
-
-        {/* CORRECT THIS DATE (History Mode Only) */}
-        {!editable && (
-          <Button
-            variant="default"
-            onClick={() => {
-              router.push(`/attendance?date=${dateString}&correcting=true`);
-            }}
-            className="text-white/80 border-white/20"
-          >
-            Correct this date
-          </Button>
-        )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {/* GENERATE QR */}
+      {/* ACTION BUTTONS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
         <Button
           onClick={handleGenerateQr}
           variant="default"
-          disabled={qrLoading || !editable}
+          disabled={qrLoading}
           className="w-full flex flex-col items-center justify-center text-center 
-           bg-yellow-700/80 hover:bg-yellow-900/80 active:bg-yellow-950/80
-           gap-1 transition-colors"
+            bg-yellow-700/80 hover:bg-yellow-900/80 active:bg-yellow-950/80
+            gap-1 transition-colors"
         >
           <span className="text-sm text-white/80">
             {qrLoading ? "Generating..." : "Generate QR"}
           </span>
         </Button>
 
-        {/* ADD VISITOR */}
         <Dialog>
-          <DialogTrigger asChild disabled={!editable}>
+          <DialogTrigger asChild>
             <Button
               variant="default"
               className="w-full flex flex-col items-center justify-center text-center 
-           bg-cyan-700/80 hover:bg-cyan-900/80 active:bg-cyan-950/80
-           gap-1 transition-colors"
+                bg-cyan-700/80 hover:bg-cyan-900/80 active:bg-cyan-950/80
+                gap-1 transition-colors"
             >
               <span className="text-sm text-white/80">Add Visitor</span>
             </Button>
@@ -363,15 +271,12 @@ export default function AttendancePageContent() {
 
                   const id = `visitor-${Date.now()}`;
 
-                  // 1. Add visitor to visitor list
                   setVisitors((prev) => [
                     ...prev,
                     { id, name: visitorName.trim() },
                   ]);
 
-                  // 2. Mark visitor as PRESENT by default
                   toggle(id);
-
                   setVisitorName("");
                 }}
               >
@@ -382,179 +287,100 @@ export default function AttendancePageContent() {
         </Dialog>
 
         <Button
-          onClick={() => editable && markAllPresent(members, visitors)}
+          onClick={() => markAllPresent(members, visitors)}
           variant="default"
-          disabled={!editable}
-          className="w-full flex flex-col items-center justify-center text-center
+          className="w-full flex flex-col items-center justify-center text-center 
             bg-green-700/80 hover:bg-green-900/80 active:bg-green-950/80
             gap-1 transition-colors"
-         >
+        >
           <span className="text-sm text-white/80">Mark All Present</span>
         </Button>
 
         <Button
-          onClick={() => editable && markAllAbsent(members, visitors)}
+          onClick={() => markAllAbsent(members, visitors)}
           variant="default"
-          disabled={!editable}
           className="w-full flex flex-col items-center justify-center text-center
-           bg-red-700/80 hover:bg-red-900/80 active:bg-red-950/80
-           gap-1 transition-colors"
+            bg-red-700/80 hover:bg-red-900/80 active:bg-red-950/80
+            gap-1 transition-colors"
         >
           <span className="text-sm text-white/80">Mark All Absent</span>
         </Button>
       </div>
 
-      {/* CARDS VIEW */}
-      {attendanceView === "cards" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-3">
-          {[...displayMembers, ...displayVisitors].map((m) => {
-            const isVisitor = !("firstName" in m);
-            const id = m.id;
+      {/* TEXT-ONLY CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-3">
+        {[...sortedMembers, ...sortedVisitors].map((m) => {
+          const isVisitor = !("firstName" in m);
+          const id = m.id;
+          const name = isVisitor ? m.name : `${m.firstName} ${m.lastName}`;
+          const present = records[id] === true;
 
-            const name = isVisitor ? m.name : `${m.firstName} ${m.lastName}`;
-
-            const photo =
-              !isVisitor && typeof (m as any).profilePhotoUrl === "string"
-                ? (m as any).profilePhotoUrl
-                : null;
-
-            const initials = isVisitor
-              ? m.name
-                  .split(" ")
-                  .map((n: string) => n[0])
-                  .join("")
-                  .toUpperCase()
-              : null;
-
-            const present = records[id] === true;
-
-            return (
-              <Card
-                key={id}
-                className="relative group p-3 flex flex-col items-center text-center gap-1.5 cursor-pointer"
-                onClick={() => {
-                  if (!editable) return;
-                  toggle(id);
-                }}
-              >
-                {isVisitor && (
-                  <button
-                    onClick={(e) => {
-                      if (!editable) return;
-                      e.stopPropagation();
-                      setVisitors((prev) => prev.filter((v) => v.id !== id));
-                    }}
-                    className="
-                      absolute top-1.5 right-1.5
-                      h-4 w-4 flex items-center justify-center
-                      rounded-full bg-black/40 border border-white/10
-                      text-white/60 hover:text-white hover:bg-black/60
-                      opacity-0 group-hover:opacity-100 transition
-                    "
-                  >
-                    <X className="h-2.5 w-2.5" />
-                  </button>
-                )}
-
-                {/* PHOTO / INITIALS */}
-                <div className="w-14 h-14 relative flex items-center justify-center rounded-md border border-slate-300 bg-slate-700/40 overflow-hidden">
-                  {photo ? (
-                    <Image
-                      src={photo}
-                      alt={name}
-                      fill
-                      sizes="(max-width: 768px) 50vw, 25vw"
-                      className="object-cover rounded-md"
-                    />
-                  ) : (
-                    <span className="text-white/70 text-[11px] font-medium tracking-wide">
-                      {isVisitor ? "Visitor" : initials}
-                    </span>
-                  )}
-                </div>
-
-                {/* NAME */}
-                <span
+          return (
+            <Card
+              key={id}
+              className={cn(
+                "relative group p-3 flex flex-col items-center text-center gap-1.5 cursor-pointer rounded-md transition-colors",
+                present
+                  ? "bg-green-700/80 border border-green-500/20"
+                  : "bg-red-700/80 border border-red-500/20"
+              )}
+              onClick={() => toggle(id)}
+            >
+              {isVisitor && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setVisitors((prev) => prev.filter((v) => v.id !== id));
+                  }}
                   className="
-                    text-[11px] font-medium leading-tight
-                    text-center
-                    w-full
-                    max-w-[80px]
-                    line-clamp-2
+                    absolute top-1.5 right-1.5
+                    h-4 w-4 flex items-center justify-center
+                    rounded-full bg-black/40 border border-white/10
+                    text-white/60 hover:text-white hover:bg-black/60
+                    opacity-0 group-hover:opacity-100 transition
                   "
                 >
-                  {name}
-                </span>
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              )}
 
-                {/* STATUS */}
-                <span
-                  className={
-                    present
-                      ? "text-green-500 font-semibold text-[11px]"
-                      : "text-red-500 font-semibold text-[11px]"
-                  }
-                >
-                  {present ? "Present" : "Absent"}
-                </span>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+              {/* Title */}
+              <span className="text-[10px] text-white/50 font-semibold tracking-wide uppercase">
+                {isVisitor ? "Visitor" : "Member"}
+              </span>
 
-      {/* LIST VIEW */}
-      {attendanceView === "list" && (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2">
-          {[...displayMembers, ...displayVisitors].map((m) => {
-            const isVisitor = !("firstName" in m);
-            const id = m.id;
-
-            const name = isVisitor ? m.name : `${m.firstName} ${m.lastName}`;
-
-            const present = records[id] === true;
-
-            return (
-              <div
-                key={id}
-                className="flex items-center justify-between p-3 rounded-md border border-white/10 bg-white/5 cursor-pointer"
-                onClick={() => {
-                  if (!editable) return;
-                  toggle(id);
-                }}
+              {/* Name */}
+              <span
+                className="
+                  text-[11px] font-medium leading-tight
+                  text-center
+                  w-full
+                  max-w-[80px]
+                  line-clamp-2
+                "
               >
-                <span className="text-xs font-medium text-white/90">
-                  {name}
-                </span>
+                {name}
+              </span>
 
-                <span
-                  className={
-                    present
-                      ? "text-[11px] text-green-500 font-semibold"
-                      : "text-[11px] text-red-500 font-semibold"
-                  }
-                >
-                  {present ? "Present" : "Absent"}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              {/* Status (always white) */}
+              <span className="text-white/80 font-semibold text-[10px]">
+                {present ? "Present" : "Absent"}
+              </span>
+            </Card>
+          );
+        })}
+      </div>
 
       {/* SAVE BUTTON */}
       <Fab
-        onClick={
-          editable
-            ? async () => {
-                await save();
-                toast({ title: "Attendance saved" });
-              }
-            : undefined
-        }
-        disabled={!editable}
+        onClick={async () => {
+          await save();
+          toast({ title: "Attendance saved" });
+        }}
         type="save"
       />
 
+      {/* QR MODAL */}
       <Dialog open={qrOpen} onOpenChange={setQrOpen}>
         <DialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
           <DialogHeader>
