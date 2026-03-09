@@ -168,7 +168,7 @@ export default function AttendancePageContent() {
     return (
       <div className="p-6">
         <PageHeader title="Attendance" subtitle={dateString} />
-        <p className="text-muted-foreground">Loading attendance…</p>
+        <p className="text-muted-foreground">Loading Attendance…</p>
       </div>
     );
   }
@@ -204,13 +204,13 @@ export default function AttendancePageContent() {
       {/* MODE LABEL */}
       {mode === "history" && (
         <div className="text-white/60 text-xs mb-2">
-          Snapshot from {format(date, "MMMM d, yyyy")} — read‑only
+          Snapshot from {format(date, "MMMM d, yyyy")} — Read‑Only
         </div>
       )}
 
       {mode === "correction" && (
         <div className="text-white/60 text-xs mb-2">
-          Correcting attendance for {format(date, "MMMM d, yyyy")}
+          Correcting Attendance for {format(date, "MMMM d, yyyy")}
         </div>
       )}
 
@@ -338,18 +338,6 @@ export default function AttendancePageContent() {
         </div>
       )}
 
-      {/* EDIT TODAY BUTTON */}
-      {mode === "today" && (
-        <Button
-          onClick={() => {
-            router.push(`/attendance?date=${selectedString}&correcting=true`);
-          }}
-          className="w-full bg-blue-700/60 hover:bg-blue-800/60 text-white/80 mb-4"
-        >
-          Edit Today’s Attendance
-        </Button>
-      )}
-
       {/* CORRECT THIS DATE BUTTON */}
       {mode === "history" && (
         <Button
@@ -410,7 +398,7 @@ export default function AttendancePageContent() {
               {/* Name */}
               <span
                 className="
-                  text-[11px] font-medium leading-tight
+                  text-[14px] font-medium leading-tight
                   text-center
                   w-full
                   max-w-[80px]
