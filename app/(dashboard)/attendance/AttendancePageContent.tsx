@@ -43,25 +43,34 @@ export default function AttendancePageContent() {
   const initialDate = urlDate ? parseLocalDate(urlDate) : new Date();
   const [date, setDate] = useState(initialDate);
   const dateString = format(date, "yyyy-MM-dd");
-
   const router = useRouter();
   const { toast } = useToast();
-
   const { churchId } = useChurchId();
-
   const [visitorName, setVisitorName] = useState("");
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
   const [qrLoading, setQrLoading] = useState(false);
 
+  // MODE LOGIC
+  const correcting = searchParams.get("correcting") === "true";
+  const todayString = format(new Date(), "yyyy-MM-dd");
+  const selectedString = format(date, "yyyy-MM-dd");
+  const isToday = selectedString === todayString;
+
+  const mode = correcting
+    ? "correction"
+    : isToday
+    ? "today"
+    : "history";
+
   // ROLES
   const { isAdmin, isAttendanceManager, loading: rolesLoading } =
     useUserRoles(churchId);
 
-  // MEMBERS
+  // MEMBERS (LIVE)
   const { members, loading: membersLoading } = useMembers();
 
-  // ATTENDANCE
+  // ATTENDANCE (SNAPSHOT + RECORDS)
   const {
     records,
     visitors,
@@ -71,14 +80,21 @@ export default function AttendancePageContent() {
     loading: attendanceLoading,
     markAllPresent,
     markAllAbsent,
+    membersSnapshot, // <-- IMPORTANT: snapshot from Firestore
   } = useAttendance(churchId, members, dateString);
 
   const loading = rolesLoading || membersLoading || attendanceLoading;
 
+  // EFFECTIVE MEMBERS (LIVE or SNAPSHOT)
+  const effectiveMembers =
+    mode === "history" || mode === "correction"
+      ? membersSnapshot || []
+      : members;
+
   // SORT MEMBERS
   const activeMembers = useMemo(
-    () => members.filter((m) => m.status !== "Archived"),
-    [members]
+    () => effectiveMembers.filter((m) => m.status !== "Archived"),
+    [effectiveMembers]
   );
 
   const sortedMembers = useMemo(() => {
@@ -185,6 +201,19 @@ export default function AttendancePageContent() {
     <>
       <PageHeader title="Attendance" subtitle={dateString} />
 
+      {/* MODE LABEL */}
+      {mode === "history" && (
+        <div className="text-white/60 text-xs mb-2">
+          Snapshot from {format(date, "MMMM d, yyyy")} — read‑only
+        </div>
+      )}
+
+      {mode === "correction" && (
+        <div className="text-white/60 text-xs mb-2">
+          Correcting attendance for {format(date, "MMMM d, yyyy")}
+        </div>
+      )}
+
       {/* DATE PICKER + TODAY + HISTORY */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 mb-4">
         <Flatpickr
@@ -226,86 +255,112 @@ export default function AttendancePageContent() {
       </div>
 
       {/* ACTION BUTTONS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
-        <Button
-          onClick={handleGenerateQr}
-          variant="default"
-          disabled={qrLoading}
-          className="w-full flex flex-col items-center justify-center text-center 
-            bg-yellow-700/80 hover:bg-yellow-900/80 active:bg-yellow-950/80
-            gap-1 transition-colors"
-        >
-          <span className="text-sm text-white/80">
-            {qrLoading ? "Generating..." : "Generate QR"}
-          </span>
-        </Button>
+      {mode !== "history" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+          <Button
+            onClick={handleGenerateQr}
+            variant="default"
+            disabled={qrLoading}
+            className="w-full flex flex-col items-center justify-center text-center 
+              bg-yellow-700/80 hover:bg-yellow-900/80 active:bg-yellow-950/80
+              gap-1 transition-colors"
+          >
+            <span className="text-sm text-white/80">
+              {qrLoading ? "Generating..." : "Generate QR"}
+            </span>
+          </Button>
 
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button
-              variant="default"
-              className="w-full flex flex-col items-center justify-center text-center 
-                bg-cyan-700/80 hover:bg-cyan-900/80 active:bg-cyan-950/80
-                gap-1 transition-colors"
-            >
-              <span className="text-sm text-white/80">Add Visitor</span>
-            </Button>
-          </DialogTrigger>
-
-          <DialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
-            <DialogHeader>
-              <DialogTitle>Add Visitor</DialogTitle>
-            </DialogHeader>
-
-            <Input
-              placeholder="Visitor name"
-              value={visitorName}
-              onChange={(e) => setVisitorName(e.target.value)}
-              className="bg-black/40 text-white"
-            />
-
-            <DialogFooter>
+          <Dialog>
+            <DialogTrigger asChild>
               <Button
-                onClick={() => {
-                  if (!visitorName.trim()) return;
-
-                  const id = `visitor-${Date.now()}`;
-
-                  setVisitors((prev) => [
-                    ...prev,
-                    { id, name: visitorName.trim() },
-                  ]);
-
-                  toggle(id);
-                  setVisitorName("");
-                }}
+                variant="default"
+                className="w-full flex flex-col items-center justify-center text-center 
+                  bg-cyan-700/80 hover:bg-cyan-900/80 active:bg-cyan-950/80
+                  gap-1 transition-colors"
               >
-                Add
+                <span className="text-sm text-white/80">Add Visitor</span>
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
 
-        <Button
-          onClick={() => markAllPresent(members, visitors)}
-          variant="default"
-          className="w-full flex flex-col items-center justify-center text-center 
-            bg-green-700/80 hover:bg-green-900/80 active:bg-green-950/80
-            gap-1 transition-colors"
-        >
-          <span className="text-sm text-white/80">Mark All Present</span>
-        </Button>
+            <DialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+              <DialogHeader>
+                <DialogTitle>Add Visitor</DialogTitle>
+              </DialogHeader>
 
+              <Input
+                placeholder="Visitor name"
+                value={visitorName}
+                onChange={(e) => setVisitorName(e.target.value)}
+                className="bg-black/40 text-white"
+              />
+
+              <DialogFooter>
+                <Button
+                  onClick={() => {
+                    if (!visitorName.trim()) return;
+
+                    const id = `visitor-${Date.now()}`;
+
+                    setVisitors((prev) => [
+                      ...prev,
+                      { id, name: visitorName.trim() },
+                    ]);
+
+                    toggle(id);
+                    setVisitorName("");
+                  }}
+                >
+                  Add
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Button
+            onClick={() => markAllPresent(effectiveMembers, visitors)}
+            variant="default"
+            className="w-full flex flex-col items-center justify-center text-center 
+              bg-green-700/80 hover:bg-green-900/80 active:bg-green-950/80
+              gap-1 transition-colors"
+          >
+            <span className="text-sm text-white/80">Mark All Present</span>
+          </Button>
+
+          <Button
+            onClick={() => markAllAbsent(effectiveMembers, visitors)}
+            variant="default"
+            className="w-full flex flex-col items-center justify-center text-center
+              bg-red-700/80 hover:bg-red-900/80 active:bg-red-950/80
+              gap-1 transition-colors"
+          >
+            <span className="text-sm text-white/80">Mark All Absent</span>
+          </Button>
+        </div>
+      )}
+
+      {/* EDIT TODAY BUTTON */}
+      {mode === "today" && (
         <Button
-          onClick={() => markAllAbsent(members, visitors)}
-          variant="default"
-          className="w-full flex flex-col items-center justify-center text-center
-            bg-red-700/80 hover:bg-red-900/80 active:bg-red-950/80
-            gap-1 transition-colors"
+          onClick={() => {
+            router.push(`/attendance?date=${selectedString}&correcting=true`);
+          }}
+          className="w-full bg-blue-700/60 hover:bg-blue-800/60 text-white/80 mb-4"
         >
-          <span className="text-sm text-white/80">Mark All Absent</span>
+          Edit Today’s Attendance
         </Button>
-      </div>
+      )}
+
+      {/* CORRECT THIS DATE BUTTON */}
+      {mode === "history" && (
+        <Button
+          onClick={() =>
+            router.push(`/attendance?date=${selectedString}&correcting=true`)
+          }
+          className="w-full bg-blue-700/60 hover:bg-blue-800/60 text-white/80 mb-4"
+        >
+          Edit Attendance for This Date
+        </Button>
+      )}
 
       {/* TEXT-ONLY CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-3">
@@ -324,9 +379,12 @@ export default function AttendancePageContent() {
                   ? "bg-green-700/80 border border-green-500/20"
                   : "bg-red-700/80 border border-red-500/20"
               )}
-              onClick={() => toggle(id)}
+              onClick={() => {
+                if (mode === "history") return;
+                toggle(id);
+              }}
             >
-              {isVisitor && (
+              {isVisitor && mode !== "history" && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -372,13 +430,20 @@ export default function AttendancePageContent() {
       </div>
 
       {/* SAVE BUTTON */}
-      <Fab
-        onClick={async () => {
-          await save();
-          toast({ title: "Attendance saved" });
-        }}
-        type="save"
-      />
+      {mode !== "history" && (
+        <Fab
+          onClick={async () => {
+            await save();
+
+            if (mode === "correction") {
+              router.push(`/attendance?date=${selectedString}`);
+            }
+
+            toast({ title: "Attendance saved" });
+          }}
+          type="save"
+        />
+      )}
 
       {/* QR MODAL */}
       <Dialog open={qrOpen} onOpenChange={setQrOpen}>
