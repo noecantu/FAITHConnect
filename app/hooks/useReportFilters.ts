@@ -6,23 +6,22 @@ import { AttendanceRecord } from './useAttendanceForReports';
 
 interface UseReportFiltersProps {
   members: Member[];
+  includeVisitors: boolean;
   contributions: Contribution[];
   attendance: AttendanceRecord[];
-
   selectedMembers: string[];
   selectedStatus: string[];
   selectedFY: string[];
   selectedCategories: string[];
   selectedContributionTypes: string[];
-
   reportRange: 'week' | 'month' | 'year';
   reportType: 'members' | 'contributions' | 'attendance';
-
   selectedDate?: string | null;
 }
 
 export function useReportFilters({
   members,
+  includeVisitors,
   contributions,
   attendance,
   selectedMembers,
@@ -35,7 +34,9 @@ export function useReportFilters({
   selectedDate,
 }: UseReportFiltersProps) {
 
-  // Available fiscal years (derived from contributions)
+  // -----------------------------
+  // Fiscal Years
+  // -----------------------------
   const availableYears = useMemo(() => {
     const years = new Set<string>();
     contributions.forEach((c) => {
@@ -44,16 +45,16 @@ export function useReportFilters({
     return Array.from(years).sort((a, b) => Number(b) - Number(a));
   }, [contributions]);
 
-  // Filtered Members
+  // -----------------------------
+  // Members Filter
+  // -----------------------------
   const filteredMembers = useMemo(() => {
     if (selectedMembers.length === 0) return [];
 
     let list = members;
 
-    // Member filter
     list = list.filter((m) => selectedMembers.includes(m.id));
 
-    // Status filter
     if (selectedStatus.length > 0) {
       list = list.filter((m) => selectedStatus.includes(m.status));
     }
@@ -61,7 +62,9 @@ export function useReportFilters({
     return list;
   }, [members, selectedMembers, selectedStatus]);
 
-  // Filtered Contributions
+  // -----------------------------
+  // Contributions Filter
+  // -----------------------------
   const filteredContributions = useMemo(() => {
     if (reportType !== "contributions") return [];
     if (selectedMembers.length === 0) return [];
@@ -69,41 +72,33 @@ export function useReportFilters({
 
     let list = contributions;
 
-    // Year filter
     list = list.filter((c) =>
       selectedFY.includes(new Date(c.date).getFullYear().toString())
     );
 
-    // Apply range filter (week, month)
     const now = new Date();
 
     if (reportRange === "month") {
-      const currentMonth = now.getMonth();
-      const currentYear = now.getFullYear();
-
+      const m = now.getMonth();
+      const y = now.getFullYear();
       list = list.filter((c) => {
         const d = new Date(c.date);
-        return (
-          d.getMonth() === currentMonth &&
-          d.getFullYear() === currentYear
-        );
+        return d.getMonth() === m && d.getFullYear() === y;
       });
     }
 
     if (reportRange === "week") {
       list = list.filter((c) => {
         const d = new Date(c.date);
-        const diffDays = (now.getTime() - d.getTime()) / 86400000;
-        return diffDays <= 7;
+        const diff = (now.getTime() - d.getTime()) / 86400000;
+        return diff <= 7;
       });
     }
 
-    // Member filter
     list = list.filter(
       (c) => c.memberId && selectedMembers.includes(c.memberId)
     );
 
-    // Status filter
     if (selectedStatus.length > 0) {
       list = list.filter((c) => {
         const member = members.find((m) => m.id === c.memberId);
@@ -111,12 +106,10 @@ export function useReportFilters({
       });
     }
 
-    // Category filter
     if (selectedCategories.length > 0) {
       list = list.filter((c) => selectedCategories.includes(c.category));
     }
 
-    // Contribution type filter
     if (selectedContributionTypes.length > 0) {
       list = list.filter((c) =>
         selectedContributionTypes.includes(c.contributionType)
@@ -136,45 +129,74 @@ export function useReportFilters({
     reportType,
   ]);
 
-    // Filtered Attendance
-    const filteredAttendance = useMemo(() => {
-      if (reportType !== "attendance") return [];
-      if (selectedMembers.length === 0) return [];
+  // -----------------------------
+  // Attendance Filter (UPDATED)
+  // -----------------------------
+  const filteredAttendance = useMemo(() => {
+    if (reportType !== "attendance") return [];
 
-      let list = attendance;
+    let list = attendance;
 
-      // Specific date filter
-      if (selectedDate) {
-        list = list.filter(a => a.date.startsWith(selectedDate));
+    // Date filter
+    if (selectedDate) {
+      list = list.filter((a) => a.date.startsWith(selectedDate));
+    }
+
+    // Range filters
+    if (!selectedDate) {
+      const now = new Date();
+
+      if (reportRange === "month") {
+        const m = now.getMonth();
+        const y = now.getFullYear();
+        list = list.filter((a) => {
+          const d = new Date(a.date);
+          return d.getMonth() === m && d.getFullYear() === y;
+        });
       }
 
-      // Range filters only apply when no specific date is selected
-      if (!selectedDate) {
-        const now = new Date();
-
-        if (reportRange === "month") {
-          const m = now.getMonth();
-          const y = now.getFullYear();
-          list = list.filter((a) => {
-            const d = new Date(a.date);
-            return d.getMonth() === m && d.getFullYear() === y;
-          });
-        }
-
-        if (reportRange === "week") {
-          list = list.filter((a) => {
-            const d = new Date(a.date);
-            const diff = (now.getTime() - d.getTime()) / 86400000;
-            return diff <= 7;
-          });
-        }
+      if (reportRange === "week") {
+        list = list.filter((a) => {
+          const d = new Date(a.date);
+          const diff = (now.getTime() - d.getTime()) / 86400000;
+          return diff <= 7;
+        });
       }
+    }
 
-      // Member filter
-      list = list.filter((a) => a.memberId && selectedMembers.includes(a.memberId));
+    // -----------------------------
+    // MEMBER ROWS
+    // -----------------------------
+    let memberRows: AttendanceRecord[] = [];
 
-      return list;
-    }, [attendance, reportType, reportRange, selectedMembers, selectedDate]);
+    if (selectedMembers.length > 0) {
+      // Only selected members
+      memberRows = list.filter(
+        (a) => a.memberId && selectedMembers.includes(a.memberId)
+      );
+    } else {
+      // No members selected → show ALL members
+      memberRows = list.filter((a) => a.memberId);
+    }
+
+    // -----------------------------
+    // VISITOR ROWS (only if enabled)
+    // -----------------------------
+    let visitorRows: AttendanceRecord[] = [];
+
+    if (includeVisitors) {
+      visitorRows = list.filter((a) => a.visitorId);
+    }
+
+    return [...memberRows, ...visitorRows];
+  }, [
+    attendance,
+    reportType,
+    reportRange,
+    selectedMembers,
+    selectedDate,
+    includeVisitors,
+  ]);
 
   return {
     availableYears,

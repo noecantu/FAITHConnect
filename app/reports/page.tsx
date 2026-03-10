@@ -55,6 +55,7 @@ export default function ReportsPage() {
   const [selectedFY, setSelectedFY] = useState<string[]>([]);
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [includeVisitors, setIncludeVisitors] = useState(false);
 
   const statusOptions = [
     { label: "Active", value: "Active" },
@@ -97,6 +98,7 @@ export default function ReportsPage() {
     filteredAttendance,
   } = useReportFilters({
     members,
+    includeVisitors,   // ← ADD THIS
     contributions,
     attendance,
     selectedMembers,
@@ -108,7 +110,6 @@ export default function ReportsPage() {
     reportType,
     selectedDate,
   });
-
   const availableAttendanceDates = Array.from(
     new Set(attendance.map(a => a.date.split("T")[0]))
   );
@@ -239,6 +240,28 @@ export default function ReportsPage() {
               value={selectedFields}
               onChange={setSelectedFields}
             />
+          )}
+
+          {reportType === "attendance" && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white">
+                Include Visitors
+              </label>
+
+              <Select
+                value={includeVisitors ? "yes" : "no"}
+                onValueChange={(v) => setIncludeVisitors(v === "yes")}
+              >
+                <SelectTrigger className="bg-black/20 border-white/20 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="no">No</SelectItem>
+                  <SelectItem value="yes">Yes</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           )}
 
           {reportType === "members" && (

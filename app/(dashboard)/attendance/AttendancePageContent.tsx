@@ -74,9 +74,9 @@ export default function AttendancePageContent() {
   // ATTENDANCE (SNAPSHOT + RECORDS)
   const {
     records,
+    setRecords,
     visitors,
     setVisitors,
-    toggle,
     save,
     loading: attendanceLoading,
     markAllPresent,
@@ -307,7 +307,11 @@ export default function AttendancePageContent() {
                       { id, name: visitorName.trim() },
                     ]);
 
-                    toggle(id);
+                    setRecords((prev) => ({
+                      ...prev,
+                      [id]: true, // mark this visitor present for this date
+                    }));
+
                     setVisitorName("");
                   }}
                 >
@@ -370,7 +374,10 @@ export default function AttendancePageContent() {
               )}
               onClick={() => {
                 if (mode === "history") return;
-                toggle(id);
+                setRecords((prev) => ({
+                  ...prev,
+                  [id]: true,
+                }));
               }}
             >
               {isVisitor && mode !== "history" && (
