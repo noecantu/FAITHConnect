@@ -165,7 +165,7 @@ export function useReportFilters({
     }
 
     // -----------------------------
-    // MEMBER ROWS
+    // MEMBER ROWS (UPDATED)
     // -----------------------------
     let memberRows: AttendanceRecord[] = [];
 
@@ -175,12 +175,12 @@ export function useReportFilters({
         (a) => a.memberId && selectedMembers.includes(a.memberId)
       );
     } else {
-      // No members selected → show ALL members
-      memberRows = list.filter((a) => a.memberId);
+      // No members selected → show NO members
+      memberRows = [];
     }
 
     // -----------------------------
-    // VISITOR ROWS (only if enabled)
+    // VISITOR ROWS (unchanged)
     // -----------------------------
     let visitorRows: AttendanceRecord[] = [];
 
