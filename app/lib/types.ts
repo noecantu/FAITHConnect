@@ -118,12 +118,12 @@ export type Member = {
   profilePhotoUrl?: string;
   status: 'Active' | 'Prospect' | 'Archived';
   address?: Address;
-  birthday?: string;
-  baptismDate?: string;
+  birthday?: string | null;
+  baptismDate?: string | null;
+  anniversary?: string | null;
   familyId?: string;
   notes?: string;
   relationships: Relationship[];
-  anniversary?: string;
 };
 
 export type MemberFirestore = Omit<Member, "birthday" | "baptismDate" | "anniversary"> & {

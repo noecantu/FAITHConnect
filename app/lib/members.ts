@@ -268,6 +268,22 @@ export async function deleteMember(churchId: string, memberId: string) {
   });
 }
 
+function parseDate(value: any): string | null {
+  if (!value) return null;
+
+  // Firestore Timestamp
+  if (typeof value.toDate === "function") {
+    return value.toDate().toISOString().split("T")[0];
+  }
+
+  // Already a string (e.g. "2024-03-10")
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return null;
+}
+
 /* -------------------------------------------------------
    LISTEN TO MEMBERS
 ------------------------------------------------------- */
@@ -296,9 +312,9 @@ export function listenToMembers(
         profilePhotoUrl: raw.profilePhotoUrl ?? "",
         status: raw.status ?? "",
         address: raw.address ?? null,
-        birthday: raw.birthday?.toDate().toISOString().split("T")[0],
-        baptismDate: raw.baptismDate?.toDate().toISOString().split("T")[0],
-        anniversary: raw.anniversary?.toDate().toISOString().split("T")[0],
+        birthday: parseDate(raw.birthday),
+        baptismDate: parseDate(raw.baptismDate),
+        anniversary: parseDate(raw.anniversary),
         familyId: raw.familyId ?? null,
         notes: raw.notes ?? "",
         relationships: Array.isArray(raw.relationships)
