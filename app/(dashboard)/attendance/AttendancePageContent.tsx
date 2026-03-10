@@ -376,7 +376,7 @@ export default function AttendancePageContent() {
                 if (mode === "history") return;
                 setRecords((prev) => ({
                   ...prev,
-                  [id]: true,
+                  [id]: !prev[id],
                 }));
               }}
             >
