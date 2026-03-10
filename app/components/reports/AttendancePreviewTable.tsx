@@ -8,15 +8,12 @@ interface Props {
   members: Member[];
 }
 
-export function AttendancePreviewTable({ attendance, members }: Props) {
+export function AttendancePreviewTable({ attendance }: Props) {
   const getName = (row: AttendanceRecord) => {
-    if (row.visitorName) return row.visitorName;
-    if (row.memberId) {
-      const m = members.find((x) => x.id === row.memberId);
-      return m ? `${m.firstName} ${m.lastName}` : row.memberId;
-    }
-    return 'Unknown';
-  };
+  if (row.visitorName) return row.visitorName;
+  if (row.memberName) return row.memberName;
+  return "Unknown";
+};
 
   const getType = (row: AttendanceRecord) => {
     if (row.visitorId) return 'Visitor';

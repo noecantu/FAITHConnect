@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase';
-import { Member } from '../lib/types';
+import { Member } from '@/app/lib/types';
 
 export interface AttendanceRecord {
   id: string;
@@ -39,6 +39,7 @@ export function useAttendanceForReports(
     snap.forEach((docSnap) => {
       const data = docSnap.data();
       const date = docSnap.id;
+      const snapshotMembers = data.membersSnapshot || [];
 
       // Flatten records
       if (data.records) {
@@ -46,7 +47,7 @@ export function useAttendanceForReports(
           const isVisitor = id.startsWith("visitor-");
 
           const member = !isVisitor
-            ? members.find((m) => m.id === id)
+            ? snapshotMembers.find((m: any) => m.id === id)
             : undefined;
 
           rows.push({

@@ -18,7 +18,6 @@ interface UseAttendanceResult {
   visitors: AttendanceVisitor[];
   setVisitors: React.Dispatch<React.SetStateAction<AttendanceVisitor[]>>;
 
-  // Snapshot of members for history mode
   membersSnapshot: {
     id: string;
     firstName: string;
@@ -47,7 +46,7 @@ export function useAttendance(
   churchId: string | null,
   members: { id: string; firstName: string; lastName: string; status: string }[],
   dateString: string,
-  editable: boolean = true
+  forceEditable: boolean = false
 ): UseAttendanceResult {
   const [records, setRecords] = useState<AttendanceRecords>({});
   const [visitors, setVisitors] = useState<AttendanceVisitor[]>([]);
@@ -56,6 +55,10 @@ export function useAttendance(
   const [membersSnapshot, setMembersSnapshot] = useState<
     { id: string; firstName: string; lastName: string; status: string }[]
   >([]);
+
+  // 🔥 Compute editable internally (Today only)
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const editable = forceEditable || dateString === todayStr;
 
   const load = useCallback(async () => {
     if (!churchId) {
@@ -94,6 +97,23 @@ export function useAttendance(
 
     setLoading(false);
   }, [churchId, dateString]);
+
+  // ⭐ Auto-populate snapshot for past dates with no snapshot
+  useEffect(() => {
+    const noSnapshot = !membersSnapshot || membersSnapshot.length === 0;
+    const isPastDate = !editable;
+
+    if (isPastDate && noSnapshot && members.length > 0) {
+      setMembersSnapshot(
+        members.map((m) => ({
+          id: m.id,
+          firstName: m.firstName,
+          lastName: m.lastName,
+          status: m.status,
+        }))
+      );
+    }
+  }, [editable, membersSnapshot, members]);
 
   useEffect(() => {
     load();

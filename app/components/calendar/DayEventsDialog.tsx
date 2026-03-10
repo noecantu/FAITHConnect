@@ -56,7 +56,7 @@ export function DayEventsDialog({
                 <div className="space-y-1 overflow-hidden mr-2">
                   <h4 className="font-semibold leading-none truncate">{event.title}</h4>
                   {event.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
+                    <p className="text-sm text-muted-foreground">
                       {event.description}
                     </p>
                   )}

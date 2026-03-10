@@ -69,6 +69,7 @@ export default function AttendancePageContent() {
 
   // MEMBERS (LIVE)
   const { members, loading: membersLoading } = useMembers();
+  const effectiveEditable = isToday || correcting;
 
   // ATTENDANCE (SNAPSHOT + RECORDS)
   const {
@@ -80,8 +81,8 @@ export default function AttendancePageContent() {
     loading: attendanceLoading,
     markAllPresent,
     markAllAbsent,
-    membersSnapshot, // <-- IMPORTANT: snapshot from Firestore
-  } = useAttendance(churchId, members, dateString);
+    membersSnapshot,
+  } = useAttendance(churchId, members, dateString, effectiveEditable);
 
   const loading = rolesLoading || membersLoading || attendanceLoading;
 
@@ -402,7 +403,6 @@ export default function AttendancePageContent() {
                   text-center
                   w-full
                   max-w-[80px]
-                  line-clamp-2
                 "
               >
                 {name}
