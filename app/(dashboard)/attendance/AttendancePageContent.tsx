@@ -28,6 +28,7 @@ import { useToast } from "@/app/hooks/use-toast";
 
 import { QRCodeCanvas } from "qrcode.react";
 import { AttendanceGrid } from "@/app/components/attendance/AttendanceGrid";
+import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
 
 export default function AttendancePageContent() {
   const searchParams = useSearchParams();
@@ -255,90 +256,92 @@ export default function AttendancePageContent() {
 
       {/* ACTION BUTTONS */}
       {mode !== "history" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
-          <Button
-            onClick={handleGenerateQr}
-            variant="default"
-            disabled={qrLoading}
-            className="w-full flex flex-col items-center justify-center text-center 
-              bg-yellow-700/80 hover:bg-yellow-900/80 active:bg-yellow-950/80
-              gap-1 transition-colors"
-          >
-            <span className="text-sm text-white/80">
-              {qrLoading ? "Generating..." : "Generate QR"}
-            </span>
-          </Button>
+        <Card className="border border-white/10 bg-white/5 backdrop-blur-sm mb-4">
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-4">
+            <Button
+              onClick={handleGenerateQr}
+              variant="default"
+              disabled={qrLoading}
+              className="w-full flex flex-col items-center justify-center text-center 
+                bg-yellow-700/80 hover:bg-yellow-900/80 active:bg-yellow-950/80
+                gap-1 transition-colors"
+            >
+              <span className="text-sm text-white/80">
+                {qrLoading ? "Generating..." : "Generate QR"}
+              </span>
+            </Button>
 
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="default"
-                className="w-full flex flex-col items-center justify-center text-center 
-                  bg-cyan-700/80 hover:bg-cyan-900/80 active:bg-cyan-950/80
-                  gap-1 transition-colors"
-              >
-                <span className="text-sm text-white/80">Add Visitor</span>
-              </Button>
-            </DialogTrigger>
-
-            <DialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
-              <DialogHeader>
-                <DialogTitle>Add Visitor</DialogTitle>
-              </DialogHeader>
-
-              <Input
-                placeholder="Visitor name"
-                value={visitorName}
-                onChange={(e) => setVisitorName(e.target.value)}
-                className="bg-black/40 text-white"
-              />
-
-              <DialogFooter>
+            <Dialog>
+              <DialogTrigger asChild>
                 <Button
-                  onClick={() => {
-                    if (!visitorName.trim()) return;
-
-                    const id = `visitor-${Date.now()}`;
-
-                    setVisitors((prev) => [
-                      ...prev,
-                      { id, name: visitorName.trim() },
-                    ]);
-
-                    setRecords((prev) => ({
-                      ...prev,
-                      [id]: true,
-                    }));
-
-                    setVisitorName("");
-                  }}
+                  variant="default"
+                  className="w-full flex flex-col items-center justify-center text-center 
+                    bg-cyan-700/80 hover:bg-cyan-900/80 active:bg-cyan-950/80
+                    gap-1 transition-colors"
                 >
-                  Add
+                  <span className="text-sm text-white/80">Add Visitor</span>
                 </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
 
-          <Button
-            onClick={() => markAllPresent(effectiveMembers, visitors)}
-            variant="default"
-            className="w-full flex flex-col items-center justify-center text-center 
-              bg-green-700/80 hover:bg-green-900/80 active:bg-green-950/80
-              gap-1 transition-colors"
-          >
-            <span className="text-sm text-white/80">Mark All Present</span>
-          </Button>
+              <DialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+                <DialogHeader>
+                  <DialogTitle>Add Visitor</DialogTitle>
+                </DialogHeader>
 
-          <Button
-            onClick={() => markAllAbsent(effectiveMembers, visitors)}
-            variant="default"
-            className="w-full flex flex-col items-center justify-center text-center
-              bg-red-700/80 hover:bg-red-900/80 active:bg-red-950/80
-              gap-1 transition-colors"
-          >
-            <span className="text-sm text-white/80">Mark All Absent</span>
-          </Button>
-        </div>
+                <Input
+                  placeholder="Visitor name"
+                  value={visitorName}
+                  onChange={(e) => setVisitorName(e.target.value)}
+                  className="bg-black/40 text-white"
+                />
+
+                <DialogFooter>
+                  <Button
+                    onClick={() => {
+                      if (!visitorName.trim()) return;
+
+                      const id = `visitor-${Date.now()}`;
+
+                      setVisitors((prev) => [
+                        ...prev,
+                        { id, name: visitorName.trim() },
+                      ]);
+
+                      setRecords((prev) => ({
+                        ...prev,
+                        [id]: true,
+                      }));
+
+                      setVisitorName("");
+                    }}
+                  >
+                    Add
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Button
+              onClick={() => markAllPresent(effectiveMembers, visitors)}
+              variant="default"
+              className="w-full flex flex-col items-center justify-center text-center 
+                bg-green-700/80 hover:bg-green-900/80 active:bg-green-950/80
+                gap-1 transition-colors"
+            >
+              <span className="text-sm text-white/80">Mark All Present</span>
+            </Button>
+
+            <Button
+              onClick={() => markAllAbsent(effectiveMembers, visitors)}
+              variant="default"
+              className="w-full flex flex-col items-center justify-center text-center
+                bg-red-700/80 hover:bg-red-900/80 active:bg-red-950/80
+                gap-1 transition-colors"
+            >
+              <span className="text-sm text-white/80">Mark All Absent</span>
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       {/* CORRECT THIS DATE BUTTON */}
