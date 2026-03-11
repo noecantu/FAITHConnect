@@ -347,11 +347,14 @@ export default function AttendancePageContent() {
           onClick={() =>
             router.push(`/attendance?date=${selectedString}&correcting=true`)
           }
-          className="w-full bg-blue-700/60 hover:bg-blue-800/60 text-white/80 mb-4"
+          className="w-full bg-blue-700/60 hover:bg-blue-800/60 text-white/80"
         >
           Edit Attendance for This Date
         </Button>
       )}
+
+      {/* LINE SEPARATOR */}
+      <div className="w-full h-px bg-white/20 shadow-[0_0_4px_rgba(255,255,255,0.1)]" />
 
       {/* TEXT-ONLY CARDS */}
       <AttendanceGrid

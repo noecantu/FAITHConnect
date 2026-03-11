@@ -153,8 +153,15 @@ export default function MemberCard({
             </div>
 
             <div className="absolute bottom-2 left-2 flex flex-col items-start gap-1">
-              <UpcomingEventBadge dateString={member.birthday} label="Birthday" />
-              <UpcomingEventBadge dateString={member.anniversary} label="Anniversary" />
+              <UpcomingEventBadge
+                dateString={member.birthday ?? undefined}
+                label="Birthday"
+              />
+
+              <UpcomingEventBadge
+                dateString={member.anniversary ?? undefined}
+                label="Anniversary"
+              />
             </div>
           </div>
         )}
@@ -193,8 +200,15 @@ export default function MemberCard({
 
             {!showPhoto && (
               <div className="flex flex-col gap-1 pt-2">
-                <UpcomingEventBadge dateString={member.birthday} label="Birthday" />
-                <UpcomingEventBadge dateString={member.anniversary} label="Anniversary" />
+                <UpcomingEventBadge
+                  dateString={member.birthday ?? undefined}
+                  label="Birthday"
+                />
+
+                <UpcomingEventBadge
+                  dateString={member.anniversary ?? undefined}
+                  label="Anniversary"
+                />
               </div>
             )}
           </div>
@@ -272,8 +286,15 @@ export default function MemberCard({
           </div>
 
           <div className="absolute bottom-2 left-2 flex flex-col items-start gap-1">
-            <UpcomingEventBadge dateString={member.birthday} label="Birthday" />
-            <UpcomingEventBadge dateString={member.anniversary} label="Anniversary" />
+            <UpcomingEventBadge
+              dateString={member.birthday ?? undefined}
+              label="Birthday"
+            />
+
+            <UpcomingEventBadge
+              dateString={member.anniversary ?? undefined}
+              label="Anniversary"
+            />
           </div>
         </div>
       )}
@@ -312,8 +333,15 @@ export default function MemberCard({
 
           {!showPhoto && (
             <div className="flex flex-col gap-1 pt-2">
-              <UpcomingEventBadge dateString={member.birthday} label="Birthday" />
-              <UpcomingEventBadge dateString={member.anniversary} label="Anniversary" />
+              <UpcomingEventBadge
+                dateString={member.birthday ?? undefined}
+                label="Birthday"
+              />
+
+              <UpcomingEventBadge
+                dateString={member.anniversary ?? undefined}
+                label="Anniversary"
+              />
             </div>
           )}
         </div>
