@@ -26,7 +26,7 @@ export function AttendanceCard({
   return (
     <Card
       className={cn(
-        "relative group p-3 flex flex-col items-center text-center gap-1.5 cursor-pointer rounded-md transition-colors",
+        "relative group p-2 flex flex-col items-center text-center gap-2 cursor-pointer rounded-md transition-colors",
         present
           ? "bg-green-700/80 border border-green-500/20"
           : "bg-red-700/80 border border-red-500/20",
@@ -67,7 +67,7 @@ export function AttendanceCard({
           text-[14px] font-medium leading-tight
           text-center
           w-full
-          max-w-[80px]
+          max-w-[120px]
         "
       >
         {name}

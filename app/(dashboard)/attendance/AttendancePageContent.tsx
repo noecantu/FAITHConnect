@@ -357,7 +357,7 @@ export default function AttendancePageContent() {
       )}
 
       {/* LINE SEPARATOR */}
-      <div className="w-full h-px bg-white/20 shadow-[0_0_4px_rgba(255,255,255,0.1)]" />
+      {/* <div className="w-full h-px bg-white/20 shadow-[0_0_4px_rgba(255,255,255,0.1)]" /> */}
 
       {/* TEXT-ONLY CARDS */}
       <AttendanceGrid
