@@ -27,9 +27,17 @@ export function AttendanceCard({
     <Card
       className={cn(
         "relative group p-2 flex flex-col items-center text-center gap-2 cursor-pointer rounded-md transition-colors",
-        present
-          ? "bg-green-700/80 border border-green-500/20"
-          : "bg-red-700/80 border border-red-500/20",
+
+        // Visitor logic
+        isVisitor
+          ? present
+            ? "bg-blue-700/80 border border-blue-500/20"
+            : "bg-red-700/80 border border-red-500/20"
+          : // Member logic
+            present
+            ? "bg-green-700/80 border border-green-500/20"
+            : "bg-red-700/80 border border-red-500/20",
+
         readOnly && "cursor-default opacity-80"
       )}
       onClick={() => {
