@@ -14,3 +14,13 @@ export function toDateTime(dateString: string, timeString: string): Date {
   const [h, min] = timeString.split(":").map(Number);
   return new Date(y, m - 1, d, h, min, 0);
 }
+
+export function formatDateString(dateStr: string) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
