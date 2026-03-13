@@ -132,7 +132,7 @@ export async function generateMembersPDF(
     head: [tableColumn],
     body: tableRows,
     startY: 80,
-    styles: { fontSize: 10 },
+    styles: { fontSize: 10, minCellHeight: 44 },
     tableWidth: "auto",
     columnStyles: {
       0: { cellWidth: "auto" },
@@ -151,8 +151,8 @@ export async function generateMembersPDF(
       const base64 = qrImages[member.id];
       if (!base64) return;
 
-      const { x, y, width, height } = data.cell;
-      const size = Math.min(width - 4, height - 4);
+      const { x, y } = data.cell;
+      const size = 40;
 
       doc.addImage(base64, "PNG", x + 2, y + 2, size, size);
     }

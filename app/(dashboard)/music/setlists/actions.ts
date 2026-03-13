@@ -24,7 +24,22 @@ import type {
 import { fromDateString, toDateTime } from "@/app/lib/date-utils";
 import { nanoid } from "nanoid";
 
-// Collection reference
+/* -------------------------------------------------------
+   HELPERS
+------------------------------------------------------- */
+
+const validServiceTypes = ["Sunday", "Midweek", "Special"] as const;
+
+function normalizeServiceType(
+  value: any
+): "Sunday" | "Midweek" | "Special" | null {
+  return validServiceTypes.includes(value) ? value : null;
+}
+
+/* -------------------------------------------------------
+   COLLECTION HELPERS
+------------------------------------------------------- */
+
 function setlistsCollection(churchId: string) {
   return collection(db, "churches", churchId, "setlists");
 }
@@ -33,8 +48,15 @@ function setlistDoc(churchId: string, id: string) {
   return doc(db, "churches", churchId, "setlists", id);
 }
 
-// Normalize Firestore → SetList
-function normalizeSetList(id: string, data: SetListFirestore, churchId: string): SetList {
+/* -------------------------------------------------------
+   NORMALIZER (Firestore → SetList)
+------------------------------------------------------- */
+
+function normalizeSetList(
+  id: string,
+  data: SetListFirestore,
+  churchId: string
+): SetList {
   const sections: SetListSection[] =
     (data.sections ?? []).map((s) => ({
       ...s,
@@ -65,12 +87,15 @@ function normalizeSetList(id: string, data: SetListFirestore, churchId: string):
         ? data.updatedAt.toMillis()
         : Date.now(),
 
-    serviceType: data.serviceType ?? null,
+    serviceType: normalizeServiceType(data.serviceType),
     serviceNotes: data.serviceNotes ?? null,
   };
 }
 
-// Get all setlists
+/* -------------------------------------------------------
+   GET ALL
+------------------------------------------------------- */
+
 export async function getSetlists(churchId: string): Promise<SetList[]> {
   const q = query(setlistsCollection(churchId), orderBy("dateString", "desc"));
   const snap = await getDocs(q);
@@ -80,7 +105,10 @@ export async function getSetlists(churchId: string): Promise<SetList[]> {
   );
 }
 
-// Get one setlist
+/* -------------------------------------------------------
+   GET ONE
+------------------------------------------------------- */
+
 export async function getSetlistById(
   churchId: string,
   id: string
@@ -95,7 +123,10 @@ export async function getSetlistById(
   );
 }
 
-// Create
+/* -------------------------------------------------------
+   CREATE
+------------------------------------------------------- */
+
 export async function createSetlist(
   churchId: string,
   data: {
@@ -127,6 +158,10 @@ export async function createSetlist(
   );
 }
 
+/* -------------------------------------------------------
+   UPDATE
+------------------------------------------------------- */
+
 export async function updateSetlist(
   churchId: string,
   id: string,
@@ -149,7 +184,8 @@ export async function updateSetlist(
   if (data.dateString !== undefined) payload.dateString = data.dateString;
   if (data.timeString !== undefined) payload.timeString = data.timeString;
   if (data.sections !== undefined) payload.sections = data.sections;
-  if (data.serviceType !== undefined) payload.serviceType = data.serviceType;
+  if (data.serviceType !== undefined)
+    payload.serviceType = normalizeServiceType(data.serviceType);
 
   if (data.serviceNotes !== undefined) {
     payload.serviceNotes = {
@@ -164,12 +200,18 @@ export async function updateSetlist(
   await updateDoc(setlistDoc(churchId, id), payload);
 }
 
-// Delete
+/* -------------------------------------------------------
+   DELETE
+------------------------------------------------------- */
+
 export async function deleteSetlist(churchId: string, id: string) {
   await deleteDoc(setlistDoc(churchId, id));
 }
 
-// Duplicate
+/* -------------------------------------------------------
+   DUPLICATE
+------------------------------------------------------- */
+
 export async function duplicateSetlist(
   churchId: string,
   id: string,
@@ -188,8 +230,8 @@ export async function duplicateSetlist(
       songs: s.songs.map((song) => ({ ...song, id: nanoid() })),
     })),
     createdBy,
-    serviceType: original.serviceType,
-    serviceNotes: original.serviceNotes,
+    serviceType: normalizeServiceType(original.serviceType),
+    serviceNotes: original.serviceNotes ?? null,
   };
 
   return createSetlist(churchId, newData);

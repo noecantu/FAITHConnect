@@ -1,59 +1,95 @@
 'use client';
 
-import { FieldValue } from "@/app/lib/report-types";
-import { Member } from "@/app/lib/types";
-import QRCode from "react-qr-code";
+interface Member {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phoneNumber?: string;
+  birthday?: string | null;
+  baptismDate?: string | null;
+  anniversary?: string | null;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+  } | null;
+  checkInCode?: string;
+  qrCode?: string;
+  notes?: string;
+  status?: string;
+}
 
 interface Props {
   members: Member[];
   selectedFields: string[];
-  fieldLabelMap: Record<string, string>;
-  formatField: (value: FieldValue) => string;
 }
 
-export function MemberPreviewTable({
-  members,
-  selectedFields,
-  fieldLabelMap,
-  formatField,
-}: Props) {
+export function MemberPreviewTable({ members, selectedFields }: Props) {
+  if (!members || members.length === 0) {
+    return <p className="text-sm text-muted-foreground">No members found.</p>;
+  }
+
+  // Format a single field value
+  const formatField = (member: Member, field: string) => {
+  const value = (member as any)[field];
+  if (!value) return "";
+
+  // Address object
+  if (field === "address" && typeof value === "object") {
+    const { street, city, state, zip } = value;
+    return [street, city, state, zip].filter(Boolean).join(", ");
+  }
+
+  // Dates
+  if (
+    field === "birthday" ||
+    field === "baptismDate" ||
+    field === "anniversary"
+  ) {
+    return value;
+  }
+
+  // QR Code → render image
+  if (field === "qrCode") {
+    return (
+      <img
+        src={value}
+        alt="QR Code"
+        className="h-16 w-16 object-contain"
+      />
+    );
+  }
+
+  return value;
+};
+
   return (
-    <table className="w-full text-sm">
-      <thead className="bg-muted">
-        <tr>
-          <th className="p-2 text-left">Name</th>
-          {selectedFields.map((f) => (
-            <th key={f} className="p-2 text-left">
-              {fieldLabelMap[f]}
-            </th>
-          ))}
-        </tr>
-      </thead>
-
-      <tbody>
-        {members.map((m) => (
-          <tr key={m.id} className="border-t">
-            <td className="p-2">
-              {m.firstName} {m.lastName}
-            </td>
-
-            {selectedFields.map((f) => (
-              <td key={f} className="p-2">
-                {f === "qrCode" ? (
-                  <div className="flex justify-left">
-                    <QRCode
-                      value={`${window.location.origin}/check-in/default-church?code=${m.checkInCode}`}
-                      size={64}
-                    />
-                  </div>
-                ) : (
-                  formatField(m[f as keyof Member])
-                )}
-              </td>
+    <div className="overflow-auto border rounded-md">
+      <table className="min-w-full text-sm">
+        <thead className="bg-muted">
+          <tr>
+            {selectedFields.map((field) => (
+              <th key={field} className="px-3 py-2 text-left font-medium">
+                {field}
+              </th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+
+        <tbody>
+          {members.map((member) => (
+            <tr key={member.id} className="border-t">
+              {selectedFields.map((field) => (
+                <td key={field} className="px-3 py-2">
+                  {formatField(member, field)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

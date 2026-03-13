@@ -11,7 +11,15 @@ import { useReportExports } from "@/app/hooks/useReportExports";
 import { PageHeader } from "@/app/components/page-header";
 
 import { ReportFiltersPanel } from "@/app/components/reports/ReportFiltersPanel";
-import { ReportExportPanel } from "@/app/components/reports/ReportExportPanel";
+
+import { MemberFieldSelect } from "@/app/components/reports/MemberFieldSelect";
+import { MemberPreviewTable } from "@/app/components/reports/MemberPreviewTable";
+
+import { AttendancePreviewTable } from "@/app/components/reports/AttendancePreviewTable";
+import { ContributionPreviewTable } from "@/app/components/reports/ContributionPreviewTable";
+
+import { Button } from "@/app/components/ui/button";
+import { FileText, Sheet } from "lucide-react";
 
 export default function ReportsPage() {
   const { members } = useMembers();
@@ -20,9 +28,7 @@ export default function ReportsPage() {
 
   const { attendance } = useAttendanceForReports(churchId, members);
 
-  // -----------------------------
   // Local State
-  // -----------------------------
   const [reportType, setReportType] =
     useState<"members" | "contributions" | "attendance">("attendance");
 
@@ -36,9 +42,7 @@ export default function ReportsPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [includeVisitors, setIncludeVisitors] = useState(false);
 
-  // -----------------------------
   // Filtering Logic
-  // -----------------------------
   const {
     availableYears,
     filteredMembers,
@@ -63,9 +67,7 @@ export default function ReportsPage() {
     new Set(attendance.map((a) => a.date.split("T")[0]))
   );
 
-  // -----------------------------
   // Export Logic
-  // -----------------------------
   const { exportPDF, exportExcel } = useReportExports({
     reportType,
     filteredMembers,
@@ -73,6 +75,21 @@ export default function ReportsPage() {
     filteredAttendance,
     selectedFields,
   });
+
+  // Member field options
+  const memberFieldOptions = [
+    { label: "Name", value: "name" },
+    { label: "status", value: "status" },
+    { label: "email", value: "email" },
+    { label: "phoneNumber", value: "phoneNumber" },
+    { label: "birthday", value: "birthday" },
+    { label: "baptismDate", value: "baptismDate" },
+    { label: "anniversary", value: "anniversary" },
+    { label: "address", value: "address" },
+    { label: "checkInCode", value: "checkInCode" },
+    { label: "qrCode", value: "qrCode" },
+    { label: "notes", value: "notes" },
+  ];
 
   return (
     <div className="space-y-6">
@@ -106,17 +123,82 @@ export default function ReportsPage() {
         />
 
         {/* RIGHT PANEL */}
-        <ReportExportPanel
-          reportType={reportType}
-          filteredMembers={filteredMembers}
-          filteredContributions={filteredContributions}
-          filteredAttendance={filteredAttendance}
-          selectedFY={selectedFY}
-          reportRange={reportRange}
-          exportPDF={exportPDF}
-          exportExcel={exportExcel}
-          members={members}
-        />
+        <div className="space-y-6 w-full">
+
+          {/* MEMBER REPORT */}
+          {reportType === "members" && (
+            <>
+              <MemberFieldSelect
+                options={memberFieldOptions}
+                value={selectedFields}
+                onChange={setSelectedFields}
+              />
+
+              <MemberPreviewTable
+                members={filteredMembers}
+                selectedFields={selectedFields}
+              />
+
+              {/* EXPORT ACTIONS */}
+              <div className="space-y-2">
+                <Button onClick={exportPDF} className="w-full">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Export PDF
+                </Button>
+
+                <Button onClick={exportExcel} variant="outline" className="w-full">
+                  <Sheet className="h-4 w-4 mr-2" />
+                  Export Excel
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* CONTRIBUTIONS REPORT */}
+          {reportType === "contributions" && (
+            <>
+              <ContributionPreviewTable
+                contributions={filteredContributions}
+                members={members} selectedFields={[]}
+              />
+
+              <div className="space-y-2">
+                <Button onClick={exportPDF} className="w-full">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Export PDF
+                </Button>
+
+                <Button onClick={exportExcel} variant="outline" className="w-full">
+                  <Sheet className="h-4 w-4 mr-2" />
+                  Export Excel
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* ATTENDANCE REPORT */}
+          {reportType === "attendance" && (
+            <>
+              <AttendancePreviewTable
+                attendance={filteredAttendance}
+                members={members}
+              />
+
+              <div className="space-y-2">
+                <Button onClick={exportPDF} className="w-full">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Export PDF
+                </Button>
+
+                <Button onClick={exportExcel} variant="outline" className="w-full">
+                  <Sheet className="h-4 w-4 mr-2" />
+                  Export Excel
+                </Button>
+              </div>
+            </>
+          )}
+
+        </div>
       </div>
     </div>
   );
