@@ -14,7 +14,7 @@ import {
   CommandGroup,
   CommandItem,
 } from './command';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { cn } from '@/app/lib/utils';
 import { DropdownTrigger } from './dropdown-trigger';
 

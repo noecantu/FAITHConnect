@@ -12,7 +12,6 @@ import { PageHeader } from "@/app/components/page-header";
 
 import { ReportFiltersPanel } from "@/app/components/reports/ReportFiltersPanel";
 
-import { MemberFieldSelect } from "@/app/components/reports/MemberFieldSelect";
 import { MemberPreviewTable } from "@/app/components/reports/MemberPreviewTable";
 
 import { AttendancePreviewTable } from "@/app/components/reports/AttendancePreviewTable";
@@ -76,21 +75,6 @@ export default function ReportsPage() {
     selectedFields,
   });
 
-  // Member field options
-  const memberFieldOptions = [
-    { label: "Name", value: "name" },
-    { label: "status", value: "status" },
-    { label: "email", value: "email" },
-    { label: "phoneNumber", value: "phoneNumber" },
-    { label: "birthday", value: "birthday" },
-    { label: "baptismDate", value: "baptismDate" },
-    { label: "anniversary", value: "anniversary" },
-    { label: "address", value: "address" },
-    { label: "checkInCode", value: "checkInCode" },
-    { label: "qrCode", value: "qrCode" },
-    { label: "notes", value: "notes" },
-  ];
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -128,11 +112,6 @@ export default function ReportsPage() {
           {/* MEMBER REPORT */}
           {reportType === "members" && (
             <>
-              <MemberFieldSelect
-                options={memberFieldOptions}
-                value={selectedFields}
-                onChange={setSelectedFields}
-              />
 
               <MemberPreviewTable
                 members={filteredMembers}

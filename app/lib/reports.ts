@@ -5,6 +5,7 @@ import type { Member, Contribution, AttendanceRecord } from './types';
 import { format } from 'date-fns';
 import { FieldValue } from '../lib/report-types';
 import { Address } from '../lib/types';
+import { formatPhone } from "@/app/lib/formatters";
 
 function formatField(value: FieldValue): string {
   if (value == null) return "—";
@@ -121,6 +122,9 @@ export async function generateMembersPDF(
     ...selectedFields.map(f => {
       if (f === "checkInCode") return m.checkInCode ?? "—";
       if (f === "qrCode") return ""; // placeholder, image drawn later
+      if (f === "phoneNumber") {
+        return formatPhone(m.phoneNumber);
+      }
       return formatField(m[f as keyof Member]);
     })
   ]);
