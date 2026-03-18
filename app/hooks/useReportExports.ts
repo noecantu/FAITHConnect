@@ -12,12 +12,18 @@ import {
   generateAttendanceExcel,
 } from '@/app/lib/reports';
 
+import {
+  mapToContributionRows,
+  reduceContributionRowsForExport,
+} from '@/app/lib/reportMapping/contributionRows';
+
 interface UseReportExportsProps {
   reportType: 'members' | 'contributions' | 'attendance';
   filteredMembers: Member[];
   filteredContributions: Contribution[];
   filteredAttendance: AttendanceRecord[];
   selectedFields: string[];
+  members: Member[]; // needed for mapping
 }
 
 export function useReportExports({
@@ -26,6 +32,7 @@ export function useReportExports({
   filteredContributions,
   filteredAttendance,
   selectedFields,
+  members,
 }: UseReportExportsProps) {
 
   // Convert PNG to Base64 for PDF header logo
@@ -44,52 +51,23 @@ export function useReportExports({
     }
   }, []);
 
-  // Format fields for preview + export
-  type FieldValue =
-    | string
-    | number
-    | null
-    | undefined
-    | string[]
-    | Address
-    | { type?: string }[];
-
-  const formatField = useCallback((value: FieldValue): string => {
-    if (value == null) return "—";
-
-    // Arrays of primitives
-    if (Array.isArray(value) && value.every(v => typeof v === "string")) {
-      return value.join(", ");
-    }
-
-    // Address object
-    if (typeof value === "object" && "street" in value) {
-      const addr = value as Address;
-      return [
-        addr.street,
-        addr.city,
-        addr.state,
-        addr.zip
-      ].filter(Boolean).join(", ");
-    }
-
-    // Array of relationship objects
-    if (Array.isArray(value) && value.length > 0 && typeof value[0] === "object") {
-      return value.map(r => r.type ?? "—").join(", ");
-    }
-
-    return String(value);
-  }, []);
-
   // Export PDF
   const exportPDF = useCallback(async () => {
     const logoBase64 = await loadPngAsBase64("/FAITH_CONNECT_FLAME_LOGO.png");
 
     if (reportType === "members") {
       generateMembersPDF(filteredMembers, selectedFields, logoBase64);
-    } else if (reportType === "contributions") {
-      generateContributionsPDF(filteredContributions, selectedFields, logoBase64);
-    } else if (reportType === "attendance") {
+      return;
+    }
+
+    if (reportType === "contributions") {
+      const rows = mapToContributionRows(filteredContributions, members);
+      const exportRows = reduceContributionRowsForExport(rows, selectedFields);
+      generateContributionsPDF(exportRows, selectedFields, logoBase64);
+      return;
+    }
+
+    if (reportType === "attendance") {
       generateAttendancePDF(filteredAttendance, logoBase64);
     }
   }, [
@@ -98,6 +76,7 @@ export function useReportExports({
     filteredContributions,
     filteredAttendance,
     selectedFields,
+    members,
     loadPngAsBase64,
   ]);
 
@@ -105,9 +84,17 @@ export function useReportExports({
   const exportExcel = useCallback(() => {
     if (reportType === "members") {
       generateMembersExcel(filteredMembers, selectedFields);
-    } else if (reportType === "contributions") {
-      generateContributionsExcel(filteredContributions, selectedFields);
-    } else if (reportType === "attendance") {
+      return;
+    }
+
+    if (reportType === "contributions") {
+      const rows = mapToContributionRows(filteredContributions, members);
+      const exportRows = reduceContributionRowsForExport(rows, selectedFields);
+      generateContributionsExcel(exportRows, selectedFields);
+      return;
+    }
+
+    if (reportType === "attendance") {
       generateAttendanceExcel(filteredAttendance);
     }
   }, [
@@ -116,12 +103,12 @@ export function useReportExports({
     filteredContributions,
     filteredAttendance,
     selectedFields,
+    members,
   ]);
 
   return {
     exportPDF,
     exportExcel,
-    formatField,
     loadPngAsBase64,
   };
 }

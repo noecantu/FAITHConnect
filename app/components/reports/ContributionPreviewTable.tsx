@@ -8,8 +8,7 @@ interface Props {
   selectedFields: string[];
 }
 
-const contributionFieldLabelMap: Record<string, string> = {
-  memberName: "Member",
+const FIELD_LABELS: Record<string, string> = {
   amount: "Amount",
   date: "Date",
   category: "Category",
@@ -22,13 +21,20 @@ export function ContributionPreviewTable({
   members,
   selectedFields,
 }: Props) {
+  // Member is always shown first; never allow it as a dynamic column
+  const visibleFields = selectedFields.filter((f) => f !== "memberName");
+
   return (
     <table className="w-full text-sm">
       <thead className="bg-muted">
         <tr>
-          {selectedFields.map((f) => (
+          {/* Always show Member first */}
+          <th className="p-2 text-left">Member</th>
+
+          {/* Then the selected fields */}
+          {visibleFields.map((f) => (
             <th key={f} className="p-2 text-left">
-              {contributionFieldLabelMap[f]}
+              {FIELD_LABELS[f] ?? f}
             </th>
           ))}
         </tr>
@@ -43,14 +49,14 @@ export function ContributionPreviewTable({
 
           return (
             <tr key={c.id} className="border-t">
-              {selectedFields.map((f) => {
+              {/* Always show Member first */}
+              <td className="p-2">{memberName}</td>
+
+              {/* Then the selected fields */}
+              {visibleFields.map((f) => {
                 let value: string | number = "";
 
                 switch (f) {
-                  case "memberName":
-                    value = memberName;
-                    break;
-
                   case "amount":
                     value = `$${c.amount.toFixed(2)}`;
                     break;

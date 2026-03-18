@@ -222,12 +222,13 @@ export function generateMembersExcel(
 
 // Contribution Reports (UNCHANGED except footer alignment)
 export function generateContributionsPDF(
-  contributions: Contribution[],
+  rows: Record<string, any>[],     // <-- updated type
   selectedFields: string[],
   logoBase64?: string
 ) {
   const datePrefix = format(new Date(), "yyyy-MM-dd");
 
+  // Build column headers from selected fields
   const tableColumn = selectedFields.map(f => contributionFieldLabelMap[f]);
 
   const orientation = tableColumn.length > 4 ? "landscape" : "portrait";
@@ -246,11 +247,20 @@ export function generateContributionsPDF(
   doc.setFontSize(18);
   doc.text("Contributions Report", pageWidth / 2, 50, { align: "center" });
 
-  const tableRows = contributions.map(c =>
-    selectedFields.map(f => {
-      if (f === "date") return format(new Date(c.date), "MM/dd/yyyy");
-      if (f === "amount") return `$${c.amount.toFixed(2)}`;
-      return formatField(c[f as keyof Contribution]);
+  // Build table rows from export-ready rows
+  const tableRows = rows.map(row =>
+    selectedFields.map(field => {
+      const value = row[field];
+
+      if (field === "date") {
+        return format(new Date(value), "MM/dd/yyyy");
+      }
+
+      if (field === "amount") {
+        return `$${Number(value).toFixed(2)}`;
+      }
+
+      return value ?? "";
     })
   );
 
@@ -291,28 +301,29 @@ export function generateContributionsPDF(
 }
 
 export function generateContributionsExcel(
-  contributions: Contribution[],
+  rows: Record<string, any>[],      // <-- updated type
   selectedFields: string[]
 ) {
   const datePrefix = format(new Date(), "yyyy-MM-dd");
 
   const worksheet = XLSX.utils.json_to_sheet(
-    contributions.map(c => {
-      const row: Record<string, string> = {};
+    rows.map(row => {
+      const excelRow: Record<string, string> = {};
 
-      selectedFields.forEach(f => {
-        const label = contributionFieldLabelMap[f];
+      selectedFields.forEach(field => {
+        const label = contributionFieldLabelMap[field];
+        const value = row[field];
 
-        if (f === "date") {
-          row[label] = format(new Date(c.date), "MM/dd/yyyy");
-        } else if (f === "amount") {
-          row[label] = String(c.amount);
+        if (field === "date") {
+          excelRow[label] = format(new Date(value), "MM/dd/yyyy");
+        } else if (field === "amount") {
+          excelRow[label] = String(value);
         } else {
-          row[label] = formatField(c[f as keyof Contribution]);
+          excelRow[label] = value ?? "";
         }
       });
 
-      return row;
+      return excelRow;
     })
   );
 

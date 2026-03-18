@@ -73,6 +73,7 @@ export default function ReportsPage() {
     filteredContributions,
     filteredAttendance,
     selectedFields,
+    members,
   });
 
   return (
@@ -138,7 +139,7 @@ export default function ReportsPage() {
             <>
               <ContributionPreviewTable
                 contributions={filteredContributions}
-                members={members} selectedFields={[]}
+                members={members} selectedFields={selectedFields}
               />
 
               <div className="space-y-2">

@@ -8,6 +8,7 @@ import {
 
 import { Button } from "@/app/components/ui/button";
 import { AttendancePreviewTable } from "./AttendancePreviewTable";
+import { ContributionPreviewTable } from "./ContributionPreviewTable";
 
 import {
   sortAttendance,
@@ -30,6 +31,9 @@ interface ReportExportPanelProps {
   exportExcel: () => void;
 
   members: Member[];
+
+  // NEW: required for ContributionPreviewTable
+  selectedContributionFields: string[];
 }
 
 export function ReportExportPanel({
@@ -42,7 +46,9 @@ export function ReportExportPanel({
   exportPDF,
   exportExcel,
   members,
+  selectedContributionFields,
 }: ReportExportPanelProps) {
+  console.log("selectedContributionFields", selectedContributionFields)
   return (
     <Card className="flex-1 w-full">
       <CardHeader>
@@ -84,6 +90,14 @@ export function ReportExportPanel({
               <AttendancePreviewTable
                 attendance={sortAttendance(filteredAttendance, members)}
                 members={sortMembersByName(members)}
+              />
+            )}
+
+            {reportType === "contributions" && (
+              <ContributionPreviewTable
+                contributions={filteredContributions}
+                members={members}
+                selectedFields={selectedContributionFields}
               />
             )}
           </div>
