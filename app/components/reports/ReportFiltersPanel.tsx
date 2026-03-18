@@ -1,4 +1,5 @@
-// components/reports/ReportFiltersPanel.tsx
+'use client';
+
 import {
   Card,
   CardHeader,
@@ -6,40 +7,80 @@ import {
   CardContent,
 } from "@/app/components/ui/card";
 
+import { Button } from "@/app/components/ui/button";
+
 import { ReportTypeSelect } from "./ReportTypeSelect";
 import { MemberSelect } from "./MemberSelect";
 import { MemberFieldSelect } from "./MemberFieldSelect";
 import { StatusSelect } from "./StatusSelect";
-import { ReportRangeSelect } from "./ReportRangeSelect";
-import { YearSelect } from "./YearSelect";
-import { AttendanceDateSelect } from "./AttendanceDateSelect";
 
 import { statusOptions, memberFieldOptions } from "@/app/lib/constants/reportOptions";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
-export function ReportFiltersPanel(props: any) {
-  const {
-    reportType,
-    setReportType,
-    members,
-    selectedMembers,
-    setSelectedMembers,
-    selectedStatus,
-    setSelectedStatus,
-    selectedFY,
-    setSelectedFY,
-    selectedFields,
-    setSelectedFields,
-    reportRange,
-    setReportRange,
-    includeVisitors,
-    setIncludeVisitors,
-    availableAttendanceDates,
-    selectedDate,
-    setSelectedDate,
-    availableYears,
-  } = props;
+interface ReportFiltersPanelProps {
+  reportType: "members" | "contributions" | "attendance";
+  setReportType: (v: any) => void;
 
+  members: any[];
+  selectedMembers: string[];
+  setSelectedMembers: (v: string[]) => void;
+
+  selectedStatus: string[];
+  setSelectedStatus: (v: string[]) => void;
+
+  selectedFields: string[];
+  setSelectedFields: (v: string[]) => void;
+
+  includeVisitors: boolean;
+  setIncludeVisitors: (v: boolean) => void;
+
+  // NEW GUIDED TIME-FRAME PROPS
+  timeFrame: "week" | "month" | "year";
+  setTimeFrame: (v: "week" | "month" | "year") => void;
+
+  selectedYear: string | null;
+  setSelectedYear: (v: string | null) => void;
+
+  selectedMonth: string | null;
+  setSelectedMonth: (v: string | null) => void;
+
+  selectedWeek: number | null;
+  setSelectedWeek: (v: number | null) => void;
+
+  availableYears: string[];
+  availableMonths: string[];
+  availableWeeks: number[];
+}
+
+export function ReportFiltersPanel({
+  reportType,
+  setReportType,
+
+  members,
+  selectedMembers,
+  setSelectedMembers,
+
+  selectedStatus,
+  setSelectedStatus,
+
+  selectedFields,
+  setSelectedFields,
+
+  includeVisitors,
+  setIncludeVisitors,
+
+  // NEW guided time-frame props
+  timeFrame,
+  setTimeFrame,
+  selectedYear,
+  setSelectedYear,
+  selectedMonth,
+  setSelectedMonth,
+  selectedWeek,
+  setSelectedWeek,
+  availableYears,
+  availableMonths,
+  availableWeeks,
+}: ReportFiltersPanelProps) {
   return (
     <Card className="w-full lg:w-80 h-fit">
       <CardHeader>
@@ -47,51 +88,18 @@ export function ReportFiltersPanel(props: any) {
       </CardHeader>
 
       <CardContent className="space-y-6">
+
+        {/* REPORT TYPE */}
         <ReportTypeSelect value={reportType} onChange={setReportType} />
 
+        {/* MEMBER SELECT */}
         <MemberSelect
           members={members}
           value={selectedMembers}
           onChange={setSelectedMembers}
         />
 
-        {reportType === "contributions" && (
-          <MemberFieldSelect
-            options={[
-              { label: "Member", value: "memberName" },
-              { label: "Amount", value: "amount" },
-              { label: "Date", value: "date" },
-              { label: "Category", value: "category" },
-              { label: "Type", value: "contributionType" },
-              { label: "Notes", value: "notes" },
-            ]}
-            value={selectedFields}
-            onChange={setSelectedFields}
-          />
-        )}
-
-        {reportType === "attendance" && (
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white">
-              Include Visitors
-            </label>
-
-            <Select
-              value={includeVisitors ? "yes" : "no"}
-              onValueChange={(v) => setIncludeVisitors(v === "yes")}
-            >
-              <SelectTrigger className="bg-black/20 border-white/20 text-white">
-                <SelectValue />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value="no">No</SelectItem>
-                <SelectItem value="yes">Yes</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
+        {/* STATUS (Members Report Only) */}
         {reportType === "members" && (
           <StatusSelect
             options={statusOptions}
@@ -100,18 +108,7 @@ export function ReportFiltersPanel(props: any) {
           />
         )}
 
-        {(reportType === "contributions" || reportType === "attendance") && (
-          <ReportRangeSelect value={reportRange} onChange={setReportRange} />
-        )}
-
-        {reportType === "contributions" && (
-          <YearSelect
-            years={availableYears}
-            value={selectedFY}
-            onChange={setSelectedFY}
-          />
-        )}
-
+        {/* MEMBER FIELD SELECT (Members Report Only) */}
         {reportType === "members" && (
           <MemberFieldSelect
             options={memberFieldOptions}
@@ -120,12 +117,156 @@ export function ReportFiltersPanel(props: any) {
           />
         )}
 
+        {/* INCLUDE VISITORS (Attendance Only) */}
         {reportType === "attendance" && (
-          <AttendanceDateSelect
-            availableDates={availableAttendanceDates}
-            value={selectedDate}
-            onChange={setSelectedDate}
-          />
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Include Visitors</label>
+            <select
+              className="
+                w-full
+                h-10
+                rounded-md
+                border border-white/20
+                bg-black/20
+                text-white text-sm
+                px-3
+                focus:outline-none
+                focus:ring-2
+                focus:ring-white/30
+              "
+              value={includeVisitors ? "yes" : "no"}
+              onChange={(e) => setIncludeVisitors(e.target.value === "yes")}
+            >
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+        )}
+
+        {/* ----------------------------- */}
+        {/* GUIDED TIME-FRAME SELECTORS   */}
+        {/* ----------------------------- */}
+
+        {(reportType === "contributions" || reportType === "attendance") && (
+          <>
+            {/* TIME FRAME */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Time Frame</label>
+              <div className="flex gap-2">
+                {["week", "month", "year"].map((tf) => (
+                  <Button
+                    key={tf}
+                    variant={timeFrame === tf ? "default" : "outline"}
+                    onClick={() => {
+                      setTimeFrame(tf as any);
+                      setSelectedYear(null);
+                      setSelectedMonth(null);
+                      setSelectedWeek(null);
+                    }}
+                  >
+                    {tf.charAt(0).toUpperCase() + tf.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* YEAR SELECT */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Year</label>
+              <select
+                className="
+                  w-full
+                  h-10
+                  rounded-md
+                  border border-white/20
+                  bg-black/20
+                  text-white text-sm
+                  px-3
+                  focus:outline-none
+                  focus:ring-2
+                  focus:ring-white/30
+                "
+                value={selectedYear ?? ""}
+                onChange={(e) => {
+                  const y = e.target.value || null;
+                  setSelectedYear(y);
+                  setSelectedMonth(null);
+                  setSelectedWeek(null);
+                }}
+              >
+                <option value="">Select Year</option>
+                {availableYears.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* MONTH SELECT */}
+            {timeFrame === "month" && selectedYear && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Month</label>
+                <select
+                  className="
+                    w-full
+                    h-10
+                    rounded-md
+                    border border-white/20
+                    bg-black/20
+                    text-white text-sm
+                    px-3
+                    focus:outline-none
+                    focus:ring-2
+                    focus:ring-white/30
+                  "
+                  value={selectedMonth ?? ""}
+                  onChange={(e) => setSelectedMonth(e.target.value || null)}
+                >
+                  <option value="">Select Month</option>
+                  {availableMonths.map((m) => (
+                    <option key={m} value={m}>
+                      {new Date(`${selectedYear}-${m}-01`).toLocaleString("default", {
+                        month: "long",
+                      })}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* WEEK SELECT */}
+            {timeFrame === "week" && selectedYear && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Week</label>
+                <select
+                  className="
+                    w-full
+                    h-10
+                    rounded-md
+                    border border-white/20
+                    bg-black/20
+                    text-white text-sm
+                    px-3
+                    focus:outline-none
+                    focus:ring-2
+                    focus:ring-white/30
+                  "
+                  value={selectedWeek ?? ""}
+                  onChange={(e) =>
+                    setSelectedWeek(e.target.value ? Number(e.target.value) : null)
+                  }
+                >
+                  <option value="">Select Week</option>
+                  {availableWeeks.map((w) => (
+                    <option key={w} value={w}>
+                      Week {w}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

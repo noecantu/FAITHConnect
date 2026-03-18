@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { Member, Contribution, Address, AttendanceRecord } from '@/app/lib/types';
+import { Member, Contribution, AttendanceRecord } from '@/app/lib/types';
 
 import {
   generateMembersPDF,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMembers } from "@/app/hooks/useMembers";
 import { useContributions } from "@/app/hooks/use-contributions";
 import { useChurchId } from "@/app/hooks/useChurchId";
@@ -31,19 +31,23 @@ export default function ReportsPage() {
   const [reportType, setReportType] =
     useState<"members" | "contributions" | "attendance">("attendance");
 
-  const [reportRange, setReportRange] =
-    useState<"week" | "month" | "year">("week");
+  const [timeFrame, setTimeFrame] =
+    useState<"week" | "month" | "year">("year");
+
+  const [selectedYear, setSelectedYear] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null); // "01".."12"
+  const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
 
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
-  const [selectedFY, setSelectedFY] = useState<string[]>([]);
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [includeVisitors, setIncludeVisitors] = useState(false);
 
   // Filtering Logic
   const {
     availableYears,
+    availableMonths,
+    availableWeeks,
     filteredMembers,
     filteredContributions,
     filteredAttendance,
@@ -54,17 +58,14 @@ export default function ReportsPage() {
     attendance,
     selectedMembers,
     selectedStatus,
-    selectedFY,
     selectedCategories: [],
     selectedContributionTypes: [],
-    reportRange,
     reportType,
-    selectedDate,
+    timeFrame,
+    selectedYear,
+    selectedMonth,
+    selectedWeek,
   });
-
-  const availableAttendanceDates = Array.from(
-    new Set(attendance.map((a) => a.date.split("T")[0]))
-  );
 
   // Export Logic
   const { exportPDF, exportExcel } = useReportExports({
@@ -75,6 +76,38 @@ export default function ReportsPage() {
     selectedFields,
     members,
   });
+
+  // Auto-select latest year when timeFrame changes
+  useEffect(() => {
+    if (availableYears.length === 0) return;
+
+    // If no year selected, choose the most recent one
+    if (!selectedYear) {
+      setSelectedYear(availableYears[0]);
+    }
+  }, [timeFrame, availableYears]);
+  // Auto-select latest month when year changes (Month mode)
+  useEffect(() => {
+    if (timeFrame !== "month") return;
+    if (!selectedYear) return;
+    if (availableMonths.length === 0) return;
+
+    // If no month selected, choose the most recent one
+    if (!selectedMonth) {
+      setSelectedMonth(availableMonths[availableMonths.length - 1]);
+    }
+  }, [timeFrame, selectedYear, availableMonths]);
+  // Auto-select latest week when year changes (Week mode)
+  useEffect(() => {
+    if (timeFrame !== "week") return;
+    if (!selectedYear) return;
+    if (availableWeeks.length === 0) return;
+
+    // If no week selected, choose the most recent one
+    if (!selectedWeek) {
+      setSelectedWeek(availableWeeks[availableWeeks.length - 1]);
+    }
+  }, [timeFrame, selectedYear, availableWeeks]);
 
   return (
     <div className="space-y-6">
@@ -93,18 +126,21 @@ export default function ReportsPage() {
           setSelectedMembers={setSelectedMembers}
           selectedStatus={selectedStatus}
           setSelectedStatus={setSelectedStatus}
-          selectedFY={selectedFY}
-          setSelectedFY={setSelectedFY}
           selectedFields={selectedFields}
           setSelectedFields={setSelectedFields}
-          reportRange={reportRange}
-          setReportRange={setReportRange}
           includeVisitors={includeVisitors}
           setIncludeVisitors={setIncludeVisitors}
-          availableAttendanceDates={availableAttendanceDates}
-          selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
+          timeFrame={timeFrame}
+          setTimeFrame={setTimeFrame}
+          selectedYear={selectedYear}
+          setSelectedYear={setSelectedYear}
+          selectedMonth={selectedMonth}
+          setSelectedMonth={setSelectedMonth}
+          selectedWeek={selectedWeek}
+          setSelectedWeek={setSelectedWeek}
           availableYears={availableYears}
+          availableMonths={availableMonths}
+          availableWeeks={availableWeeks}
         />
 
         {/* RIGHT PANEL */}
@@ -139,7 +175,7 @@ export default function ReportsPage() {
             <>
               <ContributionPreviewTable
                 contributions={filteredContributions}
-                members={members} selectedFields={selectedFields}
+                members={members}
               />
 
               <div className="space-y-2">

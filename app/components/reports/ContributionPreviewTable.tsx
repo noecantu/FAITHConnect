@@ -5,38 +5,22 @@ import { Member, Contribution } from "@/app/lib/types";
 interface Props {
   contributions: Contribution[];
   members: Member[];
-  selectedFields: string[];
 }
-
-const FIELD_LABELS: Record<string, string> = {
-  amount: "Amount",
-  date: "Date",
-  category: "Category",
-  contributionType: "Type",
-  notes: "Notes",
-};
 
 export function ContributionPreviewTable({
   contributions,
   members,
-  selectedFields,
 }: Props) {
-  // Member is always shown first; never allow it as a dynamic column
-  const visibleFields = selectedFields.filter((f) => f !== "memberName");
-
   return (
     <table className="w-full text-sm">
       <thead className="bg-muted">
         <tr>
-          {/* Always show Member first */}
           <th className="p-2 text-left">Member</th>
-
-          {/* Then the selected fields */}
-          {visibleFields.map((f) => (
-            <th key={f} className="p-2 text-left">
-              {FIELD_LABELS[f] ?? f}
-            </th>
-          ))}
+          <th className="p-2 text-left">Amount</th>
+          <th className="p-2 text-left">Date</th>
+          <th className="p-2 text-left">Category</th>
+          <th className="p-2 text-left">Type</th>
+          <th className="p-2 text-left">Notes</th>
         </tr>
       </thead>
 
@@ -49,32 +33,14 @@ export function ContributionPreviewTable({
 
           return (
             <tr key={c.id} className="border-t">
-              {/* Always show Member first */}
               <td className="p-2">{memberName}</td>
-
-              {/* Then the selected fields */}
-              {visibleFields.map((f) => {
-                let value: string | number = "";
-
-                switch (f) {
-                  case "amount":
-                    value = `$${c.amount.toFixed(2)}`;
-                    break;
-
-                  case "date":
-                    value = new Date(c.date).toLocaleDateString();
-                    break;
-
-                  default:
-                    value = (c as any)[f] ?? "";
-                }
-
-                return (
-                  <td key={f} className="p-2">
-                    {value}
-                  </td>
-                );
-              })}
+              <td className="p-2">${c.amount.toFixed(2)}</td>
+              <td className="p-2">
+                {new Date(c.date).toLocaleDateString()}
+              </td>
+              <td className="p-2">{c.category ?? ""}</td>
+              <td className="p-2">{c.contributionType ?? ""}</td>
+              <td className="p-2">{c.notes ?? ""}</td>
             </tr>
           );
         })}
