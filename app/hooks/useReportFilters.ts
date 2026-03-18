@@ -36,24 +36,54 @@ export function useReportFilters({
   selectedMonth,
   selectedWeek,
 }: UseReportFiltersProps) {
+  
+
+  const memberFilteredContributions = useMemo(() => {
+    if (selectedMembers.length === 0) return contributions;
+
+    return contributions.filter((c) => {
+      // Try to match by memberId
+      if (c.memberId && selectedMembers.includes(c.memberId)) {
+        return true;
+      }
+
+      // Try to match by memberName
+      const match = members.find((m) => {
+        const fullName = `${m.firstName} ${m.lastName}`.trim();
+        return (
+          selectedMembers.includes(m.id) &&
+          c.memberName === fullName
+        );
+      });
+
+      return Boolean(match);
+    });
+  }, [contributions, selectedMembers, members]);
+
+  const hasData = memberFilteredContributions.length > 0;
 
   // -----------------------------
   // Fiscal Years
   // -----------------------------
   const availableYears = useMemo(() => {
+    const source = hasData ? memberFilteredContributions : contributions;
+
     const years = new Set<string>();
-    contributions.forEach((c) => {
+    source.forEach(c => {
       years.add(new Date(c.date).getFullYear().toString());
     });
+
     return Array.from(years).sort((a, b) => Number(b) - Number(a));
-  }, [contributions]);
+  }, [hasData, memberFilteredContributions, contributions]);
+
 
   const availableMonths = useMemo(() => {
     if (!selectedYear) return [];
 
-    const months = new Set<string>();
+    const source = hasData ? memberFilteredContributions : contributions;
 
-    contributions.forEach((c) => {
+    const months = new Set<string>();
+    source.forEach(c => {
       const d = new Date(c.date);
       if (d.getFullYear().toString() === selectedYear) {
         months.add(String(d.getMonth() + 1).padStart(2, "0"));
@@ -61,14 +91,15 @@ export function useReportFilters({
     });
 
     return Array.from(months).sort();
-  }, [contributions, selectedYear]);
+  }, [hasData, selectedYear, memberFilteredContributions, contributions]);
 
   const availableWeeks = useMemo(() => {
     if (!selectedYear) return [];
 
-    const weeks = new Set<number>();
+    const source = hasData ? memberFilteredContributions : contributions;
 
-    contributions.forEach((c) => {
+    const weeks = new Set<number>();
+    source.forEach(c => {
       const d = new Date(c.date);
       if (d.getFullYear().toString() === selectedYear) {
         weeks.add(getISOWeek(d));
@@ -76,7 +107,7 @@ export function useReportFilters({
     });
 
     return Array.from(weeks).sort((a, b) => a - b);
-  }, [contributions, selectedYear]);
+  }, [hasData, selectedYear, memberFilteredContributions, contributions]);
 
   // -----------------------------
   // Members Filter
@@ -102,7 +133,7 @@ export function useReportFilters({
     if (reportType !== "contributions") return [];
     if (selectedMembers.length === 0) return [];
 
-    let list = contributions;
+    let list = memberFilteredContributions;
 
     //
     // YEAR FILTER
@@ -142,13 +173,6 @@ export function useReportFilters({
         );
       });
     }
-
-    //
-    // MEMBER FILTER
-    //
-    list = list.filter(
-      (c) => c.memberId && selectedMembers.includes(c.memberId)
-    );
 
     //
     // STATUS FILTER
