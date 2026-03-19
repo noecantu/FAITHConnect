@@ -51,8 +51,8 @@ export function reduceContributionRowsForExport(
 
     // Then include only the selected fields (excluding memberName)
     selectedFields.forEach((field) => {
-      if (field !== "memberName") {
-        obj[field] = row[field as keyof ContributionRow];
+      if (field !== "memberName" && field in row) {
+        obj[field] = row[field as keyof typeof row];
       }
     });
 

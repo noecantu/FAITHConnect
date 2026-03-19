@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Member, Contribution, AttendanceRecord } from '@/app/lib/types';
 
 import {
@@ -23,7 +23,7 @@ interface UseReportExportsProps {
   filteredContributions: Contribution[];
   filteredAttendance: AttendanceRecord[];
   selectedFields: string[];
-  members: Member[]; // needed for mapping
+  members: Member[];
 }
 
 export function useReportExports({
@@ -35,13 +35,15 @@ export function useReportExports({
   members,
 }: UseReportExportsProps) {
 
-  // Convert PNG to Base64 for PDF header logo
-  const loadPngAsBase64 = useCallback(async (path: string): Promise<string | undefined> => {
+  // -----------------------------------------
+  // ALWAYS RUN HOOKS — NEVER CONDITIONAL
+  // -----------------------------------------
+
+  const loadPngAsBase64 = useCallback(async (path: string) => {
     try {
       const res = await fetch(path);
       const blob = await res.blob();
-
-      return new Promise((resolve) => {
+      return await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result as string);
         reader.readAsDataURL(blob);
@@ -51,7 +53,18 @@ export function useReportExports({
     }
   }, []);
 
-  // Export PDF
+  // Precompute contribution rows (even if unused)
+  const contributionRows = useMemo(() => {
+    return mapToContributionRows(filteredContributions, members);
+  }, [filteredContributions, members]);
+
+  const contributionExportRows = useMemo(() => {
+    return reduceContributionRowsForExport(contributionRows, selectedFields);
+  }, [contributionRows, selectedFields]);
+
+  // -----------------------------------------
+  // EXPORT PDF
+  // -----------------------------------------
   const exportPDF = useCallback(async () => {
     const logoBase64 = await loadPngAsBase64("/FAITH_CONNECT_FLAME_LOGO.png");
 
@@ -61,9 +74,7 @@ export function useReportExports({
     }
 
     if (reportType === "contributions") {
-      const rows = mapToContributionRows(filteredContributions, members);
-      const exportRows = reduceContributionRowsForExport(rows, selectedFields);
-      generateContributionsPDF(exportRows, selectedFields, logoBase64);
+      generateContributionsPDF(contributionExportRows, selectedFields, logoBase64);
       return;
     }
 
@@ -73,14 +84,15 @@ export function useReportExports({
   }, [
     reportType,
     filteredMembers,
-    filteredContributions,
     filteredAttendance,
     selectedFields,
-    members,
     loadPngAsBase64,
+    contributionExportRows,
   ]);
 
-  // Export Excel
+  // -----------------------------------------
+  // EXPORT EXCEL
+  // -----------------------------------------
   const exportExcel = useCallback(() => {
     if (reportType === "members") {
       generateMembersExcel(filteredMembers, selectedFields);
@@ -88,9 +100,7 @@ export function useReportExports({
     }
 
     if (reportType === "contributions") {
-      const rows = mapToContributionRows(filteredContributions, members);
-      const exportRows = reduceContributionRowsForExport(rows, selectedFields);
-      generateContributionsExcel(exportRows, selectedFields);
+      generateContributionsExcel(contributionExportRows, selectedFields);
       return;
     }
 
@@ -100,10 +110,9 @@ export function useReportExports({
   }, [
     reportType,
     filteredMembers,
-    filteredContributions,
     filteredAttendance,
     selectedFields,
-    members,
+    contributionExportRows,
   ]);
 
   return {
