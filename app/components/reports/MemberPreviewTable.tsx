@@ -41,28 +41,30 @@ export const fieldLabelMap: Record<string, string> = {
   notes: "Notes",
 };
 
+const MAX_PREVIEW_ROWS = 20;
+
 export function MemberPreviewTable({ members, selectedFields }: Props) {
   if (!members || members.length === 0) {
     return <p className="text-sm text-muted-foreground">No members found.</p>;
   }
+
+  // Limit preview rows
+  const visibleMembers = members.slice(0, MAX_PREVIEW_ROWS);
 
   // Format a single field value
   const formatField = (member: Member, field: string) => {
     const value = (member as any)[field];
     if (!value) return "—";
 
-    // Phone number
     if (field === "phoneNumber") {
       return formatPhone(value);
     }
 
-    // Address object
     if (field === "address" && typeof value === "object") {
       const { street, city, state, zip } = value;
       return [street, city, state, zip].filter(Boolean).join(", ");
     }
 
-    // Dates
     if (
       field === "birthday" ||
       field === "baptismDate" ||
@@ -71,7 +73,6 @@ export function MemberPreviewTable({ members, selectedFields }: Props) {
       return value;
     }
 
-    // QR Code → render image
     if (field === "qrCode") {
       return (
         <img
@@ -86,40 +87,44 @@ export function MemberPreviewTable({ members, selectedFields }: Props) {
   };
 
   return (
-    <div className="overflow-auto border rounded-md">
-      <table className="min-w-full text-sm">
-        <thead className="bg-muted">
-          <tr>
-            {/* Always show Name first */}
-            <th className="text-left px-3 py-2">Name</th>
+    <div className="space-y-2">
+      <div className="overflow-auto border rounded-md">
+        <table className="min-w-full text-sm">
+          <thead className="bg-muted">
+            <tr>
+              <th className="text-left px-3 py-2">Name</th>
 
-            {/* Then the selected fields */}
-            {selectedFields.map(field => (
-              <th key={field} className="text-left px-3 py-2">
-                {fieldLabelMap[field] ?? field}
-              </th>
-            ))}
-          </tr>
-        </thead>
-
-        <tbody>
-          {members.map((member) => (
-            <tr key={member.id} className="border-t">
-              {/* Always show Name first */}
-              <td className="px-3 py-2">
-                {member.firstName} {member.lastName}
-              </td>
-
-              {/* Then the selected fields */}
-              {selectedFields.map((field) => (
-                <td key={field} className="px-3 py-2">
-                  {formatField(member, field)}
-                </td>
+              {selectedFields.map(field => (
+                <th key={field} className="text-left px-3 py-2">
+                  {fieldLabelMap[field] ?? field}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+
+          <tbody>
+            {visibleMembers.map((member) => (
+              <tr key={member.id} className="border-t">
+                <td className="px-3 py-2">
+                  {member.firstName} {member.lastName}
+                </td>
+
+                {selectedFields.map((field) => (
+                  <td key={field} className="px-3 py-2">
+                    {formatField(member, field)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {members.length > MAX_PREVIEW_ROWS && (
+        <p className="text-xs text-muted-foreground">
+          Showing first {MAX_PREVIEW_ROWS} of {members.length} members
+        </p>
+      )}
     </div>
   );
 }
