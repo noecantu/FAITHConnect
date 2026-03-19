@@ -1,18 +1,21 @@
 'use client';
 
 import { Member, Contribution } from "@/app/lib/types";
+import { useState } from "react";
 
 interface Props {
   contributions: Contribution[];
   members: Member[];
 }
 
-const MAX_PREVIEW_ROWS = 20;
+const PAGE_SIZE = 20;
 
 export function ContributionPreviewTable({
   contributions,
   members,
 }: Props) {
+  const [page, setPage] = useState(0);
+
   if (!contributions || contributions.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -21,8 +24,11 @@ export function ContributionPreviewTable({
     );
   }
 
-  // Limit preview rows
-  const visibleRows = contributions.slice(0, MAX_PREVIEW_ROWS);
+  const start = page * PAGE_SIZE;
+  const end = start + PAGE_SIZE;
+  const visibleRows = contributions.slice(start, end);
+
+  const totalPages = Math.ceil(contributions.length / PAGE_SIZE);
 
   return (
     <div className="space-y-2">
@@ -61,11 +67,30 @@ export function ContributionPreviewTable({
         </tbody>
       </table>
 
-      {contributions.length > MAX_PREVIEW_ROWS && (
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between pt-2">
         <p className="text-xs text-muted-foreground">
-          Showing first {MAX_PREVIEW_ROWS} of {contributions.length} contributions
+          Showing {start + 1}–{Math.min(end, contributions.length)} of {contributions.length} contributions
         </p>
-      )}
+
+        <div className="space-x-2">
+          <button
+            className="px-2 py-1 border rounded text-xs disabled:opacity-50"
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+          >
+            Previous
+          </button>
+
+          <button
+            className="px-2 py-1 border rounded text-xs disabled:opacity-50"
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

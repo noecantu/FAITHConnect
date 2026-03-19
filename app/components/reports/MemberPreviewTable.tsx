@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from "react";
 import { formatPhone } from "@/app/lib/formatters";
 
 interface Member {
@@ -41,17 +42,21 @@ export const fieldLabelMap: Record<string, string> = {
   notes: "Notes",
 };
 
-const MAX_PREVIEW_ROWS = 20;
+const PAGE_SIZE = 20;
 
 export function MemberPreviewTable({ members, selectedFields }: Props) {
+  const [page, setPage] = useState(0);
+
   if (!members || members.length === 0) {
     return <p className="text-sm text-muted-foreground">No members found.</p>;
   }
 
-  // Limit preview rows
-  const visibleMembers = members.slice(0, MAX_PREVIEW_ROWS);
+  const start = page * PAGE_SIZE;
+  const end = start + PAGE_SIZE;
+  const visibleMembers = members.slice(start, end);
 
-  // Format a single field value
+  const totalPages = Math.ceil(members.length / PAGE_SIZE);
+
   const formatField = (member: Member, field: string) => {
     const value = (member as any)[field];
     if (!value) return "—";
@@ -94,7 +99,7 @@ export function MemberPreviewTable({ members, selectedFields }: Props) {
             <tr>
               <th className="text-left px-3 py-2">Name</th>
 
-              {selectedFields.map(field => (
+              {selectedFields.map((field) => (
                 <th key={field} className="text-left px-3 py-2">
                   {fieldLabelMap[field] ?? field}
                 </th>
@@ -120,11 +125,30 @@ export function MemberPreviewTable({ members, selectedFields }: Props) {
         </table>
       </div>
 
-      {members.length > MAX_PREVIEW_ROWS && (
+      {/* Pagination Footer */}
+      <div className="flex items-center justify-between pt-2">
         <p className="text-xs text-muted-foreground">
-          Showing first {MAX_PREVIEW_ROWS} of {members.length} members
+          Showing {start + 1}–{Math.min(end, members.length)} of {members.length} members
         </p>
-      )}
+
+        <div className="space-x-2">
+          <button
+            className="px-2 py-1 border rounded text-xs disabled:opacity-50"
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+          >
+            Previous
+          </button>
+
+          <button
+            className="px-2 py-1 border rounded text-xs disabled:opacity-50"
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
