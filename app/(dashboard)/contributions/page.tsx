@@ -26,85 +26,165 @@ import type { Contribution, Member } from '@/app/lib/types';
 
 import { useEffect, useMemo, useState } from 'react';
 import { Fab } from '@/app/components/ui/fab';
-import { useSettings } from "@/app/hooks/use-settings";
-import { useAuth } from "@/app/hooks/useAuth";
-import { updateDoc, doc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/app/lib/firebase";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import React from 'react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/app/components/ui/select';
+import { Button } from '@/app/components/ui/button';
 
 // ------------------------------
 // Page Component
 // ------------------------------
 export default function ContributionsPage() {
+  // ------------------------------
+  // Base state
+  // ------------------------------
   const [isClient, setIsClient] = useState(false);
   const { churchId } = useChurchId();
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  // NEW: row-click edit dialog state
-  const [selected, setSelected] = React.useState<Contribution | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [selected, setSelected] = useState<Contribution | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { isFinance } = useUserRoles(churchId);
-  const { fiscalYear } = useSettings();
-  const { user } = useAuth();
 
-  // Filter by fiscal year
+  // ------------------------------
+  // Breakdown controls
+  // ------------------------------
+  const [timeFrame, setTimeFrame] = useState<"year" | "month" | "week">("year");
+  const [selectedYear, setSelectedYear] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
+
+  // ------------------------------
+  // Effects (must be above conditional return)
+  // ------------------------------
+  useEffect(() => setIsClient(true), []);
+
+  useEffect(() => {
+    if (!churchId) return;
+    return listenToContributions(churchId, setContributions);
+  }, [churchId]);
+
+  useEffect(() => {
+    if (!churchId) return;
+    return listenToMembers(churchId, setMembers);
+  }, [churchId]);
+
+  // ------------------------------
+  // Columns
+  // ------------------------------
+  const columns = useMemo(() => getColumns(), []);
+
+  // ------------------------------
+  // Available Years
+  // ------------------------------
+  const availableYears = useMemo(() => {
+    return Array.from(
+      new Set(contributions.map(c => new Date(c.date).getFullYear()))
+    ).sort((a, b) => b - a);
+  }, [contributions]);
+
+  // ------------------------------
+  // Available Months (for selected year)
+  // ------------------------------
+  const availableMonths = useMemo(() => {
+    if (!selectedYear) return [];
+
+    return Array.from(
+      new Set(
+        contributions
+          .filter(c => new Date(c.date).getFullYear() === Number(selectedYear))
+          .map(c => new Date(c.date).getMonth() + 1)
+      )
+    ).sort((a, b) => a - b);
+  }, [contributions, selectedYear]);
+
+  // ------------------------------
+  // Available Weeks (for selected year)
+  // ------------------------------
+  const availableWeeks = useMemo(() => {
+    if (!selectedYear) return [];
+
+    const getWeek = (date: Date) => {
+      const firstDay = new Date(date.getFullYear(), 0, 1);
+      const diff = (date.getTime() - firstDay.getTime()) / 86400000;
+      return Math.ceil((diff + firstDay.getDay() + 1) / 7);
+    };
+
+    return Array.from(
+      new Set(
+        contributions
+          .filter(c => new Date(c.date).getFullYear() === Number(selectedYear))
+          .map(c => getWeek(new Date(c.date)))
+      )
+    ).sort((a, b) => a - b);
+  }, [contributions, selectedYear]);
+
+  // ------------------------------
+  // Filtered Contributions
+  // ------------------------------
   const filteredContributions = useMemo(() => {
-    if (fiscalYear === "all") return contributions;
+    let list = [...contributions];
 
-    return contributions.filter(c => {
-      const year = new Date(c.date).getFullYear();
-      return year === Number(fiscalYear);
-    });
-  }, [contributions, fiscalYear]);
+    if (selectedYear) {
+      list = list.filter(c =>
+        new Date(c.date).getFullYear() === Number(selectedYear)
+      );
+    }
 
-  const summaryText = getContributionSummaryText(filteredContributions, fiscalYear);
+    if (timeFrame === "month" && selectedMonth) {
+      list = list.filter(c =>
+        new Date(c.date).getMonth() + 1 === Number(selectedMonth)
+      );
+    }
 
-  // Row click → open edit dialog
+    if (timeFrame === "week" && selectedWeek) {
+      const getWeek = (date: Date) => {
+        const firstDay = new Date(date.getFullYear(), 0, 1);
+        const diff = (date.getTime() - firstDay.getTime()) / 86400000;
+        return Math.ceil((diff + firstDay.getDay() + 1) / 7);
+      };
+      list = list.filter(c => getWeek(new Date(c.date)) === selectedWeek);
+    }
+
+    return list;
+  }, [contributions, timeFrame, selectedYear, selectedMonth, selectedWeek]);
+
+  // ------------------------------
+  // Summary Text
+  // ------------------------------
+  const summaryText = getContributionSummaryText(
+    filteredContributions,
+    timeFrame,
+    selectedYear,
+    selectedMonth,
+    selectedWeek
+  );
+
+  // ------------------------------
+  // Row click handler
+  // ------------------------------
   function handleRowClick(contribution: Contribution) {
     setSelected(contribution);
     setIsDialogOpen(true);
   }
 
-  async function handleFiscalYearChange(value: string) {
-    if (!user?.id) return;
-
-    await updateDoc(doc(db, "users", user.id), {
-      "settings.fiscalYear": value,
-      updatedAt: serverTimestamp(),
-    });
-  }
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Listen to contributions
-  useEffect(() => {
-    if (!churchId) return;
-
-    const unsubscribe = listenToContributions(churchId, setContributions);
-    return () => unsubscribe();
-  }, [churchId]);
-
-  // Listen to members
-  useEffect(() => {
-    if (!churchId) return;
-
-    const unsubscribe = listenToMembers(churchId, setMembers);
-    return () => unsubscribe();
-  }, [churchId]);
-
-  // Columns WITHOUT edit/delete icons
-  const columns = useMemo(() => getColumns(), []);
-
+  // ------------------------------
+  // Theme
+  // ------------------------------
   const darkTheme = createTheme({
     palette: { mode: 'dark' },
   });
 
+  // ------------------------------
+  // Conditional return (AFTER all hooks)
+  // ------------------------------
   if (!isClient) return null;
 
   return (
@@ -114,30 +194,93 @@ export default function ContributionsPage() {
         subtitle={summaryText}
         className="mb-2"
       >
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-muted-foreground">
-            Fiscal Year
-          </span>
+        <div className="flex flex-col gap-4 items-end">
 
-          <Select value={fiscalYear} onValueChange={handleFiscalYearChange}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Year" />
-            </SelectTrigger>
+          {/* Breakdown Controls */}
+          <div className="flex items-center gap-4 mt-2">
+            <span className="text-sm font-medium text-muted-foreground">
+              Breakdown:
+            </span>
 
-            <SelectContent>
-              <SelectItem value="all">All Years</SelectItem>
+            <div className="flex gap-2">
+              <Button
+                variant={timeFrame === "year" ? "default" : "outline"}
+                onClick={() => setTimeFrame("year")}
+              >
+                Year
+              </Button>
 
-              {Array.from(new Set(contributions.map(c =>
-                new Date(c.date).getFullYear()
-              )))
-                .sort((a, b) => b - a)
-                .map(year => (
+              <Button
+                variant={timeFrame === "month" ? "default" : "outline"}
+                onClick={() => setTimeFrame("month")}
+              >
+                Month
+              </Button>
+
+              <Button
+                variant={timeFrame === "week" ? "default" : "outline"}
+                onClick={() => setTimeFrame("week")}
+              >
+                Week
+              </Button>
+            </div>
+          </div>
+
+          {/* Dynamic Dropdowns */}
+          <div className="flex items-center gap-4">
+
+            {/* Year */}
+            <Select value={selectedYear ?? ""} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-[140px] h-9">
+                <SelectValue placeholder="Year" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableYears.map(year => (
                   <SelectItem key={year} value={String(year)}>
                     {year}
                   </SelectItem>
                 ))}
-            </SelectContent>
-          </Select>
+              </SelectContent>
+            </Select>
+
+            {/* Month */}
+            {timeFrame === "month" && (
+              <Select value={selectedMonth ?? ""} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-[140px] h-9">
+                  <SelectValue placeholder="Month" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableMonths.map(month => (
+                    <SelectItem key={month} value={String(month)}>
+                      {new Date(0, month - 1).toLocaleString("default", {
+                        month: "long",
+                      })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {/* Week */}
+            {timeFrame === "week" && (
+              <Select
+                value={selectedWeek?.toString() ?? ""}
+                onValueChange={(v) => setSelectedWeek(Number(v))}
+              >
+                <SelectTrigger className="w-[140px] h-9">
+                  <SelectValue placeholder="Week" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableWeeks.map(week => (
+                    <SelectItem key={week} value={String(week)}>
+                      Week {week}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+          </div>
         </div>
       </PageHeader>
 
