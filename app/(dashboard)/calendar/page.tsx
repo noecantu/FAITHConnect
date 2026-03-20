@@ -33,7 +33,7 @@ import { db } from '@/app/lib/firebase';
 // ------------------------------
 const eventSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  date: z.date(),
+  date: z.string(),
   description: z.string().optional(),
 });
 type EventFormValues = z.infer<typeof eventSchema>;
@@ -82,7 +82,7 @@ export default function CalendarPage() {
     defaultValues: {
       title: '',
       description: '',
-      date: new Date(),
+      date: '',
     },
   });
 

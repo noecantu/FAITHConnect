@@ -11,7 +11,7 @@ import type { UseFormReturn } from "react-hook-form";
 interface EventFormValues {
   title: string;
   description?: string;
-  date: Date;
+  date: string;
 }
 
 interface CalendarDialogsState {
@@ -31,7 +31,7 @@ interface CalendarDialogsState {
   handleEdit: (event: Event) => void;
   handleAdd: (date: Date) => void;
   handleDelete: (id: string) => Promise<void>;
-  onSubmit: (data: EventFormValues) => Promise<void>;
+  onSubmit: (data: EventFormValues) => Promise<void> | void;
 }
 
 interface CalendarDialogsProps {

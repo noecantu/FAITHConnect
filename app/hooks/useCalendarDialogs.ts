@@ -69,7 +69,7 @@ function safeDateOnly(date: Date): Date {
 export type EventFormValues = {
   title: string;
   description?: string;
-  date: Date;
+  date: string;
 };
 
 // -------------------------------
@@ -102,14 +102,12 @@ export function useCalendarDialogs(
       });
       return;
     }
-
-    const normalized = normalizeDate(event.date);
-
+    
     setEditEvent(event);
     form.reset({
       title: event.title,
       description: event.description ?? '',
-      date: normalized,
+      date: format(normalizeDate(event.date), "MM-dd-yyyy"),
     });
 
     setIsDayEventsDialogOpen(false);
@@ -132,7 +130,7 @@ export function useCalendarDialogs(
     form.reset({
       title: '',
       description: '',
-      date: normalizeDate(date),
+      date: format(normalizeDate(date), "MM-dd-yyyy"),
     });
 
     setEditEvent(null);
@@ -191,7 +189,8 @@ export function useCalendarDialogs(
       return;
     }
 
-    const dateToStore = safeDateOnly(data.date);
+    const parsed = new Date(data.date);
+    const dateToStore = safeDateOnly(parsed);
 
     try {
       if (isEditing && editEvent) {
