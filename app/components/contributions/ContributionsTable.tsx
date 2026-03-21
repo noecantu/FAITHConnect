@@ -20,8 +20,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/app/components/ui/table';
-import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
+import { PreviewPaginationFooter } from '../layout/PreviewPaginationFooter';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -109,24 +109,16 @@ export function ContributionsTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
-      </div>
+      <PreviewPaginationFooter
+        start={table.getState().pagination.pageIndex * table.getState().pagination.pageSize}
+        end={(table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize}
+        total={table.getFilteredRowModel().rows.length}
+        page={table.getState().pagination.pageIndex}
+        totalPages={table.getPageCount()}
+        setPage={(fn) =>
+          table.setPageIndex(fn(table.getState().pagination.pageIndex))
+        }
+      />
     </div>
   );
 }

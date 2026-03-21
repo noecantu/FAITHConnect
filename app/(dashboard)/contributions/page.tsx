@@ -34,6 +34,7 @@ import {
   SelectValue
 } from '@/app/components/ui/select';
 import { Button } from '@/app/components/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
 
 // ------------------------------
 // Page Component
@@ -202,28 +203,26 @@ export default function ContributionsPage() {
               Breakdown:
             </span>
 
-            <div className="flex gap-2">
-              <Button
-                variant={timeFrame === "year" ? "default" : "outline"}
-                onClick={() => setTimeFrame("year")}
-              >
-                Year
-              </Button>
+            <RadioGroup
+              value={timeFrame}
+              onValueChange={(v) => setTimeFrame(v as "year" | "month" | "week")}
+              className="flex items-center gap-4"
+            >
+              <div className="flex items-center gap-1">
+                <RadioGroupItem value="year" id="tf-year" />
+                <label htmlFor="tf-year" className="text-sm">Year</label>
+              </div>
 
-              <Button
-                variant={timeFrame === "month" ? "default" : "outline"}
-                onClick={() => setTimeFrame("month")}
-              >
-                Month
-              </Button>
+              <div className="flex items-center gap-1">
+                <RadioGroupItem value="month" id="tf-month" />
+                <label htmlFor="tf-month" className="text-sm">Month</label>
+              </div>
 
-              <Button
-                variant={timeFrame === "week" ? "default" : "outline"}
-                onClick={() => setTimeFrame("week")}
-              >
-                Week
-              </Button>
-            </div>
+              <div className="flex items-center gap-1">
+                <RadioGroupItem value="week" id="tf-week" />
+                <label htmlFor="tf-week" className="text-sm">Week</label>
+              </div>
+            </RadioGroup>
           </div>
 
           {/* Dynamic Dropdowns */}

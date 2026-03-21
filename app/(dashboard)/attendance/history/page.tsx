@@ -25,6 +25,12 @@ import { useAttendanceFilters } from '@/app/hooks/useAttendanceFilters';
 import { AttendanceHistoryControls } from '@/app/components/attendance/AttendanceHistoryControls';
 import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dialog';
 import { AttendanceStackedChart } from '@/app/components/attendance/attendance-stackedchart';
+import { usePreviewPagination } from "@/app/hooks/usePreviewPagination";
+import { PreviewPaginationFooter } from "@/app/components/layout/PreviewPaginationFooter";
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
+import { cn } from '@/app/lib/utils';
+import { Label } from "@/app/components/ui/label";
 
 // --------------------------------------------------
 // Page Component
@@ -43,6 +49,16 @@ export default function AttendanceHistoryPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
+  const {
+    page,
+    setPage,
+    start,
+    end,
+    visible,
+    totalPages,
+    total,
+  } = usePreviewPagination(filters.filtered, 20);
+
   if (loading) {
     return (
       <div className="p-6">
@@ -54,22 +70,25 @@ export default function AttendanceHistoryPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <PageHeader title="Attendance History" />
-        <div className="flex gap-2">
-          <Button
-            variant={chartMode === "line" ? "default" : "outline"}
-            onClick={() => setChartMode("line")}
+      <PageHeader title="Attendance History">
+        <div className="flex items-center gap-4">
+          <RadioGroup
+            value={chartMode}
+            onValueChange={(v) => setChartMode(v as "line" | "stacked")}
+            className="flex items-center gap-4"
           >
-            Line Chart
-          </Button>
+            <div className="flex items-center gap-1">
+              <RadioGroupItem value="line" id="chart-line" />
+              <label htmlFor="chart-line" className="text-sm">Line Chart</label>
+            </div>
 
-          <Button
-            variant={chartMode === "stacked" ? "default" : "outline"}
-            onClick={() => setChartMode("stacked")}
-          >
-            Stacked Bar
-          </Button>
+            <div className="flex items-center gap-1">
+              <RadioGroupItem value="stacked" id="chart-stacked" />
+              <label htmlFor="chart-stacked" className="text-sm">Stacked Bar</label>
+            </div>
+          </RadioGroup>
         </div>
+      </PageHeader>
 
       {/* ⭐ Controls identical to Calendar List View */}
       <AttendanceHistoryControls filters={filters} />
@@ -82,8 +101,12 @@ export default function AttendanceHistoryPage() {
       )}
 
       {/* TABLE */}
-      <div className="space-y-2">
-        {filters.filtered.length > 0 && (
+      <Card>
+        <CardHeader>
+          <CardTitle>Attendance Records</CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-2">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-muted-foreground">
@@ -96,14 +119,13 @@ export default function AttendanceHistoryPage() {
             </thead>
 
             <tbody>
-              {filters.filtered.map((s) => (
+              {visible.map((s) => (
                 <tr
                   key={s.dateString}
                   className="border-b hover:bg-accent cursor-pointer"
                   onClick={() => router.push(`/attendance?date=${s.dateString}`)}
                 >
                   <td className="py-2 px-2">{s.dateString}</td>
-
                   <td className="py-2 px-2">{s.membersPresent}</td>
                   <td className="py-2 px-2">{s.membersAbsent}</td>
                   <td className="py-2 px-2">{s.visitorCount}</td>
@@ -112,6 +134,7 @@ export default function AttendanceHistoryPage() {
                     className="py-2 px-2"
                     onClick={(e) => e.stopPropagation()}
                   >
+                    {/* delete dialog */}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
@@ -162,8 +185,19 @@ export default function AttendanceHistoryPage() {
               ))}
             </tbody>
           </table>
-        )}
-      </div>
+
+          <PreviewPaginationFooter
+            start={start}
+            end={end}
+            total={total}
+            page={page}
+            totalPages={totalPages}
+            setPage={setPage}
+            label="records"
+          />
+        </CardContent>
+      </Card>
+
     </div>
   );
 }

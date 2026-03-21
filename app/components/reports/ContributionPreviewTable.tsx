@@ -1,34 +1,32 @@
 'use client';
 
 import { Member, Contribution } from "@/app/lib/types";
-import { useState } from "react";
+import { usePreviewPagination } from "@/app/hooks/usePreviewPagination";
+import { PreviewPaginationFooter } from "@/app/components/layout/PreviewPaginationFooter";
 
 interface Props {
   contributions: Contribution[];
   members: Member[];
 }
 
-const PAGE_SIZE = 20;
+export function ContributionPreviewTable({ contributions, members }: Props) {
+  const {
+    page,
+    setPage,
+    start,
+    end,
+    visible,
+    totalPages,
+    total,
+  } = usePreviewPagination(contributions, 20);
 
-export function ContributionPreviewTable({
-  contributions,
-  members,
-}: Props) {
-  const [page, setPage] = useState(0);
-
-  if (!contributions || contributions.length === 0) {
+  if (!total) {
     return (
       <p className="text-sm text-muted-foreground">
         No contributions found.
       </p>
     );
   }
-
-  const start = page * PAGE_SIZE;
-  const end = start + PAGE_SIZE;
-  const visibleRows = contributions.slice(start, end);
-
-  const totalPages = Math.ceil(contributions.length / PAGE_SIZE);
 
   return (
     <div className="space-y-2">
@@ -45,7 +43,7 @@ export function ContributionPreviewTable({
         </thead>
 
         <tbody>
-          {visibleRows.map((c) => {
+          {visible.map((c) => {
             const member = members.find((m) => m.id === c.memberId);
             const memberName = member
               ? `${member.firstName} ${member.lastName}`
@@ -67,30 +65,15 @@ export function ContributionPreviewTable({
         </tbody>
       </table>
 
-      {/* Pagination Controls */}
-      <div className="flex items-center justify-between pt-2">
-        <p className="text-xs text-muted-foreground">
-          Showing {start + 1}–{Math.min(end, contributions.length)} of {contributions.length} contributions
-        </p>
-
-        <div className="space-x-2">
-          <button
-            className="px-2 py-1 border rounded text-xs disabled:opacity-50"
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
-            disabled={page === 0}
-          >
-            Previous
-          </button>
-
-          <button
-            className="px-2 py-1 border rounded text-xs disabled:opacity-50"
-            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-            disabled={page >= totalPages - 1}
-          >
-            Next
-          </button>
-        </div>
-      </div>
+      <PreviewPaginationFooter
+        start={start}
+        end={end}
+        total={total}
+        page={page}
+        totalPages={totalPages}
+        setPage={setPage}
+        label="contributions"
+      />
     </div>
   );
 }

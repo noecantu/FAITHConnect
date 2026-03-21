@@ -30,7 +30,7 @@ export default function ReportsPage() {
     useState<"week" | "month" | "year">("year");
 
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<string | null>(null); // "01".."12"
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
 
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
@@ -77,7 +77,7 @@ export default function ReportsPage() {
   const handleExportPDF = async () => {
     try {
       setIsExportingPDF(true);
-      await exportPDF(); // your existing export function
+      await exportPDF();
     } finally {
       setIsExportingPDF(false);
     }
@@ -86,7 +86,7 @@ export default function ReportsPage() {
   const handleExportExcel = async () => {
     try {
       setIsExportingExcel(true);
-      await exportExcel(); // your existing export function
+      await exportExcel();
     } finally {
       setIsExportingExcel(false);
     }
@@ -195,33 +195,26 @@ export default function ReportsPage() {
 
           {/* MEMBER REPORT */}
           {reportType === "members" && (
-            <>
-
-              <MemberPreviewTable
-                members={filteredMembers}
-                selectedFields={selectedFields}
-              />
-            </>
+            <MemberPreviewTable
+              members={filteredMembers}
+              selectedFields={selectedFields}
+            />
           )}
 
           {/* CONTRIBUTIONS REPORT */}
           {reportType === "contributions" && (
-            <>
-              <ContributionPreviewTable
-                contributions={filteredContributions}
-                members={members}
-              />
-            </>
+            <ContributionPreviewTable
+              contributions={filteredContributions}
+              members={members}
+            />
           )}
 
           {/* ATTENDANCE REPORT */}
           {reportType === "attendance" && (
-            <>
-              <AttendancePreviewTable
-                attendance={filteredAttendance}
-                members={members}
-              />
-            </>
+            <AttendancePreviewTable
+              attendance={filteredAttendance}
+              members={members}
+            />
           )}
 
         </div>
