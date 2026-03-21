@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { PageHeader } from '@/app/components/page-header';
 import { Input } from '@/app/components/ui/input';
 import { Button } from '@/app/components/ui/button';
-import { Card } from '@/app/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import {
   Select,
   SelectTrigger,
@@ -19,6 +19,8 @@ import { useChurchId } from '@/app/hooks/useChurchId';
 import { useServicePlans } from '@/app/hooks/useServicePlans';
 import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { useRouter } from 'next/navigation';
+import { usePreviewPagination } from '@/app/hooks/usePreviewPagination';
+import { PreviewPaginationFooter } from '@/app/components/layout/PreviewPaginationFooter';
 
 // TYPES
 type SortType = "date-desc" | "date-asc" | "title-asc";
@@ -86,6 +88,17 @@ export default function ServicePlanPage() {
 
     return result;
   }, [plans, search, sort, filter]);
+
+  // PAGINATION — 20 per page
+  const {
+    page,
+    totalPages,
+    start,
+    end,
+    total,
+    setPage,
+    visible
+  } = usePreviewPagination(filtered, 20);
 
   // LOADING + PERMISSIONS
   if (churchLoading || plansLoading || rolesLoading) {
@@ -203,35 +216,65 @@ export default function ServicePlanPage() {
         </div>
       )}
 
-      {/* Card List */}
-      <div className="mt-4 space-y-3">
-        {filtered.map((plan) => {
-          const totalSections = plan.sections.length;
+      {/* ⭐ Card wrapper for list */}
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle>All Service Plans</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Showing {start + 1}–{end} of {total} service plans
+          </p>
+        </CardHeader>
 
-          return (
-            <Card
-              key={plan.id}
-              className="p-4 cursor-pointer transition-all hover:bg-accent hover:shadow-sm"
-              onClick={() => router.push(`/service-plan/${plan.id}`)}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">{plan.title}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {totalSections} sections
-                  </p>
+        <CardContent className="space-y-6">
+
+          {/* List */}
+          <div className="space-y-3">
+            {visible.map((plan) => {
+              const totalSections = plan.sections.length;
+
+              return (
+                <div
+                  key={plan.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => router.push(`/service-plan/${plan.id}`)}
+                  onKeyDown={(ev) => {
+                    if (ev.key === "Enter" || ev.key === " ") {
+                      router.push(`/service-plan/${plan.id}`);
+                    }
+                  }}
+                  className="border rounded-md p-4 flex items-start justify-between cursor-pointer hover:bg-muted/40 transition-colors"
+                >
+                  <div>
+                    <div className="font-medium">{plan.title}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {totalSections} sections
+                    </div>
+                  </div>
+
+                  <div className="text-sm text-muted-foreground">
+                    {format(plan.dateTime, "M/d/yy, h:mm a")}
+                  </div>
                 </div>
-                <div className="text-sm flex items-center gap-2">
-                  {format(plan.dateTime, 'M/d/yy, h:mm a')}
-                </div>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
+
+          {/* Pagination Footer */}
+          <PreviewPaginationFooter
+            start={start}
+            end={end}
+            total={total}
+            page={page}
+            totalPages={totalPages}
+            setPage={setPage}
+            label="service plans"
+          />
+        </CardContent>
+      </Card>
 
       {canManage && (
-        <Fab type="add" onClick={() => router.push('/service-plan/new')} />
+        <Fab type="add" onClick={() => router.push("/service-plan/new")} />
       )}
     </>
   );

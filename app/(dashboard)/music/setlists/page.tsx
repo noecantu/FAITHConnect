@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { PageHeader } from '@/app/components/page-header';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
-  import { Card } from '@/app/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import {
   Select,
   SelectTrigger,
@@ -18,6 +18,8 @@ import { useSetLists } from '@/app/hooks/useSetLists';
 import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { useRouter } from "next/navigation";
 import { Fab } from '@/app/components/ui/fab';
+import { usePreviewPagination } from '@/app/hooks/usePreviewPagination';
+import { PreviewPaginationFooter } from '@/app/components/layout/PreviewPaginationFooter';
 
 // TYPES
 type SortType = 'date-desc' | 'date-asc' | 'title-asc';
@@ -85,7 +87,35 @@ export default function SetListsPage() {
     return result;
   }, [lists, search, sort, filter]);
 
-  // LOADING + PERMISSIONS
+  // ROWS — MUST BE BEFORE ANY RETURNS
+  const rows = filtered.map((setList) => {
+    const totalSets = setList.sections.length;
+    const totalSongs = setList.sections.reduce(
+      (sum, section) => sum + section.songs.length,
+      0
+    );
+
+    return {
+      id: setList.id,
+      title: setList.title,
+      date: setList.dateTime,
+      totalSets,
+      totalSongs,
+    };
+  });
+
+  // PAGINATION — MUST BE BEFORE ANY RETURNS
+  const {
+    page,
+    totalPages,
+    start,
+    end,
+    total,
+    setPage,
+    visible
+  } = usePreviewPagination(rows, 20);
+
+  // LOADING + PERMISSIONS — SAFE NOW
   if (!churchId || loading || rolesLoading) {
     return (
       <div className="p-6">
@@ -106,28 +136,11 @@ export default function SetListsPage() {
     );
   }
 
-  // ROWS
-  const rows = filtered.map((setList) => {
-    const totalSets = setList.sections.length;
-    const totalSongs = setList.sections.reduce(
-      (sum, section) => sum + section.songs.length,
-      0
-    );
-
-    return {
-      id: setList.id,
-      title: setList.title,
-      date: setList.dateTime,
-      totalSets,
-      totalSongs,
-    };
-  });
-
   // RENDER
   return (
     <>
       <PageHeader
-        title={`Set Lists`}
+        title="Set Lists"
         subtitle={`Total: ${lists.length}`}
       />
 
@@ -199,28 +212,55 @@ export default function SetListsPage() {
         </div>
       )}
 
-      {/* Card List */}
-      <div className="mt-4 space-y-3">
-        {rows.map((row) => (
-          <Card
-            key={row.id}
-            className="p-4 cursor-pointer transition-all hover:bg-accent hover:shadow-sm"
-            onClick={() => router.push(`/music/setlists/${row.id}`)}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium">{row.title}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {row.totalSets} sections | {row.totalSongs} songs
-                </p>
+      {/* ⭐ Card wrapper for list + footer */}
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle>All Sets</CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+
+          {/* List */}
+          <div className="space-y-3">
+            {visible.map((row) => (
+              <div
+                key={row.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => router.push(`/music/setlists/${row.id}`)}
+                onKeyDown={(ev) => {
+                  if (ev.key === "Enter" || ev.key === " ") {
+                    router.push(`/music/setlists/${row.id}`);
+                  }
+                }}
+                className="border rounded-md p-4 flex items-start justify-between cursor-pointer hover:bg-muted/40 transition-colors"
+              >
+                <div>
+                  <div className="font-medium">{row.title}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {row.totalSets} sections • {row.totalSongs} songs
+                  </div>
+                </div>
+
+                <div className="text-sm text-muted-foreground">
+                  {row.date ? format(row.date, "M/d/yy, h:mm a") : "—"}
+                </div>
               </div>
-              <div className="text-sm flex items-center gap-2">
-                {row.date ? format(row.date, 'M/d/yy, h:mm a') : '—'}
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+            ))}
+          </div>
+
+          {/* Pagination Footer */}
+          <PreviewPaginationFooter
+            start={start}
+            end={end}
+            total={total}
+            page={page}
+            totalPages={totalPages}
+            setPage={setPage}
+            label="set lists"
+          />
+        </CardContent>
+      </Card>
 
       {canManage && (
         <Fab
