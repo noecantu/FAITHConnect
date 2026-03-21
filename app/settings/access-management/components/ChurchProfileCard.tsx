@@ -10,7 +10,7 @@ import { useToast } from '@/app/hooks/use-toast';
 import { db } from '@/app/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import TimezoneSelect from '@/app/components/settings/TimezoneSelect';
-import { formatPhone } from '@/app/lib/formatters';
+import { usePhoneInput } from '@/app/hooks/usePhoneInput';
 
 interface Props {
   churchId: string;
@@ -18,17 +18,23 @@ interface Props {
 
 export default function ChurchProfileCard({ churchId }: Props) {
   const { toast } = useToast();
-  const [name, setName] = useState(''); // display only, not editable
+
+  // Display-only name
+  const [name, setName] = useState('');
+
+  // Editable fields
   const [timezone, setTimezone] = useState('');
   const [address, setAddress] = useState('');
-  const [phone, setPhone] = useState('');       // raw digits
-  const [phoneDisplay, setPhoneDisplay] = useState(''); // formatted
-  const [originalTimezone, setOriginalTimezone] = useState('');
-  const [originalAddress, setOriginalAddress] = useState('');
+
+  // Phone (via hook)
+  const phone = usePhoneInput();
   const [originalPhone, setOriginalPhone] = useState('');
 
-  const [saving, setSaving] = useState(false);
+  // Originals for change detection
+  const [originalTimezone, setOriginalTimezone] = useState('');
+  const [originalAddress, setOriginalAddress] = useState('');
 
+  const [saving, setSaving] = useState(false);
 
   // Load church profile
   useEffect(() => {
@@ -46,13 +52,14 @@ export default function ChurchProfileCard({ churchId }: Props) {
       // Editable fields
       setTimezone(data.timezone ?? '');
       setAddress(data.address ?? '');
-      setPhone(data.phone ?? '');
-      setPhoneDisplay(formatPhone(data.phone ?? ''));
+
+      // Phone
+      phone.setDigits(data.phone ?? '');
+      setOriginalPhone(data.phone ?? '');
 
       // Originals
       setOriginalTimezone(data.timezone ?? '');
       setOriginalAddress(data.address ?? '');
-      setOriginalPhone(data.phone ?? '');
     };
 
     load();
@@ -62,14 +69,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
   const hasChanges =
     timezone !== originalTimezone ||
     address !== originalAddress ||
-    phone !== originalPhone;
-
-  // Phone input handler
-  const handlePhoneChange = (value: string) => {
-    const digits = value.replace(/\D/g, '');
-    setPhone(digits);
-    setPhoneDisplay(formatPhone(digits));
-  };
+    phone.digits !== originalPhone;
 
   // Save handler
   const handleSave = async () => {
@@ -81,14 +81,14 @@ export default function ChurchProfileCard({ churchId }: Props) {
       await updateDoc(doc(db, "churches", churchId), {
         timezone,
         address,
-        phone,
+        phone: phone.digits,
         updatedAt: new Date(),
       });
 
       // Update originals
       setOriginalTimezone(timezone);
       setOriginalAddress(address);
-      setOriginalPhone(phone);
+      setOriginalPhone(phone.digits);
 
       toast({
         title: "Saved",
@@ -135,8 +135,8 @@ export default function ChurchProfileCard({ churchId }: Props) {
           <div className="grid gap-1">
             <Label>Phone Number</Label>
             <Input
-              value={phoneDisplay}
-              onChange={(e) => handlePhoneChange(e.target.value)}
+              value={phone.display}
+              onChange={(e) => phone.handleChange(e.target.value)}
               placeholder="(555) 123‑4567"
             />
           </div>

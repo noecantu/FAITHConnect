@@ -47,7 +47,6 @@ export default function CreateSystemUserClient() {
         toast({
           title: "Missing Account Type",
           description: "Please select an account type for this system user.",
-          // variant: "destructive",
         });
         return;
       }
@@ -56,7 +55,6 @@ export default function CreateSystemUserClient() {
         toast({
           title: "Not Authorized",
           description: "You must be logged in as a system admin.",
-          // variant: "destructive",
         });
         return;
       }
@@ -71,7 +69,6 @@ export default function CreateSystemUserClient() {
         lastName,
         email,
         password,
-        // accountType,
         actorUid,
         actorName,
       });
@@ -93,7 +90,6 @@ export default function CreateSystemUserClient() {
         toast({
           title: "Error",
           description: message,
-          // variant: "destructive",
         });
       } finally {
       setLoading(false);

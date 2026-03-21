@@ -17,49 +17,34 @@ import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import type { UseFormReturn } from "react-hook-form";
 import type { MemberFormValues } from "@/app/lib/memberForm.schema";
+import { usePhoneInput } from "@/app/hooks/usePhoneInput";
+import { useEffect } from "react";
 
 type Props = {
   form: UseFormReturn<MemberFormValues>;
 };
 
-function formatPhoneInput(digits: string): string {
-  const cleaned = digits.replace(/\D/g, "").slice(0, 10);
-
-  if (cleaned.length <= 3) {
-    return cleaned;
-  }
-
-  if (cleaned.length <= 6) {
-    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
-  }
-
-  return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
-}
-
-function calculateCursorPosition(prev: string, next: string, cursor: number) {
-  const prevDigitsBeforeCursor = prev.slice(0, cursor).replace(/\D/g, "").length;
-
-  let newCursor = next.length;
-  let digitCount = 0;
-
-  for (let i = 0; i < next.length; i++) {
-    if (/\d/.test(next[i])) digitCount++;
-    if (digitCount === prevDigitsBeforeCursor) {
-      newCursor = i + 1;
-      break;
-    }
-  }
-
-  return newCursor;
-}
-
 export function MemberInfoSection({ form }: Props) {
+  // Initialize phone hook with the form's initial value
+  const phone = usePhoneInput(form.getValues("phoneNumber") ?? "");
+
+  // Sync phone hook → RHF
+  useEffect(() => {
+    const current = form.getValues("phoneNumber");
+    if (current !== phone.digits) {
+      form.setValue("phoneNumber", phone.digits, { shouldDirty: true });
+    }
+  }, [phone.digits, form]);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-xl">Member Information</CardTitle>
       </CardHeader>
+
       <CardContent className="space-y-4">
+
+        {/* First + Last Name */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -94,6 +79,7 @@ export function MemberInfoSection({ form }: Props) {
           />
         </div>
 
+        {/* Email + Phone */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -112,36 +98,15 @@ export function MemberInfoSection({ form }: Props) {
           <FormField
             control={form.control}
             name="phoneNumber"
-            render={({ field }) => (
+            render={() => (
               <FormItem>
                 <FormLabel>
                   Phone <span className="text-destructive">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input
-                    value={formatPhoneInput(field.value ?? "")}
-                    onChange={(e) => {
-                      const input = e.target;
-                      const raw = input.value;
-                      const cursor = input.selectionStart ?? raw.length;
-
-                      // 1. Extract raw digits (what we actually store)
-                      const digits = raw.replace(/\D/g, "").slice(0, 10);
-
-                      // 2. Build the formatted view value
-                      const formatted = formatPhoneInput(digits);
-
-                      // 3. Compute new cursor position
-                      const nextCursor = calculateCursorPosition(raw, formatted, cursor);
-
-                      // 4. Store RAW digits in the form
-                      field.onChange(digits);
-
-                      // 5. Restore cursor after React applies value
-                      requestAnimationFrame(() => {
-                        input.setSelectionRange(nextCursor, nextCursor);
-                      });
-                    }}
+                    value={phone.display}
+                    onChange={(e) => phone.handleChange(e.target.value)}
                     inputMode="numeric"
                     placeholder="(915) 123‑4567"
                   />
@@ -152,6 +117,7 @@ export function MemberInfoSection({ form }: Props) {
           />
         </div>
 
+        {/* Dates */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <FormField
             control={form.control}
@@ -208,6 +174,7 @@ export function MemberInfoSection({ form }: Props) {
           />
         </div>
 
+        {/* Address */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <FormField
             control={form.control}
@@ -236,6 +203,7 @@ export function MemberInfoSection({ form }: Props) {
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="address.state"
@@ -249,6 +217,7 @@ export function MemberInfoSection({ form }: Props) {
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="address.zip"
@@ -264,6 +233,7 @@ export function MemberInfoSection({ form }: Props) {
           />
         </div>
 
+        {/* Notes */}
         <FormField
           control={form.control}
           name="notes"
