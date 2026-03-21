@@ -220,9 +220,6 @@ export default function ServicePlanPage() {
       <Card className="mt-4">
         <CardHeader>
           <CardTitle>All Service Plans</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Showing {start + 1}–{end} of {total} service plans
-          </p>
         </CardHeader>
 
         <CardContent className="space-y-6">
