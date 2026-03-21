@@ -18,7 +18,6 @@ import { AttendancePreviewTable } from "@/app/components/reports/AttendancePrevi
 import { ContributionPreviewTable } from "@/app/components/reports/ContributionPreviewTable";
 
 import { Button } from "@/app/components/ui/button";
-import { FileText, Sheet } from "lucide-react";
 
 export default function ReportsPage() {
   const { members } = useMembers();
@@ -115,7 +114,15 @@ export default function ReportsPage() {
         title="Reports"
         subtitle="Select a report type below."
       />
+      <div className="flex justify-end gap-2">
+        <Button onClick={exportPDF} size="sm" className="min-w-[80px]">
+          PDF
+        </Button>
 
+        <Button onClick={exportExcel} size="sm" className="min-w-[80px]">
+          Excel
+        </Button>
+      </div>
       <div className="flex flex-col lg:flex-row gap-6">
         {/* LEFT PANEL */}
         <ReportFiltersPanel
@@ -156,7 +163,7 @@ export default function ReportsPage() {
               />
 
               {/* EXPORT ACTIONS */}
-              <div className="space-y-2">
+              {/* <div className="flex gap-2">
                 <Button onClick={exportPDF} className="w-full">
                   <FileText className="h-4 w-4 mr-2" />
                   Export PDF
@@ -166,7 +173,7 @@ export default function ReportsPage() {
                   <Sheet className="h-4 w-4 mr-2" />
                   Export Excel
                 </Button>
-              </div>
+              </div> */}
             </>
           )}
 
@@ -178,7 +185,7 @@ export default function ReportsPage() {
                 members={members}
               />
 
-              <div className="space-y-2">
+              {/* <div className="flex gap-2">
                 <Button onClick={exportPDF} className="w-full">
                   <FileText className="h-4 w-4 mr-2" />
                   Export PDF
@@ -188,7 +195,7 @@ export default function ReportsPage() {
                   <Sheet className="h-4 w-4 mr-2" />
                   Export Excel
                 </Button>
-              </div>
+              </div> */}
             </>
           )}
 
@@ -200,7 +207,7 @@ export default function ReportsPage() {
                 members={members}
               />
 
-              <div className="space-y-2">
+              {/* <div className="flex gap-2">
                 <Button onClick={exportPDF} className="w-full">
                   <FileText className="h-4 w-4 mr-2" />
                   Export PDF
@@ -210,7 +217,7 @@ export default function ReportsPage() {
                   <Sheet className="h-4 w-4 mr-2" />
                   Export Excel
                 </Button>
-              </div>
+              </div> */}
             </>
           )}
 
