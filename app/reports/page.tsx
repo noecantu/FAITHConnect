@@ -7,17 +7,13 @@ import { useChurchId } from "@/app/hooks/useChurchId";
 import { useAttendanceForReports } from "@/app/hooks/useAttendanceForReports";
 import { useReportFilters } from "@/app/hooks/useReportFilters";
 import { useReportExports } from "@/app/hooks/useReportExports";
-
 import { PageHeader } from "@/app/components/page-header";
-
 import { ReportFiltersPanel } from "@/app/components/reports/ReportFiltersPanel";
-
 import { MemberPreviewTable } from "@/app/components/reports/MemberPreviewTable";
-
 import { AttendancePreviewTable } from "@/app/components/reports/AttendancePreviewTable";
 import { ContributionPreviewTable } from "@/app/components/reports/ContributionPreviewTable";
-
 import { Button } from "@/app/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export default function ReportsPage() {
   const { members } = useMembers();
@@ -41,6 +37,8 @@ export default function ReportsPage() {
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
   const [includeVisitors, setIncludeVisitors] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
 
   // Filtering Logic
   const {
@@ -75,6 +73,24 @@ export default function ReportsPage() {
     selectedFields,
     members,
   });
+
+  const handleExportPDF = async () => {
+    try {
+      setIsExportingPDF(true);
+      await exportPDF(); // your existing export function
+    } finally {
+      setIsExportingPDF(false);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      setIsExportingExcel(true);
+      await exportExcel(); // your existing export function
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
 
   // Auto-select latest year when timeFrame changes
   useEffect(() => {
@@ -115,12 +131,36 @@ export default function ReportsPage() {
         subtitle="Select a report type below."
       />
       <div className="flex justify-end gap-2">
-        <Button onClick={exportPDF} size="sm" className="min-w-[80px]">
-          PDF
+        <Button
+          onClick={handleExportPDF}
+          size="sm"
+          className="min-w-[80px]"
+          disabled={isExportingPDF || isExportingExcel}
+        >
+          {isExportingPDF ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              PDF
+            </>
+          ) : (
+            "PDF"
+          )}
         </Button>
 
-        <Button onClick={exportExcel} size="sm" className="min-w-[80px]">
-          Excel
+        <Button
+          onClick={handleExportExcel}
+          size="sm"
+          className="min-w-[80px]"
+          disabled={isExportingPDF || isExportingExcel}
+        >
+          {isExportingExcel ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Excel
+            </>
+          ) : (
+            "Excel"
+          )}
         </Button>
       </div>
       <div className="flex flex-col lg:flex-row gap-6">
@@ -161,19 +201,6 @@ export default function ReportsPage() {
                 members={filteredMembers}
                 selectedFields={selectedFields}
               />
-
-              {/* EXPORT ACTIONS */}
-              {/* <div className="flex gap-2">
-                <Button onClick={exportPDF} className="w-full">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Export PDF
-                </Button>
-
-                <Button onClick={exportExcel} variant="outline" className="w-full">
-                  <Sheet className="h-4 w-4 mr-2" />
-                  Export Excel
-                </Button>
-              </div> */}
             </>
           )}
 
@@ -184,18 +211,6 @@ export default function ReportsPage() {
                 contributions={filteredContributions}
                 members={members}
               />
-
-              {/* <div className="flex gap-2">
-                <Button onClick={exportPDF} className="w-full">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Export PDF
-                </Button>
-
-                <Button onClick={exportExcel} variant="outline" className="w-full">
-                  <Sheet className="h-4 w-4 mr-2" />
-                  Export Excel
-                </Button>
-              </div> */}
             </>
           )}
 
@@ -206,18 +221,6 @@ export default function ReportsPage() {
                 attendance={filteredAttendance}
                 members={members}
               />
-
-              {/* <div className="flex gap-2">
-                <Button onClick={exportPDF} className="w-full">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Export PDF
-                </Button>
-
-                <Button onClick={exportExcel} variant="outline" className="w-full">
-                  <Sheet className="h-4 w-4 mr-2" />
-                  Export Excel
-                </Button>
-              </div> */}
             </>
           )}
 
