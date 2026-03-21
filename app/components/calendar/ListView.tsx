@@ -1,7 +1,11 @@
+"use client";
+
 import * as React from "react";
 import { format } from "date-fns";
 import type { Event } from "@/app/lib/types";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
+import { usePreviewPagination } from "@/app/hooks/usePreviewPagination";
+import { PreviewPaginationFooter } from "@/app/components/layout/PreviewPaginationFooter";
 
 export function ListView({
   events,
@@ -9,8 +13,8 @@ export function ListView({
 }: {
   events: Event[];
   onEdit?: (event: Event) => void;
-  onDeleteRequest?: (id: string) => void;
 }) {
+  // GROUP EVENTS BY DAY
   const grouped = React.useMemo(() => {
     const map = new Map<string, Event[]>();
 
@@ -24,6 +28,17 @@ export function ListView({
     return Array.from(map.entries());
   }, [events]);
 
+  // PAGINATION — 20 groups per page
+  const {
+    page,
+    totalPages,
+    start,
+    end,
+    total,
+    setPage,
+    visible
+  } = usePreviewPagination(grouped, 20);
+
   return (
     <Card>
       <CardHeader>
@@ -31,9 +46,11 @@ export function ListView({
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {grouped.map(([day, evts]) => (
+        {visible.map(([day, evts]) => (
           <div key={day}>
-            <h3 className="font-semibold mb-2">{format(new Date(day), "PPP")}</h3>
+            <h3 className="font-semibold mb-2">
+              {format(new Date(day), "PPP")}
+            </h3>
 
             <ul className="space-y-2">
               {evts.map((e) => (
@@ -50,15 +67,27 @@ export function ListView({
                   <div>
                     <div className="font-medium">{e.title}</div>
                     {e.description && (
-                      <div className="text-sm text-muted-foreground">{e.description}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {e.description}
+                      </div>
                     )}
                   </div>
-
                 </li>
               ))}
             </ul>
           </div>
         ))}
+
+        {/* Unified footer */}
+        <PreviewPaginationFooter
+          start={start}
+          end={end}
+          total={total}
+          page={page}
+          totalPages={totalPages}
+          setPage={setPage}
+          label="event days"
+        />
       </CardContent>
     </Card>
   );
