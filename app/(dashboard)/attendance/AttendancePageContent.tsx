@@ -4,12 +4,10 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { format } from "date-fns";
 import Flatpickr from "react-flatpickr";
-
 import { PageHeader } from "@/app/components/page-header";
 import { Fab } from "@/app/components/ui/fab";
 import { Input } from "@/app/components/ui/input";
 import { Button } from "@/app/components/ui/button";
-
 import {
   Dialog,
   DialogTrigger,
@@ -19,16 +17,14 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/app/components/ui/dialog";
-
 import { useChurchId } from "@/app/hooks/useChurchId";
-import { useUserRoles } from "@/app/hooks/useUserRoles";
 import { useMembers } from "@/app/hooks/useMembers";
 import { useAttendance } from "@/app/hooks/useAttendance";
 import { useToast } from "@/app/hooks/use-toast";
-
 import { QRCodeCanvas } from "qrcode.react";
 import { AttendanceGrid } from "@/app/components/attendance/AttendanceGrid";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
+import { Card, CardContent } from "@/app/components/ui/card";
+import { useCan } from "@/app/hooks/useCan";
 
 export default function AttendancePageContent() {
   const searchParams = useSearchParams();
@@ -42,13 +38,19 @@ export default function AttendancePageContent() {
   const initialDate = urlDate ? parseLocalDate(urlDate) : new Date();
   const [date, setDate] = useState(initialDate);
   const dateString = format(date, "yyyy-MM-dd");
+
   const router = useRouter();
   const { toast } = useToast();
   const { churchId } = useChurchId();
+
   const [visitorName, setVisitorName] = useState("");
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
   const [qrLoading, setQrLoading] = useState(false);
+
+  // PERMISSIONS
+  const canView = useCan("attendance.read");
+  const canEdit = useCan("attendance.manage");
 
   // MODE LOGIC
   const correcting = searchParams.get("correcting") === "true";
@@ -61,10 +63,6 @@ export default function AttendancePageContent() {
     : isToday
     ? "today"
     : "history";
-
-  // ROLES
-  const { isAdmin, isAttendanceManager, loading: rolesLoading } =
-    useUserRoles(churchId);
 
   // MEMBERS (LIVE)
   const { members, loading: membersLoading } = useMembers();
@@ -83,7 +81,7 @@ export default function AttendancePageContent() {
     membersSnapshot,
   } = useAttendance(churchId, members, dateString, effectiveEditable);
 
-  const loading = rolesLoading || membersLoading || attendanceLoading;
+  const loading = membersLoading || attendanceLoading;
 
   // EFFECTIVE MEMBERS (LIVE or SNAPSHOT)
   const effectiveMembers =
@@ -173,12 +171,12 @@ export default function AttendancePageContent() {
     );
   }
 
-  if (!isAdmin && !isAttendanceManager) {
+  if (!canView) {
     return (
       <div className="p-6">
         <PageHeader title="Attendance" subtitle={dateString} />
         <p className="text-muted-foreground">
-          You do not have permission to manage attendance.
+          You do not have permission to view attendance.
         </p>
       </div>
     );
@@ -258,10 +256,12 @@ export default function AttendancePageContent() {
       {mode !== "history" && (
         <Card className="border border-white/10 bg-white/5 backdrop-blur-sm mb-4">
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-4">
+
+            {/* GENERATE QR */}
             <Button
-              onClick={handleGenerateQr}
+              onClick={() => canEdit && handleGenerateQr()}
               variant="default"
-              disabled={qrLoading}
+              disabled={!canEdit || qrLoading}
               className="w-full flex flex-col items-center justify-center text-center 
                 bg-yellow-700/80 hover:bg-yellow-900/80 active:bg-yellow-950/80
                 gap-1 transition-colors"
@@ -271,10 +271,12 @@ export default function AttendancePageContent() {
               </span>
             </Button>
 
+            {/* ADD VISITOR */}
             <Dialog>
               <DialogTrigger asChild>
                 <Button
                   variant="default"
+                  disabled={!canEdit}
                   className="w-full flex flex-col items-center justify-center text-center 
                     bg-cyan-700/80 hover:bg-cyan-900/80 active:bg-cyan-950/80
                     gap-1 transition-colors"
@@ -293,11 +295,14 @@ export default function AttendancePageContent() {
                   value={visitorName}
                   onChange={(e) => setVisitorName(e.target.value)}
                   className="bg-black/40 text-white"
+                  disabled={!canEdit}
                 />
 
                 <DialogFooter>
                   <Button
+                    disabled={!canEdit}
                     onClick={() => {
+                      if (!canEdit) return;
                       if (!visitorName.trim()) return;
 
                       const id = `visitor-${Date.now()}`;
@@ -321,9 +326,11 @@ export default function AttendancePageContent() {
               </DialogContent>
             </Dialog>
 
+            {/* MARK ALL PRESENT */}
             <Button
-              onClick={() => markAllPresent(effectiveMembers, visitors)}
+              onClick={() => canEdit && markAllPresent(effectiveMembers, visitors)}
               variant="default"
+              disabled={!canEdit}
               className="w-full flex flex-col items-center justify-center text-center 
                 bg-green-700/80 hover:bg-green-900/80 active:bg-green-950/80
                 gap-1 transition-colors"
@@ -331,21 +338,24 @@ export default function AttendancePageContent() {
               <span className="text-sm text-white/80">Mark All Present</span>
             </Button>
 
+            {/* MARK ALL ABSENT */}
             <Button
-              onClick={() => markAllAbsent(effectiveMembers, visitors)}
+              onClick={() => canEdit && markAllAbsent(effectiveMembers, visitors)}
               variant="default"
+              disabled={!canEdit}
               className="w-full flex flex-col items-center justify-center text-center
                 bg-red-700/80 hover:bg-red-900/80 active:bg-red-950/80
                 gap-1 transition-colors"
             >
               <span className="text-sm text-white/80">Mark All Absent</span>
             </Button>
+
           </CardContent>
         </Card>
       )}
 
       {/* CORRECT THIS DATE BUTTON */}
-      {mode === "history" && (
+      {mode === "history" && canEdit && (
         <Button
           onClick={() =>
             router.push(`/attendance?date=${selectedString}&correcting=true`)
@@ -356,30 +366,33 @@ export default function AttendancePageContent() {
         </Button>
       )}
 
-      {/* LINE SEPARATOR */}
-      {/* <div className="w-full h-px bg-white/20 shadow-[0_0_4px_rgba(255,255,255,0.1)]" /> */}
-
       {/* TEXT-ONLY CARDS */}
       <AttendanceGrid
         members={sortedMembers}
         visitors={sortedVisitors}
         records={records}
         mode={mode}
-        onToggle={(id) =>
+        canEdit={canEdit}
+        onToggle={(id) => {
+          if (!canEdit) return;
           setRecords((prev) => ({
             ...prev,
             [id]: !prev[id],
-          }))
-        }
-        onRemoveVisitor={(id) =>
-          setVisitors((prev) => prev.filter((v) => v.id !== id))
-        }
+          }));
+        }}
+        onRemoveVisitor={(id) => {
+          if (!canEdit) return;
+          setVisitors((prev) => prev.filter((v) => v.id !== id));
+        }}
       />
 
       {/* SAVE BUTTON */}
       {mode !== "history" && (
         <Fab
+          disabled={!canEdit}
           onClick={async () => {
+            if (!canEdit) return;
+
             await save();
 
             if (mode === "correction") {

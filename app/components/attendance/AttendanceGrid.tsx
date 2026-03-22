@@ -4,7 +4,7 @@ type MemberLike = {
   id: string;
   firstName?: string;
   lastName?: string;
-  name?: string; // for visitors
+  name?: string;
 };
 
 type AttendanceGridProps = {
@@ -12,6 +12,7 @@ type AttendanceGridProps = {
   visitors: { id: string; name: string }[];
   records: Record<string, boolean>;
   mode: "today" | "history" | "correction";
+  canEdit: boolean; // ← added
   onToggle: (id: string) => void;
   onRemoveVisitor: (id: string) => void;
 };
@@ -21,6 +22,7 @@ export function AttendanceGrid({
   visitors,
   records,
   mode,
+  canEdit,
   onToggle,
   onRemoveVisitor,
 }: AttendanceGridProps) {
@@ -45,6 +47,7 @@ export function AttendanceGrid({
             isVisitor={isVisitor}
             present={present}
             mode={mode}
+            canEdit={canEdit}
             onToggle={onToggle}
             onRemoveVisitor={isVisitor ? onRemoveVisitor : undefined}
           />

@@ -8,6 +8,7 @@ type AttendanceCardProps = {
   isVisitor: boolean;
   present: boolean;
   mode: "today" | "history" | "correction";
+  canEdit: boolean;
   onToggle: (id: string) => void;
   onRemoveVisitor?: (id: string) => void;
 };
@@ -18,10 +19,13 @@ export function AttendanceCard({
   isVisitor,
   present,
   mode,
+  canEdit,
   onToggle,
   onRemoveVisitor,
 }: AttendanceCardProps) {
+
   const readOnly = mode === "history";
+  const editable = canEdit && !readOnly;
 
   return (
     <Card
@@ -38,18 +42,19 @@ export function AttendanceCard({
             ? "bg-green-700/80 border border-green-500/20"
             : "bg-red-700/80 border border-red-500/20",
 
-        readOnly && "cursor-default opacity-80"
+        !editable && "cursor-default opacity-80"
       )}
       onClick={() => {
-        if (readOnly) return;
+        if (!editable) return;
         onToggle(id);
       }}
     >
       {/* Visitor delete button */}
-      {isVisitor && !readOnly && onRemoveVisitor && (
+      {isVisitor && editable && onRemoveVisitor && (
         <button
           onClick={(e) => {
             e.stopPropagation();
+            if (!editable) return;
             onRemoveVisitor(id);
           }}
           className="
