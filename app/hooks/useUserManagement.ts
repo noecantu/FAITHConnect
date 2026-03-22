@@ -12,7 +12,7 @@ import {
 } from 'firebase/firestore';
 
 import { useToast } from '@/app/hooks/use-toast';
-import { Role } from '@/app/lib/roles';
+import { Role } from '@/app/lib/auth/permissions/roles';
 import { User, Mode } from '@/app/lib/types';
 
 export function useUserManagement(churchId: string | null) {

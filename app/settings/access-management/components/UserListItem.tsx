@@ -1,6 +1,6 @@
 'use client';
 
-import { ROLE_MAP } from '@/app/lib/roles';
+import { ROLE_MAP } from '@/app/lib/auth/permissions/roles';
 import type { User } from '@/app/lib/types';
 
 interface Props {

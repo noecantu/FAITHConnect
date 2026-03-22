@@ -16,7 +16,7 @@ import { Checkbox } from "@/app/components/ui/checkbox";
 import { useToast } from "@/app/hooks/use-toast";
 
 // Reuse your existing role definitions
-import { ROLE_MAP, ALL_ROLES } from '@/app/lib/roles';
+import { ROLE_MAP, ALL_ROLES } from '@/app/lib/auth/permissions/roles';
 
 export default function AddUserPage() {
   const params = useParams();

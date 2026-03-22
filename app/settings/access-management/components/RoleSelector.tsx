@@ -2,7 +2,7 @@
 
 import { Checkbox } from '@/app/components/ui/checkbox';
 import { Label } from '@/app/components/ui/label';
-import { ALL_ROLES, ROLE_MAP, Role } from '@/app/lib/roles';
+import { ALL_ROLES, ROLE_MAP, Role } from '@/app/lib/auth/permissions/roles';
 
 interface Props {
   selectedRoles: Role[];

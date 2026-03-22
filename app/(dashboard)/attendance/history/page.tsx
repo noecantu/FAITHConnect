@@ -9,7 +9,6 @@ import { AttendanceChart } from '@/app/components/attendance/attendance-chart';
 import { deleteAttendanceDay } from '@/app/lib/attendance';
 import { Button } from '@/app/components/ui/button';
 import { useRouter } from "next/navigation";
-
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -19,7 +18,6 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
 } from '@/app/components/ui/alert-dialog';
-
 import { Trash } from 'lucide-react';
 import { useAttendanceFilters } from '@/app/hooks/useAttendanceFilters';
 import { AttendanceHistoryControls } from '@/app/components/attendance/AttendanceHistoryControls';
@@ -29,8 +27,7 @@ import { usePreviewPagination } from "@/app/hooks/usePreviewPagination";
 import { PreviewPaginationFooter } from "@/app/components/layout/PreviewPaginationFooter";
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
-import { cn } from '@/app/lib/utils';
-import { Label } from "@/app/components/ui/label";
+import { useCan } from "@/app/hooks/useCan";
 
 // --------------------------------------------------
 // Page Component
@@ -40,13 +37,14 @@ export default function AttendanceHistoryPage() {
   const { data, loading, refresh } = useAttendanceHistory(churchId);
   const router = useRouter();
   const [chartMode, setChartMode] = useState<"line" | "stacked">("line");
+  const canView = useCan("attendance.read");
+  const canDelete = useCan("attendance.manage");
 
   // Summaries (one per date)
   const summary = summarizeAttendance(data);
 
   // MUST be above any conditional return
   const filters = useAttendanceFilters(summary);
-
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const {
@@ -64,6 +62,15 @@ export default function AttendanceHistoryPage() {
       <div className="p-6">
         <PageHeader title="Attendance History" />
         <p className="text-muted-foreground">Loading attendance history…</p>
+      </div>
+    );
+  }
+
+  if (!canView) {
+    return (
+      <div className="p-6">
+        <PageHeader title="Attendance History" />
+        <p className="text-muted-foreground">You do not have permission to view attendance.</p>
       </div>
     );
   }
@@ -137,13 +144,14 @@ export default function AttendanceHistoryPage() {
                     {/* delete dialog */}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          className="h-8 px-3 text-red-800 hover:text-red-600"
-                          onClick={() => setDeleteTarget(s.dateString)}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
+                       <Button
+                        variant="ghost"
+                        className="h-8 px-3 text-red-800 hover:text-red-600"
+                        disabled={!canDelete}
+                        onClick={() => canDelete && setDeleteTarget(s.dateString)}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
                       </AlertDialogTrigger>
 
                       <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
@@ -168,6 +176,7 @@ export default function AttendanceHistoryPage() {
                               variant="destructive"
                               className="w-full"
                               onClick={async () => {
+                                if (!canDelete) return;
                                 if (!deleteTarget || !churchId) return;
                                 await deleteAttendanceDay(churchId, deleteTarget);
                                 setDeleteTarget(null);
