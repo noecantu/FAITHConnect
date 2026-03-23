@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { doc, getDoc, Timestamp } from "firebase/firestore";
 import { db } from "@/app/lib/firebase";
 import { useChurchId } from "@/app/hooks/useChurchId";
-import MemberForm from "../../components/MemberForm";
+import MemberForm from "@/app/components/members/MemberForm";
 import type { Member } from "@/app/lib/types";
 
 export default function EditMemberPage() {

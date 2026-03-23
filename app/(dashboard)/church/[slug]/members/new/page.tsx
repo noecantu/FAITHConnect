@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useChurchId } from "@/app/hooks/useChurchId";
-import MemberForm from "../components/MemberForm";
+import MemberForm from "@/app/components/members/MemberForm";
 
 export default function NewMemberPage() {
   const router = useRouter();
