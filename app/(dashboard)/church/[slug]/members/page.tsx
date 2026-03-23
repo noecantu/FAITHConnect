@@ -94,7 +94,8 @@ export default function MembersPage() {
     <>
       {/* HEADER */}
       <PageHeader title="Members" subtitle={statusSummary}>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap justify-end items-center gap-4 w-full">
+
           {/* View Selector */}
           <RadioGroup
             value={cardView}

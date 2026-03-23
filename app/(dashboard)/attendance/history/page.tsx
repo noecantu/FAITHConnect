@@ -217,14 +217,11 @@ export default function AttendanceHistoryPage() {
   return (
     <>
       {/* HEADER (matches Contributions) */}
-      <PageHeader
-        title="Attendance History"
-        subtitle={summaryText}
-      >
-        <div className="flex flex-col gap-4 items-end">
+      <PageHeader title="Attendance History" subtitle={summaryText}>
+        <div className="flex flex-col gap-4 items-end sm:items-end">
 
           {/* Breakdown Controls */}
-          <div className="flex items-center gap-4 mt-2">
+          <div className="flex flex-wrap justify-end items-center gap-4 mt-2 w-full">
             <span className="text-sm font-medium text-muted-foreground">
               Breakdown:
             </span>
@@ -252,7 +249,7 @@ export default function AttendanceHistoryPage() {
           </div>
 
           {/* Dynamic Dropdowns */}
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap justify-end items-center gap-4 w-full">
 
             {/* Year */}
             <Select value={selectedYear ?? ""} onValueChange={setSelectedYear}>

@@ -107,23 +107,22 @@ export default function CalendarPage() {
         title="Calendar of Events"
         subtitle="Select a date to view or add events."
       >
-        {/* View Selector — added back here, Members-style */}
-        <div className="flex items-center gap-4">
-            <RadioGroup
-              value={view.view}
-              onValueChange={async (v: "calendar" | "list") => {
-                view.setView(v);
+        <div className="flex flex-wrap justify-end items-center gap-4 w-full">
 
-                // Save to Firestore
-                if (user?.id) {
-                  await updateDoc(doc(db, "users", user.id), {
-                    "settings.calendarView": v,
-                    updatedAt: serverTimestamp(),
-                  });
-                }
-              }}
-              className="flex items-center gap-4"
-            >
+          <RadioGroup
+            value={view.view}
+            onValueChange={async (v: "calendar" | "list") => {
+              view.setView(v);
+
+              if (user?.id) {
+                await updateDoc(doc(db, "users", user.id), {
+                  "settings.calendarView": v,
+                  updatedAt: serverTimestamp(),
+                });
+              }
+            }}
+            className="flex items-center gap-4"
+          >
             <div className="flex items-center gap-1">
               <RadioGroupItem value="calendar" id="view-calendar" />
               <label htmlFor="view-calendar" className="text-sm">Calendar</label>
@@ -134,6 +133,7 @@ export default function CalendarPage() {
               <label htmlFor="view-list" className="text-sm">List</label>
             </div>
           </RadioGroup>
+
         </div>
       </PageHeader>
 
