@@ -98,7 +98,7 @@ export function MemberInfoSection({ form }: Props) {
           <FormField
             control={form.control}
             name="phoneNumber"
-            render={() => (
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>
                   Phone <span className="text-destructive">*</span>
@@ -107,6 +107,7 @@ export function MemberInfoSection({ form }: Props) {
                   <Input
                     value={phone.display}
                     onChange={(e) => phone.handleChange(e.target.value)}
+                    onBlur={field.onBlur}
                     inputMode="numeric"
                     placeholder="(915) 123‑4567"
                   />

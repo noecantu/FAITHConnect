@@ -17,6 +17,7 @@ import { usePhotoCapture } from "@/app/hooks/usePhotoCapture";
 import QRCode from "qrcode";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { storage } from "@/app/lib/firebase";
+import { generateCheckInCode } from "@/app/lib/utils/generateCheckInCode";
 
 import {
   DropdownMenu,
@@ -173,18 +174,6 @@ function MemberFabMenu({
       )}
     </>
   );
-}
-
-/* -------------------------------------------------------
-   UTILS
-------------------------------------------------------- */
-function generateCheckInCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
-  for (let i = 0; i < 6; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return code;
 }
 
 /* -------------------------------------------------------

@@ -11,6 +11,7 @@ import { Button } from "@/app/components/ui/button";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase";
 import { toast } from "@/app/hooks/use-toast";
+import { generateCheckInCode } from "@/app/lib/utils/generateCheckInCode";
 
 export function CheckInCodeSection({
   member,
@@ -22,7 +23,7 @@ export function CheckInCodeSection({
   const [code, setCode] = useState(member.checkInCode ?? "");
 
   async function regenerate() {
-    const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const newCode = generateCheckInCode();
 
     await updateDoc(
       doc(db, "churches", churchId, "members", member.id),

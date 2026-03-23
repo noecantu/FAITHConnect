@@ -24,9 +24,9 @@ export function usePhoneInput(initial?: string) {
   }, []);
 
   return {
-    digits,        // raw "9151234567"
-    display,       // formatted "(915) 123‑4567"
-    handleChange,  // call this in onChange
-    setDigits,     // optional: manual override
+    digits,
+    display,
+    handleChange,
+    setDigits,
   };
 }
