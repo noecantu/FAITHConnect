@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { PageHeader } from '@/app/components/page-header';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useAttendanceHistory } from '@/app/hooks/useAttendanceHistory';
