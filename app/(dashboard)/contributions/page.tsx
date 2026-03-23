@@ -33,7 +33,6 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/app/components/ui/select';
-import { Button } from '@/app/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
 
 // ------------------------------
@@ -195,7 +194,7 @@ export default function ContributionsPage() {
         subtitle={summaryText}
         className="mb-2"
       >
-        <div className="flex flex-col gap-4 items-end">
+        <div className="flex flex-col gap-4">
 
           {/* Breakdown Controls */}
           <div className="flex flex-wrap justify-end items-center gap-4 mt-2 w-full">
