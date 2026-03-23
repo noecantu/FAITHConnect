@@ -5,8 +5,8 @@ import type { Contribution } from '@/app/lib/types';
 export function getContributionSummaryText(
   contributions: Contribution[],
   timeFrame: "year" | "month" | "week",
-  selectedYear: string | null,
-  selectedMonth: string | null,
+  selectedYear: number | null,
+  selectedMonth: number | null,
   selectedWeek: number | null
 ) {
   const total = contributions.reduce((t, c) => t + Number(c.amount), 0);
@@ -21,26 +21,26 @@ export function getContributionSummaryText(
     return `Total Contributions: ${formatted}`;
   }
 
-  // YEAR SUMMARY
+  // YEAR
   if (timeFrame === "year") {
     return `Total Contributions for ${selectedYear}: ${formatted}`;
   }
 
-  // MONTH SUMMARY
+  // MONTH
   if (timeFrame === "month") {
     if (!selectedMonth) {
       return `Total Contributions for ${selectedYear}: ${formatted}`;
     }
 
-    const monthName = new Date(
-      Number(selectedYear),
-      Number(selectedMonth) - 1
-    ).toLocaleString("default", { month: "long" });
+    const monthName = new Date(selectedYear, selectedMonth - 1).toLocaleString(
+      "default",
+      { month: "long" }
+    );
 
     return `Total Contributions for ${monthName} ${selectedYear}: ${formatted}`;
   }
 
-  // WEEK SUMMARY
+  // WEEK
   if (timeFrame === "week") {
     if (!selectedWeek) {
       return `Total Contributions for ${selectedYear}: ${formatted}`;

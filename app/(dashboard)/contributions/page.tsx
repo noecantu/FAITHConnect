@@ -7,23 +7,18 @@ import {
   CardTitle,
   CardContent,
 } from '@/app/components/ui/card';
-
 import { ContributionChart } from '@/app/components/contributions/ContributionChart';
 import { ContributionsTable } from '@/app/components/contributions/ContributionsTable';
 import { getColumns } from '@/app/components/contributions/Columns';
 import { EditContributionDialog } from '@/app/components/contributions/EditContributionDialog';
 import { AddContributionDialog } from '@/app/components/contributions/AddContributionDialog';
 import { getContributionSummaryText } from "@/app/components/contributions/ContributionSummary";
-
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { listenToContributions } from '@/app/lib/contributions';
 import { listenToMembers } from '@/app/lib/members';
 import { useUserRoles } from '@/app/hooks/useUserRoles';
-
 import type { Contribution, Member } from '@/app/lib/types';
-
 import { useEffect, useMemo, useState } from 'react';
 import { Fab } from '@/app/components/ui/fab';
 import {
@@ -34,6 +29,8 @@ import {
   SelectValue
 } from '@/app/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
+import { useContributionHistorySettings } from "@/app/hooks/useContributionHistorySettings";
+import { useAuth } from "@/app/hooks/useAuth";
 
 // ------------------------------
 // Page Component
@@ -47,19 +44,9 @@ export default function ContributionsPage() {
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-
   const [selected, setSelected] = useState<Contribution | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
   const { isFinance } = useUserRoles(churchId);
-
-  // ------------------------------
-  // Breakdown controls
-  // ------------------------------
-  const [timeFrame, setTimeFrame] = useState<"year" | "month" | "week">("year");
-  const [selectedYear, setSelectedYear] = useState<string | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
-  const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
 
   // ------------------------------
   // Effects (must be above conditional return)
@@ -80,6 +67,19 @@ export default function ContributionsPage() {
   // Columns
   // ------------------------------
   const columns = useMemo(() => getColumns(), []);
+  const { user } = useAuth();
+
+  const {
+    breakdown: timeFrame,
+    year: selectedYear,
+    month: selectedMonth,
+    week: selectedWeek,
+
+    setBreakdownPersisted,
+    setYearPersisted,
+    setMonthPersisted,
+    setWeekPersisted,
+  } = useContributionHistorySettings(user);
 
   // ------------------------------
   // Available Years
@@ -204,7 +204,7 @@ export default function ContributionsPage() {
 
             <RadioGroup
               value={timeFrame}
-              onValueChange={(v) => setTimeFrame(v as "year" | "month" | "week")}
+              onValueChange={(v) => setBreakdownPersisted(v as "year" | "month" | "week")}
               className="flex items-center gap-4"
             >
               <div className="flex items-center gap-1">
@@ -228,7 +228,10 @@ export default function ContributionsPage() {
           <div className="flex flex-wrap justify-end items-center gap-4 w-full">
 
             {/* Year */}
-            <Select value={selectedYear ?? ""} onValueChange={setSelectedYear}>
+            <Select
+              value={selectedYear ? String(selectedYear) : ""}
+              onValueChange={(v) => setYearPersisted(Number(v))}
+            >
               <SelectTrigger className="w-[140px] h-9">
                 <SelectValue placeholder="Year" />
               </SelectTrigger>
@@ -243,7 +246,10 @@ export default function ContributionsPage() {
 
             {/* Month */}
             {timeFrame === "month" && (
-              <Select value={selectedMonth ?? ""} onValueChange={setSelectedMonth}>
+              <Select
+                value={selectedMonth ? String(selectedMonth) : ""}
+                onValueChange={(v) => setMonthPersisted(Number(v))}
+              >
                 <SelectTrigger className="w-[140px] h-9">
                   <SelectValue placeholder="Month" />
                 </SelectTrigger>
@@ -262,8 +268,8 @@ export default function ContributionsPage() {
             {/* Week */}
             {timeFrame === "week" && (
               <Select
-                value={selectedWeek?.toString() ?? ""}
-                onValueChange={(v) => setSelectedWeek(Number(v))}
+                value={selectedWeek ? String(selectedWeek) : ""}
+                onValueChange={(v) => setWeekPersisted(Number(v))}
               >
                 <SelectTrigger className="w-[140px] h-9">
                   <SelectValue placeholder="Week" />

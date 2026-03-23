@@ -292,6 +292,12 @@ export interface User {
       month?: number | null;
       week?: number | null;
     };
+    contributionsHistory?: {
+      breakdown?: "year" | "month" | "week";
+      year?: number | null;
+      month?: number | null;
+      week?: number | null;
+    };
   };
 }
 
