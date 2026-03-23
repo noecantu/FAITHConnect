@@ -101,7 +101,6 @@ export default function CalendarPage() {
 
   return (
     <>
-
       {/* PAGE HEADER — unchanged except for radio buttons */}
       <PageHeader
         title="Calendar of Events"

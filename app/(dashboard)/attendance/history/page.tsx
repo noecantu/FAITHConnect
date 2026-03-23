@@ -10,6 +10,7 @@ import { AttendanceStackedChart } from '@/app/components/attendance/attendance-s
 import { deleteAttendanceDay } from '@/app/lib/attendance';
 import { useRouter } from "next/navigation";
 import { Button } from '@/app/components/ui/button';
+
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -32,14 +33,17 @@ import { useCan } from '@/app/hooks/useCan';
 import { AttendanceSummaryItem } from '@/app/lib/types';
 import { TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 
+import { useAttendanceHistorySettings } from '@/app/hooks/useAttendanceHistorySettings';
+import { useAuth } from '@/app/hooks/useAuth';
+
 // --------------------------------------------------
 // Helper: Summary Text (mirrors Contributions summary)
 // --------------------------------------------------
 function getAttendanceSummaryText(
   list: AttendanceSummaryItem[],
   timeFrame: "year" | "month" | "week",
-  year: string | null,
-  month: string | null,
+  year: number | null,
+  month: number | null,
   week: number | null
 ): string {
   if (!list.length) return "No attendance records";
@@ -73,8 +77,9 @@ function getAttendanceSummaryText(
 export default function AttendanceHistoryPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
-  const { data, loading, refresh } = useAttendanceHistory(churchId);
+  const { user } = useAuth();
 
+  const { data, loading, refresh } = useAttendanceHistory(churchId);
   const canView = useCan("attendance.read");
   const canDelete = useCan("attendance.manage");
 
@@ -84,12 +89,19 @@ export default function AttendanceHistoryPage() {
   const summary = summarizeAttendance(data);
 
   // ------------------------------
-  // Breakdown controls (match Contributions)
+  // Persisted Breakdown Settings
   // ------------------------------
-  const [timeFrame, setTimeFrame] = useState<"year" | "month" | "week">("year");
-  const [selectedYear, setSelectedYear] = useState<string | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
-  const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
+  const {
+    breakdown: timeFrame,
+    year: selectedYear,
+    month: selectedMonth,
+    week: selectedWeek,
+
+    setBreakdownPersisted,
+    setYearPersisted,
+    setMonthPersisted,
+    setWeekPersisted,
+  } = useAttendanceHistorySettings(user);
 
   // ------------------------------
   // Available Years
@@ -137,7 +149,7 @@ export default function AttendanceHistoryPage() {
   }, [summary, selectedYear]);
 
   // ------------------------------
-  // Filtered Attendance (match Contributions filtering)
+  // Filtered Attendance
   // ------------------------------
   const filteredAttendance = useMemo(() => {
     let list = [...summary];
@@ -210,7 +222,6 @@ export default function AttendanceHistoryPage() {
       </>
     );
   }
-
   // --------------------------------------------------
   // Render
   // --------------------------------------------------
@@ -218,7 +229,7 @@ export default function AttendanceHistoryPage() {
     <>
       {/* HEADER (matches Contributions) */}
       <PageHeader title="Attendance History" subtitle={summaryText}>
-        <div className="flex flex-col gap-4 items-end sm:items-end">
+        <div className="flex flex-col gap-4 w-full">
 
           {/* Breakdown Controls */}
           <div className="flex flex-wrap justify-end items-center gap-4 mt-2 w-full">
@@ -228,7 +239,9 @@ export default function AttendanceHistoryPage() {
 
             <RadioGroup
               value={timeFrame}
-              onValueChange={(v) => setTimeFrame(v as "year" | "month" | "week")}
+              onValueChange={(v) =>
+                setBreakdownPersisted(v as "year" | "month" | "week")
+              }
               className="flex items-center gap-4"
             >
               <div className="flex items-center gap-1">
@@ -252,7 +265,10 @@ export default function AttendanceHistoryPage() {
           <div className="flex flex-wrap justify-end items-center gap-4 w-full">
 
             {/* Year */}
-            <Select value={selectedYear ?? ""} onValueChange={setSelectedYear}>
+            <Select
+              value={selectedYear ? String(selectedYear) : ""}
+              onValueChange={(v) => setYearPersisted(Number(v))}
+            >
               <SelectTrigger className="w-[140px] h-9">
                 <SelectValue placeholder="Year" />
               </SelectTrigger>
@@ -267,7 +283,10 @@ export default function AttendanceHistoryPage() {
 
             {/* Month */}
             {timeFrame === "month" && (
-              <Select value={selectedMonth ?? ""} onValueChange={setSelectedMonth}>
+             <Select
+              value={selectedMonth ? String(selectedMonth) : ""}
+              onValueChange={(v) => setMonthPersisted(Number(v))}
+            >
                 <SelectTrigger className="w-[140px] h-9">
                   <SelectValue placeholder="Month" />
                 </SelectTrigger>
@@ -286,8 +305,8 @@ export default function AttendanceHistoryPage() {
             {/* Week */}
             {timeFrame === "week" && (
               <Select
-                value={selectedWeek?.toString() ?? ""}
-                onValueChange={(v) => setSelectedWeek(Number(v))}
+                value={selectedMonth ? String(selectedMonth) : ""}
+                onValueChange={(v) => setWeekPersisted(Number(v))}
               >
                 <SelectTrigger className="w-[140px] h-9">
                   <SelectValue placeholder="Week" />
@@ -418,7 +437,6 @@ export default function AttendanceHistoryPage() {
           />
         </CardContent>
       </Card>
-
     </>
   );
 }

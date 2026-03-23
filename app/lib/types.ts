@@ -282,10 +282,16 @@ export interface User {
   profilePhotoUrl?: string;
   settings?: {
     attendanceView: "cards" | "list";
-    calendarView?: 'calendar' | 'list';
-    cardView?: 'show' | 'hide';
+    calendarView?: "calendar" | "list";
+    cardView?: "show" | "hide";
     fiscalYear?: string;
     songSort?: "title" | "artist" | "key" | "bpm";
+    attendanceHistory?: {
+      breakdown?: "year" | "month" | "week";
+      year?: number | null;
+      month?: number | null;
+      week?: number | null;
+    };
   };
 }
 
