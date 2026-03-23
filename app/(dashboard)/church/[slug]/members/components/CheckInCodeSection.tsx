@@ -12,7 +12,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase";
 import { toast } from "@/app/hooks/use-toast";
 
-export function PortalAccessSection({
+export function CheckInCodeSection({
   member,
   churchId,
 }: {
@@ -31,23 +31,29 @@ export function PortalAccessSection({
 
     setCode(newCode);
 
-    toast({ title: "Code Updated", description: "A new portal code has been generated." });
+    toast({
+      title: "Check‑In Code Updated",
+      description: "A new check‑in code has been generated.",
+    });
   }
 
   function copy() {
     navigator.clipboard.writeText(code);
-    toast({ title: "Copied", description: "The portal code has been copied." });
+    toast({
+      title: "Copied",
+      description: "The check‑in code has been copied.",
+    });
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl">Portal Access</CardTitle>
+        <CardTitle className="text-xl">Check‑In Code</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          This code allows the member to access their personal portal.
+          This code is used for Self Check‑In for Attendance purposes.
         </p>
 
         <div className="flex items-center gap-4">

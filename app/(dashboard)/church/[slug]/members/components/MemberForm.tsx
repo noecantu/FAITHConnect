@@ -44,7 +44,7 @@ import { useRouter } from "next/navigation";
 
 import { deleteMember } from "@/app/lib/deleteMember";
 import { addMember, updateMember } from "@/app/lib/members";
-import { PortalAccessSection } from "./PortalAccessSection";
+import { CheckInCodeSection } from "./CheckInCodeSection";
 
 /* -------------------------------------------------------
    FAB MENU COMPONENT
@@ -320,7 +320,7 @@ export default function MemberForm({
         />
 
         {isEditing && (
-          <PortalAccessSection member={member} churchId={churchId} />
+          <CheckInCodeSection member={member} churchId={churchId} />
         )}
       </form>
 
