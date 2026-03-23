@@ -10,10 +10,24 @@ interface SelfCheckInProps {
 }
 
 export default function SelfCheckIn({ church, date }: SelfCheckInProps) {
+  const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  function normalizePhone(value: string) {
+    return value.replace(/\D/g, "").slice(0, 10);
+  }
+
+  function formatPhoneInput(value: string) {
+    const digits = value.replace(/\D/g, "").slice(0, 10);
+
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -21,11 +35,24 @@ export default function SelfCheckIn({ church, date }: SelfCheckInProps) {
     setError("");
     setSuccess("");
 
+    const cleanPhone = normalizePhone(phone);
+    const cleanCode = code.trim().toUpperCase();
+
+    if (cleanPhone.length !== 10) {
+      setError("Please enter a valid 10‑digit phone number.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch(`/api/${church.id}/attendance/self-checkin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, date }),
+        body: JSON.stringify({
+          phone: cleanPhone,
+          code: cleanCode,
+          date,
+        }),
       });
 
       const data = await res.json();
@@ -39,12 +66,14 @@ export default function SelfCheckIn({ church, date }: SelfCheckInProps) {
       if (data.alreadyCheckedIn) {
         setSuccess("You’ve already checked in today.");
         setCode("");
+        setPhone("");
         setLoading(false);
         return;
       }
 
-      setSuccess("Check-in successful. Thank you!");
+      setSuccess("Check‑in successful. Thank you!");
       setCode("");
+      setPhone("");
       setLoading(false);
     } catch (_err) {
       setError("Something went wrong. Please try again.");
@@ -58,7 +87,6 @@ export default function SelfCheckIn({ church, date }: SelfCheckInProps) {
         
         {/* Logo */}
         <div className="flex justify-center mb-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/FAITH_CONNECT_FLAME_LOGO.svg"
             alt="Faith Connect Logo"
@@ -67,7 +95,7 @@ export default function SelfCheckIn({ church, date }: SelfCheckInProps) {
         </div>
 
         <h1 className="text-2xl font-semibold text-center mb-6">
-          Attendance Self Check-In
+          Attendance Self Check‑In
         </h1>
 
         {!date ? (
@@ -77,15 +105,32 @@ export default function SelfCheckIn({ church, date }: SelfCheckInProps) {
         ) : (
           <div className="px-4 pb-6">
             <form onSubmit={handleSubmit} className="space-y-8">
-              {/* Field Group */}
+
+              {/* Phone Number */}
               <div className="flex flex-col gap-3">
-                <label className="text-sm font-medium px-1">
-                  Check-In Code
-                </label>
+                <label className="text-sm font-medium px-1">Phone Number</label>
+                <Input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => {
+                    const formatted = formatPhoneInput(e.target.value);
+                    setPhone(formatted);
+                  }}
+                  placeholder="(555) 123‑4567"
+                  required
+                  className="px-4 py-3 text-base"
+                />
+              </div>
+
+              {/* Check-In Code */}
+              <div className="flex flex-col gap-3">
+                <label className="text-sm font-medium px-1">Check‑In Code</label>
                 <Input
                   type="text"
                   value={code}
-                  onChange={(e) => setCode(e.target.value.toUpperCase().trim())}
+                  onChange={(e) =>
+                    setCode(e.target.value.toUpperCase().trim())
+                  }
                   placeholder="Enter your code"
                   required
                   className="px-4 py-3 text-base"
@@ -94,11 +139,15 @@ export default function SelfCheckIn({ church, date }: SelfCheckInProps) {
 
               {/* Messages */}
               {error && (
-                <div className="text-red-500 text-center text-sm px-1">{error}</div>
+                <div className="text-red-500 text-center text-sm px-1">
+                  {error}
+                </div>
               )}
 
               {success && (
-                <div className="text-green-600 text-center text-sm px-1">{success}</div>
+                <div className="text-green-600 text-center text-sm px-1">
+                  {success}
+                </div>
               )}
 
               {/* Button */}

@@ -1,8 +1,6 @@
-import { db } from "@/app/lib/firebase";
-import { query, collection, where, getDocs } from "firebase/firestore";
 import SelfCheckIn from "./SelfCheckIn";
 import type { Church } from "@/app/lib/types";
-import type { DocumentData } from "firebase/firestore";
+import { adminDb } from "@/app/lib/firebase/firebaseAdmin";
 
 interface CheckInPageProps {
   params: Promise<{ churchId: string }>;
@@ -13,15 +11,13 @@ export default async function CheckInPage({ params, searchParams }: CheckInPageP
   const { churchId } = await params;
   const { d: date } = await searchParams;
 
-  // Fetch church on the server
-  const q = query(
-    collection(db, "churches"),
-    where("slug", "==", churchId)
-  );
+  // Fetch church on the server using Admin SDK (ignores Firestore rules)
+  const churchSnap = await adminDb
+    .collection("churches")
+    .where("slug", "==", churchId)
+    .get();
 
-  const snapshot = await getDocs(q);
-
-  if (snapshot.empty) {
+  if (churchSnap.empty) {
     return (
       <div className="min-h-screen flex items-center justify-center text-slate-200">
         Church not found.
@@ -29,10 +25,10 @@ export default async function CheckInPage({ params, searchParams }: CheckInPageP
     );
   }
 
-  const raw: DocumentData = snapshot.docs[0].data();
+  const raw = churchSnap.docs[0].data();
 
   const church: Church = {
-    id: snapshot.docs[0].id,
+    id: churchSnap.docs[0].id,
     name: raw.name,
     slug: raw.slug,
     timezone: raw.timezone,
@@ -47,7 +43,6 @@ export default async function CheckInPage({ params, searchParams }: CheckInPageP
     phone: raw.phone ?? null,
   };
 
-  // Only require date now — token is no longer part of the system
   if (!date) {
     return (
       <div className="min-h-screen flex items-center justify-center text-slate-200">

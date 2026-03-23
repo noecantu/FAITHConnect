@@ -13,12 +13,21 @@ export async function POST(
   try {
     const { churchId } = await context.params;
 
-    const { code: rawCode, date } = await req.json();
+    const { phone: rawPhone, code: rawCode, date } = await req.json();
+
+    const phone = rawPhone?.toString().replace(/\D/g, "");
     const code = rawCode?.toString().trim().toUpperCase();
+
+    if (!phone || phone.length !== 10) {
+      return NextResponse.json(
+        { error: "Invalid phone number" },
+        { status: 400 }
+      );
+    }
 
     if (!code || !date) {
       return NextResponse.json(
-        { error: "Missing code or date" },
+        { error: "Missing check‑in code or date" },
         { status: 400 }
       );
     }
@@ -32,22 +41,26 @@ export async function POST(
 
     if (date !== today) {
       return NextResponse.json(
-        { error: "This check-in link has expired. Please scan today's QR code." },
+        {
+          error:
+            "This check‑in link has expired. Please scan today's QR code.",
+        },
         { status: 400 }
       );
     }
 
-    // 1. Find member by checkInCode
+    // 1. Find member by BOTH phoneNumber + checkInCode
     const membersSnap = await adminDb
       .collection("churches")
       .doc(churchId)
       .collection("members")
+      .where("phoneNumber", "==", phone)
       .where("checkInCode", "==", code)
       .get();
 
     if (membersSnap.empty) {
       return NextResponse.json(
-        { error: "Invalid check‑in code" },
+        { error: "No matching member found." },
         { status: 404 }
       );
     }
@@ -85,4 +98,3 @@ export async function POST(
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
-
