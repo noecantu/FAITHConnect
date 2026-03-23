@@ -213,7 +213,7 @@ export default function SetListsPage() {
       )}
 
       {/* ⭐ Card wrapper for list + footer */}
-      <Card className="mt-4">
+      <Card>
         <CardHeader>
           <CardTitle>All Sets</CardTitle>
         </CardHeader>

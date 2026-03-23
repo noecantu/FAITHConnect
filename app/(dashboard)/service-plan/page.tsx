@@ -217,7 +217,7 @@ export default function ServicePlanPage() {
       )}
 
       {/* ⭐ Card wrapper for list */}
-      <Card className="mt-4">
+      <Card>
         <CardHeader>
           <CardTitle>All Service Plans</CardTitle>
         </CardHeader>
