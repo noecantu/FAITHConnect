@@ -54,28 +54,28 @@ export default function SongDetailPage() {
 
   if (!churchId) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Song Details" />
         <p className="text-muted-foreground">Loading…</p>
-      </div>
+      </>
     );
   }
 
   if (loading) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Song Details" />
         <p className="text-muted-foreground">Loading song…</p>
-      </div>
+      </>
     );
   }
 
   if (!song) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Song Details" />
         <p className="text-muted-foreground">Song not found.</p>
-      </div>
+      </>
     );
   }
   

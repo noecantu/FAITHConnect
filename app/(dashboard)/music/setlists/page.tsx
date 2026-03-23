@@ -118,21 +118,21 @@ export default function SetListsPage() {
   // LOADING + PERMISSIONS — SAFE NOW
   if (!churchId || loading || rolesLoading) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Set Lists" />
         <p className="text-muted-foreground">Loading set lists…</p>
-      </div>
+      </>
     );
   }
 
   if (!canView) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Set Lists" />
         <p className="text-muted-foreground">
           You do not have permission to view set lists.
         </p>
-      </div>
+      </>
     );
   }
 

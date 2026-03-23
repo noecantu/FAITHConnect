@@ -205,7 +205,7 @@ export interface SetListFirestore {
   createdBy: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
-  serviceType: 'Sunday' | 'Midweek' | 'Special' | null;
+  serviceType: string | null;
   serviceNotes?: {
     theme?: string | null;
     scripture?: string | null;

@@ -39,10 +39,6 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady }: SetListFor
   const [timeString, setTimeString] = useState(initial?.timeString ?? '09:00');
   const [sections, setSections] = useState<SetListSection[]>(initial?.sections ?? []);
 
-  // NEW: service metadata fields
-  // const [serviceType, setServiceType] = useState<"Sunday" | "Midweek" | "Special" | "">(
-  //   initial?.serviceType ?? ""
-  // );
   const [serviceType, setServiceType] = useState(initial?.serviceType ?? '');
   const [theme, setTheme] = useState(initial?.serviceNotes?.theme ?? '');
   const [scripture, setScripture] = useState(initial?.serviceNotes?.scripture ?? '');

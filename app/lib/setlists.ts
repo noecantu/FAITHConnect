@@ -84,7 +84,7 @@ export async function createSetList(
     timeString: string;
     sections: SetListSection[];
     createdBy: string;
-    serviceType: 'Sunday' | 'Midweek' | 'Special' | null;
+    serviceType: string | null;
     serviceNotes?: {
       theme?: string | null;
       scripture?: string | null;
@@ -141,16 +141,17 @@ export async function createSetList(
   } as SetList;
 }
 
+
 // Update Set List
 export async function updateSetList(
   churchId: string,
   setListId: string,
   data: {
     title?: string;
-    dateString?: string;   // NEW
-    timeString?: string;   // NEW
+    dateString?: string;
+    timeString?: string;
     sections?: SetListSection[];
-    serviceType?: 'Sunday' | 'Midweek' | 'Special' | null;
+    serviceType?: string | null;
     serviceNotes?: {
       theme?: string | null;
       scripture?: string | null;

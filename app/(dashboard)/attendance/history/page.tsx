@@ -195,19 +195,19 @@ export default function AttendanceHistoryPage() {
   // ------------------------------
   if (loading) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Attendance History" />
         <p className="text-muted-foreground">Loading attendance history…</p>
-      </div>
+      </>
     );
   }
 
   if (!canView) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Attendance History" />
         <p className="text-muted-foreground">You do not have permission to view attendance.</p>
-      </div>
+      </>
     );
   }
 
@@ -215,8 +215,7 @@ export default function AttendanceHistoryPage() {
   // Render
   // --------------------------------------------------
   return (
-    <div className="p-6 space-y-6">
-
+    <>
       {/* HEADER (matches Contributions) */}
       <PageHeader
         title="Attendance History"
@@ -423,6 +422,6 @@ export default function AttendanceHistoryPage() {
         </CardContent>
       </Card>
 
-    </div>
+    </>
   );
 }

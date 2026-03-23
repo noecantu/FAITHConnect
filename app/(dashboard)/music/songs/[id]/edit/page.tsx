@@ -37,39 +37,39 @@ export default function EditSongPage() {
 
   if (!churchId) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Edit Song" />
         <p className="text-muted-foreground">Loading…</p>
-      </div>
+      </>
     );
   }
 
   if (loading) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Edit Song" />
         <p className="text-muted-foreground">Loading song…</p>
-      </div>
+      </>
     );
   }
 
   if (!song) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Edit Song" />
         <p className="text-muted-foreground">Song not found.</p>
-      </div>
+      </>
     );
   }
 
   if (!canEdit) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Edit Song" />
         <p className="text-muted-foreground">
           You do not have permission to edit songs.
         </p>
-      </div>
+      </>
     );
   }
 

@@ -23,21 +23,21 @@ export default function NewSetListPage() {
 
   if (!churchId) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Create New Set List" />
         <p className="text-muted-foreground">Loading…</p>
-      </div>
+      </>
     );
   }
 
   if (!canCreate) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Create New Set List" />
         <p className="text-muted-foreground">
           You do not have permission to create set lists.
         </p>
-      </div>
+      </>
     );
   }
 
@@ -46,7 +46,7 @@ export default function NewSetListPage() {
     dateString: string;
     timeString: string;
     sections: SetListSection[];
-    serviceType: "Sunday" | "Midweek" | "Special" | null;
+    serviceType: string | null;   // ✅ corrected type
     serviceNotes: {
       theme: string | null;
       scripture: string | null;
@@ -60,8 +60,8 @@ export default function NewSetListPage() {
       dateString: data.dateString,
       timeString: data.timeString,
       sections: data.sections,
-      createdBy: "system", // or user.id if you want real attribution
-      serviceType: data.serviceType,
+      createdBy: "system",
+      serviceType: data.serviceType,   // string | null — matches form
       serviceNotes: {
         theme: data.serviceNotes.theme,
         scripture: data.serviceNotes.scripture,
@@ -77,15 +77,15 @@ export default function NewSetListPage() {
     <div className="space-y-6">
       <PageHeader title="Create New Set List" />
 
-        <div className="p-6 space-y-6">
-          <SetListForm
-            mode="create"
-            initial={undefined}
-            allSongs={allSongs}
-            onSubmit={handleSubmit}
-            onReady={(fn) => setSubmitForm(() => fn)}
-          />
-        </div>
+      <div className="p-6 space-y-6">
+        <SetListForm
+          mode="create"
+          initial={undefined}
+          allSongs={allSongs}
+          onSubmit={handleSubmit}
+          onReady={(fn) => setSubmitForm(() => fn)}
+        />
+      </div>
 
       <Fab
         type="save"

@@ -54,19 +54,19 @@ export default function SongsPage() {
 
   if (!churchId || loading) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Song List" />
         <p className="text-muted-foreground">Loading songs…</p>
-      </div>
+      </>
     );
   }
 
   if (!canView) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Songs" />
         <p className="text-muted-foreground">You do not have permission to view songs.</p>
-      </div>
+      </>
     );
   }
 

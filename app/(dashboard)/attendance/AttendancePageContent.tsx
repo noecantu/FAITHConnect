@@ -164,21 +164,21 @@ export default function AttendancePageContent() {
   // LOADING / PERMISSION STATES
   if (loading) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Attendance" subtitle={dateString} />
         <p className="text-muted-foreground">Loading Attendance…</p>
-      </div>
+      </>
     );
   }
 
   if (!canView) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Attendance" subtitle={dateString} />
         <p className="text-muted-foreground">
           You do not have permission to view attendance.
         </p>
-      </div>
+      </>
     );
   }
 

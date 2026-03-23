@@ -103,28 +103,28 @@ export default function ServicePlanPage() {
   // LOADING + PERMISSIONS
   if (churchLoading || plansLoading || rolesLoading) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Service Plans" />
         <p className="text-muted-foreground">Loading service plans…</p>
-      </div>
+      </>
     );
   }
 
   if (!churchId) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Service Plans" />
         <p className="text-muted-foreground">Unable to determine church context.</p>
-      </div>
+      </>
     );
   }
 
   if (!canView) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Service Plans" />
         <p className="text-muted-foreground">You do not have permission to view service plans.</p>
-      </div>
+      </>
     );
   }
 

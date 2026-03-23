@@ -20,21 +20,21 @@ export default function NewSongPage() {
 
   if (!churchId) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Add New Song" />
         <p className="text-muted-foreground">Loading…</p>
-      </div>
+      </>
     );
   }
 
   if (!canEdit) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Add New Song" />
         <p className="text-muted-foreground">
           You do not have permission to add songs.
         </p>
-      </div>
+      </>
     );
   }
 

@@ -26,21 +26,21 @@ export default function ServicePlanDetailPage() {
 
   if (loading) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Service Plan" />
         <p className="text-muted-foreground">Loading service plan…</p>
-      </div>
+      </>
     );
   }
 
   if (!canView || !plan) {
     return (
-      <div className="p-6">
+      <>
         <PageHeader title="Service Plan" />
         <p className="text-muted-foreground">
           {canView ? 'Service Plan not found.' : 'You do not have permission to view this service plan.'}
         </p>
-      </div>
+      </>
     );
   }
 
