@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { doc, getDoc, Timestamp } from "firebase/firestore";
-
 import { db } from "@/app/lib/firebase";
 import { useChurchId } from "@/app/hooks/useChurchId";
 import MemberForm from "../../components/MemberForm";

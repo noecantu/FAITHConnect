@@ -3,22 +3,17 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { Form } from "@/app/components/ui/form";
 import { toast } from "@/app/hooks/use-toast";
-
 import { MemberInfoSection } from "./MemberInfoSection";
 import { StatusSection } from "./StatusSection";
 import { RelationshipsSection } from "./RelationshipsSection";
 import { PhotoSection } from "./PhotoSection";
-
 import type { Member } from "@/app/lib/types";
 import type { MemberFormValues } from "@/app/lib/memberForm.schema";
 import { memberSchema } from "@/app/lib/memberForm.schema";
-
 import { useMemberRelationships } from "@/app/hooks/useMemberRelationships";
 import { usePhotoCapture } from "@/app/hooks/usePhotoCapture";
-
 import QRCode from "qrcode";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { storage } from "@/app/lib/firebase";
@@ -49,6 +44,7 @@ import { useRouter } from "next/navigation";
 
 import { deleteMember } from "@/app/lib/deleteMember";
 import { addMember, updateMember } from "@/app/lib/members";
+import { PortalAccessSection } from "./PortalAccessSection";
 
 /* -------------------------------------------------------
    FAB MENU COMPONENT
@@ -185,7 +181,7 @@ function MemberFabMenu({
 function generateCheckInCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "";
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 6; i++) {
     code += chars[Math.floor(Math.random() * chars.length)];
   }
   return code;
@@ -322,6 +318,10 @@ export default function MemberForm({
           setIsTakingPhoto={photo.setIsTakingPhoto}
           handleRemovePhoto={photo.handleRemovePhoto}
         />
+
+        {isEditing && (
+          <PortalAccessSection member={member} churchId={churchId} />
+        )}
       </form>
 
       {/* ⭐ FAB MENU OUTSIDE THE FORM ⭐ */}
