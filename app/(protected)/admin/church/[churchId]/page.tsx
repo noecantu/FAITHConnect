@@ -277,7 +277,7 @@ export default function ChurchAdminDashboard() {
           <div className="px-4 md:px-8 py-4">
             <PageHeader
               title="Church Admin Dashboard"
-              subtitle="Manage your church’s people, events, and ministries."
+              subtitle="Manage your church’s members, events, and ministries."
             />
           </div>
         </div>
