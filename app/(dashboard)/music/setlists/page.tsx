@@ -145,8 +145,8 @@ export default function SetListsPage() {
       />
 
       {/* Toolbar */}
-      <div className="sticky top-16 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm">
-        <div className="flex flex-wrap items-center gap-3 py-3 w-full">
+      <div className="sticky top-16 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
+        <div className="flex flex-wrap items-center gap-3 w-full">
 
           {/* Search bar */}
           <div className="w-full sm:flex-1 flex items-center gap-3">

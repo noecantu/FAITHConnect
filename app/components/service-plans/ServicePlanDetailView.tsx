@@ -2,7 +2,6 @@
 
 import { PageHeader } from '@/app/components/page-header';
 import { Card } from '@/app/components/ui/card';
-import { Separator } from '@/app/components/ui/separator';
 import { Fab } from '@/app/components/ui/fab';
 import {
   DropdownMenu,
@@ -58,8 +57,6 @@ export function ServicePlanDetailView({
               <h2 className="text-lg font-semibold tracking-tight">
                 {section.title}
               </h2>
-
-              <Separator />
 
               <div className="space-y-4">
                 {hasPerson && (
