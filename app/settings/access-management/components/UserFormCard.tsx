@@ -32,6 +32,10 @@ interface Props {
 
   isCreating: boolean;
   isSaving: boolean;
+
+  currentUserId: string;
+  currentUserRoles: Role[];
+  targetUserId?: string;
 }
 
 export default function UserFormCard({
@@ -55,6 +59,10 @@ export default function UserFormCard({
 
   isCreating,
   isSaving,
+
+  currentUserId,
+  currentUserRoles,
+  targetUserId,
 }: Props) {
   return (
     <Card className="p-4 space-y-4 relative">
@@ -102,7 +110,13 @@ export default function UserFormCard({
         )}
       </div>
 
-      <RoleSelector selectedRoles={selectedRoles} onChange={onRoleChange} />
+      <RoleSelector
+        selectedRoles={selectedRoles}
+        onChange={onRoleChange}
+        currentUserId={currentUserId}
+        currentUserRoles={currentUserRoles}
+        targetUserId={targetUserId ?? ""}
+      />
 
       <div className="flex flex-col sm:flex-row justify-end gap-2 mt-4">
         {mode === 'edit' && (

@@ -273,7 +273,7 @@ export default function ChurchAdminDashboard() {
     <div className="flex min-h-screen bg-background">
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
-        <div className="border-b border-border bg-background/80 backdrop-blur">
+        <div className="border-border bg-background/80 backdrop-blur">
           <div className="px-4 md:px-8 py-4">
             <PageHeader
               title="Church Admin Dashboard"

@@ -109,7 +109,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
       setSaving(false);
     }
   };
-
+  
   return (
     <Card>
       <CardHeader>

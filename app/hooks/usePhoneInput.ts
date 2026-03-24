@@ -2,24 +2,23 @@ import { useState, useCallback } from "react";
 import { formatPhone } from '@/app/lib/formatters';
 
 export function usePhoneInput(initial?: string) {
-  // Normalize initial value to digits only
   const initialDigits = initial ? initial.replace(/\D/g, "").slice(0, 10) : "";
 
-  const [digits, setDigits] = useState(initialDigits);
+  const [digits, _setDigits] = useState(initialDigits);
   const [display, setDisplay] = useState(formatPhone(initialDigits));
 
+  const setDigits = useCallback((value: string) => {
+    const limited = value.replace(/\D/g, "").slice(0, 10);
+    _setDigits(limited);
+    setDisplay(formatPhone(limited));
+  }, []);
+
   const handleChange = useCallback((value: string) => {
-    // 1. Strip non-digits
     const raw = value.replace(/\D/g, "");
-
-    // 2. Limit to 10 digits
     const limited = raw.slice(0, 10);
-
-    // 3. Format for display
     const formatted = formatPhone(limited);
 
-    // 4. Update state
-    setDigits(limited);
+    _setDigits(limited);
     setDisplay(formatted);
   }, []);
 

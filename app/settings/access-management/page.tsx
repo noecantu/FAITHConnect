@@ -196,6 +196,11 @@ export default function AccessManagementPage() {
           onClose={goBackToList}
           isCreating={isCreating}
           isSaving={isSaving}
+
+          // ⭐ NEW — wired correctly
+          currentUserId={user?.id ?? ""}
+          currentUserRoles={user?.roles ?? []}
+          targetUserId={selectedUser?.id}
         />
       )}
 
