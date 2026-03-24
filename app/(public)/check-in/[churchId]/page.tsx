@@ -1,6 +1,6 @@
 import SelfCheckIn from "./SelfCheckIn";
 import type { Church } from "@/app/lib/types";
-import { adminDb } from "@/app/lib/firebase/firebaseAdmin";
+import { adminDb } from "@/app/lib/firebase/admin";
 
 interface CheckInPageProps {
   params: Promise<{ churchId: string }>;

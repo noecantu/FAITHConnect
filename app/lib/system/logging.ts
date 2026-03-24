@@ -1,4 +1,4 @@
-import { adminDb } from "@/app/lib/firebase/firebaseAdmin";
+import { adminDb } from "@/app/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 
 export type SystemLogType =

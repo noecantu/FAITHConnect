@@ -1,7 +1,7 @@
 // app/admin/actions/createSystemUserAction.ts
 "use server";
 
-import { adminAuth, adminDb } from "@/app/lib/firebase/firebaseAdmin";
+import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
 import { logSystemEvent } from "@/app/lib/system/logging";
 import { serverTimestamp } from "firebase/firestore";
 

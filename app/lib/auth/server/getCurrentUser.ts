@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { adminAuth, adminDb } from "@/app/lib/firebase/server";
+import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
 import type { User } from "@/app/lib/types";
 import type { Role } from "@/app/lib/auth/permissions/roles";
 

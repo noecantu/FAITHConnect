@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { adminDb } from "@/app/lib/firebase/firebaseAdmin";
+import { adminDb } from "@/app/lib/firebase/admin";
 
 type AttendanceData = {
   records: Record<string, boolean>;

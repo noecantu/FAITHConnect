@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { adminDb, adminAuth } from "@/app/lib/firebase/server";
+import { adminDb, adminAuth } from "@/app/lib/firebase/admin";
 import { can } from "@/app/lib/auth/permissions/can";
 import type { Role } from "@/app/lib/auth/permissions/roles";
 

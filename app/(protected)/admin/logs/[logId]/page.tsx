@@ -1,6 +1,6 @@
 // app/admin/logs/[logId]/page.tsx
 
-import { adminDb } from "@/app/lib/firebase/firebaseAdmin";
+import { adminDb } from "@/app/lib/firebase/admin";
 import LogDetailView from "./LogDetailView";
 import { normalizeFirestore } from "@/app/lib/normalize";
 

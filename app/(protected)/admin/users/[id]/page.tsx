@@ -1,6 +1,6 @@
 // app/admin/users/[id]/page.tsx
 
-import { adminDb } from "@/app/lib/firebase/firebaseAdmin";
+import { adminDb } from "@/app/lib/firebase/admin";
 import EditUserForm from "./EditUserForm";
 import { normalizeFirestore } from "@/app/lib/normalize";
 

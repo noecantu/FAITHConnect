@@ -1,5 +1,5 @@
 // app/admin/page.tsx
-import { adminDb } from "@/app/lib/firebase/firebaseAdmin";
+import { adminDb } from "@/app/lib/firebase/admin";
 import AdminHomeClient from "./AdminHomeClient";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/app/lib/auth/server/getCurrentUser";

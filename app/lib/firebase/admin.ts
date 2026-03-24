@@ -1,10 +1,10 @@
-// lib/firebase/firebaseAdmin.ts
+// app/lib/firebase/admin.ts
+export const runtime = "nodejs";
 
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
-// Initialize Admin SDK once
 if (!getApps().length) {
   initializeApp({
     credential: cert({
@@ -15,6 +15,5 @@ if (!getApps().length) {
   });
 }
 
-// Export only what the app actually uses
-export const adminDb = getFirestore();
 export const adminAuth = getAuth();
+export const adminDb = getFirestore();
