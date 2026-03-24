@@ -11,6 +11,10 @@ export const PERMISSIONS = {
   "finance.read": "View contributions and reports",
   "finance.manage": "Manage contributions and financial settings",
 
+  // Contributions (explicit)
+  "contributions.read": "View contributions",
+  "contributions.manage": "Add, edit, delete contributions",
+
   // Ministry-Level
   "servicePlans.read": "View service plans",
   "servicePlans.manage": "Create and edit service plans",

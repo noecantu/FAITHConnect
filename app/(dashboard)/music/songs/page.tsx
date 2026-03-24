@@ -23,9 +23,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 export default function SongsPage() {
   const { churchId } = useChurchId();
   const { songs, loading } = useSongs(churchId);
-  const { isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
-  const canManage = isAdmin || isMusicManager;
-  const canView = isAdmin || isMusicMember || isMusicManager;
+  const { canManageMusic, canReadMusic } = useUserRoles();
+  const canManage = canManageMusic;
+  const canView = canReadMusic;
   const { user } = useAuth();
   const { settings } = useSettings();
   const savedSort = settings?.songSort ?? "title";

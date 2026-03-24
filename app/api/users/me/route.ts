@@ -31,7 +31,7 @@ export async function GET(req: Request) {
       firstName: user.firstName,
       lastName: user.lastName,
       profilePhotoUrl: user.profilePhotoUrl || null,
-      roles: user.roles || [],
+      roles: user.roles ?? [],
       churchId: user.churchId || null,
     });
   } catch (err) {

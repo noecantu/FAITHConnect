@@ -13,9 +13,8 @@ import { Fab } from '@/app/components/ui/fab';
 export default function NewSongPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
-  const { isAdmin, isMusicManager } = useUserRoles(churchId);
-
-  const canEdit = isAdmin || isMusicManager;
+  const { canManageMusic } = useUserRoles();
+  const canEdit = canManageMusic;
   const [saving, setSaving] = useState(false);
 
   if (!churchId) {

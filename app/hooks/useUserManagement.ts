@@ -14,10 +14,19 @@ import {
 import { useToast } from '@/app/hooks/use-toast';
 import { Role } from '@/app/lib/auth/permissions/roles';
 import { User, Mode } from '@/app/lib/types';
+import { can } from "@/app/lib/auth/permissions/can";
+import { useUserRoles } from "@/app/hooks/useUserRoles";
+import { useChurchId } from "@/app/hooks/useChurchId";
 
-export function useUserManagement(churchId: string | null) {
+export function useUserManagement() {
   const { toast } = useToast();
   const functions = getFunctions(undefined, 'us-central1');
+
+  const { roles: actorRoles } = useUserRoles();
+  const { churchId } = useChurchId();
+
+  const canAssignRoles = can(actorRoles, "roles.assign");
+  const canManageChurch = can(actorRoles, "church.manage");
 
   // -----------------------------
   // FORM STATE
@@ -54,20 +63,25 @@ export function useUserManagement(churchId: string | null) {
   // ROLE CHANGE
   // -----------------------------
   const handleRoleChange = (role: Role, checked: boolean) => {
-    if (role === 'Admin') {
-      setSelectedRoles(checked ? ['Admin'] : []);
+    if (!canAssignRoles) return;
+
+    if (role === "Admin") {
+      setSelectedRoles(checked ? ["Admin"] : []);
       return;
     }
 
     setSelectedRoles((prev) => {
       const next = checked
-        ? [...prev, role]
+        ? [...prev.filter((r) => r !== "Admin"), role]
         : prev.filter((r) => r !== role);
 
-      return next.filter((r) => r !== 'Admin');
+      return next;
     });
   };
 
+  // -----------------------------
+  // CREATE USER
+  // -----------------------------
   const handleCreateUser = async () => {
     if (!churchId) return;
 
@@ -79,11 +93,18 @@ export function useUserManagement(churchId: string | null) {
       return;
     }
 
+    if (!canManageChurch) {
+      toast({ title: "Forbidden", description: "You cannot create users." });
+      return;
+    }
+
     setIsCreating(true);
 
     try {
       const authUser = await createSecondaryUser(email, password);
       const uid = authUser.uid;
+
+      const rolesToAssign = canAssignRoles ? selectedRoles : [];
 
       await setDoc(doc(db, "users", uid), {
         id: uid,
@@ -91,7 +112,7 @@ export function useUserManagement(churchId: string | null) {
         firstName,
         lastName,
         email,
-        roles: selectedRoles,
+        roles: rolesToAssign,
         createdAt: serverTimestamp(),
       });
 
@@ -111,17 +132,27 @@ export function useUserManagement(churchId: string | null) {
     }
   };
 
+  // -----------------------------
+  // SAVE USER
+  // -----------------------------
   const handleSaveUser = async () => {
     if (!selectedUser) return;
+
+    if (!canManageChurch) {
+      toast({ title: "Forbidden", description: "You cannot edit users." });
+      return;
+    }
 
     setIsSaving(true);
 
     try {
+      const rolesToAssign = canAssignRoles ? selectedRoles : selectedUser.roles;
+
       await updateDoc(doc(db, "users", selectedUser.id), {
         firstName,
         lastName,
         email,
-        roles: selectedRoles,
+        roles: rolesToAssign,
       });
 
       toast({ title: "Success", description: "User updated." });
@@ -140,8 +171,16 @@ export function useUserManagement(churchId: string | null) {
     }
   };
 
+  // -----------------------------
+  // DELETE USER
+  // -----------------------------
   const handleDeleteUser = async () => {
     if (!selectedUser) return;
+
+    if (!canManageChurch) {
+      toast({ title: "Forbidden", description: "You cannot delete users." });
+      return;
+    }
 
     setIsDeleting(true);
 
@@ -205,7 +244,6 @@ export function useUserManagement(churchId: string | null) {
   // RETURN API
   // -----------------------------
   return {
-    // state
     mode,
     selectedUser,
     firstName,
@@ -214,29 +252,24 @@ export function useUserManagement(churchId: string | null) {
     password,
     selectedRoles,
 
-    // setters
     setFirstName,
     setLastName,
     setEmail,
     setPassword,
 
-    // flags
     isCreating,
     isSaving,
     isDeleting,
 
-    // handlers
     handleRoleChange,
     handleCreateUser,
     handleSaveUser,
     handleDeleteUser,
 
-    // mode helpers
     startCreate,
     startEdit,
     goBackToList,
 
-    // utilities
     getSortedUsers: sortedUsers,
   };
 }

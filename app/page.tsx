@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./hooks/useAuth";
+import { can } from "@/app/lib/auth/permissions/can";
 
 export default function HomePage() {
   const router = useRouter();
@@ -17,14 +18,16 @@ export default function HomePage() {
       return;
     }
 
+    const roles = user.roles ?? [];
+
     // Root Admin → Master Admin Dashboard
-    if (user.roles?.includes("RootAdmin")) {
+    if (can(roles, "system.manage")) {
       router.push("/admin");
       return;
     }
 
     // Church Admin → Church Admin Dashboard (slug-based)
-    if (user.roles?.includes("Admin") && user.churchId) {
+    if (can(roles, "church.manage") && user.churchId) {
       router.push(`/admin/church/${user.churchId}`);
       return;
     }
@@ -36,7 +39,13 @@ export default function HomePage() {
     }
 
     // Regular member → Members Page
-    router.push("/members");
+    if (can(roles, "members.read")) {
+      router.push("/members");
+      return;
+    }
+
+    // Fallback → login
+    router.push("/login");
   }, [user, loading, router]);
 
   return null;

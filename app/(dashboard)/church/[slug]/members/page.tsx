@@ -25,7 +25,11 @@ import { db } from '@/app/lib/firebase';
 export default function MembersPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
-  const { isMemberManager } = useUserRoles(churchId);
+
+  const { canManageMembers, canReadMembers } = useUserRoles();
+  const canEdit = canManageMembers;
+  const canView = canReadMembers;
+
   const { cardView } = useSettings();
   const { user } = useAuth();
 
@@ -157,7 +161,7 @@ export default function MembersPage() {
       </div>
 
       {/* FAB */}
-      {isMemberManager && (
+      {canEdit && (
         <Fab
           type="add"
           onClick={() => router.push(`/church/${churchId}/members/new`)}

@@ -17,8 +17,8 @@ export default function EditSetListPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
   const { songs: allSongs } = useSongs(churchId);
-  const { isAdmin, isMusicManager } = useUserRoles(churchId);
-  const canEdit = isAdmin || isMusicManager;
+  const { canManageMusic } = useUserRoles();
+  const canEdit = canManageMusic;
 
   const [setList, setSetList] = useState<SetList | null>(null);
   const [loading, setLoading] = useState(true);
@@ -75,18 +75,18 @@ export default function EditSetListPage() {
     );
   }
 
-  const handleSubmit = async (data: {
-    title: string;
-    dateString: string;
-    timeString: string;
-    sections: any[];
-    serviceType: "Sunday" | "Midweek" | "Special" | null;
-    serviceNotes: {
-      theme: string | null;
-      scripture: string | null;
-      notes: string | null;
-    };
-  }) => {
+    const handleSubmit = async (data: {
+      title: string;
+      dateString: string;
+      timeString: string;
+      sections: any[];
+      serviceType: string | null;
+      serviceNotes: {
+        theme: string | null;
+        scripture: string | null;
+        notes: string | null;
+      };
+    }) => {
     setSaving(true);
 
     await updateSetList(churchId, setList.id, {

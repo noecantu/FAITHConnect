@@ -30,8 +30,8 @@ export default function SongDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const { churchId } = useChurchId();
-  const { roles, isAdmin } = useUserRoles(churchId);
-  const canEdit = isAdmin || roles.includes('MusicManager');
+  const { canManageMusic } = useUserRoles();
+  const canEdit = canManageMusic;
 
   const [song, setSong] = useState<Song | null>(null);
   const [loading, setLoading] = useState(true);

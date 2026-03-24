@@ -10,8 +10,6 @@ export async function POST(req: Request) {
       email,
       firstName,
       lastName,
-      roles,
-      churchId,
     } = body;
 
     if (!uid || !email) {
@@ -21,24 +19,18 @@ export async function POST(req: Request) {
       );
     }
 
-    // SECURITY: Prevent privilege escalation
-    const allowedRoles = ["Admin", "Member", "MusicManager", "MusicMember"];
-    const safeRoles = (roles || []).filter((r: string) =>
-      allowedRoles.includes(r)
-    );
-
-    // Default to Member if no valid roles provided
-    const finalRoles = safeRoles.length > 0 ? safeRoles : ["Member"];
-
-    // Create Firestore user document
+    // SECURITY: Signup users must always start with:
+    // - no roles
+    // - no church
+    // - basic profile only
     await adminDb.collection("users").doc(uid).set(
       {
         id: uid,
         email,
         firstName: firstName || "",
         lastName: lastName || "",
-        roles: finalRoles,
-        churchId: churchId ?? null,
+        roles: [],          // <-- no roles on signup
+        churchId: null,     // <-- no church on signup
         createdAt: new Date(),
       },
       { merge: true }

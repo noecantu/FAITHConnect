@@ -9,7 +9,6 @@ import { updateUserAction } from "@/app/(protected)/admin/actions/updateUserActi
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Button } from "@/app/components/ui/button";
-import { Checkbox } from "@/app/components/ui/checkbox";
 import {
   Select,
   SelectTrigger,
@@ -18,10 +17,11 @@ import {
   SelectItem,
 } from "@/app/components/ui/select";
 
-import { ALL_ROLES, ROLE_MAP, Role } from "@/app/lib/auth/permissions/roles";
+import { ALL_ROLES, Role } from "@/app/lib/auth/permissions/roles";
 import { SystemRole, SYSTEM_ROLES } from "@/app/lib/system-roles";
 import { SYSTEM_ROLE_MAP } from "@/app/lib/system-role-map";
 import type { User } from "@/app/lib/types";
+import RoleSelector from "@/app/settings/access-management/components/RoleSelector";
 
 export default function EditUserForm({
   userId,
@@ -35,8 +35,14 @@ export default function EditUserForm({
   const { user: currentUser } = useAuth();
 
   // Detect if this is a system-level user
-  const isSystemUser = user.roles?.some((r: string) =>
+  const userRoles = user.roles ?? [];
+
+  const isSystemUser = userRoles.every((r) =>
     SYSTEM_ROLES.includes(r as SystemRole)
+  );
+
+  const isChurchUser = userRoles.every((r) =>
+    ALL_ROLES.includes(r as Role)
   );
 
   // State
@@ -45,8 +51,10 @@ export default function EditUserForm({
   const [email, setEmail] = useState(user.email ?? "");
 
   // System users have exactly ONE system role
-  const [systemRole, setSystemRole] = useState<SystemRole | "">(
-    isSystemUser ? (user.roles[0] as SystemRole) : ""
+  const [systemRole, setSystemRole] = useState<SystemRole>(
+    isSystemUser
+      ? (user.roles[0] as SystemRole)
+      : SYSTEM_ROLES[0]
   );
 
   // Church users have church roles + churchId
@@ -152,7 +160,7 @@ export default function EditUserForm({
       )}
 
       {/* CHURCH USER UI */}
-      {!isSystemUser && (
+      {isChurchUser && (
         <>
           {/* Church */}
           <div className="space-y-2">
@@ -162,6 +170,7 @@ export default function EditUserForm({
                 <SelectValue placeholder="Select a church" />
               </SelectTrigger>
               <SelectContent>
+                {/* TODO: Replace with real church list */}
                 <SelectItem value={user.churchId ?? ""}>
                   {user.churchId ?? "(No church)"}
                 </SelectItem>
@@ -170,18 +179,13 @@ export default function EditUserForm({
           </div>
 
           {/* Roles */}
-          <div className="space-y-4">
-            <h4 className="text-md font-bold">Roles</h4>
-            {ALL_ROLES.map((role) => (
-              <div key={role} className="flex items-center space-x-2">
-                <Checkbox
-                  checked={roles.includes(role)}
-                  onCheckedChange={(checked) => toggleRole(role, !!checked)}
-                />
-                <Label>{ROLE_MAP[role]}</Label>
-              </div>
-            ))}
-          </div>
+          <RoleSelector
+            selectedRoles={roles}
+            onChange={toggleRole}
+            currentUserId={currentUser?.id ?? ""}
+            targetUserId={userId}
+            currentUserRoles={currentUser?.roles ?? []}
+          />
         </>
       )}
 

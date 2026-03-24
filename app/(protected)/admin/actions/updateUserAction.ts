@@ -2,13 +2,16 @@
 
 import { adminDb } from "@/app/lib/firebase/firebaseAdmin";
 import { logSystemEvent } from "@/app/lib/system/logging";
+import { ALL_ROLES, Role } from "@/app/lib/auth/permissions/roles";
+import { SystemRole, SYSTEM_ROLES } from "@/app/lib/system-roles";
+import { can } from "@/app/lib/auth/permissions/can";
 
 export interface UpdateUserInput {
   userId: string;
   firstName?: string;
   lastName?: string;
   email?: string;
-  roles?: string[];
+  roles?: Role[] | SystemRole[];
   churchId?: string | null;
   actorUid: string;
   actorName?: string | null;
@@ -31,41 +34,89 @@ export async function updateUserAction(input: UpdateUserInput) {
   const before = targetSnap.data() || {};
   const actor = actorSnap.data() || {};
 
+  const actorRoles = (actor.roles ?? []) as Role[];
   const isSelf = actorUid === userId;
-  const isRootAdmin = actor.roles?.includes("RootAdmin");
-  const targetIsAdmin = before.roles?.includes("Admin");
-  const removingAdmin = targetIsAdmin && newRoles && !newRoles.includes("Admin");
 
-  // -------------------------------
-  // 1. Prevent self-demotion
-  // -------------------------------
-  if (isSelf && removingAdmin && !isRootAdmin) {
-    throw new Error("You cannot remove your own Admin role.");
-  }
+  const isRootAdmin = can(actorRoles, "system.manage");
+  const canAssignRoles = can(actorRoles, "roles.assign");
 
-  // -------------------------------
-  // 2. Prevent removing the last Admin in the church
-  // -------------------------------
-  if (removingAdmin && !isRootAdmin) {
-    const adminsSnap = await adminDb
-      .collection("users")
-      .where("churchId", "==", before.churchId)
-      .where("roles", "array-contains", "Admin")
-      .get();
+  // ---------------------------------------
+  // 0. Validate roles (system vs church)
+  // ---------------------------------------
+  let isSystemRoleUpdate = false;
+  let isChurchRoleUpdate = false;
 
-    const admins = adminsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  if (newRoles) {
+    isSystemRoleUpdate = newRoles.every((r) =>
+      SYSTEM_ROLES.includes(r as SystemRole)
+    );
 
-    const otherAdmins = admins.filter((a) => a.id !== userId);
-    const isLastAdmin = otherAdmins.length === 0;
+    isChurchRoleUpdate = newRoles.every((r) =>
+      ALL_ROLES.includes(r as Role)
+    );
 
-    if (isLastAdmin) {
-      throw new Error("You cannot remove the last Admin from this church.");
+    if (!isSystemRoleUpdate && !isChurchRoleUpdate) {
+      throw new Error("Invalid role assignment.");
     }
   }
 
-  // -------------------------------
-  // 3. Apply updates (roles + fields)
-  // -------------------------------
+  // ---------------------------------------
+  // 1. Prevent cross-church modification
+  // ---------------------------------------
+  if (!isRootAdmin && actor.churchId !== before.churchId) {
+    throw new Error("You cannot modify users from another church.");
+  }
+
+  // ---------------------------------------
+  // 2. Only users with roles.assign can assign roles
+  // ---------------------------------------
+  if (newRoles && !canAssignRoles) {
+    throw new Error("You do not have permission to assign roles.");
+  }
+
+  // ---------------------------------------
+  // 3. Only RootAdmin can assign RootAdmin
+  // ---------------------------------------
+  if (newRoles?.includes("RootAdmin") && !isRootAdmin) {
+    throw new Error("Only RootAdmin can assign the RootAdmin role.");
+  }
+
+  // ---------------------------------------
+  // 4 & 5. Admin logic applies ONLY to church users
+  // ---------------------------------------
+  if (newRoles && isChurchRoleUpdate) {
+    const churchRoles = newRoles as Role[];
+
+    const targetIsAdmin = before.roles?.includes("Admin");
+    const removingAdmin =
+      targetIsAdmin && !churchRoles.includes("Admin");
+
+    // Prevent self-demotion
+    if (isSelf && removingAdmin && !isRootAdmin) {
+      throw new Error("You cannot remove your own Admin role.");
+    }
+
+    // Prevent removing the last Admin in the church
+    if (removingAdmin && !isRootAdmin) {
+      const adminsSnap = await adminDb
+        .collection("users")
+        .where("churchId", "==", before.churchId)
+        .where("roles", "array-contains", "Admin")
+        .get();
+
+      const admins = adminsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const otherAdmins = admins.filter((a) => a.id !== userId);
+      const isLastAdmin = otherAdmins.length === 0;
+
+      if (isLastAdmin) {
+        throw new Error("You cannot remove the last Admin from this church.");
+      }
+    }
+  }
+
+  // ---------------------------------------
+  // 6. Apply updates
+  // ---------------------------------------
   const finalUpdates = {
     ...updates,
     ...(newRoles ? { roles: newRoles } : {}),
@@ -73,9 +124,9 @@ export async function updateUserAction(input: UpdateUserInput) {
 
   await userRef.update(finalUpdates);
 
-  // -------------------------------
-  // 4. Log the event
-  // -------------------------------
+  // ---------------------------------------
+  // 7. Log the event
+  // ---------------------------------------
   await logSystemEvent({
     type: "USER_UPDATED",
     actorUid,

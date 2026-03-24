@@ -116,8 +116,9 @@ export default function MemberCard({
 }) {
   const router = useRouter();
   const { churchId } = useChurchId();
-  const { isAdmin, isMemberManager } = useUserRoles(churchId);
-  const canEdit = isAdmin || isMemberManager;
+  const { canManageMembers } = useUserRoles();
+
+  const canEdit = canManageMembers;
 
   //
   // EDITOR VERSION — card is clickable and navigates to edit page

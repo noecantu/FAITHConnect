@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
 import { auth } from "@/app/lib/firebase-client";
 import { db } from "@/app/lib/firebase";
 import type { User } from "@/app/lib/types";
+import type { Role } from "@/app/lib/auth/permissions/roles";
 
 export function useAuth(): { user: User | null; loading: boolean } {
   const [user, setUser] = useState<User | null>(null);
@@ -18,10 +19,8 @@ export function useAuth(): { user: User | null; loading: boolean } {
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       if (!isActive) return;
 
-      // Reset loading whenever auth state changes
       setLoading(true);
 
-      // Clean up previous Firestore listener
       if (unsubscribeUserDoc) {
         unsubscribeUserDoc();
         unsubscribeUserDoc = null;
@@ -52,8 +51,8 @@ export function useAuth(): { user: User | null; loading: boolean } {
 
           const mergedUser: User = {
             id: firebaseUser.uid,
-            email: firebaseUser.email ?? "",
-            roles: Array.isArray(data.roles) ? data.roles : [],
+            email: data.email ?? firebaseUser.email ?? "",
+            roles: (data.roles ?? []) as Role[],
             churchId: data.churchId ?? null,
             firstName: data.firstName ?? null,
             lastName: data.lastName ?? null,

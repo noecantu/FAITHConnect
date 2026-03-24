@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminDb, adminAuth } from "@/app/lib/firebase/server";
+import { can } from "@/app/lib/auth/permissions/can";
+import type { Role } from "@/app/lib/auth/permissions/roles";
 
 export async function POST(req: Request) {
   try {
@@ -38,17 +40,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const inviterRoles: string[] = inviter.roles || [];
+    const inviterRoles = (inviter.roles ?? []) as Role[];
     const inviterChurchId: string | null = inviter.churchId || null;
 
-    // 3. Only Church Admins can invite members
-    const isChurchAdmin =
-      inviterRoles.includes("Admin") ||
-      inviterRoles.includes("ChurchAdmin");
+    // 3. Only users with members.manage can invite members
+    const canInvite = can(inviterRoles, "members.manage");
 
-    if (!isChurchAdmin) {
+    if (!canInvite) {
       return NextResponse.json(
-        { error: "Only Church Admins can invite members" },
+        { error: "You do not have permission to invite members" },
         { status: 403 }
       );
     }
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
 
     // 5. If user does not exist, create a placeholder Firestore profile
     if (!invitedUid) {
-      invitedUid = adminDb.collection("users").doc().id; // Generate a UID-like ID
+      invitedUid = adminDb.collection("users").doc().id;
     }
 
     // 6. Create or update Firestore user profile
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
         email,
         firstName: firstName || "",
         lastName: lastName || "",
-        roles: ["Member"], // Always Member for invites
+        roles: [] as Role[],
         churchId: inviterChurchId,
         invitedAt: new Date(),
         status: "invited",

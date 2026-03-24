@@ -45,6 +45,8 @@ import { useToast } from "@/app/hooks/use-toast";
 import { useUserRoles } from "@/app/hooks/useUserRoles";
 import { useChurchId } from "@/app/hooks/useChurchId";
 import { AlertDialogAction, AlertDialogCancel } from "@radix-ui/react-alert-dialog";
+import { can } from "@/app/lib/auth/permissions/can";
+import type { Role } from "@/app/lib/auth/permissions/roles";
 
 type MenuItem = {
   href: string;
@@ -59,30 +61,24 @@ export function NavMenu() {
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false);
   const { toast } = useToast();
   const { churchId } = useChurchId();
-  const { roles = [], isAdmin, isMusicManager, isMusicMember } = useUserRoles(churchId);
+  const { roles = [] } = useUserRoles(churchId);
 
-  // Hide NavMenu during onboarding (AFTER hooks)
-  const isOnboarding = pathname.startsWith("/onboarding");
-  if (isOnboarding) {
-    return null;
-  }
+  const typedRoles = roles as Role[];
+
+  // Hide NavMenu during onboarding
+  if (pathname.startsWith("/onboarding")) return null;
 
   // Hide NavMenu during Self Check-In
-  const isSelfCheckIn = pathname.match(/\/[^/]+\/attendance\/self-checkin/);
-  if (isSelfCheckIn) {
-    return null;
-  }
+  if (pathname.match(/\/[^/]+\/attendance\/self-checkin/)) return null;
 
-  // --- ROLE MODEL ---
-  const isRootAdmin = roles.includes("RootAdmin");
-  const isChurchAdmin = roles.includes("Admin") && churchId;
+  // --- PERMISSION MODEL ---
+  const isRootAdmin = can(typedRoles, "system.manage");
+  const isChurchAdmin = can(typedRoles, "church.manage") && churchId;
 
-  // --- PERMISSIONS ---
-  const canSeeContributions = isAdmin || roles.includes("Finance");
-  const canAccessMusic = isAdmin || isMusicManager || isMusicMember;
-  const canAccessServicePlan = isAdmin || roles.includes("Pastor");
-  const canSeeAttendance =
-    isAdmin || roles.includes("MemberManager") || roles.includes("AttendanceManager");
+  const canSeeContributions = can(typedRoles, "finance.read");
+  const canAccessMusic = can(typedRoles, "music.read");
+  const canAccessServicePlan = can(typedRoles, "servicePlans.read");
+  const canSeeAttendance = can(typedRoles, "attendance.read");
 
   // --- MENU CONFIGS ---
   const rootAdminMenu = [
@@ -112,7 +108,6 @@ export function NavMenu() {
     { href: "/music", label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
   ];
 
-  // --- ACTIVE MENU ---
   const activeMenu = isRootAdmin
     ? rootAdminMenu
     : isChurchAdmin
@@ -121,58 +116,56 @@ export function NavMenu() {
 
   // --- RENDERER ---
   function renderMenuItems(items: MenuItem[]) {
-  return items
-    .filter((item) => item.permission !== false)
-    .map((item) => {
-      // MUSIC SUBMENU
-      if (item.isSubmenu && item.href === "/music") {
+    return items
+      .filter((item) => item.permission !== false)
+      .map((item) => {
+        if (item.isSubmenu && item.href === "/music") {
+          return (
+            <DropdownMenuSub key="music">
+              <DropdownMenuSubTrigger
+                className={pathname.startsWith("/music") ? "bg-accent" : ""}
+              >
+                <item.icon className="mr-2 h-4 w-4" />
+                <span>Music</span>
+              </DropdownMenuSubTrigger>
+
+              <DropdownMenuSubContent>
+                <Link href="/music/setlists">
+                  <DropdownMenuItem
+                    className={pathname.startsWith("/music/setlists") ? "bg-accent" : ""}
+                  >
+                    <ListMusic className="mr-2 h-4 w-4" />
+                    <span>Set Lists</span>
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/music/songs">
+                  <DropdownMenuItem
+                    className={pathname.startsWith("/music/songs") ? "bg-accent" : ""}
+                  >
+                    <Music className="mr-2 h-4 w-4" />
+                    <span>Songs</span>
+                  </DropdownMenuItem>
+                </Link>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          );
+        }
+
         return (
-          <DropdownMenuSub key="music">
-            <DropdownMenuSubTrigger
-              className={pathname.startsWith("/music") ? "bg-accent" : ""}
+          <Link href={item.href} key={item.href}>
+            <DropdownMenuItem
+              className={
+                pathname === item.href || pathname.startsWith(item.href + "/")
+                  ? "bg-accent"
+                  : ""
+              }
             >
               <item.icon className="mr-2 h-4 w-4" />
-              <span>Music</span>
-            </DropdownMenuSubTrigger>
-
-            <DropdownMenuSubContent>
-              <Link href="/music/setlists">
-                <DropdownMenuItem
-                  className={pathname.startsWith("/music/setlists") ? "bg-accent" : ""}
-                >
-                  <ListMusic className="mr-2 h-4 w-4" />
-                  <span>Set Lists</span>
-                </DropdownMenuItem>
-              </Link>
-              <Link href="/music/songs">
-                <DropdownMenuItem
-                  className={pathname.startsWith("/music/songs") ? "bg-accent" : ""}
-                >
-                  <Music className="mr-2 h-4 w-4" />
-                  <span>Songs</span>
-                </DropdownMenuItem>
-              </Link>
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
+              <span>{item.label}</span>
+            </DropdownMenuItem>
+          </Link>
         );
-      }
-
-      // NORMAL ITEM
-      return (
-        <Link href={item.href} key={item.href}>
-          <DropdownMenuItem
-            className={
-              pathname === item.href || pathname.startsWith(item.href + "/")
-                ? "bg-accent"
-                : ""
-            }
-          >
-            <item.icon className="mr-2 h-4 w-4" />
-            <span>{item.label}</span>
-          </DropdownMenuItem>
-        </Link>
-      );
-    });
+      });
   }
 
   // --- LOGOUT HANDLER ---
@@ -194,12 +187,10 @@ export function NavMenu() {
       toast({
         title: "Logout Failed",
         description: "Could not log you out. Please try again.",
-        // variant: "destructive",
       });
     }
   };
 
-  // --- UI ---
   return (
     <>
       <DropdownMenu modal={true}>
@@ -222,7 +213,6 @@ export function NavMenu() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Logout Confirmation */}
       <AlertDialog open={isLogoutAlertOpen} onOpenChange={setIsLogoutAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -243,7 +233,6 @@ export function NavMenu() {
               </Button>
             </AlertDialogAction>
           </AlertDialogFooter>
-
         </AlertDialogContent>
       </AlertDialog>
     </>

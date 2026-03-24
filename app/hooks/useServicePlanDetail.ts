@@ -17,18 +17,16 @@ export function useServicePlanDetail() {
   const { songs, loading: songsLoading } = useSongs(churchId);
 
   const {
-    isAdmin,
-    isServiceManager,
-    isMusicManager,
-    isMusicMember,
+    canReadServicePlans,
+    canManageServicePlans,
     loading: rolesLoading
-  } = useUserRoles(churchId);
+  } = useUserRoles();
 
   const [plan, setPlan] = useState<ServicePlan | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const canView = isAdmin || isServiceManager || isMusicManager || isMusicMember;
-  const canEdit = isAdmin || isServiceManager;
+  const canView = canReadServicePlans;
+  const canEdit = canManageServicePlans;
 
   useEffect(() => {
     if (!churchId || !id) return;

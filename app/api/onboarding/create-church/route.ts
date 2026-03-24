@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/app/lib/firebase/server";
 import admin from "firebase-admin";
+import type { Role } from "@/app/lib/auth/permissions/roles";
 
 export async function POST(req: Request) {
   try {
@@ -39,22 +40,24 @@ export async function POST(req: Request) {
         },
       });
 
-    // 2. Update user (roles array, not role string)
+    // 2. Update user with churchId + Admin role
+    const adminRole: Role[] = ["Admin"];
+
     await adminDb
       .collection("users")
       .doc(uid)
       .set(
         {
           churchId: slug,
-          roles: ["Admin"],
+          roles: adminRole,
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
       );
-      
+
     // 2b. Apply custom claims for Storage + Security Rules
     await admin.auth().setCustomUserClaims(uid, {
-      roles: ["Admin"],
+      roles: adminRole,
       churchId: slug,
     });
 
@@ -65,7 +68,7 @@ export async function POST(req: Request) {
       .collection("members")
       .doc(uid)
       .set({
-        roles: ["Admin"],
+        roles: adminRole,
         joinedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 

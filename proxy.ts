@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { adminAuth, adminDb } from "@/app/lib/firebase/server";
+import { can } from "./app/lib/auth/permissions/can";
+import { Role } from "./app/lib/auth/permissions/roles";
 
 export async function proxy(req: NextRequest) {
   const url = req.nextUrl.clone();
@@ -42,17 +44,12 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  const roles: string[] = user.roles || [];
+  const roles = (user.roles ?? []) as Role[];
   const churchId: string | null = user.churchId || null;
 
-  const isRootAdmin = roles.includes("RootAdmin");
-  const isChurchAdmin = roles.includes("Admin") || roles.includes("ChurchAdmin");
-  const isBasicMember = roles.length === 0;
-  const isMember =
-    isBasicMember ||
-    roles.includes("Member") ||
-    roles.includes("MusicManager") ||
-    roles.includes("MusicMember");
+  const isRootAdmin = can(roles, "system.manage");
+  const isChurchAdmin = can(roles, "church.manage");
+  const isMember = can(roles, "members.read");
 
   //
   // ROOT ADMIN LOGIC

@@ -5,6 +5,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase";
 import { useAuth } from "./useAuth";
 import type { User } from "@/app/lib/types";
+import type { Role } from "@/app/lib/auth/permissions/roles";
 
 export function useCurrentUser() {
   const { user: authUser, loading: authLoading } = useAuth();
@@ -25,7 +26,17 @@ export function useCurrentUser() {
       const snap = await getDoc(ref);
 
       if (snap.exists()) {
-        setCurrentUser(snap.data() as User);
+        const data = snap.data();
+
+        const normalizedUser: User = {
+          ...data,
+          id: authUser.id,
+          roles: (data.roles ?? []) as Role[],
+          churchId: data.churchId ?? null,
+          email: data.email ?? authUser.email ?? "",
+        };
+
+        setCurrentUser(normalizedUser);
       } else {
         setCurrentUser(null);
       }

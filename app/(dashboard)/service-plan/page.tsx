@@ -30,14 +30,10 @@ export default function ServicePlanPage() {
   const { churchId, loading: churchLoading } = useChurchId();
   const { plans, loading: plansLoading, error, reload } = useServicePlans(churchId);
 
-  const {
-    isAdmin,
-    isServiceManager,
-    loading: rolesLoading
-  } = useUserRoles(churchId);
+  const { canManageServicePlans, canReadServicePlans, loading: rolesLoading } = useUserRoles();
 
-  const canManage = isAdmin || isServiceManager;
-  const canView = isAdmin || isServiceManager;
+  const canManage = canManageServicePlans;
+  const canView = canReadServicePlans;
 
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortType>("date-desc");

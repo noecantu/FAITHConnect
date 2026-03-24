@@ -15,8 +15,8 @@ export default function NewSetListPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
   const { songs: allSongs } = useSongs(churchId);
-  const { isAdmin, isMusicManager } = useUserRoles(churchId);
-  const canCreate = isAdmin || isMusicManager;
+  const { canManageMusic } = useUserRoles();
+  const canCreate = canManageMusic;
 
   const [saving, setSaving] = useState(false);
   const [submitForm, setSubmitForm] = useState<() => void>(() => () => {});

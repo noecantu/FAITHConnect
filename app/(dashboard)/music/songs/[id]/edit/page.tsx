@@ -16,8 +16,8 @@ export default function EditSongPage() {
   const { churchId } = useChurchId();
 
   // UPDATED ROLES
-  const { isAdmin, isMusicManager } = useUserRoles(churchId);
-  const canEdit = isAdmin || isMusicManager;
+  const { canManageMusic } = useUserRoles();
+  const canEdit = canManageMusic;
 
   const [song, setSong] = useState<Song | null>(null);
   const [loading, setLoading] = useState(true);

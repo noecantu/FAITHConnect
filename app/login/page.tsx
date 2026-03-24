@@ -1,18 +1,26 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/app/lib/firebase-client";
-import { Button } from '@/app/components/ui/button';
-import { Input } from '@/app/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
-import { Label } from '@/app/components/ui/label';
-import { useToast } from '@/app/hooks/use-toast';
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/app/components/ui/card";
+import { Label } from "@/app/components/ui/label";
+import { useToast } from "@/app/hooks/use-toast";
+import { can } from "@/app/lib/auth/permissions/can";
+import type { Role } from "@/app/lib/auth/permissions/roles";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
@@ -31,66 +39,61 @@ export default function LoginPage() {
 
       // 2. Create Firebase session cookie
       const idToken = await user.getIdToken(true);
-      await fetch('/api/auth/session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken }),
       });
 
-      // 3. Fetch user profile so we know where to redirect
+      // 3. Fetch user profile
       const profileRes = await fetch("/api/users/me");
       const profile = await profileRes.json();
 
-      // Member-level roles (non-admin)
-      const isMemberLevel =
-        profile.roles.includes("Member") ||
-        profile.roles.includes("MusicManager") ||
-        profile.roles.includes("MusicMember") ||
-        profile.roles.includes("EventManager") ||
-        profile.roles.includes("Finance") ||
-        profile.roles.includes("AttendanceManager") ||
-        profile.roles.includes("ServiceManager") ||
-        profile.roles.includes("MemberManager");
+      const roles = (profile.roles ?? []) as Role[];
 
-      toast({ title: "Login Successful", description: "Welcome back!" });
+      toast({
+        title: "Login Successful",
+        description: "Welcome back!",
+      });
 
-        // 4. Redirect based on role
-        const isSystemUser =
-          profile.roles.includes("RootAdmin") ||
-          profile.roles.includes("SystemAdmin");
+      // ---------------------------------------
+      // Permission-based redirects
+      // ---------------------------------------
 
-        if (isSystemUser) {
-          router.replace("/admin");
-          return;
+      // Root Admin
+      if (can(roles, "system.manage")) {
+        router.replace("/admin");
+        return;
+      }
+
+      // Church Admin
+      if (can(roles, "church.manage")) {
+        if (profile.churchId) {
+          router.replace(`/admin/church/${profile.churchId}`);
+        } else {
+          router.replace("/onboarding/create-church");
         }
+        return;
+      }
 
-        if (profile.roles.includes("Admin") || profile.roles.includes("ChurchAdmin")) {
-          if (profile.churchId) {
-            router.replace(`/admin/church/${profile.churchId}`);
-          } else {
-            router.replace("/onboarding/create-church");
-          }
-          return;
+      // Member
+      if (can(roles, "members.read")) {
+        if (profile.churchId) {
+          router.replace(`/church/${profile.churchId}/user`);
+        } else {
+          router.replace("/");
         }
+        return;
+      }
 
-        if (isMemberLevel) {
-          if (profile.churchId) {
-            router.replace(`/church/${profile.churchId}/user`);
-          } else {
-            router.replace("/");
-          }
-          return;
-        }
-
-        // fallback
-        router.replace("/");
+      // Fallback
+      router.replace("/");
 
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       toast({
-        title: 'Login Failed',
-        description: 'The email or password you entered is incorrect.',
-        // variant: 'destructive',
+        title: "Login Failed",
+        description: "The email or password you entered is incorrect.",
       });
     } finally {
       setIsLoading(false);
@@ -101,7 +104,6 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 flex items-center justify-center px-4">
       <Card className="w-full max-w-sm bg-card">
         <CardHeader className="text-center space-y-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/F-Flame_Vector_Optimized.svg"
             alt="Faith Connect Logo"
@@ -141,7 +143,7 @@ export default function LoginPage() {
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Logging in...' : 'Log In'}
+              {isLoading ? "Logging in..." : "Log In"}
             </Button>
           </form>
         </CardContent>
