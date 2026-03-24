@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
 import { adminDb, adminAuth } from "@/app/lib/firebase/server";
 import { can } from "@/app/lib/auth/permissions/can";

@@ -42,12 +42,18 @@ export default function LoginPage() {
       await fetch("/api/auth/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ idToken }),
       });
 
       // 3. Fetch user profile
-      const profileRes = await fetch("/api/users/me");
+      const profileRes = await fetch("/api/users/me", {
+        credentials: "include",
+      });
       const profile = await profileRes.json();
+
+      console.log("PROFILE:", profile);
+      console.log("ROLES:", profile.roles);
 
       const roles = (profile.roles ?? []) as Role[];
 
@@ -77,7 +83,7 @@ export default function LoginPage() {
       }
 
       // Member
-      if (can(roles, "members.read")) {
+      if (can(roles, "auth.login")) {
         if (profile.churchId) {
           router.replace(`/church/${profile.churchId}/user`);
         } else {

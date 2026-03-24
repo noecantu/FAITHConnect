@@ -3,6 +3,7 @@ import type { Role } from "./roles";
 
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   RootAdmin: [
+    "auth.login",
     "system.manage",
     "churches.manage",
     "admins.manage",
@@ -35,6 +36,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   ],
 
   Admin: [
+    "auth.login",
     "church.manage",
     "members.read",
     "members.manage",
@@ -62,31 +64,31 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "youth.manage"
   ],
 
-  AttendanceManager: ["attendance.read", "attendance.manage"],
-  EventManager: ["events.read", "events.manage"],
-  Finance: ["finance.read", "finance.manage"],
-  MemberManager: ["members.read", "members.manage", "roles.assign"],
-  ServiceManager: ["servicePlans.read", "servicePlans.manage"],
+  AttendanceManager: ["auth.login", "attendance.read", "attendance.manage"],
+  EventManager: ["auth.login", "events.read", "events.manage"],
+  Finance: ["auth.login", "finance.read", "finance.manage"],
+  MemberManager: ["auth.login", "members.read", "members.manage", "roles.assign"],
+  ServiceManager: ["auth.login", "servicePlans.read", "servicePlans.manage"],
 
-  Pastor: ["members.read", "events.read", "attendance.read", "servicePlans.read"],
-  Minister: ["members.read", "events.read", "servicePlans.read"],
-  Deacon: ["members.read", "events.read"],
+  Pastor: ["auth.login", "members.read", "events.read", "attendance.read", "servicePlans.read"],
+  Minister: ["auth.login", "members.read", "events.read", "servicePlans.read"],
+  Deacon: ["auth.login", "members.read", "events.read"],
 
-  MusicManager: ["music.read", "music.manage"],
-  MusicMember: ["music.read"],
+  MusicManager: ["auth.login", "music.read", "music.manage"],
+  MusicMember: ["auth.login", "music.read"],
 
-  UsherManager: ["usher.read", "usher.manage"],
-  Usher: ["usher.read"],
+  UsherManager: ["auth.login", "usher.read", "usher.manage"],
+  Usher: ["auth.login", "usher.read"],
 
-  CaretakerManager: ["caretaker.read", "caretaker.manage"],
-  Caretaker: ["caretaker.read"],
+  CaretakerManager: ["auth.login", "caretaker.read", "caretaker.manage"],
+  Caretaker: ["auth.login", "caretaker.read"],
 
-  MensGroupManager: ["men.read", "men.manage"],
-  MensGroup: ["men.read"],
+  MensGroupManager: ["auth.login", "men.read", "men.manage"],
+  MensGroup: ["auth.login", "men.read"],
 
-  WomensGroupManager: ["women.read", "women.manage"],
-  WomensGroup: ["women.read"],
+  WomensGroupManager: ["auth.login", "women.read", "women.manage"],
+  WomensGroup: ["auth.login", "women.read"],
 
-  YouthGroupManager: ["youth.read", "youth.manage"],
-  YouthGroup: ["youth.read"]
+  YouthGroupManager: ["auth.login", "youth.read", "youth.manage"],
+  YouthGroup: ["auth.login", "youth.read"]
 } as const;

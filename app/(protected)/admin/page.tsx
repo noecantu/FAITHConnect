@@ -1,39 +1,41 @@
 // app/admin/page.tsx
 import { adminDb } from "@/app/lib/firebase/firebaseAdmin";
 import AdminHomeClient from "./AdminHomeClient";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/app/lib/auth/server/getCurrentUser";
+import { can } from "@/app/lib/auth/permissions/can";
 
 export default async function AdminHomePage() {
-  // --- Core Collections ---
+  // 1. Get the logged-in user
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  // 2. Only RootAdmin can access this page
+  if (!can(user.roles, "system.manage")) {
+    redirect(`/church/${user.churchId}/user`);
+  }
+
+  // 3. Now it's safe to run Firestore Admin queries
   const churchesSnap = await adminDb.collection("churches").count().get();
   const usersSnap = await adminDb.collection("users").count().get();
 
-  // --- Church Admins ---
   const adminsSnap = await adminDb
     .collection("users")
     .where("roles", "array-contains", "Admin")
     .count()
     .get();
 
-  // --- Events ---
   const eventsSnap = await adminDb.collectionGroup("events").count().get();
-
-  // --- Check-ins ---
   const checkinsSnap = await adminDb.collectionGroup("checkins").count().get();
-
-  // --- Music Items ---
   const musicItemsSnap = await adminDb.collectionGroup("songs").count().get();
-
-  // --- Setlists ---
   const setlistsSnap = await adminDb.collectionGroup("setlists").count().get();
 
-  // --- Pastors ---
   const pastorsSnap = await adminDb
     .collection("users")
     .where("roles", "array-contains", "Pastor")
     .count()
     .get();
 
-  // --- Finance Managers ---
   const financeSnap = await adminDb
     .collection("users")
     .where("roles", "array-contains", "Finance")

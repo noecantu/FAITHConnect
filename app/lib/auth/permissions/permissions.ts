@@ -1,4 +1,6 @@
 export const PERMISSIONS = {
+  // Authentication
+  "auth.login": "Allow user to log into the system",
   // Church-Level
   "church.manage": "Manage church settings",
   "members.read": "View members",

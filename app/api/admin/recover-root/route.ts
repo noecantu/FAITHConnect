@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
 import { recoverRootAdmin } from "@/app/lib/admin/recoverRootAdmin";
 

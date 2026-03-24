@@ -1,119 +1,25 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { adminAuth, adminDb } from "@/app/lib/firebase/server";
-import { can } from "./app/lib/auth/permissions/can";
-import { Role } from "./app/lib/auth/permissions/roles";
 
-export async function proxy(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const url = req.nextUrl.clone();
   const { pathname } = req.nextUrl;
 
-  // ALWAYS PRESERVE QUERY PARAMS
-  url.search = req.nextUrl.search;
-
-  // PUBLIC ROUTES
+  // Public routes
   const publicPatterns = [/^\/login/, /^\/signup/, /^\/api/];
   if (publicPatterns.some((pattern) => pattern.test(pathname))) {
     return NextResponse.next();
   }
 
-  // SESSION COOKIE
+  // Only check if cookie exists — DO NOT verify it here
   const sessionCookie = req.cookies.get("session")?.value;
+
   if (!sessionCookie) {
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // VERIFY SESSION
-  let decoded;
-  try {
-    decoded = await adminAuth.verifySessionCookie(sessionCookie, true);
-  } catch {
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
-
-  const uid = decoded.uid;
-
-  // FETCH USER PROFILE
-  const userSnap = await adminDb.collection("users").doc(uid).get();
-  const user = userSnap.data();
-
-  if (!user) {
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
-
-  const roles = (user.roles ?? []) as Role[];
-  const churchId: string | null = user.churchId || null;
-
-  const isRootAdmin = can(roles, "system.manage");
-  const isChurchAdmin = can(roles, "church.manage");
-  const isMember = can(roles, "members.read");
-
-  //
-  // ROOT ADMIN LOGIC
-  //
-  if (isRootAdmin) {
-    if (pathname === "/") {
-      url.pathname = "/admin";
-      return NextResponse.redirect(url);
-    }
-    return NextResponse.next();
-  }
-
-  //
-  // CHURCH ADMIN LOGIC
-  //
-  if (isChurchAdmin && churchId) {
-    const adminRoot = `/admin/church/${churchId}`;
-
-    if (pathname === "/") {
-      url.pathname = adminRoot;
-      return NextResponse.redirect(url);
-    }
-
-    if (pathname.startsWith("/admin") && !pathname.startsWith(adminRoot)) {
-      url.pathname = adminRoot;
-      return NextResponse.redirect(url);
-    }
-
-    return NextResponse.next();
-  }
-
-  //
-  // CHURCH ADMIN WITHOUT CHURCH → ONBOARDING
-  //
-  if (isChurchAdmin && !churchId) {
-    if (!pathname.startsWith("/onboarding")) {
-      url.pathname = "/onboarding/create-church";
-      return NextResponse.redirect(url);
-    }
-    return NextResponse.next();
-  }
-
-  //
-  // MEMBER LOGIC
-  //
-  if (isMember) {
-    if (pathname === "/") {
-      url.pathname = "/members";
-      return NextResponse.redirect(url);
-    }
-
-    if (pathname.startsWith("/admin")) {
-      url.pathname = "/members";
-      return NextResponse.redirect(url);
-    }
-
-    return NextResponse.next();
-  }
-
-  //
-  // UNKNOWN ROLE → LOGIN
-  //
-  url.pathname = "/login";
-  return NextResponse.redirect(url);
+  return NextResponse.next();
 }
 
 export const config = {
