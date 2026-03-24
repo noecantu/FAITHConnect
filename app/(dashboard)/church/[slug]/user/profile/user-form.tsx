@@ -6,7 +6,7 @@ import { Input } from "@/app/components/ui/input";
 import { Button } from "@/app/components/ui/button";
 import { Avatar, AvatarFallback } from "@/app/components/ui/avatar";
 import type { UserProfile } from "@/app/lib/types";
-import { storage } from "@/app/lib/firebase";
+import { storage } from "@/app/lib/firebase/client";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export function UserForm({

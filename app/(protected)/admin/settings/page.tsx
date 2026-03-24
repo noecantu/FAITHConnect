@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase";
+import { db } from "@/app/lib/firebase/client";
 
 import { PageHeader } from "@/app/components/page-header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";

@@ -16,7 +16,7 @@ import { useMemberRelationships } from "@/app/hooks/useMemberRelationships";
 import { usePhotoCapture } from "@/app/hooks/usePhotoCapture";
 import QRCode from "qrcode";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
-import { storage } from "@/app/lib/firebase";
+import { storage } from "@/app/lib/firebase/client";
 import { generateCheckInCode } from "@/app/lib/utils/generateCheckInCode";
 
 import {

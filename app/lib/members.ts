@@ -8,7 +8,7 @@ import {
   Timestamp,
   runTransaction,
 } from "firebase/firestore";
-import { db } from "@/app/lib/firebase";
+import { db } from "@/app/lib/firebase/client";
 import type { Member, Relationship } from "@/app/lib/types";
 import { removeUndefineds } from "@/app/lib/utils";
 

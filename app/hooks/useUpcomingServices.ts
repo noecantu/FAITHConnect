@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
-import { db } from "@/app/lib/firebase";
+import { db } from "@/app/lib/firebase/client";
 import type { ServicePlan, ServicePlanFirestore } from "@/app/lib/types";
 
 export function useUpcomingServices(churchId: string | null) {

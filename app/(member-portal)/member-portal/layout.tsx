@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MemberPortalContext, MemberPortalContextType } from "./MemberPortalContext";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase";
+import { db } from "@/app/lib/firebase/client";
 import { Button } from "@/app/components/ui/button";
 import Link from "next/link";
 

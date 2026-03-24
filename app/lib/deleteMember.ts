@@ -1,6 +1,6 @@
 "use client";
 
-import { db, storage } from "@/app/lib/firebase";
+import { db, storage } from "@/app/lib/firebase/client";
 import { doc, deleteDoc } from "firebase/firestore";
 import { ref, deleteObject } from "firebase/storage";
 

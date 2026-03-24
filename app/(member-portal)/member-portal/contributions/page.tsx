@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useMemberPortal } from "../MemberPortalContext";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "@/app/lib/firebase";
+import { db } from "@/app/lib/firebase/client";
 import { Card, CardContent } from "@/app/components/ui/card";
 import { format } from "date-fns";
 import { Link } from "lucide-react";

@@ -5,7 +5,7 @@ import {
   setDoc,
   serverTimestamp,
 } from "firebase/firestore";
-import { db } from "@/app/lib/firebase";
+import { db } from "@/app/lib/firebase/client";
 import type { User } from "@/app/lib/types";
 
 export async function duplicateSetList(

@@ -9,7 +9,7 @@ import {
 } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase";
+import { db } from "@/app/lib/firebase/client";
 import { toast } from "@/app/hooks/use-toast";
 import { generateCheckInCode } from "@/app/lib/utils/generateCheckInCode";
 
