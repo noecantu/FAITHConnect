@@ -47,6 +47,7 @@ export type EventFormValues = z.infer<typeof eventSchema>;
 interface EventFormDialogProps {
   open: boolean;
   isAdmin: boolean;
+  managerGroup: string | null;
   isEditing: boolean;
   event: Event | null;
   selectedDate: Date;
@@ -62,6 +63,7 @@ interface EventFormDialogProps {
 export function EventFormDialog({
   open,
   isAdmin,
+  managerGroup,
   isEditing,
   event,
   selectedDate,
@@ -70,6 +72,7 @@ export function EventFormDialog({
   onOpenChange,
   onDelete,
 }: EventFormDialogProps) {
+  const isManager = !isAdmin && !!managerGroup;
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
       <StandardDialogLayout
@@ -169,8 +172,9 @@ export function EventFormDialog({
             />
 
             {/* -------------------------------------- */}
-            {/* ADMIN-ONLY VISIBILITY CONTROLS */}
+            {/* VISIBILITY CONTROLS */}
             {/* -------------------------------------- */}
+
             {isAdmin && (
               <div className="space-y-4 border-t border-white/10 pt-4 mt-4">
 
@@ -217,6 +221,17 @@ export function EventFormDialog({
                     </FormItem>
                   )}
                 />
+              </div>
+            )}
+
+            {isManager && (
+              <div className="space-y-4 border-t border-white/10 pt-4 mt-4">
+                <FormItem>
+                  <FormLabel>Group</FormLabel>
+                  <div className="text-sm text-muted-foreground">
+                    {managerGroup}
+                  </div>
+                </FormItem>
               </div>
             )}
           </form>

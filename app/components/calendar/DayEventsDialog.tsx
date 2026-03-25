@@ -16,7 +16,7 @@ interface DayEventsDialogProps {
   onEdit: (event: Event) => void;
   onDelete: (id: string) => void;
 
-  // FIXED: managerGroup is NOT a boolean
+  isAdmin: boolean;
   managerGroup: string | null;
 }
 
@@ -28,10 +28,17 @@ export function DayEventsDialog({
   onAdd,
   onEdit,
   onDelete,
+  isAdmin,
   managerGroup,
 }: DayEventsDialogProps) {
-  // You can manage events if you belong to a manager group
-  const canManage = !!managerGroup;
+
+  function canManageEvent(event: Event) {
+    if (isAdmin) return true;
+    if (managerGroup && event.groups?.includes(managerGroup)) return true;
+    return false;
+  }
+
+  const canAdd = isAdmin || !!managerGroup;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -44,7 +51,7 @@ export function DayEventsDialog({
         }
         onClose={() => onOpenChange(false)}
         footer={
-          canManage && (
+          canAdd && (
             <Button onClick={() => onAdd(date)} className="w-full sm:w-auto">
               Add Event
             </Button>
@@ -67,7 +74,7 @@ export function DayEventsDialog({
                   )}
                 </div>
 
-                {canManage && (
+                {canManageEvent(event) && (
                   <div className="flex items-center gap-1 shrink-0">
                     <Button
                       variant="ghost"

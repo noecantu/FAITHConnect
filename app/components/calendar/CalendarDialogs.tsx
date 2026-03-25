@@ -84,6 +84,7 @@ export function CalendarDialogs({
       <EventFormDialog
         open={isFormOpen}
         isAdmin={isAdmin}
+        managerGroup={managerGroup}
         isEditing={isEditing}
         event={editEvent}
         selectedDate={selectedDate || new Date()}
@@ -105,6 +106,7 @@ export function CalendarDialogs({
           onAdd={handleAdd}
           onEdit={handleEdit}
           onDelete={(id) => setDeleteId(id)}
+          isAdmin={isAdmin}
           managerGroup={managerGroup}
         />
       )}
