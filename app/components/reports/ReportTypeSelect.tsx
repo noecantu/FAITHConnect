@@ -1,30 +1,50 @@
 'use client';
 
 import { Label } from "../ui/label";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../ui/select";
 
 interface Props {
-  value: 'members' | 'contributions' | 'attendance';
-  onChange: (v: 'members' | 'contributions' | 'attendance') => void;
+  value: "members" | "contributions" | "attendance";
+  onChange: (v: "members" | "contributions" | "attendance") => void;
+  canReadMembers: boolean;
+  canReadContributions: boolean;
+  canReadAttendance: boolean;
 }
 
-export function ReportTypeSelect({ value, onChange }: Props) {
+export function ReportTypeSelect({
+  value,
+  onChange,
+  canReadMembers,
+  canReadContributions,
+  canReadAttendance,
+}: Props) {
   return (
     <div className="space-y-2">
-      <Label>Report Type</Label>
+      <Label className="text-sm font-medium">Report Type</Label>
 
-      <Select
-        value={value}
-        onValueChange={(v) => onChange(v as typeof value)}
-    >
-        <SelectTrigger>
-          <SelectValue />
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Select Report Type" />
         </SelectTrigger>
 
-        <SelectContent className="max-h-64 overflow-y-auto">
-          <SelectItem value="attendance">Attendance</SelectItem>
-          <SelectItem value="contributions">Contributions</SelectItem>
-          <SelectItem value="members">Member List</SelectItem>
+        <SelectContent>
+          {canReadMembers && (
+            <SelectItem value="members">Members</SelectItem>
+          )}
+
+          {canReadContributions && (
+            <SelectItem value="contributions">Contributions</SelectItem>
+          )}
+
+          {canReadAttendance && (
+            <SelectItem value="attendance">Attendance</SelectItem>
+          )}
         </SelectContent>
       </Select>
     </div>

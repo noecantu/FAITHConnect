@@ -33,7 +33,6 @@ interface ReportFiltersPanelProps {
   includeVisitors: boolean;
   setIncludeVisitors: (v: boolean) => void;
 
-  // NEW GUIDED TIME-FRAME PROPS
   timeFrame: "week" | "month" | "year";
   setTimeFrame: (v: "week" | "month" | "year") => void;
 
@@ -49,6 +48,10 @@ interface ReportFiltersPanelProps {
   availableYears: string[];
   availableMonths: string[];
   availableWeeks: number[];
+
+  canReadMembers: boolean;
+  canReadContributions: boolean;
+  canReadAttendance: boolean;
 }
 
 export function ReportFiltersPanel({
@@ -68,7 +71,6 @@ export function ReportFiltersPanel({
   includeVisitors,
   setIncludeVisitors,
 
-  // NEW guided time-frame props
   timeFrame,
   setTimeFrame,
   selectedYear,
@@ -80,6 +82,9 @@ export function ReportFiltersPanel({
   availableYears,
   availableMonths,
   availableWeeks,
+  canReadMembers,
+  canReadContributions,
+  canReadAttendance,
 }: ReportFiltersPanelProps) {
   return (
     <Card className="w-full lg:w-80 h-fit">
@@ -90,7 +95,13 @@ export function ReportFiltersPanel({
       <CardContent className="space-y-6">
 
         {/* REPORT TYPE */}
-        <ReportTypeSelect value={reportType} onChange={setReportType} />
+        <ReportTypeSelect
+          value={reportType}
+          onChange={setReportType}
+          canReadMembers={canReadMembers}
+          canReadContributions={canReadContributions}
+          canReadAttendance={canReadAttendance}
+        />
 
         {/* MEMBER SELECT */}
         <MemberSelect

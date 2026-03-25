@@ -44,6 +44,7 @@ const contributionSchema = z.object({
   category: z.enum(['Tithes', 'Offering', 'Donation', 'Other']),
   contributionType: z.enum(['Digital Transfer', 'Cash', 'Check', 'Other']),
   date: z.string().min(1, 'Date is required'),
+  notes: z.string().optional(),
 }).refine(
   (data) => data.memberId || data.customContributorName,
   {
@@ -78,6 +79,7 @@ export function AddContributionDialog({
       category: 'Tithes',
       contributionType: 'Digital Transfer',
       date: dayjs().format("YYYY-MM-DD"),
+      notes: "",
     },
   });
 
@@ -107,9 +109,12 @@ export function AddContributionDialog({
       date: values.date,
     };
 
-    // Only include memberId if it is a REAL member ID
     if (memberId) {
       payload.memberId = memberId;
+    }
+
+    if (values.notes) {
+      payload.notes = values.notes;
     }
 
     try {
@@ -315,6 +320,37 @@ export function AddContributionDialog({
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <textarea
+                        {...field}
+                        className="
+                          w-full
+                          rounded-md
+                          border border-white/20
+                          bg-black/20
+                          text-white text-sm
+                          px-3 py-2
+                          focus:outline-none
+                          focus:ring-2
+                          focus:ring-white/30
+                          resize-none
+                          h-24
+                        "
+                        placeholder="Optional Notes"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
             </form>
           </Form>
         </div>

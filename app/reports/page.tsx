@@ -15,12 +15,22 @@ import { ContributionPreviewTable } from "@/app/components/reports/ContributionP
 import { Button } from "@/app/components/ui/button";
 import { Loader2 } from "lucide-react";
 
+// NEW
+import { useUserRoles } from "@/app/hooks/useUserRoles";
+
 export default function ReportsPage() {
   const { members } = useMembers();
   const { contributions } = useContributions();
   const { churchId } = useChurchId();
 
   const { attendance } = useAttendanceForReports(churchId, members);
+
+  // NEW — permissions
+  const {
+    canReadMembers,
+    canReadContributions,
+    canReadAttendance,
+  } = useUserRoles();
 
   // Local State
   const [reportType, setReportType] =
@@ -92,37 +102,50 @@ export default function ReportsPage() {
     }
   };
 
+  const safeSetReportType = (
+    type: "members" | "contributions" | "attendance"
+  ) => {
+    if (type === "members" && !canReadMembers) return;
+    if (type === "contributions" && !canReadContributions) return;
+    if (type === "attendance" && !canReadAttendance) return;
+    setReportType(type);
+  };
+
   // Auto-select latest year when timeFrame changes
   useEffect(() => {
     if (availableYears.length === 0) return;
-
-    // If no year selected, choose the most recent one
     if (!selectedYear) {
       setSelectedYear(availableYears[0]);
     }
   }, [timeFrame, availableYears]);
+
   // Auto-select latest month when year changes (Month mode)
   useEffect(() => {
     if (timeFrame !== "month") return;
     if (!selectedYear) return;
     if (availableMonths.length === 0) return;
 
-    // If no month selected, choose the most recent one
     if (!selectedMonth) {
       setSelectedMonth(availableMonths[availableMonths.length - 1]);
     }
   }, [timeFrame, selectedYear, availableMonths]);
+
   // Auto-select latest week when year changes (Week mode)
   useEffect(() => {
     if (timeFrame !== "week") return;
     if (!selectedYear) return;
     if (availableWeeks.length === 0) return;
 
-    // If no week selected, choose the most recent one
     if (!selectedWeek) {
       setSelectedWeek(availableWeeks[availableWeeks.length - 1]);
     }
   }, [timeFrame, selectedYear, availableWeeks]);
+
+  // NEW — determine if export buttons should show
+  const canExport =
+    (reportType === "members" && canReadMembers) ||
+    (reportType === "contributions" && canReadContributions) ||
+    (reportType === "attendance" && canReadAttendance);
 
   return (
     <div className="space-y-6">
@@ -130,44 +153,49 @@ export default function ReportsPage() {
         title="Reports"
         subtitle="Select a report type below."
       />
-      <div className="flex justify-end gap-2">
-        <Button
-          onClick={handleExportPDF}
-          size="sm"
-          className="min-w-[80px]"
-          disabled={isExportingPDF || isExportingExcel}
-        >
-          {isExportingPDF ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              PDF
-            </>
-          ) : (
-            "PDF"
-          )}
-        </Button>
 
-        <Button
-          onClick={handleExportExcel}
-          size="sm"
-          className="min-w-[80px]"
-          disabled={isExportingPDF || isExportingExcel}
-        >
-          {isExportingExcel ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Excel
-            </>
-          ) : (
-            "Excel"
-          )}
-        </Button>
-      </div>
+      {/* EXPORT BUTTONS */}
+      {canExport && (
+        <div className="flex justify-end gap-2">
+          <Button
+            onClick={handleExportPDF}
+            size="sm"
+            className="min-w-[80px]"
+            disabled={isExportingPDF || isExportingExcel}
+          >
+            {isExportingPDF ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                PDF
+              </>
+            ) : (
+              "PDF"
+            )}
+          </Button>
+
+          <Button
+            onClick={handleExportExcel}
+            size="sm"
+            className="min-w-[80px]"
+            disabled={isExportingPDF || isExportingExcel}
+          >
+            {isExportingExcel ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Excel
+              </>
+            ) : (
+              "Excel"
+            )}
+          </Button>
+        </div>
+      )}
+
       <div className="flex flex-col lg:flex-row gap-6">
         {/* LEFT PANEL */}
         <ReportFiltersPanel
           reportType={reportType}
-          setReportType={setReportType}
+          setReportType={safeSetReportType}
           members={members}
           selectedMembers={selectedMembers}
           setSelectedMembers={setSelectedMembers}
@@ -188,13 +216,16 @@ export default function ReportsPage() {
           availableYears={availableYears}
           availableMonths={availableMonths}
           availableWeeks={availableWeeks}
+          canReadMembers={canReadMembers}
+          canReadContributions={canReadContributions}
+          canReadAttendance={canReadAttendance}
         />
 
         {/* RIGHT PANEL */}
         <div className="space-y-6 w-full">
 
           {/* MEMBER REPORT */}
-          {reportType === "members" && (
+          {reportType === "members" && canReadMembers && (
             <MemberPreviewTable
               members={filteredMembers}
               selectedFields={selectedFields}
@@ -202,15 +233,16 @@ export default function ReportsPage() {
           )}
 
           {/* CONTRIBUTIONS REPORT */}
-          {reportType === "contributions" && (
+          {reportType === "contributions" && canReadContributions && (
             <ContributionPreviewTable
               contributions={filteredContributions}
-              members={members} selectedFields={[]}
+              members={members}
+              selectedFields={[]}
             />
           )}
 
           {/* ATTENDANCE REPORT */}
-          {reportType === "attendance" && (
+          {reportType === "attendance" && canReadAttendance && (
             <AttendancePreviewTable
               attendance={filteredAttendance}
               members={members}

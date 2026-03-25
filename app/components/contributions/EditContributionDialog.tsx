@@ -50,6 +50,7 @@ const contributionSchema = z.object({
   category: z.enum(['Tithes', 'Offering', 'Donation', 'Other']),
   contributionType: z.enum(['Digital Transfer', 'Cash', 'Check', 'Other']),
   date: z.date(),
+  notes: z.string().optional(),
 });
 
 type ContributionFormValues = z.infer<typeof contributionSchema>;
@@ -79,6 +80,7 @@ export function EditContributionDialog({
       category: 'Tithes',
       contributionType: 'Digital Transfer',
       date: new Date(),
+      notes: "",
     },
   });
 
@@ -90,6 +92,7 @@ export function EditContributionDialog({
         category: contribution.category,
         contributionType: contribution.contributionType,
         date: new Date(contribution.date),
+        notes: contribution.notes ?? "",
       });
     }
   }, [contribution, form]);
@@ -301,6 +304,37 @@ export function EditContributionDialog({
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <textarea
+                        {...field}
+                        className="
+                          w-full
+                          rounded-md
+                          border border-white/20
+                          bg-black/20
+                          text-white text-sm
+                          px-3 py-2
+                          focus:outline-none
+                          focus:ring-2
+                          focus:ring-white/30
+                          resize-none
+                          h-24
+                        "
+                        placeholder="Optional Notes"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
             </form>
           </Form>
         </StandardDialogLayout>

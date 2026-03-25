@@ -79,6 +79,10 @@ export function NavMenu() {
   const canAccessMusic = can(typedRoles, "music.read");
   const canAccessServicePlan = can(typedRoles, "servicePlans.read");
   const canSeeAttendance = can(typedRoles, "attendance.read");
+  const canSeeReports =
+    can(typedRoles, "members.read") ||
+    can(typedRoles, "contributions.read") ||
+    can(typedRoles, "attendance.read");
 
   // --- MENU CONFIGS ---
   const rootAdminMenu = [
@@ -100,6 +104,7 @@ export function NavMenu() {
     { href: "/service-plan", label: "Service Plans", icon: CalendarHeart, permission: canAccessServicePlan },
     { href: "/reports", label: "Reports", icon: FileText },
     { href: "/settings/access-management", label: "Settings", icon: Settings },
+    { href: "/reports", label: "Reports", icon: FileText, permission: canSeeReports },
   ];
 
   const userMenu = [
@@ -107,6 +112,7 @@ export function NavMenu() {
     { href: "/calendar", label: "Calendar", icon: Calendar },
     { href: "/contributions", label: "Contributions", icon: DollarSign, permission: canSeeContributions },
     { href: "/music", label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
+    { href: "/reports", label: "Reports", icon: FileText, permission: canSeeReports },
   ];
 
   const activeMenu = isRootAdmin
