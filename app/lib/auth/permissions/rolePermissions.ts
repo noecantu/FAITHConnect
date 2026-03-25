@@ -14,10 +14,10 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "roles.assign",
     "attendance.read",
     "attendance.manage",
+    "contributions.read",
+    "contributions.manage",
     "events.read",
     "events.manage",
-    "finance.read",
-    "finance.manage",
     "servicePlans.read",
     "servicePlans.manage",
 
@@ -43,10 +43,10 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "roles.assign",
     "attendance.read",
     "attendance.manage",
+    "contributions.read",
+    "contributions.manage",
     "events.read",
     "events.manage",
-    "finance.read",
-    "finance.manage",
     "servicePlans.read",
     "servicePlans.manage",
 
@@ -66,7 +66,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
 
   AttendanceManager: ["auth.login", "attendance.read", "attendance.manage"],
   EventManager: ["auth.login", "events.read", "events.manage"],
-  Finance: ["auth.login", "finance.read", "finance.manage"],
+  Finance: ["auth.login", "contributions.read", "contributions.manage"],
   MemberManager: ["auth.login", "members.read", "members.manage", "roles.assign"],
   ServiceManager: ["auth.login", "servicePlans.read", "servicePlans.manage"],
 

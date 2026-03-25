@@ -8,14 +8,10 @@ export const PERMISSIONS = {
   "roles.assign": "Assign roles to members",
   "attendance.read": "View attendance",
   "attendance.manage": "Record and edit attendance",
-  "events.read": "View events and calendar",
-  "events.manage": "Create and edit events",
-  "finance.read": "View contributions and reports",
-  "finance.manage": "Manage contributions and financial settings",
-
-  // Contributions (explicit)
   "contributions.read": "View contributions",
   "contributions.manage": "Add, edit, delete contributions",
+  "events.read": "View events and calendar",
+  "events.manage": "Create and edit events",
 
   // Ministry-Level
   "servicePlans.read": "View service plans",

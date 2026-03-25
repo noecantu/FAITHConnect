@@ -19,8 +19,8 @@ export function useUserRoles() {
     canManageMembers: can(roles, "members.manage"),
     canReadMembers: can(roles, "members.read"),
 
-    canManageFinance: can(roles, "finance.manage"),
-    canReadFinance: can(roles, "finance.read"),
+    canManageContributions: can(roles, "contributions.manage"),
+    canReadContributions: can(roles, "contributions.read"),
 
     canManageEvents: can(roles, "events.manage"),
     canReadEvents: can(roles, "events.read"),
@@ -33,9 +33,6 @@ export function useUserRoles() {
 
     canManageAttendance: can(roles, "attendance.manage"),
     canReadAttendance: can(roles, "attendance.read"),
-
-    canManageContributions: can(roles, "finance.manage"),
-    canReadContributions: can(roles, "finance.read"),
 
     canAssignRoles: can(roles, "roles.assign"),
     canManageSystem: can(roles, "system.manage"),

@@ -75,7 +75,7 @@ export function NavMenu() {
   const isRootAdmin = can(typedRoles, "system.manage");
   const isChurchAdmin = can(typedRoles, "church.manage") && churchId;
 
-  const canSeeContributions = can(typedRoles, "finance.read");
+  const canSeeContributions = can(typedRoles, "contributions.read");
   const canAccessMusic = can(typedRoles, "music.read");
   const canAccessServicePlan = can(typedRoles, "servicePlans.read");
   const canSeeAttendance = can(typedRoles, "attendance.read");
@@ -105,6 +105,7 @@ export function NavMenu() {
   const userMenu = [
     { href: `/church/${churchId}/user`, label: "Dashboard", icon: Home },
     { href: "/calendar", label: "Calendar", icon: Calendar },
+    { href: "/contributions", label: "Contributions", icon: DollarSign, permission: canSeeContributions },
     { href: "/music", label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
   ];
 
