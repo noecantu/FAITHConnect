@@ -36,4 +36,16 @@ export const getColumns = (): ColumnDef<Contribution>[] => [
     accessorKey: 'contributionType',
     header: 'Type',
   },
+  {
+    accessorKey: 'notes',
+    header: 'Notes',
+    cell: ({ row }) => {
+      const notes = row.original.notes;
+      return notes ? (
+        <span className="text-muted-foreground">{notes}</span>
+      ) : (
+        <span className="text-muted-foreground italic">—</span>
+      );
+    },
+  },
 ];
