@@ -67,9 +67,7 @@ const muiTheme = createTheme({
 export default function CalendarPage() {
   const { churchId } = useChurchId();
   const { user } = useAuth();
-
-  // Extract roles + permissions
-  const { roles = [], canManageEvents = false } = useUserRoles();
+  const { roles = [] } = useUserRoles();
 
   // ------------------------------
   // ADMIN CHECK (permission-based)
@@ -92,6 +90,9 @@ export default function CalendarPage() {
   else if (can(roles, "events.manage")) managerGroup = "events";
 
   const { calendarView } = useSettings();
+
+  // Extract roles + permissions
+  const canCreateEvents = isAdmin || !!managerGroup;
 
   // Data
   const { events } = useCalendarEvents(
@@ -186,7 +187,8 @@ export default function CalendarPage() {
         onPrevMonth={month.prevMonth}
         onNextMonth={month.nextMonth}
         onToday={month.goToday}
-        canManage={canManageEvents}
+        isAdmin={isAdmin}
+        managerGroup={managerGroup}
         onEdit={dialogs.handleEdit}
         onDeleteRequest={dialogs.setDeleteId}
       />
@@ -196,10 +198,11 @@ export default function CalendarPage() {
         selectedDayEvents={selectedDayEvents}
         form={form}
         muiTheme={muiTheme}
-        canManage={canManageEvents}
+        isAdmin={isAdmin}
+        managerGroup={managerGroup}
       />
 
-      {canManageEvents && (
+      {canCreateEvents && (
         <Fab type="add" onClick={() => dialogs.handleAdd(new Date())} />
       )}
     </>

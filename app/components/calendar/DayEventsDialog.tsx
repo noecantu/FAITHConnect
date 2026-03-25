@@ -15,7 +15,9 @@ interface DayEventsDialogProps {
   onAdd: (date: Date) => void;
   onEdit: (event: Event) => void;
   onDelete: (id: string) => void;
-  canManage: boolean;
+
+  // FIXED: managerGroup is NOT a boolean
+  managerGroup: string | null;
 }
 
 export function DayEventsDialog({
@@ -26,8 +28,11 @@ export function DayEventsDialog({
   onAdd,
   onEdit,
   onDelete,
-  canManage,
+  managerGroup,
 }: DayEventsDialogProps) {
+  // You can manage events if you belong to a manager group
+  const canManage = !!managerGroup;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <StandardDialogLayout

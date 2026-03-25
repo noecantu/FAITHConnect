@@ -21,6 +21,7 @@ interface GridCalendarProps {
   onPrevMonth: () => void;
   onNextMonth: () => void;
   events: Event[];
+  onEdit?: (event: Event) => void;
 }
 
 export function GridCalendar({
@@ -29,6 +30,7 @@ export function GridCalendar({
   onPrevMonth,
   onNextMonth,
   events,
+  onEdit,
 }: GridCalendarProps) {
   // Group events by day
   const eventsByDay = events.reduce((acc, event) => {
@@ -124,12 +126,16 @@ export function GridCalendar({
                 {count > 0 && (
                   <div className="hidden md:flex flex-col items-start w-full mt-1 space-y-1">
                     {dayEvents.slice(0, 2).map((event) => (
-                      <div
+                      <button
                         key={event.id}
-                        className="text-xs bg-primary/20 text-white rounded-sm px-1 truncate w-full text-left"
+                        className="text-xs bg-primary/20 text-white rounded-sm px-1 truncate w-full text-left hover:bg-primary/30"
+                        onClick={(e) => {
+                          e.stopPropagation(); // prevent triggering onSelect(day)
+                          onEdit?.(event);
+                        }}
                       >
                         {event.title}
-                      </div>
+                      </button>
                     ))}
                     {count > 2 && (
                       <div className="text-xs text-muted-foreground">

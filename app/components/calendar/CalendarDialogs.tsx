@@ -21,8 +21,6 @@ interface CalendarDialogsState {
   deleteId: string | null;
   selectedDate: Date | null;
   isDayEventsDialogOpen: boolean;
-
-  // NEW
   isAdmin: boolean;
 
   setIsFormOpen: (v: boolean) => void;
@@ -42,18 +40,19 @@ interface CalendarDialogsProps {
   selectedDayEvents: Event[];
   form: UseFormReturn<EventFormValues>;
   muiTheme: Theme;
-  canManage: boolean;
+  isAdmin: boolean;
+  managerGroup: string | null;
 }
 
 export function CalendarDialogs({
   dialogs,
   selectedDayEvents,
   form,
-  canManage,
+  isAdmin,
+  managerGroup,
 }: CalendarDialogsProps) {
   const {
     isFormOpen,
-    isAdmin,          // NEW
     isEditing,
     editEvent,
     selectedDate,
@@ -106,7 +105,7 @@ export function CalendarDialogs({
           onAdd={handleAdd}
           onEdit={handleEdit}
           onDelete={(id) => setDeleteId(id)}
-          canManage={canManage}
+          managerGroup={managerGroup}
         />
       )}
     </>

@@ -12,7 +12,8 @@ export function CalendarViewSwitcher({
   onSelectDate,
   onPrevMonth,
   onNextMonth,
-  canManage,
+  isAdmin,
+  managerGroup,
   onEdit,
   onDeleteRequest,
 }: {
@@ -23,10 +24,18 @@ export function CalendarViewSwitcher({
   onPrevMonth: () => void;
   onNextMonth: () => void;
   onToday: () => void;
-  canManage: boolean;
+  isAdmin: boolean;
+  managerGroup: string | null;
   onEdit?: (e: Event) => void;
   onDeleteRequest?: (id: string) => void;
 }) {
+
+  function canEditEvent(event: Event) {
+    if (isAdmin) return true;
+    if (managerGroup && event.groups?.includes(managerGroup)) return true;
+    return false;
+  }
+
   if (view === 'calendar') {
     return (
       <GridCalendar
@@ -35,6 +44,11 @@ export function CalendarViewSwitcher({
         onPrevMonth={onPrevMonth}
         onNextMonth={onNextMonth}
         events={events}
+        onEdit={(event) => {
+          if (onEdit && canEditEvent(event)) {
+            onEdit(event);
+          }
+        }}
       />
     );
   }
@@ -42,8 +56,17 @@ export function CalendarViewSwitcher({
   return (
     <ListView
       events={events}
-      onEdit={canManage ? onEdit : undefined}
-      onDeleteRequest={canManage ? onDeleteRequest : undefined}
+      onEdit={(event) => {
+        if (onEdit && canEditEvent(event)) {
+          onEdit(event);
+        }
+      }}
+      onDeleteRequest={(id) => {
+        const event = events.find((e) => e.id === id);
+        if (event && onDeleteRequest && canEditEvent(event)) {
+          onDeleteRequest(id);
+        }
+      }}
     />
   );
 }
