@@ -21,10 +21,15 @@ export function useCalendarEvents(
     const q = query(ref, orderBy("date", "asc"));
 
     const unsub = onSnapshot(q, (snap) => {
-      const all = snap.docs.map((d) => ({
-        id: d.id,
-        ...d.data(),
-      })) as Event[];
+      const all = snap.docs.map((d) => {
+        const raw = d.data() as Omit<Event, "id" | "date"> & { date: any };
+
+        return {
+          id: d.id,
+          ...raw,
+          date: raw.date?.toDate ? raw.date.toDate() : new Date(raw.date),
+        };
+      });
 
       // -----------------------------
       // VISIBILITY FILTERING
