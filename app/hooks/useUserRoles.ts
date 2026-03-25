@@ -14,7 +14,6 @@ export function useUserRoles() {
     roles,
     loading,
 
-    // Permission-based booleans
     canManageChurch: can(roles, "church.manage"),
 
     canManageMembers: can(roles, "members.manage"),
@@ -35,9 +34,8 @@ export function useUserRoles() {
     canManageAttendance: can(roles, "attendance.manage"),
     canReadAttendance: can(roles, "attendance.read"),
 
-    // ⭐ NEW — Contributions
-    canManageContributions: can(roles, "contributions.manage"),
-    canReadContributions: can(roles, "contributions.read"),
+    canManageContributions: can(roles, "finance.manage"),
+    canReadContributions: can(roles, "finance.read"),
 
     canAssignRoles: can(roles, "roles.assign"),
     canManageSystem: can(roles, "system.manage"),

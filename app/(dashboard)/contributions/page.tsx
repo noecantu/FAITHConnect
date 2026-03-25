@@ -191,159 +191,169 @@ export default function ContributionsPage() {
   // ------------------------------
   if (!isClient) return null;
 
-if (!canView) {
+  if (!canView) {
     return (
       <ThemeProvider theme={darkTheme}>
         <PageHeader
           title="Contributions"
           subtitle={summaryText}
           className="mb-2"
-        >
-          <div className="flex flex-col gap-4">
+        />
+        {/* You can add a small message here if you want */}
+      </ThemeProvider>
+    );
+  }
+  return (
+    <ThemeProvider theme={darkTheme}>
+      <PageHeader
+        title="Contributions"
+        subtitle={summaryText}
+        className="mb-2"
+      >
+        <div className="flex flex-col gap-4">
 
-            {/* Breakdown Controls */}
-            <div className="flex flex-wrap justify-end items-center gap-4 mt-2 w-full">
-              <span className="text-sm font-medium text-muted-foreground">
-                Breakdown:
-              </span>
+          {/* Breakdown Controls */}
+          <div className="flex flex-wrap justify-end items-center gap-4 mt-2 w-full">
+            <span className="text-sm font-medium text-muted-foreground">
+              Breakdown:
+            </span>
 
-              <RadioGroup
-                value={timeFrame}
-                onValueChange={(v) => setBreakdownPersisted(v as "year" | "month" | "week")}
-                className="flex items-center gap-4"
-              >
-                <div className="flex items-center gap-1">
-                  <RadioGroupItem value="year" id="tf-year" />
-                  <label htmlFor="tf-year" className="text-sm">Year</label>
-                </div>
+            <RadioGroup
+              value={timeFrame}
+              onValueChange={(v) => setBreakdownPersisted(v as "year" | "month" | "week")}
+              className="flex items-center gap-4"
+            >
+              <div className="flex items-center gap-1">
+                <RadioGroupItem value="year" id="tf-year" />
+                <label htmlFor="tf-year" className="text-sm">Year</label>
+              </div>
 
-                <div className="flex items-center gap-1">
-                  <RadioGroupItem value="month" id="tf-month" />
-                  <label htmlFor="tf-month" className="text-sm">Month</label>
-                </div>
+              <div className="flex items-center gap-1">
+                <RadioGroupItem value="month" id="tf-month" />
+                <label htmlFor="tf-month" className="text-sm">Month</label>
+              </div>
 
-                <div className="flex items-center gap-1">
-                  <RadioGroupItem value="week" id="tf-week" />
-                  <label htmlFor="tf-week" className="text-sm">Week</label>
-                </div>
-              </RadioGroup>
-            </div>
+              <div className="flex items-center gap-1">
+                <RadioGroupItem value="week" id="tf-week" />
+                <label htmlFor="tf-week" className="text-sm">Week</label>
+              </div>
+            </RadioGroup>
+          </div>
 
-            {/* Dynamic Dropdowns */}
-            <div className="flex flex-wrap justify-end items-center gap-4 w-full">
+          {/* Dynamic Dropdowns */}
+          <div className="flex flex-wrap justify-end items-center gap-4 w-full">
 
-              {/* Year */}
+            {/* Year */}
+            <Select
+              value={selectedYear ? String(selectedYear) : ""}
+              onValueChange={(v) => setYearPersisted(Number(v))}
+            >
+              <SelectTrigger className="w-[140px] h-9">
+                <SelectValue placeholder="Year" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableYears.map(year => (
+                  <SelectItem key={year} value={String(year)}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Month */}
+            {timeFrame === "month" && (
               <Select
-                value={selectedYear ? String(selectedYear) : ""}
-                onValueChange={(v) => setYearPersisted(Number(v))}
+                value={selectedMonth ? String(selectedMonth) : ""}
+                onValueChange={(v) => setMonthPersisted(Number(v))}
               >
                 <SelectTrigger className="w-[140px] h-9">
-                  <SelectValue placeholder="Year" />
+                  <SelectValue placeholder="Month" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableYears.map(year => (
-                    <SelectItem key={year} value={String(year)}>
-                      {year}
+                  {availableMonths.map(month => (
+                    <SelectItem key={month} value={String(month)}>
+                      {new Date(0, month - 1).toLocaleString("default", {
+                        month: "long",
+                      })}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            )}
 
-              {/* Month */}
-              {timeFrame === "month" && (
-                <Select
-                  value={selectedMonth ? String(selectedMonth) : ""}
-                  onValueChange={(v) => setMonthPersisted(Number(v))}
-                >
-                  <SelectTrigger className="w-[140px] h-9">
-                    <SelectValue placeholder="Month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableMonths.map(month => (
-                      <SelectItem key={month} value={String(month)}>
-                        {new Date(0, month - 1).toLocaleString("default", {
-                          month: "long",
-                        })}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+            {/* Week */}
+            {timeFrame === "week" && (
+              <Select
+                value={selectedWeek ? String(selectedWeek) : ""}
+                onValueChange={(v) => setWeekPersisted(Number(v))}
+              >
+                <SelectTrigger className="w-[140px] h-9">
+                  <SelectValue placeholder="Week" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableWeeks.map(week => (
+                    <SelectItem key={week} value={String(week)}>
+                      Week {week}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
 
-              {/* Week */}
-              {timeFrame === "week" && (
-                <Select
-                  value={selectedWeek ? String(selectedWeek) : ""}
-                  onValueChange={(v) => setWeekPersisted(Number(v))}
-                >
-                  <SelectTrigger className="w-[140px] h-9">
-                    <SelectValue placeholder="Week" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableWeeks.map(week => (
-                      <SelectItem key={week} value={String(week)}>
-                        Week {week}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-            </div>
           </div>
-        </PageHeader>
-
-        {/* Chart */}
-        <div className="grid gap-8">
-          <Card className="h-full flex flex-col">
-            <CardHeader>
-              <CardTitle>Contribution Overview</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1">
-              <ContributionChart data={filteredContributions} />
-            </CardContent>
-          </Card>
         </div>
+      </PageHeader>
 
-        {/* Table */}
-        <div className="mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>All Contributions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ContributionsTable
-                columns={columns}
-                data={filteredContributions}
-                onRowClick={handleRowClick}
-              />
-            </CardContent>
-          </Card>
-        </div>
+      {/* Chart */}
+      <div className="grid gap-8">
+        <Card className="h-full flex flex-col">
+          <CardHeader>
+            <CardTitle>Contribution Overview</CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1">
+            <ContributionChart data={filteredContributions} />
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Add Contribution */}
-        <AddContributionDialog
-          isOpen={isAddDialogOpen}
-          onClose={() => setIsAddDialogOpen(false)}
-          members={members}
-          churchId={churchId}
+      {/* Table */}
+      <div className="mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>All Contributions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ContributionsTable
+              columns={columns}
+              data={filteredContributions}
+              onRowClick={handleRowClick}
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Add Contribution */}
+      <AddContributionDialog
+        isOpen={isAddDialogOpen}
+        onClose={() => setIsAddDialogOpen(false)}
+        members={members}
+        churchId={churchId}
+      />
+
+      {/* Edit Contribution */}
+      <EditContributionDialog
+        contribution={selected}
+        members={members}
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+      />
+
+      {canEdit && (
+        <Fab
+          type="add"
+          onClick={() => setIsAddDialogOpen(true)}
         />
-
-        {/* Edit Contribution */}
-        <EditContributionDialog
-          contribution={selected}
-          members={members}
-          isOpen={isDialogOpen}
-          onClose={() => setIsDialogOpen(false)}
-        />
-
-        {canEdit && (
-          <Fab
-            type="add"
-            onClick={() => setIsAddDialogOpen(true)}
-          />
-        )}
-      </ThemeProvider>
-    );
-  }
+      )}
+    </ThemeProvider>
+  );
 }
