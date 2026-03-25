@@ -11,7 +11,7 @@ import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Loader2, Trash2 } from 'lucide-react';
-import { db } from '@/app/lib/firebase';
+import { db } from '@/app/lib/firebase/client';
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
 
 interface SectionName {

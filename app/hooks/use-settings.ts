@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db } from '../lib/firebase/client';
 import { useAuth } from './useAuth';
 import type { User } from '../lib/types';
 export function useSettings() {

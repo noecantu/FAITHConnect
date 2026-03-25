@@ -10,7 +10,7 @@ import { SectionSongList } from './SectionSongList';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { getSectionColor } from '@/app/lib/sectionColors';
 import { useChurchId } from '@/app/hooks/useChurchId';
-import { db } from '@/app/lib/firebase';
+import { db } from '@/app/lib/firebase/client';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import SectionNameSelectionDialog from '@/app/components/music/SectionNameSelectionDialog';
 import SongSelectionDialog from '@/app/components/music/SongSelectionDialog';

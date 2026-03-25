@@ -26,7 +26,7 @@ import { dateKey } from '@/app/lib/calendar/utils';
 import { createTheme } from '@mui/material/styles';
 import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
 import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase';
+import { db } from '@/app/lib/firebase/client';
 
 // ------------------------------
 // Schema

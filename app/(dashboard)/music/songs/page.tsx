@@ -16,7 +16,7 @@ import { Fab } from '@/app/components/ui/fab';
 import { FileText, Music } from "lucide-react";
 import { useSettings } from '@/app/hooks/use-settings';
 import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase';
+import { db } from '@/app/lib/firebase/client';
 import { useAuth } from '@/app/hooks/useAuth';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 

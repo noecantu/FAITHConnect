@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db } from '@/app/lib/firebase/client';
 import { useChurchId } from './useChurchId';
 import type { ServicePlan } from '../lib/types';
 import { useAuth } from './useAuth';

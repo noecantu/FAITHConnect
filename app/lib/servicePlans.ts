@@ -10,7 +10,7 @@ import {
   orderBy,
 } from 'firebase/firestore';
 
-import { db } from './firebase';
+import { db } from './firebase/client';
 import type { ServicePlan, ServicePlanFirestore, ServicePlanSection } from './types';
 
 // -----------------------------------------------------

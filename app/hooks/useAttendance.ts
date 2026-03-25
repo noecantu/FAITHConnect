@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase';
+import { db } from '@/app/lib/firebase/client';
 
 export type AttendanceRecords = Record<string, boolean>;
 

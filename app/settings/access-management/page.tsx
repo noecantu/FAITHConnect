@@ -6,7 +6,7 @@ import { useChurchId } from '@/app/hooks/useChurchId';
 import { useAuth } from '@/app/hooks/useAuth';
 
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase';
+import { db } from '@/app/lib/firebase/client';
 
 import type { User } from '@/app/lib/types';
 import { useUserManagement } from '@/app/hooks/useUserManagement';
@@ -66,7 +66,7 @@ export default function AccessManagementPage() {
     goBackToList,
 
     getSortedUsers,
-  } = useUserManagement(churchId);
+  } = useUserManagement();
 
   // -----------------------------
   // LOAD USERS

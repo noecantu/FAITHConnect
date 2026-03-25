@@ -20,7 +20,7 @@ import type { Member } from '@/app/lib/types';
 import MemberCard from './MemberCard';
 
 import { updateDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase';
+import { db } from '@/app/lib/firebase/client';
 
 export default function MembersPage() {
   const router = useRouter();

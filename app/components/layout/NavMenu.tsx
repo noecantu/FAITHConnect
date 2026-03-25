@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { signOut } from "firebase/auth";
-import { auth } from "@/app/lib/firebase-client";
+import { auth } from "@/app/lib/firebase/client";
 
 import {
   DropdownMenu,
@@ -61,7 +61,7 @@ export function NavMenu() {
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false);
   const { toast } = useToast();
   const { churchId } = useChurchId();
-  const { roles = [] } = useUserRoles(churchId);
+  const { roles = [] } = useUserRoles();
 
   const typedRoles = roles as Role[];
 

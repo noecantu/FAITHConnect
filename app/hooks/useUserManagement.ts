@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { db, createSecondaryUser } from '@/app/lib/firebase';
+import { db } from '@/app/lib/firebase/client';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import {
   doc,
@@ -101,18 +101,35 @@ export function useUserManagement() {
     setIsCreating(true);
 
     try {
-      const authUser = await createSecondaryUser(email, password);
-      const uid = authUser.uid;
+      // 1. Create the Auth user + assign roles + set churchId (server-side)
+      const res = await fetch("/api/users/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          password,
+          roles: canAssignRoles ? selectedRoles : [],
+          churchId,
+        }),
+      });
 
-      const rolesToAssign = canAssignRoles ? selectedRoles : [];
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to create user.");
+      }
 
+      const { uid } = await res.json();
+
+      // 2. Create Firestore profile (client-side)
       await setDoc(doc(db, "users", uid), {
         id: uid,
         churchId,
         firstName,
         lastName,
         email,
-        roles: rolesToAssign,
+        roles: canAssignRoles ? selectedRoles : [],
         createdAt: serverTimestamp(),
       });
 

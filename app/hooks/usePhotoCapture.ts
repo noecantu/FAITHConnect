@@ -7,7 +7,7 @@ import { useToast } from "./use-toast";
 import type { Member } from "../lib/types";
 import type { MemberFormValues } from "../lib/memberForm.schema";
 import { ref, uploadBytes, deleteObject, getDownloadURL } from "firebase/storage";
-import { storage } from "../lib/firebase";
+import { storage } from '@/app/lib/firebase/client';
 
 export function usePhotoCapture({
   form,

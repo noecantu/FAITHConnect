@@ -1,4 +1,5 @@
-// app/lib/firebase/client.ts
+"use client";
+
 import { initializeApp, getApps, getApp } from "firebase/app";
 import type { Firestore } from "firebase/firestore";
 import {
@@ -9,6 +10,12 @@ import {
 } from "firebase/firestore";
 import { getAuth, browserLocalPersistence, setPersistence } from "firebase/auth";
 import { getStorage } from "firebase/storage";
+
+console.log("CLIENT ENV CHECK", {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+});
 
 // --- 1. Firebase config ---
 const firebaseConfig = {
@@ -23,19 +30,24 @@ const firebaseConfig = {
 // --- 2. Initialize app once ---
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// --- 3. Firestore: memory cache in dev, persistent cache in prod ---
+// --- 3. Firestore (browser only) ---
 let db: Firestore;
 
-if (process.env.NODE_ENV === "development") {
-  db = initializeFirestore(app, {
-    localCache: memoryLocalCache(),
-  });
+if (typeof window !== "undefined") {
+  if (process.env.NODE_ENV === "development") {
+    db = initializeFirestore(app, {
+      localCache: memoryLocalCache(),
+    });
+  } else {
+    db = initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
+    });
+  }
 } else {
-  db = initializeFirestore(app, {
-    localCache: persistentLocalCache({
-      tabManager: persistentMultipleTabManager(),
-    }),
-  });
+  // Placeholder for SSR — never used
+  db = {} as Firestore;
 }
 
 // --- 4. Auth ---

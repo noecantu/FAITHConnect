@@ -10,7 +10,7 @@ import {
   serverTimestamp,
   Timestamp,
 } from "firebase/firestore";
-import { db } from "./firebase";
+import { db } from '@/app/lib/firebase/client';
 import type { Contribution, ContributionRecord } from "./types";
 
 // ------------------------------

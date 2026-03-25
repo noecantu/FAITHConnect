@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/app
 import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/app/hooks/use-toast';
 
-import { db, storage } from '@/app/lib/firebase';
+import { db, storage } from '@/app/lib/firebase/client';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 

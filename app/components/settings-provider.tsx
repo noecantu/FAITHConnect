@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '../hooks/useAuth';
-import { db } from '../lib/firebase';
+import { db } from "@/app/lib/firebase/client";
 
 interface SettingsContextType {
   calendarView: 'calendar' | 'list';

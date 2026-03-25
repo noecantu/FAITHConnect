@@ -13,7 +13,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 
-import { db } from "./firebase";
+import { db } from "./firebase/client";
 import type { Song } from "./types";
 
 // Collection reference

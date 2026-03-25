@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { db } from '../lib/firebase';
+import { db } from '@/app/lib/firebase/client';
 import {
   doc,
   deleteDoc,

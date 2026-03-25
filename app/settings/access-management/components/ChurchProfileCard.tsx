@@ -7,7 +7,7 @@ import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { useToast } from '@/app/hooks/use-toast';
 
-import { db } from '@/app/lib/firebase';
+import { db } from '@/app/lib/firebase/client';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import TimezoneSelect from '@/app/components/settings/TimezoneSelect';
 import { usePhoneInput } from '@/app/hooks/usePhoneInput';

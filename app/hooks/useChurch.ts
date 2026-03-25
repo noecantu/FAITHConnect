@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from '../lib/firebase';
+import { db } from '@/app/lib/firebase/client';
 import type { Church } from "../lib/types";
 
 export function useChurch(churchId: string | null) {

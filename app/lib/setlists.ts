@@ -15,7 +15,7 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 
-import { db } from './firebase';
+import { db } from './firebase/client';
 import type { SetList, SetListFirestore, SetListSection } from './types';
 import { nanoid } from 'nanoid';
 import { fromDateString, toDateTime } from './date-utils';

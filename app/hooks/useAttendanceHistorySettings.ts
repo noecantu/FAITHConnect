@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { db } from '@/app/lib/firebase';
+import { db } from '@/app/lib/firebase/client';
 import { User } from "@/app/lib/types";
 
 export function useAttendanceHistorySettings(user: User | null | undefined) {
