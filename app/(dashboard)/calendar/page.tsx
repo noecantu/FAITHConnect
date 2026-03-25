@@ -27,6 +27,7 @@ import { createTheme } from '@mui/material/styles';
 import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
 import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
+import { can } from '@/app/lib/auth/permissions/can';
 
 // ------------------------------
 // Schema
@@ -35,6 +36,8 @@ const eventSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   date: z.string(),
   description: z.string().optional(),
+  isPublic: z.boolean().optional(),
+  groups: z.array(z.string()).optional(),
 });
 type EventFormValues = z.infer<typeof eventSchema>;
 
@@ -64,11 +67,39 @@ const muiTheme = createTheme({
 export default function CalendarPage() {
   const { churchId } = useChurchId();
   const { user } = useAuth();
-  const { canManageEvents = false } = useUserRoles();   // ← normalized
+
+  // Extract roles + permissions
+  const { roles = [], canManageEvents = false } = useUserRoles();
+
+  // ------------------------------
+  // ADMIN CHECK (permission-based)
+  // ------------------------------
+  const isAdmin =
+    can(roles, "church.manage") ||
+    can(roles, "system.manage");
+
+  // ------------------------------
+  // MANAGER GROUP CHECK (permission-based)
+  // ------------------------------
+  let managerGroup: string | null = null;
+
+  if (can(roles, "music.manage")) managerGroup = "music";
+  else if (can(roles, "usher.manage")) managerGroup = "ushers";
+  else if (can(roles, "caretaker.manage")) managerGroup = "caretaker";
+  else if (can(roles, "men.manage")) managerGroup = "mens";
+  else if (can(roles, "women.manage")) managerGroup = "womens";
+  else if (can(roles, "youth.manage")) managerGroup = "youth";
+  else if (can(roles, "events.manage")) managerGroup = "events";
+
   const { calendarView } = useSettings();
 
   // Data
-  const { events } = useCalendarEvents(churchId, user?.id ?? null);
+  const { events } = useCalendarEvents(
+    churchId,
+    user?.id ?? null,
+    isAdmin,
+    managerGroup
+  );
 
   // Month navigation
   const month = useCalendarMonth();
@@ -83,11 +114,18 @@ export default function CalendarPage() {
       title: '',
       description: '',
       date: '',
+      isPublic: false,
+    groups: [],
     },
   });
 
   // Dialogs (add/edit/delete/day)
-  const dialogs = useCalendarDialogs(churchId, canManageEvents, form);
+  const dialogs = useCalendarDialogs(
+    churchId,
+    isAdmin,
+    managerGroup,
+    form
+  );
 
   // Filters (search, sort, future/past)
   const filters = useCalendarFilters(events);

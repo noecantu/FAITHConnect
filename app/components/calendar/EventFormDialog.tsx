@@ -1,3 +1,5 @@
+'use client';
+
 import { Dialog } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { StandardDialogLayout } from "../layout/StandardDialogLayout";
@@ -13,20 +15,53 @@ import {
 
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
+import { Switch } from "../ui/switch";
+import { MultiSelect } from "../ui/multi-select";
 
-import { format } from "date-fns";
-import { UseFormReturn } from "react-hook-form";
 import Flatpickr from "react-flatpickr";
-import type { Event } from "@/app/lib/types";
+import { format } from "date-fns";
 
-interface EventFormValues {
-  date: string;
-  title: string;
-  description?: string;
+import type { Event } from "@/app/lib/types";
+import type { UseFormReturn } from "react-hook-form";
+
+import * as z from "zod";
+
+// ------------------------------
+// SCHEMA
+// ------------------------------
+export const eventSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  date: z.string(),
+  description: z.string().optional(),
+
+  // Admin-only fields
+  isPublic: z.boolean().optional(),
+  groups: z.array(z.string()).optional(),
+});
+
+export type EventFormValues = z.infer<typeof eventSchema>;
+
+// ------------------------------
+// PROPS
+// ------------------------------
+interface EventFormDialogProps {
+  open: boolean;
+  isAdmin: boolean;
+  isEditing: boolean;
+  event: Event | null;
+  selectedDate: Date;
+  form: UseFormReturn<EventFormValues>;
+  onSubmit: (data: EventFormValues) => void | Promise<void>;
+  onOpenChange: (open: boolean) => void;
+  onDelete?: (id: string) => void;
 }
 
+// ------------------------------
+// COMPONENT
+// ------------------------------
 export function EventFormDialog({
   open,
+  isAdmin,
   isEditing,
   event,
   selectedDate,
@@ -34,48 +69,35 @@ export function EventFormDialog({
   onSubmit,
   onOpenChange,
   onDelete,
-}: {
-  open: boolean;
-  isEditing: boolean;
-  event: Event | null;
-  selectedDate: Date;
-  form: UseFormReturn<EventFormValues>;
-  onSubmit: (data: EventFormValues) => void;
-  onOpenChange: (open: boolean) => void;
-  onDelete?: (id: string) => void;
-}) {
-return (
-      <Dialog
-        open={open}
-        onOpenChange={onOpenChange}
-        modal={false}
-      >
-        <StandardDialogLayout
-          title={isEditing ? "Edit Event" : "Add New Event"}
-          description={
-            isEditing
-              ? "Update the details of this event."
-              : `Add a new event for ${format(selectedDate, "PPP")}.`
-          }
-          onClose={() => onOpenChange(false)}
-          footer={
-            <div className="flex justify-end w-full gap-2">
-              {isEditing && onDelete && event && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => onDelete(event.id)}
-                >
-                  Delete
-                </Button>
-              )}
-
-              <Button type="submit" form="event-form">
-                {isEditing ? "Save Changes" : "Add Event"}
+}: EventFormDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+      <StandardDialogLayout
+        title={isEditing ? "Edit Event" : "Add New Event"}
+        description={
+          isEditing
+            ? "Update the details of this event."
+            : `Add a new event for ${format(selectedDate, "PPP")}.`
+        }
+        onClose={() => onOpenChange(false)}
+        footer={
+          <div className="flex justify-end w-full gap-2">
+            {isEditing && onDelete && event && (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => onDelete(event.id)}
+              >
+                Delete
               </Button>
-            </div>
-          }
-        >
+            )}
+
+            <Button type="submit" form="event-form">
+              {isEditing ? "Save Changes" : "Add Event"}
+            </Button>
+          </div>
+        }
+      >
         <Form {...form}>
           <form
             id="event-form"
@@ -91,19 +113,19 @@ return (
                   <FormLabel>Date</FormLabel>
                   <FormControl>
                     <Flatpickr
-                    defaultValue={field.value}
-                    options={{
-                      defaultDate: field.value,
-                      allowInput: false,
-                      altInput: true,
-                      altFormat: "m-d-Y",
-                      dateFormat: "m-d-Y",
-                      monthSelectorType: "dropdown",
-                    }}
-                    onChange={([selected]) => {
-                      if (!selected) return;
-                      field.onChange(selected);
-                    }}
+                      defaultValue={field.value}
+                      options={{
+                        defaultDate: field.value,
+                        allowInput: false,
+                        altInput: true,
+                        altFormat: "m-d-Y",
+                        dateFormat: "m-d-Y",
+                        monthSelectorType: "dropdown",
+                      }}
+                      onChange={([selected]) => {
+                        if (!selected) return;
+                        field.onChange(selected);
+                      }}
                       className="block w-full bg-black/40 text-white border-white/20 rounded-md px-3 py-2 text-center"
                     />
                   </FormControl>
@@ -145,6 +167,58 @@ return (
                 </FormItem>
               )}
             />
+
+            {/* -------------------------------------- */}
+            {/* ADMIN-ONLY VISIBILITY CONTROLS */}
+            {/* -------------------------------------- */}
+            {isAdmin && (
+              <div className="space-y-4 border-t border-white/10 pt-4 mt-4">
+
+                {/* PUBLIC TOGGLE */}
+                <FormField
+                  control={form.control}
+                  name="isPublic"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between">
+                      <FormLabel>Public Event</FormLabel>
+                      <FormControl>
+                        <Switch
+                          checked={field.value ?? false}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {/* GROUP SELECTOR */}
+                <FormField
+                  control={form.control}
+                  name="groups"
+                  render={({ field }) => (
+                    <FormItem className="space-y-2">
+                      <FormLabel>Visible to Groups</FormLabel>
+                      <FormControl>
+                        <MultiSelect
+                          options={[
+                            { label: "Music Ministry", value: "music" },
+                            { label: "Ushers", value: "ushers" },
+                            { label: "Caretaker", value: "caretaker" },
+                            { label: "Men's Group", value: "mens" },
+                            { label: "Women's Group", value: "womens" },
+                            { label: "Youth Group", value: "youth" },
+                            { label: "Event Team", value: "events" },
+                          ]}
+                          value={field.value ?? []}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
           </form>
         </Form>
       </StandardDialogLayout>

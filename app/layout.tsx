@@ -15,10 +15,7 @@ export const metadata: Metadata = {
 };
 
 // Initialize Inter and bind it to the CSS variable Tailwind expects
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 export default function RootLayout({
   children,
@@ -26,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" className={cn("font-sans dark", inter.variable)} suppressHydrationWarning>
       <body
         className={cn(
           inter.variable,                 // <-- registers the font variable

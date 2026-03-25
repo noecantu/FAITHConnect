@@ -1,59 +1,55 @@
-'use client';
+import { useEffect, useState } from "react";
+import { db } from "@/app/lib/firebase/client";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import type { Event } from "../lib/types";
 
-import { useEffect, useState } from 'react';
-import { db } from '@/app/lib/firebase/client';
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  Timestamp,
-} from 'firebase/firestore';
-import type { Event as EventType } from '../lib/types';
-
-export function useCalendarEvents(churchId: string | null, userId: string | null) {
-  const [events, setEvents] = useState<EventType[]>([]);
-  const [loading, setLoading] = useState(true);
+export function useCalendarEvents(
+  churchId: string | null,
+  userId: string | null,
+  isAdmin: boolean,
+  managerGroup: string | null
+) {
+  const [events, setEvents] = useState<Event[]>([]);
 
   useEffect(() => {
-    if (!churchId || !userId) return;
+    if (!churchId) {
+      setEvents([]);
+      return;
+    }
 
-    const q = query(
-      collection(db, 'churches', churchId, 'events'),
-      orderBy('date', 'asc')
-    );
+    const ref = collection(db, "churches", churchId, "events");
+    const q = query(ref, orderBy("date", "asc"));
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const data: EventType[] = snapshot.docs.map((docSnap) => {
-          const raw = docSnap.data();
-          const date =
-            raw.date instanceof Timestamp
-              ? raw.date.toDate()
-              : new Date(raw.date ?? Date.now());
+    const unsub = onSnapshot(q, (snap) => {
+      const all = snap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+      })) as Event[];
 
-          return {
-            id: docSnap.id,
-            title: raw.title,
-            dateString: date.toISOString().slice(0, 10),
-            description: raw.description,
-            date,
-          };
-        });
+      // -----------------------------
+      // VISIBILITY FILTERING
+      // -----------------------------
+      const filtered = all.filter((event) => {
+        // Admin sees everything
+        if (isAdmin) return true;
 
-        setEvents(data);
-        setLoading(false);
-      },
-      (error) => {
-        if (error.code !== 'permission-denied') {
-          console.error('Events listener error:', error);
+        // Public event
+        if (event.isPublic) return true;
+
+        // Manager sees their group's events
+        if (managerGroup && event.groups?.includes(managerGroup)) {
+          return true;
         }
-      }
-    );
 
-    return () => unsubscribe();
-  }, [churchId, userId]);
+        // Members see nothing else
+        return false;
+      });
 
-  return { events, loading };
+      setEvents(filtered);
+    });
+
+    return () => unsub();
+  }, [churchId, userId, isAdmin, managerGroup]);
+
+  return { events };
 }

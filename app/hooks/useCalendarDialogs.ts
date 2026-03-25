@@ -9,6 +9,7 @@ import {
   updateDoc,
   addDoc,
   collection,
+  getDoc,
   serverTimestamp,
 } from 'firebase/firestore';
 import { useToast } from '../hooks/use-toast';
@@ -19,7 +20,6 @@ import type { UseFormReturn } from "react-hook-form";
 // UTILITIES
 // -------------------------------
 
-// Normalize Firestore Timestamp / string / Date
 type FirestoreTimestamp = {
   seconds: number;
   nanoseconds: number;
@@ -38,18 +38,15 @@ function normalizeDate(value: NormalizableDate): Date {
 
   if (value instanceof Date) return value;
 
-  // Firestore Timestamp
   if (typeof value === "object" && "toDate" in value) {
     return value.toDate();
   }
 
-  // ISO string
   if (typeof value === "string") {
     const d = new Date(value);
     if (!isNaN(d.getTime())) return d;
   }
 
-  // Fallback
   return new Date();
 }
 
@@ -59,7 +56,7 @@ function safeDateOnly(date: Date): Date {
     date.getFullYear(),
     date.getMonth(),
     date.getDate(),
-    12, 0, 0 // noon = no timezone drift
+    12, 0, 0
   );
 }
 
@@ -70,6 +67,10 @@ export type EventFormValues = {
   title: string;
   description?: string;
   date: string;
+
+  // Admin-only fields
+  isPublic?: boolean;
+  groups?: string[];
 };
 
 // -------------------------------
@@ -77,7 +78,8 @@ export type EventFormValues = {
 // -------------------------------
 export function useCalendarDialogs(
   churchId: string | null,
-  isEventManager: boolean,
+  isAdmin: boolean,
+  managerGroup: string | null,
   form: UseFormReturn<EventFormValues>
 ) {
   const { toast } = useToast();
@@ -94,20 +96,27 @@ export function useCalendarDialogs(
   // EDIT EVENT
   // -------------------------------
   function handleEdit(event: EventType) {
-    if (!isEventManager) {
-      toast({
-        title: 'Permission Denied',
-        description: 'You do not have permission to edit events.',
-        // variant: 'destructive',
-      });
-      return;
+    // Managers can only edit their own group's events
+    if (!isAdmin) {
+      if (!managerGroup || !event.groups?.includes(managerGroup)) {
+        toast({
+          title: 'Permission Denied',
+          description: 'You cannot edit events outside your group.',
+        });
+        return;
+      }
     }
-    
+
     setEditEvent(event);
+
     form.reset({
       title: event.title,
       description: event.description ?? '',
       date: format(normalizeDate(event.date), "MM-dd-yyyy"),
+
+      // Admin-only fields
+      isPublic: event.isPublic ?? false,
+      groups: event.groups ?? [],
     });
 
     setIsDayEventsDialogOpen(false);
@@ -118,11 +127,10 @@ export function useCalendarDialogs(
   // ADD EVENT
   // -------------------------------
   function handleAdd(date: Date) {
-    if (!isEventManager) {
+    if (!isAdmin && !managerGroup) {
       toast({
         title: 'Permission Denied',
         description: 'You do not have permission to add events.',
-        // variant: 'destructive',
       });
       return;
     }
@@ -131,6 +139,10 @@ export function useCalendarDialogs(
       title: '',
       description: '',
       date: format(normalizeDate(date), "MM-dd-yyyy"),
+
+      // Admin-only fields
+      isPublic: false,
+      groups: [],
     });
 
     setEditEvent(null);
@@ -146,13 +158,31 @@ export function useCalendarDialogs(
       toast({
         title: 'No church selected',
         description: 'Please select a church before deleting events.',
-        // variant: 'destructive',
       });
       return;
     }
 
     try {
-      await deleteDoc(doc(db, 'churches', churchId, 'events', id));
+      const ref = doc(db, 'churches', churchId, 'events', id);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) return;
+
+      const event = snap.data() as EventType;
+
+      // Managers can only delete their own group's events
+      if (!isAdmin) {
+        if (!managerGroup || !event.groups?.includes(managerGroup)) {
+          toast({
+            title: 'Permission Denied',
+            description: 'You cannot delete events outside your group.',
+          });
+          return;
+        }
+      }
+
+      await deleteDoc(ref);
+
       toast({
         title: 'Event Deleted',
         description: 'The event has been removed.',
@@ -162,7 +192,6 @@ export function useCalendarDialogs(
       toast({
         title: 'Error deleting event',
         description: 'Please try again.',
-        // variant: 'destructive',
       });
     }
   }
@@ -175,16 +204,6 @@ export function useCalendarDialogs(
       toast({
         title: 'No church selected',
         description: 'Please select a church before saving events.',
-        // variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!isEventManager) {
-      toast({
-        title: 'Permission Denied',
-        description: 'You do not have permission to manage events.',
-        // variant: 'destructive',
       });
       return;
     }
@@ -193,13 +212,34 @@ export function useCalendarDialogs(
     const dateToStore = safeDateOnly(parsed);
 
     try {
+      // -------------------------------
+      // UPDATE
+      // -------------------------------
       if (isEditing && editEvent) {
         const ref = doc(db, 'churches', churchId, 'events', editEvent.id);
+
+        // Managers can only update their own group's events
+        if (!isAdmin) {
+          if (!managerGroup || !editEvent.groups?.includes(managerGroup)) {
+            toast({
+              title: 'Permission Denied',
+              description: 'You cannot edit events outside your group.',
+            });
+            return;
+          }
+        }
 
         await updateDoc(ref, {
           title: data.title,
           description: data.description ?? '',
           date: dateToStore,
+
+          // Admin can update visibility
+          ...(isAdmin && {
+            isPublic: data.isPublic ?? false,
+            groups: data.groups ?? [],
+          }),
+
           updatedAt: serverTimestamp(),
         });
 
@@ -207,13 +247,28 @@ export function useCalendarDialogs(
           title: 'Event Updated',
           description: `"${data.title}" has been updated.`,
         });
-      } else {
+      }
+
+      // -------------------------------
+      // CREATE
+      // -------------------------------
+      else {
         const colRef = collection(db, 'churches', churchId, 'events');
+
+        const isPublic = isAdmin ? data.isPublic ?? false : false;
+
+        const groups = isAdmin
+          ? data.groups ?? []
+          : managerGroup
+            ? [managerGroup]
+            : [];
 
         await addDoc(colRef, {
           title: data.title,
           description: data.description ?? '',
           date: dateToStore,
+          isPublic,
+          groups,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
@@ -231,7 +286,6 @@ export function useCalendarDialogs(
       toast({
         title: 'Error saving event',
         description: 'Please try again.',
-        // variant: 'destructive',
       });
     }
   }
@@ -254,6 +308,7 @@ export function useCalendarDialogs(
     selectedDate,
     isDayEventsDialogOpen,
     isEditing,
+    isAdmin,
 
     setIsFormOpen,
     setEditEvent,

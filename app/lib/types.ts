@@ -72,6 +72,8 @@ export type Event = {
   dateString: string;
   date: Date;
   description?: string;
+  isPublic: boolean;
+  groups: string[];
 };
 
 export type Family = {

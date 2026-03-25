@@ -15,26 +15,26 @@ service cloud.firestore {
 
     function isRootAdmin() {
       let userDoc = getUserDoc();
-      return isUserSignedIn() &&
-             userDoc.data != null &&
-             'roles' in userDoc.data &&
-             userDoc.data.roles.hasAny(['RootAdmin']);
+      return isUserSignedIn()
+             && userDoc.data != null
+             && 'roles' in userDoc.data
+             && userDoc.data.roles.hasAny(['RootAdmin']);
     }
 
     function isChurchMember(churchId) {
       let userDoc = getUserDoc();
-      return isUserSignedIn() &&
-             userDoc.data != null &&
-             'churchId' in userDoc.data &&
-             userDoc.data.churchId == churchId;
+      return isUserSignedIn()
+             && userDoc.data != null
+             && 'churchId' in userDoc.data
+             && userDoc.data.churchId == churchId;
     }
 
     function hasChurchRole(churchId, allowedRoles) {
       let userDoc = getUserDoc();
-      return isChurchMember(churchId) &&
-             userDoc.data != null &&
-             'roles' in userDoc.data &&
-             userDoc.data.roles.hasAny(allowedRoles);
+      return isChurchMember(churchId)
+             && userDoc.data != null
+             && 'roles' in userDoc.data
+             && userDoc.data.roles.hasAny(allowedRoles);
     }
 
     // ---------------------------
@@ -42,28 +42,20 @@ service cloud.firestore {
     // ---------------------------
     match /users/{uid} {
 
-      // User can read/write their own document
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      // Users can read their own profile
+      allow read: if request.auth != null && request.auth.uid == uid;
 
-      // Root Admin full access (MUST short-circuit other rules)
+      // Root Admin full access
       allow read, write: if isRootAdmin();
 
-      // Church Admins can READ users in their church
-      allow read: if !isRootAdmin() && isUserSignedIn() &&
-                  resource.data != null &&
-                  hasChurchRole(resource.data.churchId, ["Admin"]);
+      // Church Admins can read users in THEIR church
+      allow read: if resource.data != null
+                  && hasChurchRole(resource.data.churchId, ["Admin"]);
 
-      // Church Admins can WRITE users in their church
-      allow write: if !isRootAdmin() && isUserSignedIn() &&
-                   (
-                     // Updating existing user
-                     (resource.data != null &&
-                      hasChurchRole(resource.data.churchId, ["Admin"])) ||
-
-                     // Creating new user
-                     (request.resource.data != null &&
-                      hasChurchRole(request.resource.data.churchId, ["Admin"]))
-                   );
+      // Church Admins can create/update users in THEIR church
+      allow write: if request.resource.data != null
+                   && hasChurchRole(getUserDoc().data.churchId, ["Admin"])
+                   && request.resource.data.churchId == getUserDoc().data.churchId;
     }
 
     // ---------------------------
@@ -74,36 +66,55 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------
-    // ⭐ PUBLIC READ ACCESS FOR CHURCH DOCUMENTS (QR CHECK-IN)
-    // ---------------------------------------------------------
-    // This MUST come BEFORE the protected church rules.
-    // Allows the QR check-in page to load the church by slug.
-    match /churches/{churchId} {
-      allow read: if true;
-    }
-
-    // ---------------------------------------------------------
-    // CHURCHES/{churchId} — PROTECTED ACCESS
+    // PUBLIC READ OF CHURCH DOCUMENT ONLY
     // ---------------------------------------------------------
     match /churches/{churchId} {
-
-      // 1. Allow login-time read of the user's own church
-      allow read: if request.auth != null
-            && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.churchId == churchId;
-
-      // 2. Root Admin full access
-      allow read, write, list: if isRootAdmin();
-
-      // 3. Members can read their own church
-      allow read: if isChurchMember(churchId);
-
-      // 4. Admins can update their church
-      allow update: if hasChurchRole(churchId, ["Admin"]);
+      allow get: if true;
+      allow list: if false;
 
       // ---------------------------
-      // SUBCOLLECTIONS
+      // CONTRIBUTIONS SUBCOLLECTION
       // ---------------------------
+      match /contributions/{contributionId} {
+
+        // Anyone in the church can read contributions
+        allow read: if isChurchMember(churchId);
+
+        // Admins and Finance can create/update/delete contributions
+        allow create, update, delete: if
+          hasChurchRole(churchId, ["Admin", "Finance"]) ||
+          isRootAdmin();
+      }
+
+      // ---------------------------------------------------------
+      // MEMBERS SUBCOLLECTION
+      // ---------------------------------------------------------
+      match /members/{memberId} {
+
+        // Reset inherited permissions
+        allow read: if false;
+        allow list: if false;
+
+        // Root Admin full access
+        allow read, write: if isRootAdmin();
+
+        // Church Admins full access
+        allow read, write: if hasChurchRole(churchId, ["Admin"]);
+
+        // Members can read their own member document
+        allow read: if isChurchMember(churchId)
+                     && request.auth.uid == memberId;
+
+        // Public login/check-in queries
+        allow list: if request.query.where.size() == 2
+                     && request.query.where[0].field == "checkInCode"
+                     && request.query.where[1].field == "phoneNumber";
+
+        // Block all writes (except Admins above)
+        allow write: if false;
+      }
+
+      // All other subcollections under a church
       match /{sub=**} {
         allow read, write: if isRootAdmin();
         allow read: if isChurchMember(churchId);
@@ -123,7 +134,6 @@ service cloud.firestore {
                    && resource.data != null
                    && hasChurchRole(resource.data.churchId, ["Admin"]);
 
-      // Root Admin override
       allow read, write: if isRootAdmin();
     }
 

@@ -22,6 +22,9 @@ interface CalendarDialogsState {
   selectedDate: Date | null;
   isDayEventsDialogOpen: boolean;
 
+  // NEW
+  isAdmin: boolean;
+
   setIsFormOpen: (v: boolean) => void;
   setEditEvent: (v: Event | null) => void;
   setDeleteId: (v: string | null) => void;
@@ -50,6 +53,7 @@ export function CalendarDialogs({
 }: CalendarDialogsProps) {
   const {
     isFormOpen,
+    isAdmin,          // NEW
     isEditing,
     editEvent,
     selectedDate,
@@ -80,6 +84,7 @@ export function CalendarDialogs({
 
       <EventFormDialog
         open={isFormOpen}
+        isAdmin={isAdmin}
         isEditing={isEditing}
         event={editEvent}
         selectedDate={selectedDate || new Date()}
