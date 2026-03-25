@@ -10,9 +10,11 @@ import { PreviewPaginationFooter } from "@/app/components/layout/PreviewPaginati
 export function ListView({
   events,
   onEdit,
+  onDeleteRequest,
 }: {
   events: Event[];
   onEdit?: (event: Event) => void;
+  onDeleteRequest?: (id: string) => void;
 }) {
   // GROUP EVENTS BY DAY
   const grouped = React.useMemo(() => {
@@ -72,6 +74,18 @@ export function ListView({
                       </div>
                     )}
                   </div>
+
+                  {onDeleteRequest && (
+                    <button
+                      onClick={(ev) => {
+                        ev.stopPropagation(); // prevent triggering onEdit
+                        onDeleteRequest(e.id);
+                      }}
+                      className="text-destructive text-sm underline-offset-2 hover:underline"
+                    >
+                      Delete
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>

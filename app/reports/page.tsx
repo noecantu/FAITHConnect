@@ -205,8 +205,7 @@ export default function ReportsPage() {
           {reportType === "contributions" && (
             <ContributionPreviewTable
               contributions={filteredContributions}
-              members={members}
-            />
+              members={members} selectedFields={[]}            />
           )}
 
           {/* ATTENDANCE REPORT */}

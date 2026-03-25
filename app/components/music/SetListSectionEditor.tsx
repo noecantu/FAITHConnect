@@ -5,16 +5,28 @@ import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
+
 import { SetListSection, SetListSongEntry, Song } from '@/app/lib/types';
 import { SectionSongList } from './SectionSongList';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
+
 import { getSectionColor } from '@/app/lib/sectionColors';
 import { useChurchId } from '@/app/hooks/useChurchId';
+
 import { db } from '@/app/lib/firebase/client';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+
 import SectionNameSelectionDialog from '@/app/components/music/SectionNameSelectionDialog';
 import SongSelectionDialog from '@/app/components/music/SongSelectionDialog';
-import { nanoid } from "nanoid";
+
+import { nanoid } from 'nanoid';
 
 interface Props {
   sections: SetListSection[];
@@ -32,12 +44,13 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
 
   const [sectionNames, setSectionNames] = useState<SectionName[]>([]);
   const [isSectionNameDialogOpen, setIsSectionNameDialogOpen] = useState(false);
-  const [justAddedId, setJustAddedId] = useState<string | null>(null);
 
-  // Song dialog state
   const [isSongDialogOpen, setIsSongDialogOpen] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
 
+  /* ---------------------------------------------
+     Fetch Section Names
+  ---------------------------------------------- */
   const fetchSectionNames = useCallback(async () => {
     if (!db || !churchId) return;
 
@@ -46,12 +59,12 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
       const q = query(ref, orderBy('title'));
       const snap = await getDocs(q);
 
-      const fetched: SectionName[] = snap.docs.map((d) => ({
-        id: d.id,
-        title: d.data().title as string,
-      }));
-
-      setSectionNames(fetched);
+      setSectionNames(
+        snap.docs.map((d) => ({
+          id: d.id,
+          title: d.data().title as string,
+        }))
+      );
     } catch (err) {
       console.error('Error fetching section names:', err);
     }
@@ -61,6 +74,9 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
     if (churchId) fetchSectionNames();
   }, [churchId, fetchSectionNames]);
 
+  /* ---------------------------------------------
+     Section Helpers
+  ---------------------------------------------- */
   const updateSection = (id: string, updated: Partial<SetListSection>) => {
     onChange(sections.map((s) => (s.id === id ? { ...s, ...updated } : s)));
   };
@@ -82,11 +98,8 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
   return (
     <div className="space-y-4">
 
-      {/* Add Section → opens dialog */}
-      <Button
-        variant="default"
-        onClick={() => setIsSectionNameDialogOpen(true)}
-      >
+      {/* Add Section */}
+      <Button onClick={() => setIsSectionNameDialogOpen(true)}>
         + Add Section
       </Button>
 
@@ -97,7 +110,7 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
             className="p-4 space-y-4"
             style={{ backgroundColor: getSectionColor(section.title) }}
           >
-            {/* Header Row */}
+            {/* Header */}
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-muted-foreground">
                 Section {index + 1}
@@ -135,16 +148,10 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
               </div>
             </div>
 
-            {/* Section Title Select */}
+            {/* Section Title */}
             <Select
               value={section.title}
-              onValueChange={(value) => {
-                if (value === '__custom') {
-                  updateSection(section.id, { title: '__custom' });
-                } else {
-                  updateSection(section.id, { title: value });
-                }
-              }}
+              onValueChange={(value) => updateSection(section.id, { title: value })}
             >
               <SelectTrigger className="font-medium">
                 <SelectValue placeholder="Select section" />
@@ -164,7 +171,7 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
               <Input
                 autoFocus
                 placeholder="Custom section name"
-                value={section.title === '__custom' ? '' : section.title}
+                value=""
                 onChange={(e) =>
                   updateSection(section.id, { title: e.target.value })
                 }
@@ -172,7 +179,7 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
               />
             )}
 
-            {/* Add Song Button */}
+            {/* Add Song */}
             <Button
               variant="outline"
               onClick={() => {
@@ -198,18 +205,8 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
       <SectionNameSelectionDialog
         isOpen={isSectionNameDialogOpen}
         onOpenChange={setIsSectionNameDialogOpen}
-        onSelect={async (newId) => {
-          if (!newId) return;
-
-          // Fetch fresh names to avoid stale state
-          const ref = collection(db, 'churches', churchId, 'sectionNames');
-          const snap = await getDocs(ref);
-          const freshNames = snap.docs.map((d) => ({
-            id: d.id,
-            title: d.data().title as string,
-          }));
-
-          const sn = freshNames.find((s) => s.id === newId);
+        onSelect={(newId) => {
+          const sn = sectionNames.find((s) => s.id === newId);
           if (!sn) return;
 
           const newSection: SetListSection = {
@@ -220,8 +217,6 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
           };
 
           onChange([...sections, newSection]);
-          setJustAddedId(newId);
-          setSectionNames(freshNames);
         }}
         churchId={churchId}
       />

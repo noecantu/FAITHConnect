@@ -64,7 +64,7 @@ const muiTheme = createTheme({
 export default function CalendarPage() {
   const { churchId } = useChurchId();
   const { user } = useAuth();
-  const { isEventManager } = useUserRoles(churchId);
+  const { canManageEvents = false } = useUserRoles();   // ← normalized
   const { calendarView } = useSettings();
 
   // Data
@@ -87,7 +87,7 @@ export default function CalendarPage() {
   });
 
   // Dialogs (add/edit/delete/day)
-  const dialogs = useCalendarDialogs(churchId, isEventManager, form);
+  const dialogs = useCalendarDialogs(churchId, canManageEvents, form);
 
   // Filters (search, sort, future/past)
   const filters = useCalendarFilters(events);
@@ -101,13 +101,11 @@ export default function CalendarPage() {
 
   return (
     <>
-      {/* PAGE HEADER — unchanged except for radio buttons */}
       <PageHeader
         title="Calendar of Events"
         subtitle="Select a date to view or add events."
       >
         <div className="flex flex-wrap justify-end items-center gap-4 w-full">
-
           <RadioGroup
             value={view.view}
             onValueChange={async (v: "calendar" | "list") => {
@@ -132,11 +130,9 @@ export default function CalendarPage() {
               <label htmlFor="view-list" className="text-sm">List</label>
             </div>
           </RadioGroup>
-
         </div>
       </PageHeader>
 
-      {/* ORIGINAL CONTROLS — fully restored */}
       <CalendarControls
         month={month}
         view={view}
@@ -144,7 +140,6 @@ export default function CalendarPage() {
         user={user}
       />
 
-      {/* ORIGINAL VIEW SWITCHER — unchanged */}
       <CalendarViewSwitcher
         view={view.view}
         month={month.month}
@@ -153,22 +148,20 @@ export default function CalendarPage() {
         onPrevMonth={month.prevMonth}
         onNextMonth={month.nextMonth}
         onToday={month.goToday}
-        canManage={isEventManager}
+        canManage={canManageEvents}
         onEdit={dialogs.handleEdit}
         onDeleteRequest={dialogs.setDeleteId}
       />
 
-      {/* ORIGINAL DIALOGS — unchanged */}
       <CalendarDialogs
         dialogs={dialogs}
         selectedDayEvents={selectedDayEvents}
         form={form}
         muiTheme={muiTheme}
-        canManage={isEventManager}
+        canManage={canManageEvents}
       />
 
-      {/* ORIGINAL FAB — unchanged */}
-      {isEventManager && (
+      {canManageEvents && (
         <Fab type="add" onClick={() => dialogs.handleAdd(new Date())} />
       )}
     </>

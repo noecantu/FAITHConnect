@@ -44,6 +44,7 @@ export function SectionSongList({
       },
     ]);
     setSearch('');
+    setShowList(false);
   };
 
   const removeSong = (id: string) => {
@@ -65,7 +66,42 @@ export function SectionSongList({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+
+      {/* Search + Add */}
+      <div className="space-y-2">
+        <Input
+          placeholder="Search songs to add..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setShowList(true);
+          }}
+        />
+
+        {showList && search.length > 0 && (
+          <div className="border rounded-md max-h-60 overflow-y-auto bg-background shadow">
+            {filtered.length === 0 && (
+              <div className="p-3 text-sm text-muted-foreground">
+                No songs found
+              </div>
+            )}
+
+            {filtered.map((song) => (
+              <button
+                key={song.id}
+                className="w-full text-left p-3 hover:bg-muted/40 transition-colors"
+                onClick={() => addSong(song)}
+              >
+                <div className="font-medium">{song.title}</div>
+                <div className="text-xs text-muted-foreground">
+                  Key: {song.key ?? '—'} • BPM: {song.bpm ?? '—'}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Song list */}
       <div className="space-y-3">
@@ -136,27 +172,27 @@ function SongItem({
       </div>
 
       {/* Song content */}
-        <div className="flex-1 space-y-2">
-          {/* Title */}
-          <p className="font-medium">{entry.title}</p>
+      <div className="flex-1 space-y-2">
+        {/* Title */}
+        <p className="font-medium">{entry.title}</p>
 
-          {/* Metadata Row: Key + BPM + Time Signature */}
-          <div className="text-xs text-muted-foreground flex gap-4">
-            <span>Key: {entry.key ?? '—'}</span>
-            <span>BPM: {entry.bpm ?? '—'}</span>
-            <span>Time: {entry.timeSignature ?? '—'}</span>
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label className="text-xs text-muted-foreground">Notes</label>
-            <Input
-              value={entry.notes ?? ''}
-              onChange={(e) => onUpdate({ notes: e.target.value })}
-              placeholder="Optional notes"
-            />
-          </div>
+        {/* Metadata Row */}
+        <div className="text-xs text-muted-foreground flex gap-4">
+          <span>Key: {entry.key ?? '—'}</span>
+          <span>BPM: {entry.bpm ?? '—'}</span>
+          <span>Time: {entry.timeSignature ?? '—'}</span>
         </div>
+
+        {/* Notes */}
+        <div>
+          <label className="text-xs text-muted-foreground">Notes</label>
+          <Input
+            value={entry.notes ?? ''}
+            onChange={(e) => onUpdate({ notes: e.target.value })}
+            placeholder="Optional notes"
+          />
+        </div>
+      </div>
 
       {/* Remove */}
       <Button variant="outline" size="icon" onClick={onRemove}>

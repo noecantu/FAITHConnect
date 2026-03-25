@@ -7,6 +7,7 @@ import { PreviewPaginationFooter } from "@/app/components/layout/PreviewPaginati
 interface Props {
   contributions: Contribution[];
   members: Member[];
+  selectedFields: string[];
 }
 
 export function ContributionPreviewTable({ contributions, members }: Props) {

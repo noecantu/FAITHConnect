@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import type { Member, Contribution, AttendanceRecord } from './types';
+import type { Member, AttendanceRecord } from './types';
 import { format } from 'date-fns';
 import { FieldValue } from '../lib/report-types';
 import { Address } from '../lib/types';

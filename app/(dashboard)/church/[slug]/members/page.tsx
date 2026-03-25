@@ -26,9 +26,8 @@ export default function MembersPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
 
-  const { canManageMembers, canReadMembers } = useUserRoles();
+  const { canManageMembers } = useUserRoles();
   const canEdit = canManageMembers;
-  const canView = canReadMembers;
 
   const { cardView } = useSettings();
   const { user } = useAuth();
