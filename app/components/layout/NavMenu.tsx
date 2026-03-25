@@ -102,7 +102,6 @@ export function NavMenu() {
     { href: `/church/${churchId}/members`, label: "Members", icon: Users },
     { href: "/music", label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
     { href: "/service-plan", label: "Service Plans", icon: CalendarHeart, permission: canAccessServicePlan },
-    { href: "/reports", label: "Reports", icon: FileText },
     { href: "/settings/access-management", label: "Settings", icon: Settings },
     { href: "/reports", label: "Reports", icon: FileText, permission: canSeeReports },
   ];
