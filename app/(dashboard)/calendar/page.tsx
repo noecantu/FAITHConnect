@@ -18,7 +18,6 @@ import { useCalendarDialogs } from '@/app/hooks/useCalendarDialogs';
 
 import { CalendarControls } from '@/app/components/calendar/CalendarControls';
 import { CalendarDialogs } from '@/app/components/calendar/CalendarDialogs';
-import { GridCalendar } from '@/app/components/calendar/GridCalendar';
 
 import { dateKey } from '@/app/lib/calendar/utils';
 import { createTheme } from '@mui/material/styles';

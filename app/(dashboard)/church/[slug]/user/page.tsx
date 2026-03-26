@@ -10,15 +10,9 @@ import { Button } from "@/app/components/ui/button";
 import { Avatar, AvatarFallback } from "@/app/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
 import { useUpcomingServices } from "@/app/hooks/useUpcomingServices";
-import {
-  CalendarCheck,
-  CalendarHeart,
-  Calendar,
-  // Music,
-  // UserPlus,
-  // LayoutDashboard,
-} from "lucide-react";
+import { CalendarCheck, CalendarHeart, Calendar } from "lucide-react";
 import { UserFormSheet } from "./profile/user-form-sheet";
+import { CalendarPreferencesCard } from "@/app/settings/access-management/components/CalendarPreferencesCard";
 
 export default function UserDashboardPage({
   params,
@@ -28,6 +22,7 @@ export default function UserDashboardPage({
   const { slug } = use(params);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
+
   const { church, loading: loadingChurch } = useChurch(user?.churchId ?? null);
   const { services, loading: loadingServices } = useUpcomingServices(user?.churchId ?? null);
 
@@ -35,34 +30,19 @@ export default function UserDashboardPage({
     async function load() {
       const res = await fetch("/api/users/me");
       const profile: UserProfile = await res.json();
-
-          console.log("User profile from /api/users/me:", profile);
-
       setUser(profile);
       setLoadingUser(false);
     }
     load();
   }, []);
 
-  if (loadingUser || loadingChurch) {
-    return <div className="p-6">Loading...</div>;
-  }
-
-  if (!user) {
-    return <div className="p-6">No user found.</div>;
-  }
-
-  if (!church) {
-    return <div className="p-6">No church found.</div>;
-  }
-
-  if (loadingServices) {
-    return <div className="p-6">Loading...</div>;
-  }
+  if (loadingUser || loadingChurch) return <div className="p-6">Loading...</div>;
+  if (!user) return <div className="p-6">No user found.</div>;
+  if (!church) return <div className="p-6">No church found.</div>;
+  if (loadingServices) return <div className="p-6">Loading...</div>;
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Main Content */}
       <main className="flex-1 flex flex-col">
         <div className="border-b border-border bg-background/80 backdrop-blur">
           <div className="px-4 md:px-8 py-4">
@@ -74,84 +54,89 @@ export default function UserDashboardPage({
         </div>
 
         <div className="flex-1 px-4 md:px-8 py-6 space-y-6">
-          
-              {/* Identity Header — Two Cards Side-by-Side */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                {/* Church Identity Card */}
-                <Card className="border border-border bg-card/80">
-                  <CardContent className="flex items-center gap-4 p-4 md:p-6">
-                    <Avatar className="h-20 w-20 rounded-md overflow-hidden border border-border bg-white shadow-sm">
-                      {church.logoUrl ? (
-                        <Image
-                          src={church.logoUrl}
-                          alt="Church Logo"
-                          fill
-                          sizes="80px"
-                          className="object-cover"
-                        />
-                      ) : (
-                        <AvatarFallback className="rounded-md text-xl">
-                          {church.name?.[0]?.toUpperCase() ?? "C"}
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
+          {/* Identity Header — Two Cards Side-by-Side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                    <div className="space-y-1">
-                      <h2 className="text-xl font-semibold tracking-tight">
-                        {church.name}
-                      </h2>
-                      <p className="text-sm text-muted-foreground">
-                        Timezone: {church.timezone}
-                      </p>
+            {/* Church Identity Card */}
+            <Card className="border border-border bg-card/80">
+              <CardContent className="flex items-center gap-4 p-4 md:p-6">
+                <Avatar className="h-20 w-20 rounded-md overflow-hidden border border-border bg-white shadow-sm">
+                  {church.logoUrl ? (
+                    <Image
+                      src={church.logoUrl}
+                      alt="Church Logo"
+                      fill
+                      sizes="80px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <AvatarFallback className="rounded-md text-xl">
+                      {church.name?.[0]?.toUpperCase() ?? "C"}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+
+                <div className="space-y-1">
+                  <h2 className="text-xl font-semibold tracking-tight">
+                    {church.name}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Timezone: {church.timezone}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* User Identity Card */}
+            <UserFormSheet user={user}>
+              <Card className="border border-border bg-card/80 cursor-pointer hover:bg-muted/50 transition">
+                <CardContent className="flex items-center gap-4 p-4 md:p-6">
+                  <Avatar className="h-20 w-20 rounded-md overflow-hidden border border-border bg-white shadow-sm">
+                    {user.profilePhotoUrl ? (
+                      <Image
+                        src={user.profilePhotoUrl}
+                        alt="Profile Photo"
+                        fill
+                        sizes="80px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <AvatarFallback className="rounded-md text-xl">
+                        {user.displayName?.[0]?.toUpperCase() ?? "U"}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+
+                  <div className="flex flex-col">
+                    <h1 className="text-lg font-semibold">
+                      {user.firstName || user.lastName
+                        ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
+                        : user.displayName}
+                    </h1>
+
+                    <p className="text-sm text-muted-foreground">{user.email}</p>
+
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {user.roles.map((role) => (
+                        <span
+                          key={role}
+                          className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border"
+                        >
+                          {role}
+                        </span>
+                      ))}
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </CardContent>
+              </Card>
+            </UserFormSheet>
+          </div>
 
-                {/* User Identity Card */}
-                <UserFormSheet user={user}>
-                  <Card className="border border-border bg-card/80 cursor-pointer hover:bg-muted/50 transition">
-                    <CardContent className="flex items-center gap-4 p-4 md:p-6">
-                      <Avatar className="h-20 w-20 rounded-md overflow-hidden border border-border bg-white shadow-sm">
-                        {user.profilePhotoUrl ? (
-                          <Image
-                            src={user.profilePhotoUrl}
-                            alt="Profile Photo"
-                            fill
-                            sizes="80px"
-                            className="object-cover"
-                          />
-                        ) : (
-                          <AvatarFallback className="rounded-md text-xl">
-                            {user.displayName?.[0]?.toUpperCase() ?? "U"}
-                          </AvatarFallback>
-                        )}
-                      </Avatar>
-
-                      <div className="flex flex-col">
-                        <h1 className="text-lg font-semibold">
-                          {user.firstName || user.lastName
-                            ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
-                            : user.displayName}
-                        </h1>
-
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
-
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {user.roles.map((role) => (
-                            <span
-                              key={role}
-                              className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border"
-                            >
-                              {role}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </UserFormSheet>
-              </div>
+          {/* -----------------------------
+              USER SETTINGS (Universal)
+          ----------------------------- */}
+          <CalendarPreferencesCard userId={user.id} />
 
           {/* Quick Actions */}
           <Card className="border border-border bg-card/80">
@@ -167,7 +152,7 @@ export default function UserDashboardPage({
             </CardContent>
           </Card>
 
-          {/* Upcoming */}
+          {/* Upcoming Services */}
           <Card className="border border-border bg-card/80">
             <CardHeader>
               <CardTitle>Upcoming Services</CardTitle>
@@ -201,15 +186,7 @@ export default function UserDashboardPage({
 --------------------------- */
 type IconType = React.ComponentType<React.SVGProps<SVGSVGElement>>;
 
-function QuickAction({
-  href,
-  icon: Icon,
-  label,
-}: {
-  href: string;
-  icon: IconType,
-  label: string;
-}) {
+function QuickAction({ href, icon: Icon, label }: { href: string; icon: IconType; label: string }) {
   return (
     <Button
       asChild
@@ -224,13 +201,7 @@ function QuickAction({
   );
 }
 
-function PageHeader({
-  title,
-  subtitle,
-}: {
-  title: string;
-  subtitle: string;
-}) {
+function PageHeader({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <div>
       <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">{title}</h1>

@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/app/components/u
 import { ReactNode, useState } from "react";
 import type { UserProfile } from "@/app/lib/types";
 import { UserForm } from "./user-form";
+import { CalendarPreferencesCard } from "@/app/settings/access-management/components/CalendarPreferencesCard";
 
 export function UserFormSheet({
   user,
@@ -24,7 +25,13 @@ export function UserFormSheet({
         </SheetHeader>
 
         <UserForm user={user} onClose={() => setOpen(false)} />
+
+        {/* Add this */}
+        <div className="mt-6">
+          <CalendarPreferencesCard userId={user.id} />
+        </div>
       </SheetContent>
+
     </Sheet>
   );
 }
