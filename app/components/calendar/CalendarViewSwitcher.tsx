@@ -1,9 +1,26 @@
 'use client';
 
-import { GridCalendar } from './GridCalendar';
-import { ListView } from './ListView';
-
+import { GridCalendar } from "./GridCalendar";
+import { ListView } from "./ListView";
 import type { Event } from "@/app/lib/types";
+
+interface CalendarViewSwitcherProps {
+  view: "calendar" | "list";
+
+  // Calendar props
+  month: Date;
+  events: Event[];
+  onSelectDate: (date: Date) => void;
+  onPrevMonth: () => void;
+  onNextMonth: () => void;
+  onToday: () => void;
+
+  // Editing permissions
+  isAdmin: boolean;
+  managerGroup: string | null;
+  onEdit?: (event: Event) => void;
+  onDeleteRequest?: (id: string) => void;
+}
 
 export function CalendarViewSwitcher({
   view,
@@ -16,55 +33,55 @@ export function CalendarViewSwitcher({
   managerGroup,
   onEdit,
   onDeleteRequest,
-}: {
-  view: "calendar" | "list";
-  month: Date;
-  events: Event[];
-  onSelectDate: (d: Date) => void;
-  onPrevMonth: () => void;
-  onNextMonth: () => void;
-  onToday: () => void;
-  isAdmin: boolean;
-  managerGroup: string | null;
-  onEdit?: (e: Event) => void;
-  onDeleteRequest?: (id: string) => void;
-}) {
+}: CalendarViewSwitcherProps) {
 
-  function canEditEvent(event: Event) {
-    if (isAdmin) return true;
-    if (managerGroup && event.groups?.includes(managerGroup)) return true;
-    return false;
-  }
-
-  if (view === 'calendar') {
+  // -----------------------------
+  // CALENDAR VIEW
+  // -----------------------------
+  if (view === "calendar") {
     return (
       <GridCalendar
         month={month}
+        events={events}
         onSelect={onSelectDate}
         onPrevMonth={onPrevMonth}
         onNextMonth={onNextMonth}
-        events={events}
         onEdit={(event) => {
-          if (onEdit && canEditEvent(event)) {
-            onEdit(event);
+          if (!onEdit) return;
+
+          // Permission check
+          if (isAdmin) return onEdit(event);
+          if (managerGroup && event.groups?.includes(managerGroup)) {
+            return onEdit(event);
           }
         }}
       />
     );
   }
 
+  // -----------------------------
+  // LIST VIEW
+  // -----------------------------
   return (
     <ListView
       events={events}
       onEdit={(event) => {
-        if (onEdit && canEditEvent(event)) {
-          onEdit(event);
+        if (!onEdit) return;
+
+        if (isAdmin) return onEdit(event);
+        if (managerGroup && event.groups?.includes(managerGroup)) {
+          return onEdit(event);
         }
       }}
       onDeleteRequest={(id) => {
+        if (!onDeleteRequest) return;
+
         const event = events.find((e) => e.id === id);
-        if (event && onDeleteRequest && canEditEvent(event)) {
-          onDeleteRequest(id);
+        if (!event) return;
+
+        if (isAdmin) return onDeleteRequest(id);
+        if (managerGroup && event.groups?.includes(managerGroup)) {
+          return onDeleteRequest(id);
         }
       }}
     />

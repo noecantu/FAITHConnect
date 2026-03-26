@@ -17,6 +17,7 @@ import UserFormCard from './components/UserFormCard';
 import DeleteUserDialog from './components/DeleteUserDialog';
 import ChurchLogoCard from './components/ChurchLogoCard';
 import ChurchProfileCard from './components/ChurchProfileCard';
+import { CalendarPreferencesCard } from './components/CalendarPreferencesCard';
 
 export default function AccessManagementPage() {
   const { churchId } = useChurchId();
@@ -28,7 +29,7 @@ export default function AccessManagementPage() {
   // -----------------------------
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-
+  
   // -----------------------------
   // STORAGE USAGE
   // -----------------------------
@@ -149,6 +150,8 @@ export default function AccessManagementPage() {
         className="mb-2"
       />
 
+      <CalendarPreferencesCard userId={user?.id!} />
+
       {/* LIST MODE */}
       {mode === 'list' && (
         <>
@@ -196,8 +199,6 @@ export default function AccessManagementPage() {
           onClose={goBackToList}
           isCreating={isCreating}
           isSaving={isSaving}
-
-          // ⭐ NEW — wired correctly
           currentUserId={user?.id ?? ""}
           currentUserRoles={user?.roles ?? []}
           targetUserId={selectedUser?.id}

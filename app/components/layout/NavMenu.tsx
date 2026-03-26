@@ -221,7 +221,6 @@ export function NavMenu() {
 
       <AlertDialog open={isLogoutAlertOpen} onOpenChange={setIsLogoutAlertOpen}>
         <AlertDialogContent>
-          <span tabIndex={-1} autoFocus className="sr-only" />
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
             <AlertDialogDescription>

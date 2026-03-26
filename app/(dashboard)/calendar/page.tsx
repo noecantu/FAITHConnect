@@ -10,24 +10,21 @@ import { Fab } from '@/app/components/ui/fab';
 import { useAuth } from '@/app/hooks/useAuth';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useUserRoles } from '@/app/hooks/useUserRoles';
-import { useSettings } from '@/app/hooks/use-settings';
 
 import { useCalendarEvents } from '@/app/hooks/useCalendarEvents';
 import { useCalendarMonth } from '@/app/hooks/useCalendarMonth';
-import { useCalendarView } from '@/app/hooks/useCalendarView';
 import { useCalendarFilters } from '@/app/hooks/useCalendarFilters';
 import { useCalendarDialogs } from '@/app/hooks/useCalendarDialogs';
 
 import { CalendarControls } from '@/app/components/calendar/CalendarControls';
-import { CalendarViewSwitcher } from '@/app/components/calendar/CalendarViewSwitcher';
 import { CalendarDialogs } from '@/app/components/calendar/CalendarDialogs';
+import { GridCalendar } from '@/app/components/calendar/GridCalendar';
 
 import { dateKey } from '@/app/lib/calendar/utils';
 import { createTheme } from '@mui/material/styles';
-import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
-import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase/client';
 import { can } from '@/app/lib/auth/permissions/can';
+import { CalendarViewSwitcher } from '@/app/components/calendar/CalendarViewSwitcher';
+import { useUserCalendarSettings } from '@/app/hooks/useUserCalendarSettings';
 
 // ------------------------------
 // Schema
@@ -68,6 +65,7 @@ export default function CalendarPage() {
   const { churchId } = useChurchId();
   const { user } = useAuth();
   const { roles = [] } = useUserRoles();
+  const { view } = useUserCalendarSettings(user?.id ?? null);
 
   // ------------------------------
   // ADMIN CHECK (permission-based)
@@ -89,12 +87,11 @@ export default function CalendarPage() {
   else if (can(roles, "youth.manage")) managerGroup = "youth";
   else if (can(roles, "events.manage")) managerGroup = "events";
 
-  const { calendarView } = useSettings();
-
-  // Extract roles + permissions
   const canCreateEvents = isAdmin || !!managerGroup;
 
-  // Data
+  // ------------------------------
+  // DATA
+  // ------------------------------
   const { events } = useCalendarEvents(
     churchId,
     user?.id ?? null,
@@ -102,13 +99,12 @@ export default function CalendarPage() {
     managerGroup
   );
 
-  // Month navigation
   const month = useCalendarMonth();
+  const filters = useCalendarFilters(events);
 
-  // View mode
-  const view = useCalendarView(calendarView);
-
-  // Form
+  // ------------------------------
+  // FORM + DIALOGS
+  // ------------------------------
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
@@ -116,20 +112,16 @@ export default function CalendarPage() {
       description: '',
       date: '',
       isPublic: false,
-    groups: [],
+      groups: [],
     },
   });
 
-  // Dialogs (add/edit/delete/day)
   const dialogs = useCalendarDialogs(
     churchId,
     isAdmin,
     managerGroup,
     form
   );
-
-  // Filters (search, sort, future/past)
-  const filters = useCalendarFilters(events);
 
   // Selected day events
   const selectedDayEvents = (() => {
@@ -143,44 +135,16 @@ export default function CalendarPage() {
       <PageHeader
         title="Calendar of Events"
         subtitle="Select a date to view or add events."
-      >
-        <div className="flex flex-wrap justify-end items-center gap-4 w-full">
-          <RadioGroup
-            value={view.view}
-            onValueChange={async (v: "calendar" | "list") => {
-              view.setView(v);
-
-              if (user?.id) {
-                await updateDoc(doc(db, "users", user.id), {
-                  "settings.calendarView": v,
-                  updatedAt: serverTimestamp(),
-                });
-              }
-            }}
-            className="flex items-center gap-4"
-          >
-            <div className="flex items-center gap-1">
-              <RadioGroupItem value="calendar" id="view-calendar" />
-              <label htmlFor="view-calendar" className="text-sm">Calendar</label>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <RadioGroupItem value="list" id="view-list" />
-              <label htmlFor="view-list" className="text-sm">List</label>
-            </div>
-          </RadioGroup>
-        </div>
-      </PageHeader>
+      />
 
       <CalendarControls
         month={month}
-        view={view}
         filters={filters}
         user={user}
       />
 
       <CalendarViewSwitcher
-        view={view.view}
+        view={view}
         month={month.month}
         events={filters.filtered}
         onSelectDate={dialogs.handleSelectDate}

@@ -4,11 +4,7 @@ import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import type { Event } from "../lib/types";
 
 export function useCalendarEvents(
-  churchId: string | null,
-  userId: string | null,
-  isAdmin: boolean,
-  managerGroup: string | null
-) {
+churchId: string | null, p0: string | null, isAdmin: boolean, managerGroup: string | null) {
   const [events, setEvents] = useState<Event[]>([]);
 
   useEffect(() => {
@@ -31,9 +27,7 @@ export function useCalendarEvents(
         };
       });
 
-      // -----------------------------
       // VISIBILITY FILTERING
-      // -----------------------------
       const filtered = all.filter((event) => {
         // Admin sees everything
         if (isAdmin) return true;
@@ -54,7 +48,7 @@ export function useCalendarEvents(
     });
 
     return () => unsub();
-  }, [churchId, userId, isAdmin, managerGroup]);
+  }, [churchId]);
 
   return { events };
 }

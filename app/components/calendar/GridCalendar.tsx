@@ -126,16 +126,24 @@ export function GridCalendar({
                 {count > 0 && (
                   <div className="hidden md:flex flex-col items-start w-full mt-1 space-y-1">
                     {dayEvents.slice(0, 2).map((event) => (
-                      <button
+                      <div
                         key={event.id}
-                        className="text-xs bg-primary/20 text-white rounded-sm px-1 truncate w-full text-left hover:bg-primary/30"
+                        role="button"
+                        tabIndex={0}
+                        className="text-xs bg-primary/20 text-white rounded-sm px-1 truncate w-full text-left hover:bg-primary/30 cursor-pointer"
                         onClick={(e) => {
-                          e.stopPropagation(); // prevent triggering onSelect(day)
+                          e.stopPropagation();
                           onEdit?.(event);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.stopPropagation();
+                            onEdit?.(event);
+                          }
                         }}
                       >
                         {event.title}
-                      </button>
+                      </div>
                     ))}
                     {count > 2 && (
                       <div className="text-xs text-muted-foreground">
