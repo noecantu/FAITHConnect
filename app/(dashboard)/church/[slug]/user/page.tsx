@@ -87,6 +87,7 @@ export default function UserDashboardPage({
                           src={church.logoUrl}
                           alt="Church Logo"
                           fill
+                          sizes="80px"
                           className="object-cover"
                         />
                       ) : (
@@ -117,6 +118,7 @@ export default function UserDashboardPage({
                             src={user.profilePhotoUrl}
                             alt="Profile Photo"
                             fill
+                            sizes="80px"
                             className="object-cover"
                           />
                         ) : (
