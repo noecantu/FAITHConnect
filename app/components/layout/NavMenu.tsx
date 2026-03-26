@@ -233,7 +233,7 @@ export function NavMenu() {
               <Button variant="outline">Cancel</Button>
             </AlertDialogCancel>
 
-            <AlertDialogAction asChild>
+            <AlertDialogAction asChild autoFocus>
               <Button variant="default" onClick={handleLogout}>
                 Log Out
               </Button>
