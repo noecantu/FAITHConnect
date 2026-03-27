@@ -26,7 +26,7 @@ export default function RootLayout({
     <html lang="en" className={cn("font-sans dark", inter.variable)} suppressHydrationWarning>
       <body
         className={cn(
-          inter.variable,                 // <-- registers the font variable
+          inter.variable,
           "min-h-screen bg-background font-sans antialiased flex flex-col"
         )}
       >

@@ -11,7 +11,7 @@ interface StandardDialogLayoutProps {
   title: string;
   description?: string;
   footer?: React.ReactNode;
-  children?: React.ReactNode; // ← make optional
+  children?: React.ReactNode;
   className?: string;
   contentClassName?: string;
   onClose: () => void;

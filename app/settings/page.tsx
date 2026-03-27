@@ -43,7 +43,7 @@ export default function UserSettingsPage() {
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto p-6 space-y-10">
+      <div className="w-full max-w-none p-6 space-y-10">
         <PageHeader title="Settings" subtitle="Manage your personal account and preferences." />
         <div className="h-32 bg-slate-900/40 rounded-xl animate-pulse" />
         <div className="h-32 bg-slate-900/40 rounded-xl animate-pulse" />
@@ -53,7 +53,7 @@ export default function UserSettingsPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-10">
+    <div className="w-full max-w-none p-6 space-y-10">
       <PageHeader title="Settings" subtitle="Manage your personal account and preferences." />
 
       <UserProfileCard user={fullUser} />
