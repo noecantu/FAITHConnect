@@ -123,27 +123,32 @@ export default function UserSettingsPage() {
   // 4. FINAL RENDER
   //
   return (
-    <div className="w-full max-w-none p-6 space-y-10">
-      <PageHeader title="Settings" subtitle="Manage your personal account and preferences." />
-
-      <UserProfileCard
-        user={fullUser}
-        onDirtyChange={handleProfileDirty}
-        registerSave={registerProfileSave}
+    <div className="w-full max-w-none p-6">
+      <PageHeader
+        title="Settings"
+        subtitle="Manage your personal account and preferences."
       />
 
-      <CalendarPreferencesCard
-        userId={authUser.id}
-        onDirtyChange={handleCalendarDirty}
-        registerSave={registerCalendarSave}
-      />
+      <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <UserProfileCard
+          user={fullUser}
+          onDirtyChange={handleProfileDirty}
+          registerSave={registerProfileSave}
+        />
 
-      <ContributionPreferencesCard
-        userId={authUser.id}
-        churchId={fullUser.churchId}
-        onDirtyChange={handleContribDirty}
-        registerSave={registerContribSave}
-      />
+        <CalendarPreferencesCard
+          userId={authUser.id}
+          onDirtyChange={handleCalendarDirty}
+          registerSave={registerCalendarSave}
+        />
+
+        <ContributionPreferencesCard
+          userId={authUser.id}
+          churchId={fullUser.churchId}
+          onDirtyChange={handleContribDirty}
+          registerSave={registerContribSave}
+        />
+      </div>
 
       <Fab
         type="save"
