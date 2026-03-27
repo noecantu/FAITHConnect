@@ -4,16 +4,19 @@ import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/app/components/ui/select";
-import { Button } from "@/app/components/ui/button";
 import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
 
 export function ContributionPreferencesCard({
   userId,
-  churchId
+  churchId,
+  onDirtyChange,
+  registerSave,
 }: {
   userId: string;
   churchId: string;
+  onDirtyChange?: (dirty: boolean) => void;
+  registerSave?: (fn: () => Promise<void>) => void;
 }) {
   if (!userId) return null;
 
@@ -23,6 +26,8 @@ export function ContributionPreferencesCard({
   const [year, setYear] = useState<number | null>(null);
   const [month, setMonth] = useState<number | null>(null);
   const [week, setWeek] = useState<number | null>(null);
+
+  const [initial, setInitial] = useState<any>(null);
 
   const [years, setYears] = useState<number[]>([]);
   const [monthMap, setMonthMap] = useState<Map<number, number[]>>(new Map());
@@ -37,12 +42,18 @@ export function ContributionPreferencesCard({
       const userSnap = await getDoc(userRef);
       const settings = userSnap.data()?.settings?.contributionsHistory;
 
-      if (settings) {
-        setBreakdown(settings.breakdown ?? "year");
-        setYear(settings.year ?? null);
-        setMonth(settings.month ?? null);
-        setWeek(settings.week ?? null);
-      }
+      const initialState = {
+        breakdown: settings?.breakdown ?? "year",
+        year: settings?.year ?? null,
+        month: settings?.month ?? null,
+        week: settings?.week ?? null,
+      };
+
+      setBreakdown(initialState.breakdown);
+      setYear(initialState.year);
+      setMonth(initialState.month);
+      setWeek(initialState.week);
+      setInitial(initialState);
 
       const contribRef = collection(db, "churches", churchId, "contributions");
       const q = query(contribRef, where("userId", "==", userId));
@@ -86,7 +97,7 @@ export function ContributionPreferencesCard({
     }
 
     load();
-  }, [userId]);
+  }, [userId, churchId]);
 
   useEffect(() => {
     if (!year) return;
@@ -112,6 +123,20 @@ export function ContributionPreferencesCard({
     return Math.ceil((days + firstDay.getDay() + 1) / 7);
   }
 
+  // Dirty tracking
+  useEffect(() => {
+    if (!initial || !onDirtyChange) return;
+
+    const dirty =
+      breakdown !== initial.breakdown ||
+      year !== initial.year ||
+      month !== initial.month ||
+      week !== initial.week;
+
+    onDirtyChange(dirty);
+  }, [breakdown, year, month, week, initial, onDirtyChange]);
+
+  // Save function for FAB
   async function save() {
     const userRef = doc(db, "users", userId);
 
@@ -123,7 +148,14 @@ export function ContributionPreferencesCard({
         week: breakdown === "week" ? week : null,
       },
     });
+
+    setInitial({ breakdown, year, month, week });
   }
+
+  // Register save function
+  useEffect(() => {
+    if (registerSave) registerSave(save);
+  }, [registerSave, save]);
 
   if (loading) return null;
 
@@ -134,7 +166,6 @@ export function ContributionPreferencesCard({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Breakdown */}
         <div className="space-y-1">
           <Label>Breakdown</Label>
           <Select value={breakdown} onValueChange={(v) => setBreakdown(v as any)}>
@@ -149,7 +180,6 @@ export function ContributionPreferencesCard({
           </Select>
         </div>
 
-        {/* Year */}
         <div className="space-y-1">
           <Label>Year</Label>
           <Select value={year?.toString() ?? ""} onValueChange={(v) => setYear(Number(v))}>
@@ -166,7 +196,6 @@ export function ContributionPreferencesCard({
           </Select>
         </div>
 
-        {/* Month */}
         {breakdown === "month" && (
           <div className="space-y-1">
             <Label>Month</Label>
@@ -185,7 +214,6 @@ export function ContributionPreferencesCard({
           </div>
         )}
 
-        {/* Week */}
         {breakdown === "week" && (
           <div className="space-y-1">
             <Label>Week</Label>
@@ -203,8 +231,6 @@ export function ContributionPreferencesCard({
             </Select>
           </div>
         )}
-
-        <Button onClick={save}>Save</Button>
       </CardContent>
     </Card>
   );

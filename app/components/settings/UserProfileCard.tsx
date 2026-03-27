@@ -1,23 +1,46 @@
-'use client';
+"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
 import { Input } from "@/app/components/ui/input";
-import { Button } from "@/app/components/ui/button";
 import type { User } from "@/app/lib/types";
 
-export default function UserProfileCard({ user }: { user: User }) {
+export default function UserProfileCard({
+  user,
+  onDirtyChange,
+  registerSave,
+}: {
+  user: User;
+  onDirtyChange?: (dirty: boolean) => void;
+  registerSave?: (fn: () => Promise<void>) => void;
+}) {
   const [firstName, setFirstName] = useState(user.firstName ?? "");
   const [lastName, setLastName] = useState(user.lastName ?? "");
   const [email, setEmail] = useState(user.email ?? "");
-  const [saving, setSaving] = useState(false);
 
+  const [initial, setInitial] = useState({
+    firstName: user.firstName ?? "",
+    lastName: user.lastName ?? "",
+    email: user.email ?? "",
+  });
+
+  // Dirty tracking
+  useEffect(() => {
+    if (!onDirtyChange) return;
+
+    const dirty =
+      firstName !== initial.firstName ||
+      lastName !== initial.lastName ||
+      email !== initial.email;
+
+    onDirtyChange(dirty);
+  }, [firstName, lastName, email, initial, onDirtyChange]);
+
+  // Save function for FAB
   async function save() {
-    setSaving(true);
-
     const ref = doc(db, "users", user.id);
 
     await updateDoc(ref, {
@@ -26,8 +49,13 @@ export default function UserProfileCard({ user }: { user: User }) {
       email,
     });
 
-    setSaving(false);
+    setInitial({ firstName, lastName, email });
   }
+
+  // Register save function with parent
+  useEffect(() => {
+    if (registerSave) registerSave(save);
+  }, [registerSave, save]);
 
   return (
     <Card>
@@ -60,10 +88,6 @@ export default function UserProfileCard({ user }: { user: User }) {
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
-
-        <Button onClick={save} disabled={saving} className="w-full">
-          {saving ? "Saving..." : "Save Profile"}
-        </Button>
       </CardContent>
     </Card>
   );

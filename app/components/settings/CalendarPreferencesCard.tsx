@@ -1,17 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/app/components/ui/select";
-import { Button } from "@/app/components/ui/button";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
 
-export function CalendarPreferencesCard({ userId }: { userId: string }) {
+export function CalendarPreferencesCard({
+  userId,
+  onDirtyChange,
+  registerSave,
+}: {
+  userId: string;
+  onDirtyChange?: (dirty: boolean) => void;
+  registerSave?: (fn: () => Promise<void>) => void;
+}) {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"calendar" | "list">("calendar");
+  const [initialView, setInitialView] = useState<"calendar" | "list">("calendar");
 
+  // Load initial value
   useEffect(() => {
     if (!userId) return;
 
@@ -20,22 +29,38 @@ export function CalendarPreferencesCard({ userId }: { userId: string }) {
       const snap = await getDoc(ref);
 
       const saved = snap.data()?.settings?.calendarView;
-      if (saved === "calendar" || saved === "list") {
-        setView(saved);
-      }
+      const v = saved === "list" ? "list" : "calendar";
 
+      setView(v);
+      setInitialView(v);
       setLoading(false);
     }
 
     load();
   }, [userId]);
 
-  async function save() {
+  // Stable save function
+  const save = useCallback(async () => {
     const ref = doc(db, "users", userId);
     await updateDoc(ref, {
       "settings.calendarView": view,
     });
-  }
+    setInitialView(view);
+  }, [userId, view]);
+
+  // Register save function ONCE
+  useEffect(() => {
+    if (registerSave) {
+      registerSave(save);
+    }
+  }, [registerSave, save]);
+
+  // Dirty tracking
+  useEffect(() => {
+    if (onDirtyChange) {
+      onDirtyChange(view !== initialView);
+    }
+  }, [view, initialView, onDirtyChange]);
 
   if (loading) {
     return (
@@ -69,8 +94,6 @@ export function CalendarPreferencesCard({ userId }: { userId: string }) {
             </SelectContent>
           </Select>
         </div>
-
-        <Button onClick={save}>Save</Button>
       </CardContent>
     </Card>
   );

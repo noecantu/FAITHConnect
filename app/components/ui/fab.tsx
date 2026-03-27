@@ -28,10 +28,11 @@ interface FabProps {
   disabled?: boolean;
   position?: 'bottom-right' | 'bottom-left';
   className?: string;
+  children?: React.ReactNode;   // ← ADD THIS
 }
 
 export const Fab = forwardRef<HTMLButtonElement, FabProps>(
-  ({ type, position = "bottom-right", className, ...props }, ref) => {
+  ({ type, position = "bottom-right", className, children, ...props }, ref) => {
     const Icon = icons[type];
 
     const posClass =
@@ -43,7 +44,7 @@ export const Fab = forwardRef<HTMLButtonElement, FabProps>(
       <button
         ref={ref}
         type="button"
-        {...props}   // ⭐ THIS IS THE FIX — forward ALL props
+        {...props}
         className={cn(
           `
           h-10 w-10 rounded-full shadow-xl
@@ -58,11 +59,10 @@ export const Fab = forwardRef<HTMLButtonElement, FabProps>(
           className
         )}
       >
-        <Icon className="h-5 w-5" />
+        {children ? children : <Icon className="h-5 w-5" />}  {/* ← USE CHILDREN IF PROVIDED */}
       </button>
     );
   }
 );
 
 Fab.displayName = "Fab";
-

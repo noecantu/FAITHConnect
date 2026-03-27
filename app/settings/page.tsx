@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
 import { useCurrentUser } from "@/app/hooks/useCurrentUser";
@@ -10,18 +10,89 @@ import UserProfileCard from "@/app/components/settings/UserProfileCard";
 import { CalendarPreferencesCard } from "@/app/components/settings/CalendarPreferencesCard";
 import { ContributionPreferencesCard } from "@/app/components/settings/ContributionPreferencesCard";
 
+import { Fab } from "@/app/components/ui/fab";
+import { Save, Loader2, Check } from "lucide-react";
+
 export default function UserSettingsPage() {
+  //
+  // 1. ALL HOOKS MUST BE HERE — NO RETURNS ABOVE THIS LINE
+  //
   const { user: authUser, loading: authLoading } = useCurrentUser();
+
   const [fullUser, setFullUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const [dirty, setDirty] = useState({
+    profile: false,
+    calendar: false,
+    contributions: false,
+  });
+
+  const isDirty = dirty.profile || dirty.calendar || dirty.contributions;
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [showCheck, setShowCheck] = useState(false);
+
+  const saveProfileRef = useRef<(() => Promise<void>) | null>(null);
+  const saveCalendarRef = useRef<(() => Promise<void>) | null>(null);
+  const saveContributionsRef = useRef<(() => Promise<void>) | null>(null);
+
+  const handleProfileDirty = useCallback((v: boolean) => {
+    setDirty((d) => ({ ...d, profile: v }));
+  }, []);
+
+  const handleCalendarDirty = useCallback((v: boolean) => {
+    setDirty((d) => ({ ...d, calendar: v }));
+  }, []);
+
+  const handleContribDirty = useCallback((v: boolean) => {
+    setDirty((d) => ({ ...d, contributions: v }));
+  }, []);
+
+  const registerProfileSave = useCallback((fn: () => Promise<void>) => {
+    saveProfileRef.current = fn;
+  }, []);
+
+  const registerCalendarSave = useCallback((fn: () => Promise<void>) => {
+    saveCalendarRef.current = fn;
+  }, []);
+
+  const registerContribSave = useCallback((fn: () => Promise<void>) => {
+    saveContributionsRef.current = fn;
+  }, []);
+
+  const handleSaveAll = useCallback(async () => {
+    if (!isDirty) return;
+
+    setIsSaving(true);
+
+    await Promise.all([
+      saveProfileRef.current?.(),
+      saveCalendarRef.current?.(),
+      saveContributionsRef.current?.(),
+    ]);
+
+    setIsSaving(false);
+    setShowCheck(true);
+    setTimeout(() => setShowCheck(false), 500);
+
+    setDirty({
+      profile: false,
+      calendar: false,
+      contributions: false,
+    });
+  }, [isDirty]);
+
+  //
+  // 2. DATA LOADING EFFECT — STILL ABOVE ANY RETURN
+  //
   useEffect(() => {
     if (authLoading || !authUser) return;
 
-    const userId = authUser.id; // ← capture the narrowed value here
+    const userId = authUser.id;   // ⭐ Narrowed and stable
 
     async function load() {
-      const ref = doc(db, "users", userId); // ← now ALWAYS a string
+      const ref = doc(db, "users", userId);   // ⭐ No more TS error
       const snap = await getDoc(ref);
       setFullUser(snap.data());
       setLoading(false);
@@ -30,16 +101,12 @@ export default function UserSettingsPage() {
     load();
   }, [authUser, authLoading]);
 
+  //
+  // 3. NOW — AND ONLY NOW — YOU MAY RETURN CONDITIONALLY
+  //
   if (!authUser) {
-    return (
-      <div className="p-6 text-slate-300">
-        You must be logged in to view settings.
-      </div>
-    );
+    return <div className="p-6 text-slate-300">You must be logged in to view settings.</div>;
   }
-
-  // *** THIS IS THE FIX ***
-  const userId = authUser.id;
 
   if (loading) {
     return (
@@ -52,16 +119,45 @@ export default function UserSettingsPage() {
     );
   }
 
+  //
+  // 4. FINAL RENDER
+  //
   return (
     <div className="w-full max-w-none p-6 space-y-10">
       <PageHeader title="Settings" subtitle="Manage your personal account and preferences." />
 
-      <UserProfileCard user={fullUser} />
+      <UserProfileCard
+        user={fullUser}
+        onDirtyChange={handleProfileDirty}
+        registerSave={registerProfileSave}
+      />
 
-      <CalendarPreferencesCard userId={userId} />
+      <CalendarPreferencesCard
+        userId={authUser.id}
+        onDirtyChange={handleCalendarDirty}
+        registerSave={registerCalendarSave}
+      />
 
-      <ContributionPreferencesCard userId={userId} churchId={fullUser.churchId}/>
+      <ContributionPreferencesCard
+        userId={authUser.id}
+        churchId={fullUser.churchId}
+        onDirtyChange={handleContribDirty}
+        registerSave={registerContribSave}
+      />
+
+      <Fab
+        type="save"
+        onClick={handleSaveAll}
+        disabled={!isDirty && !isSaving}
+        className={`
+          h-14 w-14 transition-all duration-300
+          ${(!isDirty && !isSaving) ? "opacity-40" : "opacity-100"}
+        `}
+      >
+        {isSaving && <Loader2 className="h-6 w-6 animate-spin" />}
+        {!isSaving && showCheck && <Check className="h-7 w-7 animate-pulse" />}
+        {!isSaving && !showCheck && <Save className="h-6 w-6" />}
+      </Fab>
     </div>
   );
 }
-
