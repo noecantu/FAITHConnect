@@ -61,14 +61,13 @@ function safeDateOnly(date: Date): Date {
 }
 
 // -------------------------------
-// FORM VALUES TYPE
+// FORM VALUES TYPE (UPDATED)
 // -------------------------------
 export type EventFormValues = {
   title: string;
   description?: string;
-  date: string;
+  date: Date; // <-- MUST be a Date
 
-  // Admin-only fields
   isPublic?: boolean;
   groups?: string[];
 };
@@ -96,7 +95,6 @@ export function useCalendarDialogs(
   // EDIT EVENT
   // -------------------------------
   function handleEdit(event: EventType) {
-    // Managers can only edit their own group's events
     if (!isAdmin) {
       if (!managerGroup || !event.groups?.includes(managerGroup)) {
         toast({
@@ -111,10 +109,8 @@ export function useCalendarDialogs(
 
     form.reset({
       title: event.title,
-      description: event.description ?? '',
-      date: format(normalizeDate(event.date), "MM-dd-yyyy"),
-
-      // Admin-only fields
+      description: event.description ?? "",
+      date: normalizeDate(event.date), // <-- ALWAYS a Date
       isPublic: event.isPublic ?? false,
       groups: event.groups ?? [],
     });
@@ -136,11 +132,9 @@ export function useCalendarDialogs(
     }
 
     form.reset({
-      title: '',
-      description: '',
-      date: format(normalizeDate(date), "MM-dd-yyyy"),
-
-      // Admin-only fields
+      title: "",
+      description: "",
+      date: normalizeDate(date), // <-- ALWAYS a Date
       isPublic: false,
       groups: [],
     });
@@ -170,7 +164,6 @@ export function useCalendarDialogs(
 
       const event = snap.data() as EventType;
 
-      // Managers can only delete their own group's events
       if (!isAdmin) {
         if (!managerGroup || !event.groups?.includes(managerGroup)) {
           toast({
@@ -208,17 +201,28 @@ export function useCalendarDialogs(
       return;
     }
 
-    const parsed = new Date(data.date);
-    const dateToStore = safeDateOnly(parsed);
+    // 🔥 CRITICAL FIX: ensure data.date is a Date
+    const normalized = normalizeDate(data.date);
+    const dateToStore = safeDateOnly(normalized);
+
+    let isPublic: boolean;
+    let groups: string[];
+
+    if (isAdmin) {
+      isPublic = data.isPublic ?? true;
+      groups = Array.isArray(data.groups) ? data.groups : [];
+    } else if (managerGroup) {
+      isPublic = false;
+      groups = [managerGroup];
+    } else {
+      isPublic = true;
+      groups = [];
+    }
 
     try {
-      // -------------------------------
-      // UPDATE
-      // -------------------------------
       if (isEditing && editEvent) {
         const ref = doc(db, 'churches', churchId, 'events', editEvent.id);
 
-        // Managers can only update their own group's events
         if (!isAdmin) {
           if (!managerGroup || !editEvent.groups?.includes(managerGroup)) {
             toast({
@@ -233,13 +237,8 @@ export function useCalendarDialogs(
           title: data.title,
           description: data.description ?? '',
           date: dateToStore,
-
-          // Admin can update visibility
-          ...(isAdmin && {
-            isPublic: data.isPublic ?? false,
-            groups: data.groups ?? [],
-          }),
-
+          isPublic,
+          groups,
           updatedAt: serverTimestamp(),
         });
 
@@ -247,21 +246,8 @@ export function useCalendarDialogs(
           title: 'Event Updated',
           description: `"${data.title}" has been updated.`,
         });
-      }
-
-      // -------------------------------
-      // CREATE
-      // -------------------------------
-      else {
+      } else {
         const colRef = collection(db, 'churches', churchId, 'events');
-
-        const isPublic = isAdmin ? data.isPublic ?? false : false;
-
-        const groups = isAdmin
-          ? data.groups ?? []
-          : managerGroup
-            ? [managerGroup]
-            : [];
 
         await addDoc(colRef, {
           title: data.title,
@@ -298,9 +284,6 @@ export function useCalendarDialogs(
     setIsDayEventsDialogOpen(true);
   }
 
-  // -------------------------------
-  // RETURN API
-  // -------------------------------
   return {
     isFormOpen,
     editEvent,

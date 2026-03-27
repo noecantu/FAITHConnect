@@ -1,5 +1,6 @@
 'use client';
 
+//app/(protected)/admin/church/[churchId]/settings
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/app/components/page-header';
 import { useChurchId } from '@/app/hooks/useChurchId';

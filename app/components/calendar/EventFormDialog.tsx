@@ -31,10 +31,8 @@ import * as z from "zod";
 // ------------------------------
 export const eventSchema = z.object({
   title: z.string().min(1, "Title is required"),
-  date: z.string(),
+  date: z.date(),
   description: z.string().optional(),
-
-  // Admin-only fields
   isPublic: z.boolean().optional(),
   groups: z.array(z.string()).optional(),
 });
@@ -116,7 +114,7 @@ export function EventFormDialog({
                   <FormLabel>Date</FormLabel>
                   <FormControl>
                     <Flatpickr
-                      defaultValue={field.value}
+                      value={field.value}
                       options={{
                         defaultDate: field.value,
                         allowInput: false,
@@ -126,8 +124,7 @@ export function EventFormDialog({
                         monthSelectorType: "dropdown",
                       }}
                       onChange={([selected]) => {
-                        if (!selected) return;
-                        field.onChange(selected);
+                        if (selected) field.onChange(selected);
                       }}
                       className="block w-full bg-black/40 text-white border-white/20 rounded-md px-3 py-2 text-center"
                     />
@@ -205,13 +202,13 @@ export function EventFormDialog({
                       <FormControl>
                         <MultiSelect
                           options={[
-                            { label: "Music Ministry", value: "music" },
-                            { label: "Ushers", value: "ushers" },
                             { label: "Caretaker", value: "caretaker" },
-                            { label: "Men's Group", value: "mens" },
-                            { label: "Women's Group", value: "womens" },
-                            { label: "Youth Group", value: "youth" },
                             { label: "Event Team", value: "events" },
+                            { label: "Men's Group", value: "men" },
+                            { label: "Music Ministry", value: "music" },
+                            { label: "Ushers", value: "usher" },
+                            { label: "Women's Group", value: "women" },
+                            { label: "Youth Group", value: "youth" },
                           ]}
                           value={field.value ?? []}
                           onChange={field.onChange}

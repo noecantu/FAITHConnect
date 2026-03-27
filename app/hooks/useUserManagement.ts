@@ -102,7 +102,7 @@ export function useUserManagement() {
 
     try {
       // 1. Create the Auth user + assign roles + set churchId (server-side)
-      const res = await fetch("/api/users/create", {
+      const res = await fetch("/api/church-users/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

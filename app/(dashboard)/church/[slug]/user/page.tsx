@@ -88,48 +88,46 @@ export default function UserDashboardPage({
             </Card>
 
             {/* User Identity Card */}
-            <UserFormSheet user={user}>
-              <Card className="border border-border bg-card/80 cursor-pointer hover:bg-muted/50 transition">
-                <CardContent className="flex items-center gap-4 p-4 md:p-6">
-                  <Avatar className="h-20 w-20 rounded-md overflow-hidden border border-border bg-white shadow-sm">
-                    {user.profilePhotoUrl ? (
-                      <Image
-                        src={user.profilePhotoUrl}
-                        alt="Profile Photo"
-                        fill
-                        sizes="80px"
-                        className="object-cover"
-                      />
-                    ) : (
-                      <AvatarFallback className="rounded-md text-xl">
-                        {user.displayName?.[0]?.toUpperCase() ?? "U"}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
+            <Card className="border border-border bg-card/80 transition">
+              <CardContent className="flex items-center gap-4 p-4 md:p-6">
+                <Avatar className="h-20 w-20 rounded-md overflow-hidden border border-border bg-white shadow-sm">
+                  {user.profilePhotoUrl ? (
+                    <Image
+                      src={user.profilePhotoUrl}
+                      alt="Profile Photo"
+                      fill
+                      sizes="80px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <AvatarFallback className="rounded-md text-xl">
+                      {user.displayName?.[0]?.toUpperCase() ?? "U"}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
 
-                  <div className="flex flex-col">
-                    <h1 className="text-lg font-semibold">
-                      {user.firstName || user.lastName
-                        ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
-                        : user.displayName}
-                    </h1>
+                <div className="flex flex-col">
+                  <h1 className="text-lg font-semibold">
+                    {user.firstName || user.lastName
+                      ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
+                      : user.displayName}
+                  </h1>
 
-                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                  <p className="text-sm text-muted-foreground">{user.email}</p>
 
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {user.roles.map((role) => (
-                        <span
-                          key={role}
-                          className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border"
-                        >
-                          {role}
-                        </span>
-                      ))}
-                    </div>
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {user.roles.map((role) => (
+                      <span
+                        key={role}
+                        className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border"
+                      >
+                        {role}
+                      </span>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            </UserFormSheet>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Quick Actions */}
