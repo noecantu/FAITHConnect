@@ -1,79 +1,55 @@
-"use client";
+'use client';
 
 import { useState } from "react";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "@/app/lib/firebase/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
-import { useToast } from "@/app/hooks/use-toast";
-import { useAuth } from "@/app/hooks/useAuth";
+import { Input } from "@/app/components/ui/input";
+import { Button } from "@/app/components/ui/button";
+import type { User } from "@/app/lib/types";
 
-export default function UserProfileCard() {
-  const { user } = useAuth();
-  const { toast } = useToast();
-
-  const [firstName, setFirstName] = useState(user?.firstName ?? "");
-  const [lastName, setLastName] = useState(user?.lastName ?? "");
-  const [email, setEmail] = useState(user?.email ?? "");
+export default function UserProfileCard({ user }: { user: User }) {
+  const [firstName, setFirstName] = useState(user.firstName ?? "");
+  const [lastName, setLastName] = useState(user.lastName ?? "");
+  const [email, setEmail] = useState(user.email ?? "");
   const [saving, setSaving] = useState(false);
 
-  async function handleSave() {
-    if (!user?.id) return;
-
+  async function save() {
     setSaving(true);
 
-    try {
-      const res = await fetch("/api/users/update-profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: user.id,
-          firstName,
-          lastName,
-          email,
-        }),
-      });
+    const ref = doc(db, "users", user.id);
 
-      if (!res.ok) throw new Error("Failed to update profile");
+    await updateDoc(ref, {
+      firstName,
+      lastName,
+      email,
+    });
 
-      toast({
-        title: "Profile Updated",
-        description: "Your profile information has been saved.",
-      });
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: "Update Failed",
-        description: "Unable to save your profile. Please try again.",
-      });
-    } finally {
-      setSaving(false);
-    }
+    setSaving(false);
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Your Profile</CardTitle>
+        <CardTitle>Profile</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <Label>First Name</Label>
-            <Input
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-            />
-          </div>
+        <div className="space-y-1">
+          <Label>First Name</Label>
+          <Input
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+          />
+        </div>
 
-          <div className="space-y-1">
-            <Label>Last Name</Label>
-            <Input
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-            />
-          </div>
+        <div className="space-y-1">
+          <Label>Last Name</Label>
+          <Input
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+          />
         </div>
 
         <div className="space-y-1">
@@ -85,11 +61,9 @@ export default function UserProfileCard() {
           />
         </div>
 
-        <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Saving…" : "Save Changes"}
-          </Button>
-        </div>
+        <Button onClick={save} disabled={saving} className="w-full">
+          {saving ? "Saving..." : "Save Profile"}
+        </Button>
       </CardContent>
     </Card>
   );

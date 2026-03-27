@@ -286,7 +286,7 @@ export interface User {
     attendanceView: "cards" | "list";
     calendarView?: "calendar" | "list";
     cardView?: "show" | "hide";
-    fiscalYear?: string;
+    fiscalYear: string | null | undefined;
     songSort?: "title" | "artist" | "key" | "bpm";
     attendanceHistory?: {
       breakdown?: "year" | "month" | "week";

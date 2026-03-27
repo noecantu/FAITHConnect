@@ -13,39 +13,39 @@ export function useCurrentUser() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (authLoading) return;
+  if (authLoading) return;
 
-    async function loadUser() {
-      if (!authUser) {
-        setCurrentUser(null);
-        setLoading(false);
-        return;
-      }
-
-      const ref = doc(db, "users", authUser.id);
-      const snap = await getDoc(ref);
-
-      if (snap.exists()) {
-        const data = snap.data();
-
-        const normalizedUser: User = {
-          ...data,
-          id: authUser.id,
-          roles: (data.roles ?? []) as Role[],
-          churchId: data.churchId ?? null,
-          email: data.email ?? authUser.email ?? "",
-        };
-
-        setCurrentUser(normalizedUser);
-      } else {
-        setCurrentUser(null);
-      }
-
+  async function loadUser() {
+    if (!authUser) {
+      setCurrentUser(null);
       setLoading(false);
+      return;
     }
 
-    loadUser();
-  }, [authUser, authLoading]);
+    const ref = doc(db, "users", authUser.id);
+    const snap = await getDoc(ref);
+
+    if (snap.exists()) {
+      const data = snap.data();
+
+      const normalizedUser: User = {
+        ...data,
+        id: authUser.id,
+        roles: (data.roles ?? []) as Role[],
+        churchId: data.churchId ?? null,
+        email: data.email ?? authUser.email ?? "",
+      };
+
+      setCurrentUser(normalizedUser);
+    } else {
+      setCurrentUser(null);
+    }
+
+    setLoading(false);
+  }
+
+  loadUser();
+}, [authLoading, authUser?.id]);
 
   return { user: currentUser, loading };
 }

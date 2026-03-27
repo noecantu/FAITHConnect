@@ -1,12 +1,41 @@
-'use client';
+"use client";
 
+import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
 import { Label } from "@/app/components/ui/label";
-import { useUserCalendarSettings } from "@/app/hooks/useUserCalendarSettings";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/app/components/ui/select";
+import { Button } from "@/app/components/ui/button";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "@/app/lib/firebase/client";
 
 export function CalendarPreferencesCard({ userId }: { userId: string }) {
-  const { view, setView, loading } = useUserCalendarSettings(userId);
+  const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<"calendar" | "list">("calendar");
+
+  useEffect(() => {
+    if (!userId) return;
+
+    async function load() {
+      const ref = doc(db, "users", userId);
+      const snap = await getDoc(ref);
+
+      const saved = snap.data()?.settings?.calendarView;
+      if (saved === "calendar" || saved === "list") {
+        setView(saved);
+      }
+
+      setLoading(false);
+    }
+
+    load();
+  }, [userId]);
+
+  async function save() {
+    const ref = doc(db, "users", userId);
+    await updateDoc(ref, {
+      "settings.calendarView": view,
+    });
+  }
 
   if (loading) {
     return (
@@ -27,22 +56,21 @@ export function CalendarPreferencesCard({ userId }: { userId: string }) {
         <CardTitle>Calendar View</CardTitle>
       </CardHeader>
 
-      <CardContent>
-        <RadioGroup
-          value={view}
-          onValueChange={(v: "calendar" | "list") => setView(v)}
-          className="flex items-center gap-6"
-        >
-          <div className="flex items-center gap-2">
-            <RadioGroupItem value="calendar" id="calendar-view" />
-            <Label htmlFor="calendar-view">Calendar</Label>
-          </div>
+      <CardContent className="space-y-4">
+        <div className="space-y-1">
+          <Label>Default View</Label>
+          <Select value={view} onValueChange={(v) => setView(v as any)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="calendar">Calendar</SelectItem>
+              <SelectItem value="list">List</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-          <div className="flex items-center gap-2">
-            <RadioGroupItem value="list" id="list-view" />
-            <Label htmlFor="list-view">List</Label>
-          </div>
-        </RadioGroup>
+        <Button onClick={save}>Save</Button>
       </CardContent>
     </Card>
   );
