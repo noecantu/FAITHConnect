@@ -30,7 +30,7 @@ import { useUserCalendarSettings } from '@/app/hooks/useUserCalendarSettings';
 // ------------------------------
 const eventSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  date: z.string(),
+  date: z.date(),
   description: z.string().optional(),
   isPublic: z.boolean().optional(),
   groups: z.array(z.string()).optional(),
@@ -79,14 +79,24 @@ export default function CalendarPage() {
   let managerGroup: string | null = null;
 
   if (can(roles, "music.manage")) managerGroup = "music";
-  else if (can(roles, "usher.manage")) managerGroup = "ushers";
+  else if (can(roles, "usher.manage")) managerGroup = "usher";
   else if (can(roles, "caretaker.manage")) managerGroup = "caretaker";
-  else if (can(roles, "men.manage")) managerGroup = "mens";
-  else if (can(roles, "women.manage")) managerGroup = "womens";
+  else if (can(roles, "men.manage")) managerGroup = "men";
+  else if (can(roles, "women.manage")) managerGroup = "women";
   else if (can(roles, "youth.manage")) managerGroup = "youth";
   else if (can(roles, "events.manage")) managerGroup = "events";
 
   const canCreateEvents = isAdmin || !!managerGroup;
+
+  // MEMBER GROUPS (read-level)
+  const memberGroups: string[] = [];
+
+  if (can(roles, "music.read")) memberGroups.push("music");
+  if (can(roles, "usher.read")) memberGroups.push("ushers");
+  if (can(roles, "caretaker.read")) memberGroups.push("caretaker");
+  if (can(roles, "men.read")) memberGroups.push("mens");
+  if (can(roles, "women.read")) memberGroups.push("womens");
+  if (can(roles, "youth.read")) memberGroups.push("youth");
 
   // ------------------------------
   // DATA
@@ -95,7 +105,8 @@ export default function CalendarPage() {
     churchId,
     user?.id ?? null,
     isAdmin,
-    managerGroup
+    managerGroup,
+    memberGroups,
   );
 
   const month = useCalendarMonth();
@@ -109,7 +120,7 @@ export default function CalendarPage() {
     defaultValues: {
       title: '',
       description: '',
-      date: '',
+      date: new Date(),
       isPublic: false,
       groups: [],
     },

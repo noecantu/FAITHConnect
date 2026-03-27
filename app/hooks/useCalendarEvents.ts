@@ -1,15 +1,27 @@
-import { useEffect, useState } from "react";
+'use client';
+
+import { useEffect, useMemo, useState } from "react";
 import { db } from "@/app/lib/firebase/client";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import type { Event } from "../lib/types";
 
 export function useCalendarEvents(
-churchId: string | null, p0: string | null, isAdmin: boolean, managerGroup: string | null) {
-  const [events, setEvents] = useState<Event[]>([]);
+  churchId: string | null,
+  userId: string | null,
+  isAdmin: boolean,
+  managerGroup: string | null,
+  memberGroups: string[]
+) {
+  // Store only raw Firestore events.
+  // Filtering happens in a memo to avoid identity churn.
+  const [rawEvents, setRawEvents] = useState<Event[]>([]);
 
+  // ------------------------------
+  // FIRESTORE SUBSCRIPTION
+  // ------------------------------
   useEffect(() => {
     if (!churchId) {
-      setEvents([]);
+      setRawEvents([]);
       return;
     }
 
@@ -27,28 +39,36 @@ churchId: string | null, p0: string | null, isAdmin: boolean, managerGroup: stri
         };
       });
 
-      // VISIBILITY FILTERING
-      const filtered = all.filter((event) => {
-        // Admin sees everything
-        if (isAdmin) return true;
-
-        // Public event
-        if (event.isPublic) return true;
-
-        // Manager sees their group's events
-        if (managerGroup && event.groups?.includes(managerGroup)) {
-          return true;
-        }
-
-        // Members see nothing else
-        return false;
-      });
-
-      setEvents(filtered);
+      setRawEvents(all);
     });
 
     return () => unsub();
   }, [churchId]);
+
+  // ------------------------------
+  // PRIVILEGE-BASED FILTERING
+  // ------------------------------
+  const events = useMemo(() => {
+    // Admin sees everything
+    if (isAdmin) return rawEvents;
+
+    return rawEvents.filter((event) => {
+      // Public event
+      if (event.isPublic) return true;
+
+      // Manager sees their group's events
+      if (managerGroup && event.groups?.includes(managerGroup)) {
+        return true;
+      }
+
+      // Members see events for any group they belong to
+      if (memberGroups?.some((g) => event.groups?.includes(g))) {
+        return true;
+      }
+
+      return false;
+    });
+  }, [rawEvents, isAdmin, managerGroup, memberGroups]);
 
   return { events };
 }

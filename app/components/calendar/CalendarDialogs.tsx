@@ -11,7 +11,7 @@ import type { UseFormReturn } from "react-hook-form";
 interface EventFormValues {
   title: string;
   description?: string;
-  date: string;
+  date: Date;
 }
 
 interface CalendarDialogsState {

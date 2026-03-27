@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback, useMemo } from "react";
 import { GridCalendar } from "./GridCalendar";
 import { ListView } from "./ListView";
 import type { Event } from "@/app/lib/types";
@@ -13,7 +14,6 @@ interface CalendarViewSwitcherProps {
   onSelectDate: (date: Date) => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
-  onToday: () => void;
 
   // Editing permissions
   isAdmin: boolean;
@@ -35,55 +35,68 @@ export function CalendarViewSwitcher({
   onDeleteRequest,
 }: CalendarViewSwitcherProps) {
 
-  // -----------------------------
-  // CALENDAR VIEW
-  // -----------------------------
-  if (view === "calendar") {
-    return (
-      <GridCalendar
-        month={month}
-        events={events}
-        onSelect={onSelectDate}
-        onPrevMonth={onPrevMonth}
-        onNextMonth={onNextMonth}
-        onEdit={(event) => {
-          if (!onEdit) return;
+  // Permission logic
+  const canEditEvent = useCallback(
+    (event: Event) => {
+      if (isAdmin) return true;
+      if (managerGroup && event.groups?.includes(managerGroup)) return true;
+      return false;
+    },
+    [isAdmin, managerGroup]
+  );
 
-          // Permission check
-          if (isAdmin) return onEdit(event);
-          if (managerGroup && event.groups?.includes(managerGroup)) {
-            return onEdit(event);
-          }
-        }}
+  // Stable edit handler
+  const handleEdit = useCallback(
+    (event: Event) => {
+      if (!onEdit) return;
+      if (canEditEvent(event)) onEdit(event);
+    },
+    [onEdit, canEditEvent]
+  );
+
+  // Stable delete handler
+  const handleDelete = useCallback(
+    (id: string) => {
+      if (!onDeleteRequest) return;
+
+      const event = events.find((e) => e.id === id);
+      if (!event) return;
+
+      if (canEditEvent(event)) onDeleteRequest(id);
+    },
+    [events, onDeleteRequest, canEditEvent]
+  );
+
+  // Memoized render
+  return useMemo(() => {
+    if (view === "calendar") {
+      return (
+        <GridCalendar
+          month={month}
+          events={events}
+          onSelect={onSelectDate}
+          onPrevMonth={onPrevMonth}
+          onNextMonth={onNextMonth}
+          onEdit={handleEdit}
+        />
+      );
+    }
+
+    return (
+      <ListView
+        events={events}
+        onEdit={handleEdit}
+        onDeleteRequest={handleDelete}
       />
     );
-  }
-
-  // -----------------------------
-  // LIST VIEW
-  // -----------------------------
-  return (
-    <ListView
-      events={events}
-      onEdit={(event) => {
-        if (!onEdit) return;
-
-        if (isAdmin) return onEdit(event);
-        if (managerGroup && event.groups?.includes(managerGroup)) {
-          return onEdit(event);
-        }
-      }}
-      onDeleteRequest={(id) => {
-        if (!onDeleteRequest) return;
-
-        const event = events.find((e) => e.id === id);
-        if (!event) return;
-
-        if (isAdmin) return onDeleteRequest(id);
-        if (managerGroup && event.groups?.includes(managerGroup)) {
-          return onDeleteRequest(id);
-        }
-      }}
-    />
-  );
+  }, [
+    view,
+    month,
+    events,
+    onSelectDate,
+    onPrevMonth,
+    onNextMonth,
+    handleEdit,
+    handleDelete,
+  ]);
 }

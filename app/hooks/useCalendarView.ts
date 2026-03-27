@@ -1,38 +1,35 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export function useCalendarView(defaultView: 'calendar' | 'list') {
   const [view, setView] = useState<'calendar' | 'list'>(defaultView);
 
-  // Keep a ref to the latest view to avoid dependency loops
-  const viewRef = useRef(view);
+  // Load once on mount
   useEffect(() => {
-    viewRef.current = view;
-  }, [view]);
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('calendarView');
-    if (saved === 'calendar' || saved === 'list') {
-      if (saved !== viewRef.current) setView(saved);
-    }
+    try {
+      const saved = localStorage.getItem('calendarView');
+      if (saved === 'calendar' || saved === 'list') {
+        setView(saved);
+      }
+    } catch {}
   }, []);
 
-  // Sync changes to localStorage
-  useEffect(() => {
-    localStorage.setItem('calendarView', view);
-  }, [view]);
+  // Persist on change
+  const updateView = useCallback((v: 'calendar' | 'list') => {
+    setView(v);
+    try {
+      localStorage.setItem('calendarView', v);
+    } catch {}
+  }, []);
 
-  // Sync changes across OTHER tabs only
+  // Sync across tabs
   useEffect(() => {
     const handler = (e: StorageEvent) => {
-      if (
-        e.key === 'calendarView' &&
-        (e.newValue === 'calendar' || e.newValue === 'list') &&
-        e.newValue !== viewRef.current
-      ) {
-        setView(e.newValue);
+      if (e.key === 'calendarView') {
+        if (e.newValue === 'calendar' || e.newValue === 'list') {
+          setView(e.newValue);
+        }
       }
     };
 
@@ -40,5 +37,5 @@ export function useCalendarView(defaultView: 'calendar' | 'list') {
     return () => window.removeEventListener('storage', handler);
   }, []);
 
-  return { view, setView };
+  return useMemo(() => ({ view, setView: updateView }), [view, updateView]);
 }
