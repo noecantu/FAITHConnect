@@ -12,7 +12,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app
 import { useUpcomingServices } from "@/app/hooks/useUpcomingServices";
 import { CalendarCheck, CalendarHeart, Calendar } from "lucide-react";
 import { UserFormSheet } from "./profile/user-form-sheet";
-import { CalendarPreferencesCard } from "@/app/settings/access-management/components/CalendarPreferencesCard";
 
 export default function UserDashboardPage({
   params,
@@ -132,11 +131,6 @@ export default function UserDashboardPage({
               </Card>
             </UserFormSheet>
           </div>
-
-          {/* -----------------------------
-              USER SETTINGS (Universal)
-          ----------------------------- */}
-          <CalendarPreferencesCard userId={user.id} />
 
           {/* Quick Actions */}
           <Card className="border border-border bg-card/80">

@@ -4,7 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/app/components/u
 import { ReactNode, useState } from "react";
 import type { UserProfile } from "@/app/lib/types";
 import { UserForm } from "./user-form";
-import { CalendarPreferencesCard } from "@/app/settings/access-management/components/CalendarPreferencesCard";
+import { CalendarPreferencesCard } from "@/app/components/settings/CalendarPreferencesCard";
 
 export function UserFormSheet({
   user,

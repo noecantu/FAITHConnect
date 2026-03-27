@@ -11,15 +11,15 @@ import { db } from '@/app/lib/firebase/client';
 import type { User } from '@/app/lib/types';
 import { useUserManagement } from '@/app/hooks/useUserManagement';
 
-import UserListCard from './components/UserListCard';
-import StorageUsageCard from './components/StorageUsageCard';
-import UserFormCard from './components/UserFormCard';
-import DeleteUserDialog from './components/DeleteUserDialog';
-import ChurchLogoCard from './components/ChurchLogoCard';
-import ChurchProfileCard from './components/ChurchProfileCard';
-import { CalendarPreferencesCard } from './components/CalendarPreferencesCard';
+import UserListCard from '../../../../../components/settings/UserListCard';
+import StorageUsageCard from '../../../../../components/settings/StorageUsageCard';
+import UserFormCard from '../../../../../components/settings/UserFormCard';
+import DeleteUserDialog from '../../../../../components/settings/DeleteUserDialog';
+import ChurchLogoCard from '../../../../../components/settings/ChurchLogoCard';
+import ChurchProfileCard from '../../../../../components/settings/ChurchProfileCard';
+import { CalendarPreferencesCard } from '../../../../../components/settings/CalendarPreferencesCard';
 
-export default function AccessManagementPage() {
+export default function ChurchSettingsPage() {
   const { churchId } = useChurchId();
   const { user } = useAuth();
   const [churchName] = useState('');

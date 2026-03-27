@@ -21,7 +21,7 @@ import { ALL_ROLES, Role } from "@/app/lib/auth/permissions/roles";
 import { SystemRole, SYSTEM_ROLES } from "@/app/lib/system-roles";
 import { SYSTEM_ROLE_MAP } from "@/app/lib/system-role-map";
 import type { User } from "@/app/lib/types";
-import RoleSelector from "@/app/settings/access-management/components/RoleSelector";
+import RoleSelector from "@/app/components/settings/RoleSelector";
 
 export default function EditUserForm({
   userId,

@@ -102,7 +102,7 @@ export function NavMenu() {
     { href: `/church/${churchId}/members`, label: "Members", icon: Users },
     { href: "/music", label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
     { href: "/service-plan", label: "Service Plans", icon: CalendarHeart, permission: canAccessServicePlan },
-    { href: "/settings/access-management", label: "Settings", icon: Settings },
+    { href: `/admin/church/${churchId}/settings`, label: "Settings", icon: Settings },
     { href: "/reports", label: "Reports", icon: FileText, permission: canSeeReports },
   ];
 
@@ -112,6 +112,7 @@ export function NavMenu() {
     { href: "/contributions", label: "Contributions", icon: DollarSign, permission: canSeeContributions },
     { href: "/music", label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
     { href: "/reports", label: "Reports", icon: FileText, permission: canSeeReports },
+    { href: "/settings", label: "Settings", icon: Settings }
   ];
 
   const activeMenu = isRootAdmin

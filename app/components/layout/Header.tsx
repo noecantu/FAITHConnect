@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import NavMenuClientOnly from './NavMenuClientOnly';
+import { NavMenu } from './NavMenu';
 
 export default function Header() {
   return (
@@ -15,7 +15,7 @@ export default function Header() {
         />
       </Link>
       <div className="ml-auto">
-        <NavMenuClientOnly />
+        <NavMenu />
       </div>
     </header>
   );

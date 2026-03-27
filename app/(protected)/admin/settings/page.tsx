@@ -13,7 +13,7 @@ import { Checkbox } from "@/app/components/ui/checkbox";
 import type { SystemSettings } from "@/app/lib/types";
 import { setDoc } from "firebase/firestore";
 
-export default function SystemSettingsPage() {
+export default function AdminSystemSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<SystemSettings | null>(null);
 
