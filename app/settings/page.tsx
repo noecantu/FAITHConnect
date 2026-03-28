@@ -7,8 +7,7 @@ import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 
 import { PageHeader } from "@/app/components/page-header";
 import UserProfileCard from "@/app/components/settings/UserProfileCard";
-import { CalendarPreferencesCard } from "@/app/components/settings/CalendarPreferencesCard";
-import { ContributionPreferencesCard } from "@/app/components/settings/ContributionPreferencesCard";
+import { ChangePasswordCard } from "@/app/components/settings/ChangePasswordCard";
 
 import { Fab } from "@/app/components/ui/fab";
 import { Save, Loader2, Check } from "lucide-react";
@@ -26,9 +25,14 @@ export default function UserSettingsPage() {
     profile: false,
     calendar: false,
     contributions: false,
+    password: false,
   });
 
-  const isDirty = dirty.profile || dirty.calendar || dirty.contributions;
+  const isDirty =
+    dirty.profile ||
+    dirty.calendar ||
+    dirty.contributions ||
+    dirty.password;
 
   const [isSaving, setIsSaving] = useState(false);
   const [showCheck, setShowCheck] = useState(false);
@@ -36,29 +40,22 @@ export default function UserSettingsPage() {
   const saveProfileRef = useRef<(() => Promise<void>) | null>(null);
   const saveCalendarRef = useRef<(() => Promise<void>) | null>(null);
   const saveContributionsRef = useRef<(() => Promise<void>) | null>(null);
+  const savePasswordRef = useRef<(() => Promise<void>) | null>(null);
 
   const handleProfileDirty = useCallback((v: boolean) => {
     setDirty((d) => ({ ...d, profile: v }));
-  }, []);
-
-  const handleCalendarDirty = useCallback((v: boolean) => {
-    setDirty((d) => ({ ...d, calendar: v }));
-  }, []);
-
-  const handleContribDirty = useCallback((v: boolean) => {
-    setDirty((d) => ({ ...d, contributions: v }));
   }, []);
 
   const registerProfileSave = useCallback((fn: () => Promise<void>) => {
     saveProfileRef.current = fn;
   }, []);
 
-  const registerCalendarSave = useCallback((fn: () => Promise<void>) => {
-    saveCalendarRef.current = fn;
+  const handlePasswordDirty = useCallback((v: boolean) => {
+    setDirty((d) => ({ ...d, password: v }));
   }, []);
 
-  const registerContribSave = useCallback((fn: () => Promise<void>) => {
-    saveContributionsRef.current = fn;
+  const registerPasswordSave = useCallback((fn: () => Promise<void>) => {
+    savePasswordRef.current = fn;
   }, []);
 
   const handleSaveAll = useCallback(async () => {
@@ -70,6 +67,7 @@ export default function UserSettingsPage() {
       saveProfileRef.current?.(),
       saveCalendarRef.current?.(),
       saveContributionsRef.current?.(),
+      savePasswordRef.current?.(),
     ]);
 
     setIsSaving(false);
@@ -80,6 +78,7 @@ export default function UserSettingsPage() {
       profile: false,
       calendar: false,
       contributions: false,
+      password: false,
     });
   }, [isDirty]);
 
@@ -89,10 +88,10 @@ export default function UserSettingsPage() {
   useEffect(() => {
     if (authLoading || !authUser) return;
 
-    const userId = authUser.id;   // ⭐ Narrowed and stable
+    const userId = authUser.id;
 
     async function load() {
-      const ref = doc(db, "users", userId);   // ⭐ No more TS error
+      const ref = doc(db, "users", userId);
       const snap = await getDoc(ref);
       setFullUser(snap.data());
       setLoading(false);
@@ -105,13 +104,20 @@ export default function UserSettingsPage() {
   // 3. NOW — AND ONLY NOW — YOU MAY RETURN CONDITIONALLY
   //
   if (!authUser) {
-    return <div className="p-6 text-slate-300">You must be logged in to view settings.</div>;
+    return (
+      <div className="p-6 text-slate-300">
+        You must be logged in to view settings.
+      </div>
+    );
   }
 
   if (loading) {
     return (
       <div className="w-full max-w-none p-6 space-y-10">
-        <PageHeader title="Settings" subtitle="Manage your personal account and preferences." />
+        <PageHeader
+          title="Settings"
+          subtitle="Manage your personal account and preferences."
+        />
         <div className="h-32 bg-slate-900/40 rounded-xl animate-pulse" />
         <div className="h-32 bg-slate-900/40 rounded-xl animate-pulse" />
         <div className="h-32 bg-slate-900/40 rounded-xl animate-pulse" />
@@ -136,17 +142,9 @@ export default function UserSettingsPage() {
           registerSave={registerProfileSave}
         />
 
-        <CalendarPreferencesCard
-          userId={authUser.id}
-          onDirtyChange={handleCalendarDirty}
-          registerSave={registerCalendarSave}
-        />
-
-        <ContributionPreferencesCard
-          userId={authUser.id}
-          churchId={fullUser.churchId}
-          onDirtyChange={handleContribDirty}
-          registerSave={registerContribSave}
+        <ChangePasswordCard
+          onDirtyChange={handlePasswordDirty}
+          registerSave={registerPasswordSave}
         />
       </div>
 
@@ -160,7 +158,9 @@ export default function UserSettingsPage() {
         `}
       >
         {isSaving && <Loader2 className="h-6 w-6 animate-spin" />}
-        {!isSaving && showCheck && <Check className="h-7 w-7 animate-pulse" />}
+        {!isSaving && showCheck && (
+          <Check className="h-7 w-7 animate-pulse" />
+        )}
         {!isSaving && !showCheck && <Save className="h-6 w-6" />}
       </Fab>
     </div>
