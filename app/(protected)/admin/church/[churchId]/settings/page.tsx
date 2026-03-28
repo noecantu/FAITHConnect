@@ -18,7 +18,6 @@ import UserFormCard from '../../../../../components/settings/UserFormCard';
 import DeleteUserDialog from '../../../../../components/settings/DeleteUserDialog';
 import ChurchLogoCard from '../../../../../components/settings/ChurchLogoCard';
 import ChurchProfileCard from '../../../../../components/settings/ChurchProfileCard';
-import { CalendarPreferencesCard } from '../../../../../components/settings/CalendarPreferencesCard';
 
 export default function ChurchSettingsPage() {
   const { churchId } = useChurchId();
@@ -150,8 +149,6 @@ export default function ChurchSettingsPage() {
         subtitle="Manage settings for your organization."
         className="mb-2"
       />
-
-      <CalendarPreferencesCard userId={user?.id!} />
 
       {/* LIST MODE */}
       {mode === 'list' && (
