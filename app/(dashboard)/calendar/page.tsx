@@ -6,6 +6,8 @@ import * as z from 'zod';
 
 import { PageHeader } from '@/app/components/page-header';
 import { Fab } from '@/app/components/ui/fab';
+import { Button } from '@/app/components/ui/button';
+import { Calendar, List } from 'lucide-react';
 
 import { useAuth } from '@/app/hooks/useAuth';
 import { useChurchId } from '@/app/hooks/useChurchId';
@@ -64,18 +66,14 @@ export default function CalendarPage() {
   const { churchId } = useChurchId();
   const { user } = useAuth();
   const { roles = [] } = useUserRoles();
-  const { view } = useUserCalendarSettings(user?.id ?? null);
+  const { view, setView } = useUserCalendarSettings(user?.id ?? null);
 
-  // ------------------------------
-  // ADMIN CHECK (permission-based)
-  // ------------------------------
+  // ADMIN CHECK
   const isAdmin =
     can(roles, "church.manage") ||
     can(roles, "system.manage");
 
-  // ------------------------------
-  // MANAGER GROUP CHECK (permission-based)
-  // ------------------------------
+  // MANAGER GROUP CHECK
   let managerGroup: string | null = null;
 
   if (can(roles, "music.manage")) managerGroup = "music";
@@ -98,9 +96,7 @@ export default function CalendarPage() {
   if (can(roles, "women.read")) memberGroups.push("womens");
   if (can(roles, "youth.read")) memberGroups.push("youth");
 
-  // ------------------------------
   // DATA
-  // ------------------------------
   const { events } = useCalendarEvents(
     churchId,
     user?.id ?? null,
@@ -112,9 +108,7 @@ export default function CalendarPage() {
   const month = useCalendarMonth();
   const filters = useCalendarFilters(events);
 
-  // ------------------------------
   // FORM + DIALOGS
-  // ------------------------------
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
@@ -140,15 +134,40 @@ export default function CalendarPage() {
     return events.filter((e) => dateKey(e.date) === dateKey(d));
   })();
 
+  // Build view controls object for CalendarControls (matches its original API)
+  const viewControls = {
+    view,
+    setView,
+  };
+
   return (
     <>
       <PageHeader
         title="Calendar of Events"
         subtitle="Select a date to view or add events."
-      />
+      >
+        <div className="flex items-center gap-2">
+          <Button
+            variant={view === "calendar" ? "default" : "outline"}
+            size="icon"
+            onClick={() => setView("calendar")}
+          >
+            <Calendar className="h-5 w-5" />
+          </Button>
+
+          <Button
+            variant={view === "list" ? "default" : "outline"}
+            size="icon"
+            onClick={() => setView("list")}
+          >
+            <List className="h-5 w-5" />
+          </Button>
+        </div>
+      </PageHeader>
 
       <CalendarControls
         month={month}
+        view={viewControls}
         filters={filters}
         user={user}
       />
@@ -160,7 +179,6 @@ export default function CalendarPage() {
         onSelectDate={dialogs.handleSelectDate}
         onPrevMonth={month.prevMonth}
         onNextMonth={month.nextMonth}
-        onToday={month.goToday}
         isAdmin={isAdmin}
         managerGroup={managerGroup}
         onEdit={dialogs.handleEdit}

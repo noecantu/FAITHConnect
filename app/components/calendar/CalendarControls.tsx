@@ -11,15 +11,17 @@ import {
   SelectItem,
 } from '../ui/select';
 
-// ---------------------------------------------
-// TYPES
-// ---------------------------------------------
 interface MonthControls {
   month: Date;
   setMonth: (d: Date) => void;
   prevMonth: () => void;
   nextMonth: () => void;
   goToday: () => void;
+}
+
+interface ViewControls {
+  view: 'calendar' | 'list';
+  setView: (v: 'calendar' | 'list') => void;
 }
 
 interface FilterControls {
@@ -33,15 +35,14 @@ interface FilterControls {
 
 interface CalendarControlsProps {
   month: MonthControls;
+  view: ViewControls;
   filters: FilterControls;
   user: { id?: string } | null;
 }
 
-// ---------------------------------------------
-// COMPONENT
-// ---------------------------------------------
 export function CalendarControls({
   month,
+  view,
   filters,
 }: CalendarControlsProps) {
   const months = Array.from({ length: 12 }, (_, i) => ({
@@ -53,119 +54,115 @@ export function CalendarControls({
   const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 mb-4">
 
-      {/* TOP CONTROLS — ALWAYS SHOWN NOW */}
-      <div className="flex justify-end w-full">
-        <div className="
-          flex flex-col 
-          sm:flex-row 
-          sm:items-center 
-          sm:justify-end 
-          gap-2 
-          w-full 
-          sm:w-auto
-        ">
+      {/* CALENDAR VIEW CONTROLS */}
+      {view.view === "calendar" && (
+        <div className="flex justify-end w-full">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2">
 
-          {/* Month */}
-          <Select
-            value={String(month.month.getMonth())}
-            onValueChange={(value) =>
-              month.setMonth(setMonthDate(month.month, Number(value)))
-            }
-          >
-            <SelectTrigger className="w-full sm:w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {months.map((m) => (
-                <SelectItem key={m.value} value={String(m.value)}>
-                  {m.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Year */}
-          <Select
-            value={String(month.month.getFullYear())}
-            onValueChange={(value) =>
-              month.setMonth(setYearDate(month.month, Number(value)))
-            }
-          >
-            <SelectTrigger className="w-full sm:w-24">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {years.map((y) => (
-                <SelectItem key={y} value={String(y)}>
-                  {y}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Today */}
-          <Button
-            onClick={month.goToday}
-            className="w-full sm:w-20"
-          >
-            Today
-          </Button>
-        </div>
-      </div>
-
-      {/* FILTER CONTROLS — OPTIONAL, STILL USEFUL IN CALENDAR MODE */}
-      <div className="flex flex-col gap-4 w-full">
-
-        {/* Row: Search + Dropdowns */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-4 w-full">
-
-          {/* SEARCH */}
-          <div className="w-full md:flex-1">
-            <Input
-              placeholder="Search events…"
-              value={filters.search}
-              onChange={(e) => filters.setSearch(e.target.value)}
-              className="w-full"
-            />
-          </div>
-
-          {/* DROPDOWNS */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 md:justify-end">
-
-            {/* Filter */}
+            {/* Month */}
             <Select
-              value={filters.filter}
-              onValueChange={(v: FilterControls["filter"]) => filters.setFilter(v)}
+              value={String(month.month.getMonth())}
+              onValueChange={(value) =>
+                month.setMonth(setMonthDate(month.month, Number(value)))
+              }
             >
-              <SelectTrigger className="w-full sm:w-36">
-                <SelectValue placeholder="Filter" />
+              <SelectTrigger className="w-full sm:w-32">
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="future">Future</SelectItem>
-                <SelectItem value="past">Past</SelectItem>
+                {months.map((m) => (
+                  <SelectItem key={m.value} value={String(m.value)}>
+                    {m.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
-            {/* Sort */}
+            {/* Year */}
             <Select
-              value={filters.sort}
-              onValueChange={(v: FilterControls["sort"]) => filters.setSort(v)}
+              value={String(month.month.getFullYear())}
+              onValueChange={(value) =>
+                month.setMonth(setYearDate(month.month, Number(value)))
+              }
             >
-              <SelectTrigger className="w-full sm:w-36">
-                <SelectValue placeholder="Sort" />
+              <SelectTrigger className="w-full sm:w-24">
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="oldest">Oldest</SelectItem>
+                {years.map((y) => (
+                  <SelectItem key={y} value={String(y)}>
+                    {y}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
+            {/* Today */}
+            <Button
+              variant="outline"
+              onClick={month.goToday}
+              className="w-full sm:w-20"
+            >
+              Today
+            </Button>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* LIST VIEW CONTROLS */}
+      {view.view === 'list' && (
+        <div className="flex flex-col gap-4 w-full">
+
+          {/* Search + Filters */}
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-4 w-full">
+
+            {/* Search */}
+            <div className="w-full md:flex-1">
+              <Input
+                placeholder="Search events…"
+                value={filters.search}
+                onChange={(e) => filters.setSearch(e.target.value)}
+                className="w-full"
+              />
+            </div>
+
+            {/* Filter + Sort */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 md:justify-end">
+
+              <Select
+                value={filters.filter}
+                onValueChange={(v) => filters.setFilter(v as any)}
+              >
+                <SelectTrigger className="w-full sm:w-36">
+                  <SelectValue placeholder="Filter" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="future">Future</SelectItem>
+                  <SelectItem value="past">Past</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={filters.sort}
+                onValueChange={(v) => filters.setSort(v as any)}
+              >
+                <SelectTrigger className="w-full sm:w-36">
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="oldest">Oldest</SelectItem>
+                  <SelectItem value="title">Title A–Z</SelectItem>
+                </SelectContent>
+              </Select>
+
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

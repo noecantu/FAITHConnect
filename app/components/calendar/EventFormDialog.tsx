@@ -1,8 +1,19 @@
 'use client';
 
-import { Dialog } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "../ui/dialog";
+
 import { Button } from "../ui/button";
-import { StandardDialogLayout } from "../layout/StandardDialogLayout";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import { Switch } from "../ui/switch";
+import { MultiSelect } from "../ui/multi-select";
 
 import {
   Form,
@@ -13,22 +24,13 @@ import {
   FormMessage,
 } from "../ui/form";
 
-import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
-import { Switch } from "../ui/switch";
-import { MultiSelect } from "../ui/multi-select";
-
 import Flatpickr from "react-flatpickr";
 import { format } from "date-fns";
 
 import type { Event } from "@/app/lib/types";
 import type { UseFormReturn } from "react-hook-form";
-
 import * as z from "zod";
 
-// ------------------------------
-// SCHEMA
-// ------------------------------
 export const eventSchema = z.object({
   title: z.string().min(1, "Title is required"),
   date: z.date(),
@@ -39,9 +41,6 @@ export const eventSchema = z.object({
 
 export type EventFormValues = z.infer<typeof eventSchema>;
 
-// ------------------------------
-// PROPS
-// ------------------------------
 interface EventFormDialogProps {
   open: boolean;
   isAdmin: boolean;
@@ -55,9 +54,6 @@ interface EventFormDialogProps {
   onDelete?: (id: string) => void;
 }
 
-// ------------------------------
-// COMPONENT
-// ------------------------------
 export function EventFormDialog({
   open,
   isAdmin,
@@ -71,34 +67,25 @@ export function EventFormDialog({
   onDelete,
 }: EventFormDialogProps) {
   const isManager = !isAdmin && !!managerGroup;
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
-      <StandardDialogLayout
-        title={isEditing ? "Edit Event" : "Add New Event"}
-        description={
-          isEditing
-            ? "Update the details of this event."
-            : `Add a new event for ${format(selectedDate, "PPP")}.`
-        }
-        onClose={() => onOpenChange(false)}
-        footer={
-          <div className="flex justify-end w-full gap-2">
-            {isEditing && onDelete && event && (
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => onDelete(event.id)}
-              >
-                Delete
-              </Button>
-            )}
 
-            <Button type="submit" form="event-form">
-              {isEditing ? "Save Changes" : "Add Event"}
-            </Button>
-          </div>
-        }
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          className="max-w-lg bg-black/60 backdrop-blur-xl border border-white/10 text-white space-y-4"
       >
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">
+            {isEditing ? "Edit Event" : "Add New Event"}
+          </DialogTitle>
+
+          <DialogDescription className="text-white/60">
+            {isEditing
+              ? "Update the details of this event."
+              : `Add a new event for ${format(selectedDate, "PPP")}.`}
+          </DialogDescription>
+        </DialogHeader>
+
         <Form {...form}>
           <form
             id="event-form"
@@ -113,21 +100,32 @@ export function EventFormDialog({
                 <FormItem className="space-y-2">
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <Flatpickr
-                      value={field.value}
-                      options={{
-                        defaultDate: field.value,
-                        allowInput: false,
-                        altInput: true,
-                        altFormat: "m-d-Y",
-                        dateFormat: "m-d-Y",
-                        monthSelectorType: "dropdown",
-                      }}
-                      onChange={([selected]) => {
-                        if (selected) field.onChange(selected);
-                      }}
-                      className="block w-full bg-black/40 text-white border-white/20 rounded-md px-3 py-2 text-center"
-                    />
+                    <div className="relative">
+                      <Flatpickr
+                        value={field.value}
+                        options={{
+                          defaultDate: field.value,
+                          allowInput: false,
+                          altInput: true,
+                          altFormat: "m-d-Y",
+                          dateFormat: "m-d-Y",
+                          monthSelectorType: "dropdown",
+                        }}
+                        onChange={([selected]) => {
+                          if (selected) field.onChange(selected);
+                        }}
+                        className="w-full px-3 py-2 text-sm rounded-md bg-transparent"
+                      />
+
+                      {/* This wrapper gives the Input-style border + outline */}
+                      <div className="
+                        pointer-events-none
+                        absolute inset-0
+                        rounded-md
+                        border border-white/20
+                        outline outline-1 outline-white/20
+                      " />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -139,10 +137,14 @@ export function EventFormDialog({
               control={form.control}
               name="title"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="space-y-2">
                   <FormLabel>Event Title *</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Sunday Service" {...field} />
+                    <Input
+                      placeholder="e.g., Sunday Service"
+                      className="bg-black/40 border-white/20"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -154,11 +156,13 @@ export function EventFormDialog({
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="space-y-2">
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Event details..."
+                      className="bg-black/40 border-white/20 resize-none"
+                      rows={4}
                       {...field}
                       value={field.value ?? ""}
                     />
@@ -168,14 +172,11 @@ export function EventFormDialog({
               )}
             />
 
-            {/* -------------------------------------- */}
-            {/* VISIBILITY CONTROLS */}
-            {/* -------------------------------------- */}
-
+            {/* ADMIN CONTROLS */}
             {isAdmin && (
               <div className="space-y-4 border-t border-white/10 pt-4 mt-4">
 
-                {/* PUBLIC TOGGLE */}
+                {/* PUBLIC */}
                 <FormField
                   control={form.control}
                   name="isPublic"
@@ -192,7 +193,7 @@ export function EventFormDialog({
                   )}
                 />
 
-                {/* GROUP SELECTOR */}
+                {/* GROUPS */}
                 <FormField
                   control={form.control}
                   name="groups"
@@ -221,19 +222,32 @@ export function EventFormDialog({
               </div>
             )}
 
+            {/* MANAGER VIEW */}
             {isManager && (
-              <div className="space-y-4 border-t border-white/10 pt-4 mt-4">
-                <FormItem>
-                  <FormLabel>Group</FormLabel>
-                  <div className="text-sm text-muted-foreground">
-                    {managerGroup}
-                  </div>
-                </FormItem>
+              <div className="space-y-2 border-t border-white/10 pt-4 mt-4">
+                <FormLabel>Group</FormLabel>
+                <div className="text-sm text-white/70">{managerGroup}</div>
               </div>
             )}
           </form>
         </Form>
-      </StandardDialogLayout>
+
+        <DialogFooter className="flex justify-between pt-4">
+          {isEditing && onDelete && event && (
+            <Button
+              variant="destructive"
+              onClick={() => onDelete(event.id)}
+              className="w-24"
+            >
+              Delete
+            </Button>
+          )}
+
+          <Button type="submit" form="event-form" className="w-32">
+            {isEditing ? "Save Changes" : "Add Event"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
