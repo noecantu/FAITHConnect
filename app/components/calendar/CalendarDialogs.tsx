@@ -7,12 +7,7 @@ import { DayEventsDialog } from './DayEventsDialog';
 import type { Event } from "@/app/lib/types";
 import type { Theme } from "@mui/material/styles";
 import type { UseFormReturn } from "react-hook-form";
-
-interface EventFormValues {
-  title: string;
-  description?: string;
-  date: Date;
-}
+import type { EventFormValues } from "./EventFormDialog";
 
 interface CalendarDialogsState {
   isFormOpen: boolean;

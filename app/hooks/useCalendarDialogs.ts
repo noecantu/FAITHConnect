@@ -15,6 +15,7 @@ import {
 import { useToast } from '../hooks/use-toast';
 import type { Event as EventType } from '../lib/types';
 import type { UseFormReturn } from "react-hook-form";
+import type { EventFormValues } from "@/app/components/calendar/EventFormDialog";
 
 // -------------------------------
 // UTILITIES
@@ -59,18 +60,6 @@ function safeDateOnly(date: Date): Date {
     12, 0, 0
   );
 }
-
-// -------------------------------
-// FORM VALUES TYPE (UPDATED)
-// -------------------------------
-export type EventFormValues = {
-  title: string;
-  description?: string;
-  date: Date; // <-- MUST be a Date
-
-  isPublic?: boolean;
-  groups?: string[];
-};
 
 // -------------------------------
 // MAIN HOOK

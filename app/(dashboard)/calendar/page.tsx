@@ -26,18 +26,7 @@ import { createTheme } from '@mui/material/styles';
 import { can } from '@/app/lib/auth/permissions/can';
 import { CalendarViewSwitcher } from '@/app/components/calendar/CalendarViewSwitcher';
 import { useUserCalendarSettings } from '@/app/hooks/useUserCalendarSettings';
-
-// ------------------------------
-// Schema
-// ------------------------------
-const eventSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  date: z.date(),
-  description: z.string().optional(),
-  isPublic: z.boolean().optional(),
-  groups: z.array(z.string()).optional(),
-});
-type EventFormValues = z.infer<typeof eventSchema>;
+import { eventSchema, type EventFormValues } from "@/app/components/calendar/EventFormDialog";
 
 // ------------------------------
 // MUI Theme
