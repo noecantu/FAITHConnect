@@ -74,7 +74,7 @@ export default function UserDashboardPage({
             {/* Church Identity Card */}
             <Card className="border border-border bg-card/80">
               <CardContent className="flex items-center gap-4 p-4 md:p-6">
-                <Avatar className="h-48 w-48 rounded-md overflow-hidden border border-border bg-white shadow-sm">
+                <Avatar className="h-32 w-32 rounded-md overflow-hidden border border-border bg-white shadow-sm">
                   {church.logoUrl ? (
                     <Image
                       src={church.logoUrl}
@@ -104,7 +104,7 @@ export default function UserDashboardPage({
             {/* User Identity Card */}
             <Card className="border border-border bg-card/80 transition">
               <CardContent className="flex items-center gap-4 p-4 md:p-6">
-                <Avatar className="h-48 w-48 rounded-md overflow-hidden border border-border bg-white shadow-sm">
+                <Avatar className="h-32 w-32 rounded-md overflow-hidden border border-border bg-white shadow-sm">
                   {user.profilePhotoUrl ? (
                     <Image
                       src={user.profilePhotoUrl}
