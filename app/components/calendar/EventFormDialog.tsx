@@ -12,7 +12,6 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
-import { Switch } from "../ui/switch";
 import { MultiSelect } from "../ui/multi-select";
 
 import {
@@ -31,15 +30,70 @@ import type { Event } from "@/app/lib/types";
 import type { UseFormReturn } from "react-hook-form";
 import * as z from "zod";
 
+//
+// ────────────────────────────────────────────────────────────────
+//   ZOD SCHEMA
+// ────────────────────────────────────────────────────────────────
+//
+
 export const eventSchema = z.object({
-  title: z.string().min(1, "Title is required"),
+  title: z.string().min(1),
   date: z.date(),
   description: z.string().optional(),
-  isPublic: z.boolean().optional(),
+  isPublic: z.boolean(),
   groups: z.array(z.string()).optional(),
-});
+})
+.refine(
+  (data) => data.isPublic || (data.groups && data.groups.length > 0),
+  { message: "Private events must have at least one group", path: ["groups"] }
+);
 
 export type EventFormValues = z.infer<typeof eventSchema>;
+
+//
+// ────────────────────────────────────────────────────────────────
+//   SEGMENTED CONTROL COMPONENT
+// ────────────────────────────────────────────────────────────────
+//
+
+function SegmentedControl({
+  value,
+  onChange,
+  options,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: { label: string; value: string }[];
+}) {
+  return (
+    <div className="flex rounded-md overflow-hidden border border-white/10 bg-black/40">
+      {options.map((opt) => {
+        const active = value === opt.value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            className={
+              "flex-1 px-3 py-2 text-sm font-medium transition-colors " +
+              (active
+                ? "bg-slate-600 text-white" // ACTIVE: slate-gray
+                : "text-white/60 hover:bg-white/10") // INACTIVE
+            }
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+//
+// ────────────────────────────────────────────────────────────────
+//   MAIN COMPONENT
+// ────────────────────────────────────────────────────────────────
+//
 
 interface EventFormDialogProps {
   open: boolean;
@@ -67,12 +121,13 @@ export function EventFormDialog({
   onDelete,
 }: EventFormDialogProps) {
   const isManager = !isAdmin && !!managerGroup;
+  const isPublic = form.watch("isPublic");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-          onOpenAutoFocus={(e) => e.preventDefault()}
-          className="max-w-lg bg-black/60 backdrop-blur-xl border border-white/10 text-white space-y-4"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="max-w-lg bg-black/60 backdrop-blur-xl border border-white/10 text-white space-y-4"
       >
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
@@ -117,7 +172,6 @@ export function EventFormDialog({
                         className="w-full px-3 py-2 text-sm rounded-md bg-transparent"
                       />
 
-                      {/* This wrapper gives the Input-style border + outline */}
                       <div className="
                         pointer-events-none
                         absolute inset-0
@@ -172,53 +226,67 @@ export function EventFormDialog({
               )}
             />
 
-            {/* ADMIN CONTROLS */}
+            {/* VISIBILITY SECTION */}
             {isAdmin && (
-              <div className="space-y-4 border-t border-white/10 pt-4 mt-4">
+              <div className="space-y-4 border-t border-white/20 pt-6 mt-6">
+                <h3 className="text-lg font-semibold">Visibility</h3>
 
-                {/* PUBLIC */}
+                {/* PUBLIC / PRIVATE SEGMENTED CONTROL */}
                 <FormField
                   control={form.control}
                   name="isPublic"
                   render={({ field }) => (
-                    <FormItem className="flex items-center justify-between">
-                      <FormLabel>Public Event</FormLabel>
+                    <FormItem className="space-y-2">
+                      <FormLabel className="text-white/60">
+                        Who should be able to see the event?
+                      </FormLabel>
+
                       <FormControl>
-                        <Switch
-                          checked={field.value ?? false}
-                          onCheckedChange={field.onChange}
+                        <SegmentedControl
+                          value={field.value ? "public" : "private"}
+                          onChange={(v) => {
+                            const isPublic = v === "public";
+                            field.onChange(isPublic);
+                            if (isPublic) form.setValue("groups", []);
+                          }}
+                          options={[
+                            { label: "Public", value: "public" },
+                            { label: "Private", value: "private" },
+                          ]}
                         />
                       </FormControl>
                     </FormItem>
                   )}
                 />
 
-                {/* GROUPS */}
-                <FormField
-                  control={form.control}
-                  name="groups"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel>Visible to Groups</FormLabel>
-                      <FormControl>
-                        <MultiSelect
-                          options={[
-                            { label: "Caretaker", value: "caretaker" },
-                            { label: "Event Team", value: "events" },
-                            { label: "Men's Group", value: "men" },
-                            { label: "Music Ministry", value: "music" },
-                            { label: "Ushers", value: "usher" },
-                            { label: "Women's Group", value: "women" },
-                            { label: "Youth Group", value: "youth" },
-                          ]}
-                          value={field.value ?? []}
-                          onChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* GROUP SELECTOR (only when private) */}
+                {!isPublic && (
+                  <FormField
+                    control={form.control}
+                    name="groups"
+                    render={({ field }) => (
+                      <FormItem className="space-y-2">
+                        <FormLabel>Visible to Groups</FormLabel>
+                        <FormControl>
+                          <MultiSelect
+                            options={[
+                              { label: "Caretaker", value: "caretaker" },
+                              { label: "Event Team", value: "events" },
+                              { label: "Men's Group", value: "men" },
+                              { label: "Music Ministry", value: "music" },
+                              { label: "Ushers", value: "usher" },
+                              { label: "Women's Group", value: "women" },
+                              { label: "Youth Group", value: "youth" },
+                            ]}
+                            value={field.value ?? []}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </div>
             )}
 
