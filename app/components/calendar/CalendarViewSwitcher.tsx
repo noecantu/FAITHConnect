@@ -77,7 +77,7 @@ export function CalendarViewSwitcher({
           onSelect={onSelectDate}
           onPrevMonth={onPrevMonth}
           onNextMonth={onNextMonth}
-          onEdit={handleEdit}
+          onEdit={isAdmin || managerGroup ? handleEdit : undefined}
         />
       );
     }
@@ -85,8 +85,8 @@ export function CalendarViewSwitcher({
     return (
       <ListView
         events={events}
-        onEdit={handleEdit}
-        onDeleteRequest={handleDelete}
+        onEdit={isAdmin || managerGroup ? handleEdit : undefined}
+        onDeleteRequest={isAdmin || managerGroup ? handleDelete : undefined}
       />
     );
   }, [
@@ -98,5 +98,7 @@ export function CalendarViewSwitcher({
     onNextMonth,
     handleEdit,
     handleDelete,
+    isAdmin,        // ← FIXED
+    managerGroup,   // ← FIXED
   ]);
 }
