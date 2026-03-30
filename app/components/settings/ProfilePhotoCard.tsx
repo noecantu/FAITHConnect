@@ -77,7 +77,7 @@ export function ProfilePhotoCard({
 
       <CardContent className="space-y-4">
         <div className="flex items-center gap-4">
-          <div className="h-42 w-48 rounded-lg overflow-hidden bg-slate-800 flex items-center justify-center text-xl font-semibold">
+          <div className="h-32 w-32 shrink-0 rounded-lg overflow-hidden bg-slate-800 flex items-center justify-center text-xl font-semibold">
             {previewUrl ? (
               <Image
                 src={previewUrl}
