@@ -295,10 +295,10 @@ export default function ChurchAdminDashboard() {
                 <img
                   src={church.logoUrl}
                   alt={church.name}
-                  className="h-32 w-32 rounded-md object-cover border border-border bg-white ring-2 ring-primary/20 shadow-md"
+                  className="h-48 w-48 rounded-md object-cover border border-border bg-white ring-2 ring-primary/20 shadow-md"
                 />
               ) : (
-                <div className="h-32 w-32 rounded-md bg-muted flex items-center justify-center text-lg font-semibold text-muted-foreground border border-border">
+                <div className="h-48 w-48 rounded-md bg-muted flex items-center justify-center text-lg font-semibold text-muted-foreground border border-border">
                   {church.name?.charAt(0)}
                 </div>
               )}

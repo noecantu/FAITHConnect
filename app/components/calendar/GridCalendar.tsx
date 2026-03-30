@@ -30,7 +30,6 @@ export function GridCalendar({
   onPrevMonth,
   onNextMonth,
   events,
-  onEdit,
 }: GridCalendarProps) {
 
   const eventsByDay = events.reduce((acc, event) => {
