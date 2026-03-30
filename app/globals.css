@@ -13,7 +13,7 @@
 @tailwind utilities;
 
 /* -------------------------------------------------------
-   Base theme variables — FAITH Conexion (Black + Slate)
+   Base theme variables — FAITH Connect (Black + Slate)
 ------------------------------------------------------- */
 @layer base {
   :root {
@@ -67,7 +67,7 @@
   }
 
   /* -------------------------------------------------------
-     Dark mode — FAITH Conexion (Black + Slate)
+     Dark mode — FAITH Connect (Black + Slate)
   ------------------------------------------------------- */
   .dark {
     --background: 0 0% 0%;               /* true black */

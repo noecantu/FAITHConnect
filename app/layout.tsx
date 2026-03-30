@@ -10,7 +10,7 @@ import { AppFooter } from './components/layout/AppFooter';
 import { Inter } from "next/font/google";
 
 export const metadata: Metadata = {
-  title: 'FAITH Conexion',
+  title: 'FAITH Connect',
   description: 'Church member management application.',
 };
 

@@ -1,4 +1,4 @@
-# **App Name**: FAITH Conexion
+# **App Name**: FAITH Connect
 
 ## Core Features:
 

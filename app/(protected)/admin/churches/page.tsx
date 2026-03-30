@@ -157,7 +157,7 @@ export default function GlobalChurchListPage() {
     <div className="p-6 space-y-8">
       <PageHeader
         title="All Churches"
-        subtitle="Manage every church in the FAITH Conexion system."
+        subtitle="Manage every church in the FAITH Connect system."
       />
 
       {/* Search + Sort */}

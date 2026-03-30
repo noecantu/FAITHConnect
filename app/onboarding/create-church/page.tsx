@@ -68,7 +68,7 @@ export default function CreateChurchPage() {
         <CardHeader className="text-center space-y-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/FAITH_CONEXION_FLAME_LOGO.svg"
+            src="/FAITH_Connect_FLAME_LOGO.svg"
             alt="Faith Connect Logo"
             className="mx-auto h-20 w-20"
             draggable={false}

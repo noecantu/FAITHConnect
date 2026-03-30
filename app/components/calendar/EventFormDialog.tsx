@@ -29,6 +29,7 @@ import { format } from "date-fns";
 import type { Event } from "@/app/lib/types";
 import type { UseFormReturn } from "react-hook-form";
 import * as z from "zod";
+import { capitalize } from "@/app/lib/utils/string";
 
 //
 // ────────────────────────────────────────────────────────────────
@@ -294,7 +295,17 @@ export function EventFormDialog({
             {isManager && (
               <div className="space-y-2 border-t border-white/10 pt-4 mt-4">
                 <FormLabel>Group</FormLabel>
-                <div className="text-sm text-white/70">{managerGroup}</div>
+
+                <div className="
+                  bg-white/5 
+                  border border-white/10 
+                  rounded-md 
+                  px-3 py-2 
+                  text-sm 
+                  text-white/80
+                ">
+                  {capitalize(managerGroup ?? "")}
+                </div>
               </div>
             )}
           </form>
