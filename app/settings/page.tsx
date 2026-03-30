@@ -11,6 +11,7 @@ import { ChangePasswordCard } from "@/app/components/settings/ChangePasswordCard
 
 import { Fab } from "@/app/components/ui/fab";
 import { Save, Loader2, Check } from "lucide-react";
+import { ProfilePhotoCard } from "@/app/components/settings/ProfilePhotoCard";
 
 export default function UserSettingsPage() {
   //
@@ -26,13 +27,15 @@ export default function UserSettingsPage() {
     calendar: false,
     contributions: false,
     password: false,
+    photo: false,
   });
 
   const isDirty =
     dirty.profile ||
     dirty.calendar ||
     dirty.contributions ||
-    dirty.password;
+    dirty.password ||
+    dirty.photo;
 
   const [isSaving, setIsSaving] = useState(false);
   const [showCheck, setShowCheck] = useState(false);
@@ -41,6 +44,15 @@ export default function UserSettingsPage() {
   const saveCalendarRef = useRef<(() => Promise<void>) | null>(null);
   const saveContributionsRef = useRef<(() => Promise<void>) | null>(null);
   const savePasswordRef = useRef<(() => Promise<void>) | null>(null);
+  const savePhotoRef = useRef<(() => Promise<void>) | null>(null);
+
+  const handlePhotoDirty = useCallback((v: boolean) => {
+    setDirty((d) => ({ ...d, photo: v }));
+  }, []);
+
+  const registerPhotoSave = useCallback((fn: () => Promise<void>) => {
+    savePhotoRef.current = fn;
+  }, []);
 
   const handleProfileDirty = useCallback((v: boolean) => {
     setDirty((d) => ({ ...d, profile: v }));
@@ -68,6 +80,7 @@ export default function UserSettingsPage() {
       saveCalendarRef.current?.(),
       saveContributionsRef.current?.(),
       savePasswordRef.current?.(),
+      savePhotoRef.current?.(),
     ]);
 
     setIsSaving(false);
@@ -79,6 +92,7 @@ export default function UserSettingsPage() {
       calendar: false,
       contributions: false,
       password: false,
+      photo: false,
     });
   }, [isDirty]);
 
@@ -140,6 +154,12 @@ export default function UserSettingsPage() {
           user={fullUser}
           onDirtyChange={handleProfileDirty}
           registerSave={registerProfileSave}
+        />
+
+        <ProfilePhotoCard
+          user={fullUser}
+          onDirtyChange={handlePhotoDirty}
+          registerSave={registerPhotoSave}
         />
 
         <ChangePasswordCard

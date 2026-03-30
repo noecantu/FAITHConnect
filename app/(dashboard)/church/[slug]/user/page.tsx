@@ -11,7 +11,6 @@ import { Avatar, AvatarFallback } from "@/app/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
 import { useUpcomingServices } from "@/app/hooks/useUpcomingServices";
 import { CalendarCheck, CalendarHeart, Calendar } from "lucide-react";
-import { UserFormSheet } from "./profile/user-form-sheet";
 
 export default function UserDashboardPage({
   params,
@@ -19,12 +18,11 @@ export default function UserDashboardPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
+
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
-  const { church, loading: loadingChurch } = useChurch(user?.churchId ?? null);
-  const { services, loading: loadingServices } = useUpcomingServices(user?.churchId ?? null);
-
+  // Load user on mount
   useEffect(() => {
     async function load() {
       const res = await fetch("/api/users/me");
@@ -35,10 +33,26 @@ export default function UserDashboardPage({
     load();
   }, []);
 
-  if (loadingUser || loadingChurch) return <div className="p-6">Loading...</div>;
+  // While user is loading, don't try to read user.churchId
+  const churchId = user?.churchId ?? null;
+
+  const { church, loading: loadingChurch } = useChurch(churchId);
+  const { services, loading: loadingServices } = useUpcomingServices(churchId);
+
+  // Safe admin check — only runs after user is confirmed non-null
+  const isAdmin =
+    !!user &&
+    (user.roles.includes("systemAdmin") ||
+      user.roles.includes("churchAdmin") ||
+      user.roles.includes("financeManager"));
+
+  // Loading states
+  if (loadingUser || loadingChurch || loadingServices) {
+    return <div className="p-6">Loading...</div>;
+  }
+
   if (!user) return <div className="p-6">No user found.</div>;
   if (!church) return <div className="p-6">No church found.</div>;
-  if (loadingServices) return <div className="p-6">Loading...</div>;
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -130,19 +144,21 @@ export default function UserDashboardPage({
             </Card>
           </div>
 
-          {/* Quick Actions */}
-          <Card className="border border-border bg-card/80">
-            <CardHeader className="pb-3">
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>Jump into your church activity.</CardDescription>
-            </CardHeader>
+          {/* Quick Actions — Admin Only */}
+          {isAdmin && (
+            <Card className="border border-border bg-card/80">
+              <CardHeader className="pb-3">
+                <CardTitle>Quick Actions</CardTitle>
+                <CardDescription>Jump into your church activity.</CardDescription>
+              </CardHeader>
 
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <QuickAction href={`/church/${slug}/user/services`} icon={CalendarHeart} label="Upcoming Services" />
-              <QuickAction href={`/church/${slug}/user/events`} icon={Calendar} label="Events" />
-              <QuickAction href={`/church/${slug}/user/schedule`} icon={CalendarCheck} label="My Schedule" />
-            </CardContent>
-          </Card>
+              <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <QuickAction href={`/church/${slug}/user/services`} icon={CalendarHeart} label="Upcoming Services" />
+                <QuickAction href={`/church/${slug}/user/events`} icon={Calendar} label="Events" />
+                <QuickAction href={`/church/${slug}/user/schedule`} icon={CalendarCheck} label="My Schedule" />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Upcoming Services */}
           <Card className="border border-border bg-card/80">
