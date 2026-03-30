@@ -75,13 +75,15 @@ export default function UserSettingsPage() {
 
     setIsSaving(true);
 
-    await Promise.all([
-      saveProfileRef.current?.(),
-      saveCalendarRef.current?.(),
-      saveContributionsRef.current?.(),
-      savePasswordRef.current?.(),
-      savePhotoRef.current?.(),
-    ]);
+    const tasks: Array<Promise<void>> = [];
+
+    if (dirty.profile && saveProfileRef.current) tasks.push(saveProfileRef.current());
+    if (dirty.calendar && saveCalendarRef.current) tasks.push(saveCalendarRef.current());
+    if (dirty.contributions && saveContributionsRef.current) tasks.push(saveContributionsRef.current());
+    if (dirty.password && savePasswordRef.current) tasks.push(savePasswordRef.current());
+    if (dirty.photo && savePhotoRef.current) tasks.push(savePhotoRef.current());
+
+    await Promise.all(tasks);
 
     setIsSaving(false);
     setShowCheck(true);
@@ -94,7 +96,7 @@ export default function UserSettingsPage() {
       password: false,
       photo: false,
     });
-  }, [isDirty]);
+  }, [dirty, isDirty]);
 
   //
   // 2. DATA LOADING EFFECT — STILL ABOVE ANY RETURN

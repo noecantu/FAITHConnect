@@ -45,6 +45,11 @@ service cloud.firestore {
       // Users can read their own profile
       allow read: if request.auth != null && request.auth.uid == uid;
 
+      // Users can update ONLY their own profilePhotoUrl
+      allow update: if request.auth != null
+                    && request.auth.uid == uid
+                    && request.resource.data.diff(resource.data).changedKeys().hasOnly(["profilePhotoUrl"]);
+
       // Root Admin full access
       allow read, write: if isRootAdmin();
 
@@ -56,6 +61,13 @@ service cloud.firestore {
       allow write: if request.resource.data != null
                    && hasChurchRole(getUserDoc().data.churchId, ["Admin"])
                    && request.resource.data.churchId == getUserDoc().data.churchId;
+    }
+    
+    // ---------------------------
+		// USER SETTINGS SUBCOLLECTION
+    // ---------------------------
+    match /users/{uid}/settings/{settingId} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
     // ---------------------------
@@ -84,6 +96,23 @@ service cloud.firestore {
         allow create, update, delete: if
           hasChurchRole(churchId, ["Admin", "Finance"]) ||
           isRootAdmin();
+      }
+      
+      // ---------------------------
+      // EVENTS SUBCOLLECTION
+      // ---------------------------
+      match /events/{eventId} {
+
+        // Anyone in the church can read events
+        allow read: if isChurchMember(churchId);
+
+        // Admins can create/update/delete events
+        allow create, update, delete: if
+          hasChurchRole(churchId, ["Admin"]) ||
+          isRootAdmin();
+
+        // Root Admin override
+        allow read, write: if isRootAdmin();
       }
 
       // ---------------------------------------------------------
@@ -126,14 +155,105 @@ service cloud.firestore {
     // EVENTS (top-level)
     // ---------------------------
     match /events/{eventId} {
-      allow read: if isUserSignedIn()
-                   && resource.data != null
-                   && isChurchMember(resource.data.churchId);
 
-      allow create, update, delete: if isUserSignedIn()
-                   && resource.data != null
-                   && hasChurchRole(resource.data.churchId, ["Admin"]);
+      function eventChurchId() {
+        return resource.data.churchId;
+      }
 
+      function eventGroups() {
+        return resource.data.groups;
+      }
+
+      function isPublicEvent() {
+        return resource.data.isPublic == true;
+      }
+
+      // Group Manager = has a church role like "MusicManager", "UsherManager", etc.
+      function isGroupManager(churchId) {
+        return hasChurchRole(churchId, [
+          "MusicManager",
+          "UsherManager",
+          "MensGroupManager",
+          "WomensGroupManager",
+          "YouthManager"
+        ]);
+      }
+
+      // Group Member = has a role like "Music", "Usher", etc.
+      function isGroupMember(churchId) {
+        return hasChurchRole(churchId, [
+          "Music",
+          "Usher",
+          "MensGroup",
+          "WomensGroup",
+          "Youth"
+        ]);
+      }
+
+      // ---------------------------
+      // READ RULES
+      // ---------------------------
+      allow get, list: if isUserSignedIn()
+                       && (
+                            // Admins see everything
+                            hasChurchRole(eventChurchId(), ["Admin"]) ||
+                            isRootAdmin() ||
+
+                            // Public events
+                            isPublicEvent() ||
+
+                            // Group managers see their group events
+                            (isGroupManager(eventChurchId()) &&
+                             eventGroups().hasAny(getUserDoc().data.roles)) ||
+
+                            // Group members see their group events
+                            (isGroupMember(eventChurchId()) &&
+                             eventGroups().hasAny(getUserDoc().data.roles)) ||
+
+                            // Regular church members see public + their group events
+                            isChurchMember(eventChurchId())
+                          );
+
+      // ---------------------------
+      // CREATE RULES
+      // ---------------------------
+      allow create: if isUserSignedIn()
+                    && request.resource.data != null
+                    && (
+                         // Admins can create anything
+                         hasChurchRole(request.resource.data.churchId, ["Admin"]) ||
+
+                         // Group managers can create events for THEIR group only
+                         (
+                           isGroupManager(request.resource.data.churchId) &&
+                           request.resource.data.groups.hasAny(getUserDoc().data.roles) &&
+                           request.resource.data.isPublic == false
+                         )
+                       );
+
+      // ---------------------------
+      // UPDATE / DELETE RULES
+      // ---------------------------
+      allow update, delete: if isUserSignedIn()
+                            && resource.data != null
+                            && (
+                                 // Admins can edit anything
+                                 hasChurchRole(eventChurchId(), ["Admin"]) ||
+
+                                 // Group managers can edit THEIR group events only
+                                 (
+                                   isGroupManager(eventChurchId()) &&
+                                   eventGroups().hasAny(getUserDoc().data.roles) &&
+                                   // Cannot change groups
+                                   request.resource.data.groups == resource.data.groups &&
+                                   // Cannot make public
+                                   request.resource.data.isPublic == resource.data.isPublic
+                                 )
+                               );
+
+      // ---------------------------
+      // ROOT ADMIN OVERRIDE
+      // ---------------------------
       allow read, write: if isRootAdmin();
     }
 
