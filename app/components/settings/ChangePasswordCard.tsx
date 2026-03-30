@@ -16,15 +16,16 @@ export function ChangePasswordCard({ onDirtyChange, registerSave }: ChangePasswo
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
 
-  // Dirty tracking (same pattern as UserProfileCard)
   const isDirty = current !== "" || next !== "" || confirm !== "";
 
   useEffect(() => {
     onDirtyChange(isDirty);
   }, [isDirty, onDirtyChange]);
 
-  // Save handler (memoized so registerSave doesn't re-run every keystroke)
   const handleSave = useCallback(async () => {
+    // ⬅️ critical: if nothing entered, do nothing and succeed
+    if (!isDirty) return;
+
     if (!auth.currentUser) return;
 
     if (next !== confirm) {
@@ -34,20 +35,16 @@ export function ChangePasswordCard({ onDirtyChange, registerSave }: ChangePasswo
     const email = auth.currentUser.email;
     if (!email) throw new Error("Missing email.");
 
-    // Re-authenticate
     const credential = EmailAuthProvider.credential(email, current);
     await reauthenticateWithCredential(auth.currentUser, credential);
 
-    // Update password
     await updatePassword(auth.currentUser, next);
 
-    // Reset fields after successful save
     setCurrent("");
     setNext("");
     setConfirm("");
-  }, [current, next, confirm]);
+  }, [isDirty, current, next, confirm]);
 
-  // Register save callback (same pattern as UserProfileCard)
   useEffect(() => {
     registerSave(handleSave);
   }, [registerSave, handleSave]);
