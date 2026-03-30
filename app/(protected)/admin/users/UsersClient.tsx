@@ -78,7 +78,7 @@ export default function UsersClient({ users }: UsersClientProps) {
     <div className="p-6 space-y-6">
       <PageHeader
         title="System Users"
-        subtitle="Manage users with system-level access to FAITH Connect."
+        subtitle="Manage users with system-level access to FAITH Conexion."
       />
 
       <Card>

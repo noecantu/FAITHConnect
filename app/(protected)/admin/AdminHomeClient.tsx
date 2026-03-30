@@ -41,7 +41,7 @@ export default function AdminHomeClient({
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-foreground">
-          FAITH Connect — MASTER ADMIN
+          FAITH Conexion — MASTER ADMIN
         </h1>
         <p className="text-muted-foreground mt-1">
           System-wide overview and administrative tools.

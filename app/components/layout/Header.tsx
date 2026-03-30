@@ -32,7 +32,7 @@ export default function Header() {
       <Link href={dashboardHref} className="flex items-center gap-2 font-semibold">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/FAITH_CONNECT_FLAME_LOGO.svg"
+          src="/FAITH_CONEXION_FLAME_LOGO.svg"
           alt="Faith Connect Logo"
           className="h-24 w-24"
         />

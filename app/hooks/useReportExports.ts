@@ -66,7 +66,7 @@ export function useReportExports({
   // EXPORT PDF
   // -----------------------------------------
   const exportPDF = useCallback(async () => {
-    const logoBase64 = await loadPngAsBase64("/FAITH_CONNECT_FLAME_LOGO.png");
+    const logoBase64 = await loadPngAsBase64("/FAITH_CONEXION_FLAME_LOGO.png");
 
     if (reportType === "members") {
       generateMembersPDF(filteredMembers, selectedFields, logoBase64);

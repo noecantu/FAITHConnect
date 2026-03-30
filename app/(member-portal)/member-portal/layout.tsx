@@ -110,7 +110,7 @@ export default function MemberPortalLayout({ children }: MemberPortalLayoutProps
 
         {/* Footer */}
         <footer className="mt-12 text-center text-white/40 text-xs">
-          FAITH Connect Member Portal
+          FAITH Conexion Member Portal
         </footer>
       </div>
     </MemberPortalContext.Provider>

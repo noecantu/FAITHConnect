@@ -78,7 +78,7 @@ export default function SignupPage() {
 
       toast({
         title: "Account Created",
-        description: "Welcome to FAITH Connect!",
+        description: "Welcome to FAITH Conexion!",
       });
 
       // ---------------------------------------
@@ -126,12 +126,12 @@ export default function SignupPage() {
       <Card className="w-full max-w-sm bg-card">
         <CardHeader className="text-center space-y-2">
           <img
-            src="/FAITH_CONNECT_FLAME_LOGO.svg"
-            alt="FAITH Connect Logo"
+            src="/FAITH_CONEXION_FLAME_LOGO.svg"
+            alt="FAITH Conexion Logo"
             className="mx-auto h-20 w-20"
           />
           <CardTitle>Create Your Account</CardTitle>
-          <CardDescription>Start Your Church on FAITH Connect</CardDescription>
+          <CardDescription>Start Your Church on FAITH Conexion</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6">

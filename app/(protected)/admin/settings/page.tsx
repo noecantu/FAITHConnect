@@ -55,7 +55,7 @@ export default function AdminSystemSettingsPage() {
     <div className="p-6 space-y-8">
       <PageHeader
         title="System Settings"
-        subtitle="Global configuration for the FAITH Connect platform"
+        subtitle="Global configuration for the FAITH Conexion platform"
       />
 
       {/* GENERAL SETTINGS */}

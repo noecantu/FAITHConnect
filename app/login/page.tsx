@@ -115,7 +115,7 @@ export default function LoginPage() {
             alt="Faith Connect Logo"
             className="mx-auto h-20 w-20"
           />
-          <CardTitle>FAITH Connect</CardTitle>
+          <CardTitle>FAITH Conexion</CardTitle>
           <CardDescription>Log in to your account</CardDescription>
         </CardHeader>
 

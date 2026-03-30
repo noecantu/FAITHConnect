@@ -67,14 +67,14 @@ export default function MemberPortalLogin() {
           <div className="flex justify-center">
             <Image
               src="/F-Flame_Vector_Optimized.svg"
-              alt="FAITH Connect Logo"
+              alt="FAITH Conexion Logo"
               width={48}
               height={48}
             />
           </div>
 
           <CardTitle className="text-2xl font-semibold">
-            FAITH Connect
+            FAITH Conexion
           </CardTitle>
 
           <CardDescription>
