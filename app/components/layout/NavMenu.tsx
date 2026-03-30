@@ -54,6 +54,7 @@ type MenuItem = {
   icon: React.ComponentType<{ className?: string }>;
   permission?: boolean;
   isSubmenu?: boolean;
+  exact?: boolean;
 };
 
 export function NavMenu() {
@@ -107,12 +108,12 @@ export function NavMenu() {
   ];
 
   const userMenu = [
-    { href: `/church/${churchId}/user`, label: "Dashboard", icon: Home },
+    { href: `/church/${churchId}/user`, label: "Dashboard", icon: Home, exact: true },
     { href: "/calendar", label: "Calendar", icon: Calendar },
     { href: "/contributions", label: "Contributions", icon: DollarSign, permission: canSeeContributions },
     { href: "/music", label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
     { href: "/reports", label: "Reports", icon: FileText, permission: canSeeReports },
-    { href: "/settings", label: "Settings", icon: Settings }
+    { href: `/church/${churchId}/user/settings`, label: "Settings", icon: Settings }
   ];
 
   const activeMenu = isRootAdmin
@@ -162,9 +163,9 @@ export function NavMenu() {
           <Link href={item.href} key={item.href}>
             <DropdownMenuItem
               className={
-                pathname === item.href || pathname.startsWith(item.href + "/")
-                  ? "bg-accent"
-                  : ""
+                item.exact
+                  ? (pathname === item.href ? "bg-accent" : "")
+                  : (pathname === item.href || pathname.startsWith(item.href + "/") ? "bg-accent" : "")
               }
             >
               <item.icon className="mr-2 h-4 w-4" />
