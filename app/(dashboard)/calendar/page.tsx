@@ -2,7 +2,6 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 
 import { PageHeader } from '@/app/components/page-header';
 import { Fab } from '@/app/components/ui/fab';
@@ -81,8 +80,8 @@ export default function CalendarPage() {
   if (can(roles, "music.read")) memberGroups.push("music");
   if (can(roles, "usher.read")) memberGroups.push("ushers");
   if (can(roles, "caretaker.read")) memberGroups.push("caretaker");
-  if (can(roles, "men.read")) memberGroups.push("mens");
-  if (can(roles, "women.read")) memberGroups.push("womens");
+  if (can(roles, "men.read")) memberGroups.push("men");
+  if (can(roles, "women.read")) memberGroups.push("women");
   if (can(roles, "youth.read")) memberGroups.push("youth");
 
   // DATA
