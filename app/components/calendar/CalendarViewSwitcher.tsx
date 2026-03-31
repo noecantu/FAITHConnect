@@ -15,9 +15,9 @@ interface CalendarViewSwitcherProps {
   onPrevMonth: () => void;
   onNextMonth: () => void;
 
-  // Editing permissions
-  isAdmin: boolean;
-  managerGroup: string | null;
+  // Unified permission flag
+  canManage: boolean;
+
   onEdit?: (event: Event) => void;
   onDeleteRequest?: (id: string) => void;
 }
@@ -29,42 +29,29 @@ export function CalendarViewSwitcher({
   onSelectDate,
   onPrevMonth,
   onNextMonth,
-  isAdmin,
-  managerGroup,
+  canManage,
   onEdit,
   onDeleteRequest,
 }: CalendarViewSwitcherProps) {
 
-  // Permission logic
-  const canEditEvent = useCallback(
-    (event: Event) => {
-      if (isAdmin) return true;
-      if (managerGroup && event.groups?.includes(managerGroup)) return true;
-      return false;
-    },
-    [isAdmin, managerGroup]
-  );
-
   // Stable edit handler
   const handleEdit = useCallback(
     (event: Event) => {
+      if (!canManage) return;
       if (!onEdit) return;
-      if (canEditEvent(event)) onEdit(event);
+      onEdit(event);
     },
-    [onEdit, canEditEvent]
+    [canManage, onEdit]
   );
 
   // Stable delete handler
   const handleDelete = useCallback(
     (id: string) => {
+      if (!canManage) return;
       if (!onDeleteRequest) return;
-
-      const event = events.find((e) => e.id === id);
-      if (!event) return;
-
-      if (canEditEvent(event)) onDeleteRequest(id);
+      onDeleteRequest(id);
     },
-    [events, onDeleteRequest, canEditEvent]
+    [canManage, onDeleteRequest]
   );
 
   // Memoized render
@@ -77,7 +64,7 @@ export function CalendarViewSwitcher({
           onSelect={onSelectDate}
           onPrevMonth={onPrevMonth}
           onNextMonth={onNextMonth}
-          onEdit={isAdmin || managerGroup ? handleEdit : undefined}
+          onEdit={canManage ? handleEdit : undefined}
         />
       );
     }
@@ -85,8 +72,8 @@ export function CalendarViewSwitcher({
     return (
       <ListView
         events={events}
-        onEdit={isAdmin || managerGroup ? handleEdit : undefined}
-        onDeleteRequest={isAdmin || managerGroup ? handleDelete : undefined}
+        onEdit={canManage ? handleEdit : undefined}
+        onDeleteRequest={canManage ? handleDelete : undefined}
       />
     );
   }, [
@@ -96,9 +83,8 @@ export function CalendarViewSwitcher({
     onSelectDate,
     onPrevMonth,
     onNextMonth,
+    canManage,
     handleEdit,
     handleDelete,
-    isAdmin,        // ← FIXED
-    managerGroup,   // ← FIXED
   ]);
 }

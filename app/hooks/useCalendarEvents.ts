@@ -1,74 +1,97 @@
-'use client';
-
-import { useEffect, useMemo, useState } from "react";
-import { db } from "@/app/lib/firebase/client";
+import { useEffect, useState } from "react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import type { Event } from "../lib/types";
+import { db } from "@/app/lib/firebase/client";
+import type { Event, UserProfile, ServicePlanFirestore } from "@/app/lib/types";
+import { canUserSeeEvent } from "@/app/lib/canUserSeeEvent";
 
 export function useCalendarEvents(
   churchId: string | null,
-  userId: string | null,
-  isAdmin: boolean,
-  managerGroup: string | null,
-  memberGroups: string[]
+  user: UserProfile | null
 ) {
-  // Store only raw Firestore events.
-  // Filtering happens in a memo to avoid identity churn.
-  const [rawEvents, setRawEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
 
-  // ------------------------------
-  // FIRESTORE SUBSCRIPTION
-  // ------------------------------
   useEffect(() => {
-    if (!churchId) {
-      setRawEvents([]);
+    if (!churchId || !user) {
+      setEvents([]);
       return;
     }
 
-    const ref = collection(db, "churches", churchId, "events");
-    const q = query(ref, orderBy("date", "asc"));
+    // Local caches for merging
+    let latestEvents: Event[] = [];
+    let latestServices: Event[] = [];
 
-    const unsub = onSnapshot(q, (snap) => {
-      const all = snap.docs.map((d) => {
-        const raw = d.data() as Omit<Event, "id" | "date"> & { date: any };
+    function updateCombined() {
+      const combined = [...latestEvents, ...latestServices];
+
+      const visible = combined.filter((item) =>
+        canUserSeeEvent(user!, {
+          visibility: item.isPublic ? "public" : "private",
+          groups: item.groups ?? [],
+        })
+      );
+
+      visible.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+      setEvents(visible);
+    }
+
+    // -----------------------------
+    // Listen to EVENTS
+    // -----------------------------
+    const eventsRef = collection(db, "churches", churchId, "events");
+    const eventsQuery = query(eventsRef, orderBy("date", "asc"));
+
+    const unsubEvents = onSnapshot(eventsQuery, (snap) => {
+      latestEvents = snap.docs.map((d) => {
+        const raw = d.data() as any;
+
+        const date = raw.date?.toDate
+          ? raw.date.toDate()
+          : new Date(raw.date);
 
         return {
           id: d.id,
           ...raw,
-          date: raw.date?.toDate ? raw.date.toDate() : new Date(raw.date),
-        };
+          date,
+          dateString: raw.dateString ?? raw.date?.toDate?.()?.toISOString?.()?.slice(0, 10) ?? "",
+          kind: "event",
+        } as Event;
       });
 
-      setRawEvents(all);
+      updateCombined();
     });
 
-    return () => unsub();
-  }, [churchId]);
+    // -----------------------------
+    // Listen to SERVICE PLANS
+    // -----------------------------
+    const spRef = collection(db, "churches", churchId, "servicePlans");
+    const spQuery = query(spRef, orderBy("dateString", "asc"));
 
-  // ------------------------------
-  // PRIVILEGE-BASED FILTERING
-  // ------------------------------
-  const events = useMemo(() => {
-    // Admin sees everything
-    if (isAdmin) return rawEvents;
+    const unsubSP = onSnapshot(spQuery, (snap) => {
+      latestServices = snap.docs.map((d) => {
+        const data = d.data() as ServicePlanFirestore;
 
-    return rawEvents.filter((event) => {
-      // Public event
-      if (event.isPublic) return true;
+        const date = new Date(`${data.dateString}T${data.timeString}:00`);
 
-      // Manager sees their group's events
-      if (managerGroup && event.groups?.includes(managerGroup)) {
-        return true;
-      }
+        return {
+          id: d.id,
+          title: data.title ?? "Service",
+          isPublic: data.isPublic,
+          groups: data.groups ?? [],
+          date,
+          dateString: data.dateString,   // ⭐ REQUIRED for Event type
+          kind: "service",
+        } as Event;
+      });
 
-      // Members see events for any group they belong to
-      if (memberGroups?.some((g) => event.groups?.includes(g))) {
-        return true;
-      }
-
-      return false;
+      updateCombined();
     });
-  }, [rawEvents, isAdmin, managerGroup, memberGroups]);
+
+    return () => {
+      unsubEvents();
+      unsubSP();
+    };
+  }, [churchId, user]);
 
   return { events };
 }

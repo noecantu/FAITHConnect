@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -8,10 +9,7 @@ import { Fab } from '@/app/components/ui/fab';
 import { Button } from '@/app/components/ui/button';
 import { Calendar, List } from 'lucide-react';
 
-import { useAuth } from '@/app/hooks/useAuth';
 import { useChurchId } from '@/app/hooks/useChurchId';
-import { useUserRoles } from '@/app/hooks/useUserRoles';
-
 import { useCalendarEvents } from '@/app/hooks/useCalendarEvents';
 import { useCalendarMonth } from '@/app/hooks/useCalendarMonth';
 import { useCalendarFilters } from '@/app/hooks/useCalendarFilters';
@@ -19,13 +17,17 @@ import { useCalendarDialogs } from '@/app/hooks/useCalendarDialogs';
 
 import { CalendarControls } from '@/app/components/calendar/CalendarControls';
 import { CalendarDialogs } from '@/app/components/calendar/CalendarDialogs';
+import { CalendarViewSwitcher } from '@/app/components/calendar/CalendarViewSwitcher';
 
 import { dateKey } from '@/app/lib/calendar/utils';
 import { createTheme } from '@mui/material/styles';
-import { can } from '@/app/lib/auth/permissions/can';
-import { CalendarViewSwitcher } from '@/app/components/calendar/CalendarViewSwitcher';
-import { useUserCalendarSettings } from '@/app/hooks/useUserCalendarSettings';
+
+import { canUser } from '@/app/lib/canUser';
+import { Role } from '@/app/lib/roleGroups';
+import { UserProfile } from '@/app/lib/types';
+
 import { eventSchema, type EventFormValues } from "@/app/components/calendar/EventFormDialog";
+import { useUserCalendarSettings } from '@/app/hooks/useUserCalendarSettings';
 
 // ------------------------------
 // MUI Theme
@@ -52,51 +54,35 @@ const muiTheme = createTheme({
 // ------------------------------
 export default function CalendarPage() {
   const { churchId } = useChurchId();
-  const { user } = useAuth();
-  const { roles = [] } = useUserRoles();
-  const { view, setView } = useUserCalendarSettings(user?.id ?? null);
 
-  // ADMIN CHECK
-  const isAdmin =
-    can(roles, "church.manage") ||
-    can(roles, "system.manage");
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
-  // MANAGER GROUP CHECK
-  let managerGroup: string | null = null;
+  // Load user
+  useEffect(() => {
+    async function load() {
+      const res = await fetch("/api/users/me");
+      const raw = await res.json();
 
-  if (can(roles, "music.manage")) managerGroup = "music";
-  else if (can(roles, "usher.manage")) managerGroup = "usher";
-  else if (can(roles, "caretaker.manage")) managerGroup = "caretaker";
-  else if (can(roles, "men.manage")) managerGroup = "men";
-  else if (can(roles, "women.manage")) managerGroup = "women";
-  else if (can(roles, "youth.manage")) managerGroup = "youth";
-  else if (can(roles, "events.manage")) managerGroup = "events";
+      const profile: UserProfile = {
+        ...raw,
+        roles: raw.roles as Role[],
+      };
 
-  const canCreateEvents = isAdmin || !!managerGroup;
+      setUser(profile);
+      setLoadingUser(false);
+    }
 
-  // MEMBER GROUPS (read-level)
-  const memberGroups: string[] = [];
+    load();
+  }, []);
 
-  if (can(roles, "music.read")) memberGroups.push("music");
-  if (can(roles, "usher.read")) memberGroups.push("ushers");
-  if (can(roles, "caretaker.read")) memberGroups.push("caretaker");
-  if (can(roles, "men.read")) memberGroups.push("men");
-  if (can(roles, "women.read")) memberGroups.push("women");
-  if (can(roles, "youth.read")) memberGroups.push("youth");
+  // ❗ ALL HOOKS MUST RUN BEFORE ANY RETURN
+  const canManage = canUser(user?.roles ?? [], "createEvents");
 
-  // DATA
-  const { events } = useCalendarEvents(
-    churchId,
-    user?.id ?? null,
-    isAdmin,
-    managerGroup,
-    memberGroups,
-  );
-
+  const { events } = useCalendarEvents(churchId, user);
   const month = useCalendarMonth();
   const filters = useCalendarFilters(events);
 
-  // FORM + DIALOGS
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
@@ -108,12 +94,8 @@ export default function CalendarPage() {
     },
   });
 
-  const dialogs = useCalendarDialogs(
-    churchId,
-    isAdmin,
-    managerGroup,
-    form
-  );
+  const dialogs = useCalendarDialogs(churchId, user, form);
+  const { view, setView } = useUserCalendarSettings(user?.id ?? null);
 
   // Selected day events
   const selectedDayEvents = (() => {
@@ -122,11 +104,11 @@ export default function CalendarPage() {
     return events.filter((e) => dateKey(e.date) === dateKey(d));
   })();
 
-  // Build view controls object for CalendarControls (matches its original API)
-  const viewControls = {
-    view,
-    setView,
-  };
+  const viewControls = { view, setView };
+
+  // ❗ NOW we can safely return early
+  if (loadingUser) return <div className="p-6">Loading...</div>;
+  if (!user) return <div className="p-6">No user found.</div>;
 
   return (
     <>
@@ -167,10 +149,9 @@ export default function CalendarPage() {
         onSelectDate={dialogs.handleSelectDate}
         onPrevMonth={month.prevMonth}
         onNextMonth={month.nextMonth}
-        isAdmin={isAdmin}
-        managerGroup={managerGroup}
         onEdit={dialogs.handleEdit}
         onDeleteRequest={dialogs.setDeleteId}
+        canManage={canManage}
       />
 
       <CalendarDialogs
@@ -178,11 +159,10 @@ export default function CalendarPage() {
         selectedDayEvents={selectedDayEvents}
         form={form}
         muiTheme={muiTheme}
-        isAdmin={isAdmin}
-        managerGroup={managerGroup}
+        canManage={canManage}
       />
 
-      {canCreateEvents && (
+      {canManage && (
         <Fab type="add" onClick={() => dialogs.handleAdd(new Date())} />
       )}
     </>

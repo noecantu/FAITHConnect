@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app
 import { CalendarCheck, CalendarHeart, Calendar } from "lucide-react";
 import { useUpcomingEvents } from "@/app/hooks/useUpcomingEvents";
 import { useUpcomingServices } from "@/app/hooks/useUpcomingServices";
+import { isAdmin, Role } from "@/app/lib/roleGroups";
 
 export default function UserDashboardPage({
   params,
@@ -27,7 +28,12 @@ export default function UserDashboardPage({
   useEffect(() => {
     async function load() {
       const res = await fetch("/api/users/me");
-      const profile: UserProfile = await res.json();
+      const raw = await res.json();
+      const profile: UserProfile = {
+        ...raw,
+        roles: raw.roles as Role[],
+      };
+      setUser(profile);
       setUser(profile);
       setLoadingUser(false);
     }
@@ -38,13 +44,9 @@ export default function UserDashboardPage({
 
   const { church, loading: loadingChurch } = useChurch(churchId);
   const { events, loading: loadingEvents } = useUpcomingEvents(churchId, user);
-  const { services, loading: loadingServices } = useUpcomingServices(churchId);
+  const { services, loading: loadingServices } = useUpcomingServices(churchId, user);
 
-  const isAdmin =
-    !!user &&
-    (user.roles.includes("systemAdmin") ||
-      user.roles.includes("churchAdmin") ||
-      user.roles.includes("financeManager"));
+  const isAdminUser = user ? isAdmin(user.roles) : false;
 
   if (loadingUser || loadingChurch || loadingEvents || loadingServices) {
     return <div className="p-6">Loading...</div>;
@@ -144,7 +146,7 @@ export default function UserDashboardPage({
           </div>
 
           {/* Quick Actions — Admin Only */}
-          {isAdmin && (
+          {isAdminUser && (
             <Card className="border border-border bg-card/80">
               <CardHeader className="pb-3">
                 <CardTitle>Quick Actions</CardTitle>

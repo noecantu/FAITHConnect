@@ -85,6 +85,9 @@ async function handleServicePlanSubmit(
     notes: values.notes?.trim() ?? '',
     sections: normalizedSections,
     createdBy: plan?.createdBy ?? 'system',
+    // ⭐ Visibility defaults
+    isPublic: plan?.isPublic ?? true,
+    groups: plan?.groups ?? [],
   };
 
   if (plan) {

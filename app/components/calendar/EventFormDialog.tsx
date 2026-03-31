@@ -29,8 +29,6 @@ import { format } from "date-fns";
 import type { Event } from "@/app/lib/types";
 import type { UseFormReturn } from "react-hook-form";
 import * as z from "zod";
-import { capitalize } from "@/app/lib/utils/string";
-import { useEffect } from "react";
 
 //   ZOD SCHEMA
 export const eventSchema = z.object({
@@ -69,8 +67,8 @@ function SegmentedControl({
             className={
               "flex-1 px-3 py-2 text-sm font-medium transition-colors " +
               (active
-                ? "bg-slate-600 text-white" // ACTIVE: slate-gray
-                : "text-white/60 hover:bg-white/10") // INACTIVE
+                ? "bg-slate-600 text-white"
+                : "text-white/60 hover:bg-white/10")
             }
           >
             {opt.label}
@@ -84,8 +82,6 @@ function SegmentedControl({
 //   MAIN COMPONENT
 interface EventFormDialogProps {
   open: boolean;
-  isAdmin: boolean;
-  managerGroup: string | null;
   isEditing: boolean;
   event: Event | null;
   selectedDate: Date;
@@ -93,12 +89,13 @@ interface EventFormDialogProps {
   onSubmit: (data: EventFormValues) => void | Promise<void>;
   onOpenChange: (open: boolean) => void;
   onDelete?: (id: string) => void;
+
+  // unified permission flag
+  canManage: boolean;
 }
 
 export function EventFormDialog({
   open,
-  isAdmin,
-  managerGroup,
   isEditing,
   event,
   selectedDate,
@@ -106,25 +103,9 @@ export function EventFormDialog({
   onSubmit,
   onOpenChange,
   onDelete,
+  canManage,
 }: EventFormDialogProps) {
-  const isManager = !isAdmin && !!managerGroup;
   const isPublic = form.watch("isPublic");
-
-  useEffect(() => {
-    if (open && isManager && managerGroup) {
-      form.setValue("isPublic", false, {
-        shouldValidate: true,
-        shouldDirty: true,
-        shouldTouch: true,
-      });
-
-      form.setValue("groups", [managerGroup], {
-        shouldValidate: true,
-        shouldDirty: true,
-        shouldTouch: true,
-      });
-    }
-  }, [open, isManager, managerGroup, form]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -150,7 +131,6 @@ export function EventFormDialog({
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-4"
           >
-            
             {/* DATE */}
             <FormField
               control={form.control}
@@ -161,7 +141,7 @@ export function EventFormDialog({
                   <FormControl>
                     <div className="relative">
                       <Flatpickr
-                        disabled={!isAdmin && isEditing}
+                        disabled={!canManage && isEditing}
                         value={field.value}
                         options={{
                           defaultDate: field.value,
@@ -180,7 +160,7 @@ export function EventFormDialog({
                       <div
                         className={`
                           absolute inset-0 rounded-md border border-white/20 outline outline-1 outline-white/20
-                          ${!isAdmin && isEditing ? "pointer-events-none opacity-50" : ""}
+                          ${!canManage && isEditing ? "pointer-events-none opacity-50" : ""}
                         `}
                       />
                     </div>
@@ -230,8 +210,8 @@ export function EventFormDialog({
               )}
             />
 
-            {/* VISIBILITY SECTION */}
-            {isAdmin && (
+            {/* VISIBILITY SECTION — managers only */}
+            {canManage && (
               <div className="space-y-4 border-t border-white/20 pt-6 mt-6">
                 <h3 className="text-lg font-semibold">Visibility</h3>
 
@@ -291,24 +271,6 @@ export function EventFormDialog({
                     )}
                   />
                 )}
-              </div>
-            )}
-
-            {/* MANAGER VIEW */}
-            {isManager && (
-              <div className="space-y-2 border-t border-white/10 pt-4 mt-4">
-                <FormLabel>Group</FormLabel>
-
-                <div className="
-                  bg-white/5 
-                  border border-white/10 
-                  rounded-md 
-                  px-3 py-2 
-                  text-sm 
-                  text-white/80
-                ">
-                  {capitalize(managerGroup ?? "")}
-                </div>
               </div>
             )}
           </form>

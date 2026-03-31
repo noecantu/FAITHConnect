@@ -12,15 +12,18 @@ import {
   getDoc,
   serverTimestamp,
 } from 'firebase/firestore';
+
 import { useToast } from '../hooks/use-toast';
-import type { Event as EventType } from '../lib/types';
+import type { Event as EventType, UserProfile } from '../lib/types';
 import type { UseFormReturn } from "react-hook-form";
 import type { EventFormValues } from "@/app/components/calendar/EventFormDialog";
+
+import { canUser } from "@/app/lib/canUser";
+import { extractUserGroups } from "@/app/lib/extractUserGroups";
 
 // -------------------------------
 // UTILITIES
 // -------------------------------
-
 type FirestoreTimestamp = {
   seconds: number;
   nanoseconds: number;
@@ -36,18 +39,12 @@ type NormalizableDate =
 
 function normalizeDate(value: NormalizableDate): Date {
   if (!value) return new Date();
-
   if (value instanceof Date) return value;
-
-  if (typeof value === "object" && "toDate" in value) {
-    return value.toDate();
-  }
-
+  if (typeof value === "object" && "toDate" in value) return value.toDate();
   if (typeof value === "string") {
     const d = new Date(value);
     if (!isNaN(d.getTime())) return d;
   }
-
   return new Date();
 }
 
@@ -61,13 +58,28 @@ function safeDateOnly(date: Date): Date {
   );
 }
 
+const GROUP_MAP = {
+  music: "Music",
+  women: "Women",
+  men: "Men",
+  youth: "Youth",
+  usher: "Usher",
+  caretaker: "Caretaker",
+} as const;
+
+type CanonicalGroup = typeof GROUP_MAP[keyof typeof GROUP_MAP];
+
+function normalizeGroup(g: string): CanonicalGroup {
+  const key = g.toLowerCase() as keyof typeof GROUP_MAP;
+  return GROUP_MAP[key] ?? "Music";
+}
+
 // -------------------------------
 // MAIN HOOK
 // -------------------------------
 export function useCalendarDialogs(
   churchId: string | null,
-  isAdmin: boolean,
-  managerGroup: string | null,
+  user: UserProfile | null,
   form: UseFormReturn<EventFormValues>
 ) {
   const { toast } = useToast();
@@ -80,15 +92,34 @@ export function useCalendarDialogs(
 
   const isEditing = editEvent !== null;
 
+  const canCreate = user ? canUser(user.roles, "createEvents") : false;
+  const canEdit = user ? canUser(user.roles, "editEvents") : false;
+  const canDelete = user ? canUser(user.roles, "deleteEvents") : false;
+
+  const userGroups = user ? extractUserGroups(user) : [];
+
+
   // -------------------------------
   // EDIT EVENT
   // -------------------------------
   function handleEdit(event: EventType) {
-    if (!isAdmin) {
-      if (!managerGroup || !event.groups?.includes(managerGroup)) {
+    if (!canEdit) {
+      toast({
+        title: 'Permission Denied',
+        description: 'You cannot edit events.',
+      });
+      return;
+    }
+
+    // Private event: user must belong to at least one group
+    if (!event.isPublic) {
+      const allowed = event.groups
+        ?.map(g => normalizeGroup(g))
+        .some(g => userGroups.includes(g));
+      if (!allowed) {
         toast({
           title: 'Permission Denied',
-          description: 'You cannot edit events outside your group.',
+          description: 'You cannot edit private events outside your groups.',
         });
         return;
       }
@@ -99,7 +130,7 @@ export function useCalendarDialogs(
     form.reset({
       title: event.title,
       description: event.description ?? "",
-      date: normalizeDate(event.date), // <-- ALWAYS a Date
+      date: normalizeDate(event.date),
       isPublic: event.isPublic ?? false,
       groups: event.groups ?? [],
     });
@@ -112,7 +143,7 @@ export function useCalendarDialogs(
   // ADD EVENT
   // -------------------------------
   function handleAdd(date: Date) {
-    if (!isAdmin && !managerGroup) {
+    if (!canCreate) {
       toast({
         title: 'Permission Denied',
         description: 'You do not have permission to add events.',
@@ -124,8 +155,8 @@ export function useCalendarDialogs(
       title: "",
       description: "",
       date: normalizeDate(date),
-      isPublic: isAdmin ? false : false, // managers always private
-      groups: isAdmin ? [] : managerGroup ? [managerGroup] : [],
+      isPublic: true,
+      groups: [],
     });
 
     setEditEvent(null);
@@ -145,6 +176,14 @@ export function useCalendarDialogs(
       return;
     }
 
+    if (!canDelete) {
+      toast({
+        title: 'Permission Denied',
+        description: 'You cannot delete events.',
+      });
+      return;
+    }
+
     try {
       const ref = doc(db, 'churches', churchId, 'events', id);
       const snap = await getDoc(ref);
@@ -153,11 +192,14 @@ export function useCalendarDialogs(
 
       const event = snap.data() as EventType;
 
-      if (!isAdmin) {
-        if (!managerGroup || !event.groups?.includes(managerGroup)) {
+      if (!event.isPublic) {
+        const allowed = event.groups
+          ?.map(g => normalizeGroup(g))
+          .some(g => userGroups.includes(g));
+        if (!allowed) {
           toast({
             title: 'Permission Denied',
-            description: 'You cannot delete events outside your group.',
+            description: 'You cannot delete private events outside your groups.',
           });
           return;
         }
@@ -193,33 +235,12 @@ export function useCalendarDialogs(
     const normalized = normalizeDate(data.date);
     const dateToStore = safeDateOnly(normalized);
 
-    let isPublic: boolean;
-    let groups: string[];
-
-    if (isAdmin) {
-      isPublic = data.isPublic ?? true;
-      groups = Array.isArray(data.groups) ? data.groups : [];
-    } else if (managerGroup) {
-      isPublic = false;
-      groups = [managerGroup];
-    } else {
-      isPublic = true;
-      groups = [];
-    }
+    const isPublic = data.isPublic ?? true;
+    const groups = Array.isArray(data.groups) ? data.groups : [];
 
     try {
       if (isEditing && editEvent) {
         const ref = doc(db, 'churches', churchId, 'events', editEvent.id);
-
-        if (!isAdmin) {
-          if (!managerGroup || !editEvent.groups?.includes(managerGroup)) {
-            toast({
-              title: 'Permission Denied',
-              description: 'You cannot edit events outside your group.',
-            });
-            return;
-          }
-        }
 
         await updateDoc(ref, {
           churchId,
@@ -258,7 +279,6 @@ export function useCalendarDialogs(
       setIsFormOpen(false);
       setEditEvent(null);
     } catch (error) {
-      // console.error(error);
       console.error("🔥 FIRESTORE ERROR DETAILS:", JSON.stringify(error, null, 2));
       toast({
         title: 'Error saving event',
@@ -282,7 +302,6 @@ export function useCalendarDialogs(
     selectedDate,
     isDayEventsDialogOpen,
     isEditing,
-    isAdmin,
 
     setIsFormOpen,
     setEditEvent,

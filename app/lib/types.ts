@@ -145,19 +145,10 @@ export type Relationship = {
   anniversary?: string;
 };
 
-export interface ServicePlan {
+export interface ServicePlan extends ServicePlanFirestore {
   id: string;
-  title: string;
-  dateString: string;
-  timeString: string;
   date: Date;
   dateTime: Date;
-  notes: string;
-  sections: ServicePlanSection[];
-
-  createdBy: string;
-  createdAt: number;
-  updatedAt: number;
 }
 
 export type ServicePlanFirestore = {
@@ -165,6 +156,8 @@ export type ServicePlanFirestore = {
   dateString: string;
   timeString: string;
   notes: string;
+  isPublic: boolean;
+  groups: string[];
   sections: ServicePlanSection[];
   createdBy: string;
   createdAt: number;
@@ -310,6 +303,6 @@ export type UserProfile = {
   lastName: string;
   displayName: string;
   profilePhotoUrl?: string;
-  roles: string[];
+  roles: Role[];
   churchId: string | null;
 };

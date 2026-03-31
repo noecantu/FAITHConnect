@@ -15,9 +15,7 @@ interface DayEventsDialogProps {
   onAdd: (date: Date) => void;
   onEdit: (event: Event) => void;
   onDelete: (id: string) => void;
-
-  isAdmin: boolean;
-  managerGroup: string | null;
+  canManage: boolean;
 }
 
 export function DayEventsDialog({
@@ -28,17 +26,8 @@ export function DayEventsDialog({
   onAdd,
   onEdit,
   onDelete,
-  isAdmin,
-  managerGroup,
+  canManage,
 }: DayEventsDialogProps) {
-
-  function canManageEvent(event: Event) {
-    if (isAdmin) return true;
-    if (managerGroup && event.groups?.includes(managerGroup)) return true;
-    return false;
-  }
-
-  const canAdd = isAdmin || !!managerGroup;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -51,7 +40,7 @@ export function DayEventsDialog({
         }
         onClose={() => onOpenChange(false)}
         footer={
-          canAdd && (
+          canManage && (
             <Button onClick={() => onAdd(date)} className="w-full sm:w-auto">
               Add Event
             </Button>
@@ -74,7 +63,7 @@ export function DayEventsDialog({
                   )}
                 </div>
 
-                {canManageEvent(event) && (
+                {canManage && (
                   <div className="flex items-center gap-1 shrink-0">
                     <Button
                       variant="ghost"
