@@ -13,6 +13,9 @@ export function canUserSeeEvent(
 ): boolean {
   const roles = user.roles;
 
+  // ⭐ Event Managers see everything
+  if (roles.includes("EventManager")) return true;
+
   // 1. Admins see everything
   if (isAdmin(roles)) return true;
 

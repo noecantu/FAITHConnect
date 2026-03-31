@@ -23,12 +23,15 @@ export function useCalendarEvents(
     function updateCombined() {
       const combined = [...latestEvents, ...latestServices];
 
-      const visible = combined.filter((item) =>
-        canUserSeeEvent(user!, {
+      const visible = combined.filter((item) => {
+        // ⭐ Event Managers see EVERYTHING
+        if (user?.roles.includes("EventManager")) return true;
+
+        return canUserSeeEvent(user!, {
           visibility: item.isPublic ? "public" : "private",
           groups: item.groups ?? [],
-        })
-      );
+        });
+      });
 
       visible.sort((a, b) => a.date.getTime() - b.date.getTime());
 

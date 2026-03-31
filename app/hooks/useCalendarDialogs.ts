@@ -97,7 +97,7 @@ export function useCalendarDialogs(
   const canDelete = user ? canUser(user.roles, "deleteEvents") : false;
 
   const userGroups = user ? extractUserGroups(user) : [];
-
+  const isEventManager = user?.roles.includes("EventManager") ?? false;
 
   // -------------------------------
   // EDIT EVENT
@@ -112,7 +112,7 @@ export function useCalendarDialogs(
     }
 
     // Private event: user must belong to at least one group
-    if (!event.isPublic) {
+    if (!event.isPublic && !isEventManager) {
       const allowed = event.groups
         ?.map(g => normalizeGroup(g))
         .some(g => userGroups.includes(g));
@@ -192,7 +192,7 @@ export function useCalendarDialogs(
 
       const event = snap.data() as EventType;
 
-      if (!event.isPublic) {
+      if (!event.isPublic && !isEventManager) {
         const allowed = event.groups
           ?.map(g => normalizeGroup(g))
           .some(g => userGroups.includes(g));

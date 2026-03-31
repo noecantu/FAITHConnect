@@ -123,6 +123,8 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "createEvents",
     "editEvents",
     "deleteEvents",
+    "viewServicePlans",
+    "editServicePlans",
   ],
 
   AttendanceManager: ["viewAttendance", "editAttendance"],
