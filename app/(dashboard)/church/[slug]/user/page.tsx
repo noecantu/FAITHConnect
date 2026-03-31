@@ -188,7 +188,7 @@ export default function UserDashboardPage({
                       {event.dateString}
                     </div>
 
-                    {!event.isPublic && (
+                    {event.visibility === "private" && (
                       <div className="text-xs text-muted-foreground mt-1">
                         Private Event
                       </div>

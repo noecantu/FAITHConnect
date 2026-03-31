@@ -20,6 +20,7 @@ import type { EventFormValues } from "@/app/components/calendar/EventFormDialog"
 
 import { canUser } from "@/app/lib/canUser";
 import { extractUserGroups } from "@/app/lib/extractUserGroups";
+import { MinistryGroup, normalizeGroupName } from '../lib/ministryGroups';
 
 // -------------------------------
 // UTILITIES
@@ -56,22 +57,6 @@ function safeDateOnly(date: Date): Date {
     date.getDate(),
     12, 0, 0
   );
-}
-
-const GROUP_MAP = {
-  music: "Music",
-  women: "Women",
-  men: "Men",
-  youth: "Youth",
-  usher: "Usher",
-  caretaker: "Caretaker",
-} as const;
-
-type CanonicalGroup = typeof GROUP_MAP[keyof typeof GROUP_MAP];
-
-function normalizeGroup(g: string): CanonicalGroup {
-  const key = g.toLowerCase() as keyof typeof GROUP_MAP;
-  return GROUP_MAP[key] ?? "Music";
 }
 
 // -------------------------------
@@ -112,10 +97,12 @@ export function useCalendarDialogs(
     }
 
     // Private event: user must belong to at least one group
-    if (!event.isPublic && !isEventManager) {
+    if (event.visibility === "private" && !isEventManager) {
       const allowed = event.groups
-        ?.map(g => normalizeGroup(g))
-        .some(g => userGroups.includes(g));
+        ?.map(g => normalizeGroupName(g))
+        .filter(Boolean)
+        .some(g => userGroups.includes(g as MinistryGroup));
+
       if (!allowed) {
         toast({
           title: 'Permission Denied',
@@ -131,7 +118,7 @@ export function useCalendarDialogs(
       title: event.title,
       description: event.description ?? "",
       date: normalizeDate(event.date),
-      isPublic: event.isPublic ?? false,
+      isPublic: event.visibility === "public",
       groups: event.groups ?? [],
     });
 
@@ -192,10 +179,12 @@ export function useCalendarDialogs(
 
       const event = snap.data() as EventType;
 
-      if (!event.isPublic && !isEventManager) {
+      if (event.visibility === "private" && !isEventManager) {
         const allowed = event.groups
-          ?.map(g => normalizeGroup(g))
-          .some(g => userGroups.includes(g));
+          ?.map(g => normalizeGroupName(g))
+          .filter(Boolean)
+          .some(g => userGroups.includes(g as MinistryGroup));
+
         if (!allowed) {
           toast({
             title: 'Permission Denied',
@@ -247,7 +236,7 @@ export function useCalendarDialogs(
           title: data.title,
           description: data.description ?? '',
           date: dateToStore,
-          isPublic,
+          visibility: isPublic ? "public" : "private",
           groups,
           updatedAt: serverTimestamp(),
         });
@@ -264,7 +253,7 @@ export function useCalendarDialogs(
           title: data.title,
           description: data.description ?? '',
           date: dateToStore,
-          isPublic,
+          visibility: data.isPublic ? "public" : "private",
           groups,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),

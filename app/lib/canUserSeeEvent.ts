@@ -16,23 +16,38 @@ export function canUserSeeEvent(
   // ⭐ Event Managers see everything
   if (roles.includes("EventManager")) return true;
 
-  // 1. Admins see everything
+  // ⭐ Admins see everything
   if (isAdmin(roles)) return true;
 
-  // 2. Finance sees ONLY public events
-  if (isFinance(roles)) {
-    return event.visibility === "public";
-  }
-
-  // 3. Public events are visible to everyone else
+  // ⭐ Public events are visible to everyone
   if (event.visibility === "public") return true;
 
-  // 4. Private events require group intersection
+  // ⭐ Private events require group intersection
   const userGroups = extractUserGroups(user);
 
   const eventGroups = (event.groups || [])
     .map(g => normalizeGroupName(g))
     .filter((g): g is MinistryGroup => Boolean(g));
 
-  return eventGroups.some(g => userGroups.includes(g));
+  // ⭐ Group members can see their group's private events
+  if (eventGroups.some(g => userGroups.includes(g))) {
+    return true;
+  }
+
+  // ⭐ Group Managers can see private events for their group
+  const managerGroups = roles
+    .filter(r => r.endsWith("GroupManager"))
+    .map(r => normalizeGroupName(r.replace("Manager", "")))
+    .filter((g): g is MinistryGroup => Boolean(g));
+
+  if (eventGroups.some(g => managerGroups.includes(g))) {
+    return true;
+  }
+
+  // ⭐ Finance sees ONLY public events — but we check this LAST
+  if (isFinance(roles)) {
+    return false; // private event + no group match
+  }
+
+  return false;
 }

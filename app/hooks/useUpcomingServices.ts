@@ -19,8 +19,8 @@ export function useUpcomingServices(churchId: string | null, user: UserProfile |
       return () => { isActive = false };
     }
 
-    const safeChurchId: string = churchId;
-    const safeUser = user;
+    const safeChurchId = churchId;
+    const currentUser = user;
 
     const load = async () => {
       try {
@@ -34,7 +34,6 @@ export function useUpcomingServices(churchId: string | null, user: UserProfile |
         );
 
         const snap = await getDocs(q);
-
         if (!isActive) return;
 
         const items: ServicePlan[] = snap.docs.map((docSnap) => {
@@ -47,14 +46,18 @@ export function useUpcomingServices(churchId: string | null, user: UserProfile |
             ...data,
             date,
             dateTime: date,
+
+            // ⭐ canonical visibility model
+            visibility: data.isPublic ? "public" : "private",
+            groups: data.groups ?? [],
           };
         });
 
-        // ⭐ Step 5: canonical visibility engine
+        // ⭐ canonical visibility engine
         const visible = items.filter((service) =>
-          canUserSeeEvent(safeUser, {
-            visibility: service.isPublic ? "public" : "private",
-            groups: service.groups ?? [],
+          canUserSeeEvent(currentUser, {
+            visibility: service.visibility,
+            groups: service.groups,
           })
         );
 

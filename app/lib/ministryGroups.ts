@@ -18,11 +18,13 @@ export function isValidMinistryGroup(value: string): value is MinistryGroup {
 export function normalizeGroupName(value: string): MinistryGroup | null {
   const cleaned = value.trim().toLowerCase();
 
-  for (const group of MINISTRY_GROUPS) {
-    if (group.toLowerCase() === cleaned) {
-      return group;
-    }
-  }
+  // Handle common variants
+  if (cleaned.startsWith("women")) return "Women";
+  if (cleaned.startsWith("men")) return "Men";
+  if (cleaned.startsWith("music")) return "Music";
+  if (cleaned.startsWith("usher")) return "Usher";
+  if (cleaned.startsWith("caretaker")) return "Caretaker";
+  if (cleaned.startsWith("youth")) return "Youth";
 
   return null;
 }

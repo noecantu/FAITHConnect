@@ -16,30 +16,34 @@ export function useCalendarEvents(
       return;
     }
 
-    // Local caches for merging
     let latestEvents: Event[] = [];
     let latestServices: Event[] = [];
+
+    if (!churchId || !user) {
+      setEvents([]);
+      return;
+    }
+
+    const currentUser = user; // ⭐ non-null guarantee
 
     function updateCombined() {
       const combined = [...latestEvents, ...latestServices];
 
       const visible = combined.filter((item) => {
-        // ⭐ Event Managers see EVERYTHING
-        if (user?.roles.includes("EventManager")) return true;
+        if (currentUser.roles.includes("EventManager")) return true;
 
-        return canUserSeeEvent(user!, {
-          visibility: item.isPublic ? "public" : "private",
-          groups: item.groups ?? [],
+        return canUserSeeEvent(currentUser, {
+          visibility: item.visibility,
+          groups: item.groups,
         });
       });
 
       visible.sort((a, b) => a.date.getTime() - b.date.getTime());
-
       setEvents(visible);
     }
 
     // -----------------------------
-    // Listen to EVENTS
+    // EVENTS
     // -----------------------------
     const eventsRef = collection(db, "churches", churchId, "events");
     const eventsQuery = query(eventsRef, orderBy("date", "asc"));
@@ -54,18 +58,22 @@ export function useCalendarEvents(
 
         return {
           id: d.id,
-          ...raw,
+          title: raw.title ?? "Event",
           date,
-          dateString: raw.dateString ?? raw.date?.toDate?.()?.toISOString?.()?.slice(0, 10) ?? "",
-          kind: "event",
-        } as Event;
+          dateString:
+            raw.dateString ??
+            raw.date?.toDate?.()?.toISOString?.()?.slice(0, 10) ??
+            "",
+          visibility: raw.isPublic ? "public" : "private",
+          groups: raw.groups ?? [],
+        } satisfies Event;
       });
 
       updateCombined();
     });
 
     // -----------------------------
-    // Listen to SERVICE PLANS
+    // SERVICE PLANS
     // -----------------------------
     const spRef = collection(db, "churches", churchId, "servicePlans");
     const spQuery = query(spRef, orderBy("dateString", "asc"));
@@ -79,12 +87,11 @@ export function useCalendarEvents(
         return {
           id: d.id,
           title: data.title ?? "Service",
-          isPublic: data.isPublic,
-          groups: data.groups ?? [],
           date,
-          dateString: data.dateString,   // ⭐ REQUIRED for Event type
-          kind: "service",
-        } as Event;
+          dateString: data.dateString,
+          visibility: data.isPublic ? "public" : "private",
+          groups: data.groups ?? [],
+        } satisfies Event;
       });
 
       updateCombined();

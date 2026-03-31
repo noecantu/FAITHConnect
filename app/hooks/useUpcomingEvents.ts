@@ -11,8 +11,8 @@ export function useUpcomingEvents(churchId: string | null, user: UserProfile | n
   useEffect(() => {
     if (!churchId || !user) return;
 
-    const safeChurchId: string = churchId; // ⭐ FIX
-    const safeUser = user;
+    const safeChurchId = churchId;
+    const currentUser = user; // ⭐ non-null guarantee
 
     async function load() {
       setLoading(true);
@@ -29,37 +29,31 @@ export function useUpcomingEvents(churchId: string | null, user: UserProfile | n
       const snapshot = await getDocs(q);
 
       const all: Event[] = snapshot.docs.map((d) => {
-      const raw = d.data() as any;
+        const raw = d.data() as any;
 
-      const date: Date =
-        raw.date?.toDate ? raw.date.toDate() : new Date(raw.date);
+        const date: Date =
+          raw.date?.toDate ? raw.date.toDate() : new Date(raw.date);
 
-      return {
-        id: d.id,
-        title: raw.title,
-        description: raw.description ?? "",
-        isPublic: raw.isPublic ?? false,
-        groups: raw.groups ?? [],
-        date,
-        dateString: date.toLocaleDateString("en-US", {
-          weekday: "short",
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        }),
-      };
-    });
+        return {
+          id: d.id,
+          title: raw.title ?? "Event",
+          description: raw.description ?? "",
+          date,
+          dateString: date.toISOString().slice(0, 10),
 
-    // ⭐ Step 5: canonical visibility engine
-    const visible = all.filter((event) =>
-      canUserSeeEvent(
-        safeUser,
-        {
-          visibility: event.isPublic ? "public" : "private",
+          // ⭐ canonical visibility model
+          visibility: raw.isPublic ? "public" : "private",
+          groups: raw.groups ?? [],
+        } satisfies Event;
+      });
+
+      // ⭐ canonical visibility engine
+      const visible = all.filter((event) =>
+        canUserSeeEvent(currentUser, {
+          visibility: event.visibility,
           groups: event.groups,
-        }
-      )
-    );
+        })
+      );
 
       setEvents(visible);
       setLoading(false);

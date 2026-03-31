@@ -80,7 +80,7 @@ export const ROLE_GROUP_MAP: Record<Role, MinistryGroup[]> = {
   YouthGroupManager: ["Youth"],
   YouthGroup: ["Youth"],
 
-  GroupManager: [], // dynamic fallback
+  GroupManager: [...MINISTRY_GROUPS],
 
   Member: [],
 };

@@ -72,7 +72,7 @@ export type Event = {
   dateString: string;
   date: Date;
   description?: string;
-  isPublic: boolean;
+  visibility: "public" | "private";
   groups: string[];
 };
 
@@ -149,6 +149,7 @@ export interface ServicePlan extends ServicePlanFirestore {
   id: string;
   date: Date;
   dateTime: Date;
+  visibility: "public" | "private";
 }
 
 export type ServicePlanFirestore = {
