@@ -123,9 +123,9 @@ export function useCalendarDialogs(
     form.reset({
       title: "",
       description: "",
-      date: normalizeDate(date), // <-- ALWAYS a Date
-      isPublic: false,
-      groups: [],
+      date: normalizeDate(date),
+      isPublic: isAdmin ? false : false, // managers always private
+      groups: isAdmin ? [] : managerGroup ? [managerGroup] : [],
     });
 
     setEditEvent(null);
@@ -190,7 +190,6 @@ export function useCalendarDialogs(
       return;
     }
 
-    // 🔥 CRITICAL FIX: ensure data.date is a Date
     const normalized = normalizeDate(data.date);
     const dateToStore = safeDateOnly(normalized);
 
@@ -223,6 +222,7 @@ export function useCalendarDialogs(
         }
 
         await updateDoc(ref, {
+          churchId,
           title: data.title,
           description: data.description ?? '',
           date: dateToStore,
@@ -239,6 +239,7 @@ export function useCalendarDialogs(
         const colRef = collection(db, 'churches', churchId, 'events');
 
         await addDoc(colRef, {
+          churchId,
           title: data.title,
           description: data.description ?? '',
           date: dateToStore,
@@ -257,7 +258,8 @@ export function useCalendarDialogs(
       setIsFormOpen(false);
       setEditEvent(null);
     } catch (error) {
-      console.error(error);
+      // console.error(error);
+      console.error("🔥 FIRESTORE ERROR DETAILS:", JSON.stringify(error, null, 2));
       toast({
         title: 'Error saving event',
         description: 'Please try again.',

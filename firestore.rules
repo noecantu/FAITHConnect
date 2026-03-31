@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ---------------------------
-    // HELPERS
+    // GLOBAL HELPERS
     // ---------------------------
     function isUserSignedIn() {
       return request.auth != null;
@@ -16,25 +16,64 @@ service cloud.firestore {
     function isRootAdmin() {
       let userDoc = getUserDoc();
       return isUserSignedIn()
-             && userDoc.data != null
-             && 'roles' in userDoc.data
-             && userDoc.data.roles.hasAny(['RootAdmin']);
+        && userDoc.data != null
+        && 'roles' in userDoc.data
+        && userDoc.data.roles.hasAny(['RootAdmin']);
     }
 
     function isChurchMember(churchId) {
       let userDoc = getUserDoc();
       return isUserSignedIn()
-             && userDoc.data != null
-             && 'churchId' in userDoc.data
-             && userDoc.data.churchId == churchId;
+        && userDoc.data != null
+        && 'churchId' in userDoc.data
+        && userDoc.data.churchId == churchId;
     }
 
     function hasChurchRole(churchId, allowedRoles) {
       let userDoc = getUserDoc();
       return isChurchMember(churchId)
-             && userDoc.data != null
-             && 'roles' in userDoc.data
-             && userDoc.data.roles.hasAny(allowedRoles);
+        && userDoc.data != null
+        && 'roles' in userDoc.data
+        && userDoc.data.roles.hasAny(allowedRoles);
+    }
+
+    // Group Manager roles
+    function isGroupManager(churchId) {
+      return hasChurchRole(churchId, [
+        "MusicManager",
+        "UsherManager",
+        "MensGroupManager",
+        "WomensGroupManager",
+        "YouthManager"
+      ]);
+    }
+
+    // Group Member roles
+    function isGroupMember(churchId) {
+      return hasChurchRole(churchId, [
+        "Music",
+        "Usher",
+        "MensGroup",
+        "WomensGroup",
+        "Youth"
+      ]);
+    }
+
+    // ---------------------------
+    // NORMALIZE MANAGER ROLES → GROUP NAMES
+    // ---------------------------
+    function managerGroupsForUser() {
+      let roles = getUserDoc().data.roles;
+
+      // Build a new list manually
+      let result = [];
+
+      // Firestore Rules do not support forEach, so we use reduce
+      return roles.reduce(result, role,
+        role.endsWith("Manager")
+          ? result.concat([role.replace("Manager", "").toLowerCase()])
+          : result
+      );
     }
 
     // ---------------------------
@@ -42,29 +81,25 @@ service cloud.firestore {
     // ---------------------------
     match /users/{uid} {
 
-      // Users can read their own profile
       allow read: if request.auth != null && request.auth.uid == uid;
 
-      // Users can update ONLY their own profilePhotoUrl
       allow update: if request.auth != null
-                    && request.auth.uid == uid
-                    && request.resource.data.diff(resource.data).changedKeys().hasOnly(["profilePhotoUrl"]);
+        && request.auth.uid == uid
+        && request.resource.data.diff(resource.data)
+           .changedKeys().hasOnly(["profilePhotoUrl"]);
 
-      // Root Admin full access
       allow read, write: if isRootAdmin();
 
-      // Church Admins can read users in THEIR church
       allow read: if resource.data != null
-                  && hasChurchRole(resource.data.churchId, ["Admin"]);
+        && hasChurchRole(resource.data.churchId, ["Admin"]);
 
-      // Church Admins can create/update users in THEIR church
       allow write: if request.resource.data != null
-                   && hasChurchRole(getUserDoc().data.churchId, ["Admin"])
-                   && request.resource.data.churchId == getUserDoc().data.churchId;
+        && hasChurchRole(getUserDoc().data.churchId, ["Admin"])
+        && request.resource.data.churchId == getUserDoc().data.churchId;
     }
-    
+
     // ---------------------------
-		// USER SETTINGS SUBCOLLECTION
+    // USER SETTINGS SUBCOLLECTION
     // ---------------------------
     match /users/{uid}/settings/{settingId} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
@@ -77,27 +112,23 @@ service cloud.firestore {
       allow list: if isRootAdmin();
     }
 
-    // ---------------------------------------------------------
-    // PUBLIC READ OF CHURCH DOCUMENT ONLY
-    // ---------------------------------------------------------
+    // ---------------------------
+    // CHURCH DOCUMENT
+    // ---------------------------
     match /churches/{churchId} {
       allow get: if true;
       allow list: if false;
 
       // ---------------------------
-      // CONTRIBUTIONS SUBCOLLECTION
+      // CONTRIBUTIONS
       // ---------------------------
       match /contributions/{contributionId} {
-
-        // Anyone in the church can read contributions
         allow read: if isChurchMember(churchId);
-
-        // Admins and Finance can create/update/delete contributions
         allow create, update, delete: if
           hasChurchRole(churchId, ["Admin", "Finance"]) ||
           isRootAdmin();
       }
-      
+
       // ---------------------------
       // EVENTS SUBCOLLECTION
       // ---------------------------
@@ -106,8 +137,36 @@ service cloud.firestore {
         // Anyone in the church can read events
         allow read: if isChurchMember(churchId);
 
-        // Admins can create/update/delete events
-        allow create, update, delete: if
+        // CREATE RULES
+          // TEMP: strip this down to pure role check
+          allow create: if
+            request.resource.data != null &&
+            (
+              hasChurchRole(churchId, ["Admin"]) ||
+              hasChurchRole(churchId, ["MusicManager"]) ||
+              isRootAdmin()
+            );
+
+        // UPDATE RULES
+        allow update: if
+          resource.data != null &&
+          (
+            // Admins can update anything
+            hasChurchRole(churchId, ["Admin"]) ||
+            isRootAdmin() ||
+
+            // Group managers can update their own private events only
+            (
+              isGroupManager(churchId) &&
+              resource.data.isPublic == false &&
+              resource.data.groups.hasAny(managerGroupsForUser()) &&
+              request.resource.data.groups == resource.data.groups &&
+              request.resource.data.isPublic == resource.data.isPublic
+            )
+          );
+
+        // DELETE RULES
+        allow delete: if
           hasChurchRole(churchId, ["Admin"]) ||
           isRootAdmin();
 
@@ -115,153 +174,36 @@ service cloud.firestore {
         allow read, write: if isRootAdmin();
       }
 
-      // ---------------------------------------------------------
+      // ---------------------------
       // MEMBERS SUBCOLLECTION
-      // ---------------------------------------------------------
+      // ---------------------------
       match /members/{memberId} {
 
-        // Reset inherited permissions
         allow read: if false;
         allow list: if false;
 
-        // Root Admin full access
         allow read, write: if isRootAdmin();
 
-        // Church Admins full access
         allow read, write: if hasChurchRole(churchId, ["Admin"]);
 
-        // Members can read their own member document
         allow read: if isChurchMember(churchId)
-                     && request.auth.uid == memberId;
+          && request.auth.uid == memberId;
 
-        // Public login/check-in queries
         allow list: if request.query.where.size() == 2
-                     && request.query.where[0].field == "checkInCode"
-                     && request.query.where[1].field == "phoneNumber";
+          && request.query.where[0].field == "checkInCode"
+          && request.query.where[1].field == "phoneNumber";
 
-        // Block all writes (except Admins above)
         allow write: if false;
       }
 
-      // All other subcollections under a church
+      // ---------------------------
+      // ALL OTHER SUBCOLLECTIONS
+      // ---------------------------
       match /{sub=**} {
         allow read, write: if isRootAdmin();
         allow read: if isChurchMember(churchId);
         allow write: if hasChurchRole(churchId, ["Admin"]);
       }
-    }
-
-    // ---------------------------
-    // EVENTS (top-level)
-    // ---------------------------
-    match /events/{eventId} {
-
-      function eventChurchId() {
-        return resource.data.churchId;
-      }
-
-      function eventGroups() {
-        return resource.data.groups;
-      }
-
-      function isPublicEvent() {
-        return resource.data.isPublic == true;
-      }
-
-      // Group Manager = has a church role like "MusicManager", "UsherManager", etc.
-      function isGroupManager(churchId) {
-        return hasChurchRole(churchId, [
-          "MusicManager",
-          "UsherManager",
-          "MensGroupManager",
-          "WomensGroupManager",
-          "YouthManager"
-        ]);
-      }
-
-      // Group Member = has a role like "Music", "Usher", etc.
-      function isGroupMember(churchId) {
-        return hasChurchRole(churchId, [
-          "Music",
-          "Usher",
-          "MensGroup",
-          "WomensGroup",
-          "Youth"
-        ]);
-      }
-
-      // ---------------------------
-      // READ RULES
-      // ---------------------------
-      allow get, list: if isUserSignedIn()
-                       && (
-                            // Admins see everything
-                            hasChurchRole(eventChurchId(), ["Admin"]) ||
-                            isRootAdmin() ||
-
-                            // Public events
-                            isPublicEvent() ||
-
-                            // Group managers see their group events
-                            (isGroupManager(eventChurchId()) &&
-                             eventGroups().hasAny(getUserDoc().data.roles)) ||
-
-                            // Group members see their group events
-                            (isGroupMember(eventChurchId()) &&
-                             eventGroups().hasAny(getUserDoc().data.roles)) ||
-
-                            // Regular church members see public + their group events
-                            isChurchMember(eventChurchId())
-                          );
-
-      // ---------------------------
-      // CREATE RULES
-      // ---------------------------
-      allow create: if isUserSignedIn()
-                    && request.resource.data != null
-                    && (
-                         // Admins can create anything
-                         hasChurchRole(request.resource.data.churchId, ["Admin"]) ||
-
-                         // Group managers can create events for THEIR group only
-                         (
-                           isGroupManager(request.resource.data.churchId) &&
-                           request.resource.data.groups.hasAny(getUserDoc().data.roles) &&
-                           request.resource.data.isPublic == false
-                         )
-                       );
-
-      // ---------------------------
-      // UPDATE / DELETE RULES
-      // ---------------------------
-      allow update, delete: if isUserSignedIn()
-                            && resource.data != null
-                            && (
-                                 // Admins can edit anything
-                                 hasChurchRole(eventChurchId(), ["Admin"]) ||
-
-                                 // Group managers can edit THEIR group events only
-                                 (
-                                   isGroupManager(eventChurchId()) &&
-                                   eventGroups().hasAny(getUserDoc().data.roles) &&
-                                   // Cannot change groups
-                                   request.resource.data.groups == resource.data.groups &&
-                                   // Cannot make public
-                                   request.resource.data.isPublic == resource.data.isPublic
-                                 )
-                               );
-
-      // ---------------------------
-      // ROOT ADMIN OVERRIDE
-      // ---------------------------
-      allow read, write: if isRootAdmin();
-    }
-
-    // ---------------------------
-    // ROOT ADMIN GLOBAL FALLBACK
-    // ---------------------------
-    match /{document=**} {
-      allow read, write: if isRootAdmin();
     }
   }
 }
