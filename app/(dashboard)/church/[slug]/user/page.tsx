@@ -9,8 +9,9 @@ import { useChurch } from "@/app/hooks/useChurch";
 import { Button } from "@/app/components/ui/button";
 import { Avatar, AvatarFallback } from "@/app/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
-import { useUpcomingServices } from "@/app/hooks/useUpcomingServices";
 import { CalendarCheck, CalendarHeart, Calendar } from "lucide-react";
+import { useUpcomingEvents } from "@/app/hooks/useUpcomingEvents";
+import { useUpcomingServices } from "@/app/hooks/useUpcomingServices";
 
 export default function UserDashboardPage({
   params,
@@ -33,21 +34,19 @@ export default function UserDashboardPage({
     load();
   }, []);
 
-  // While user is loading, don't try to read user.churchId
   const churchId = user?.churchId ?? null;
 
   const { church, loading: loadingChurch } = useChurch(churchId);
+  const { events, loading: loadingEvents } = useUpcomingEvents(churchId, user);
   const { services, loading: loadingServices } = useUpcomingServices(churchId);
 
-  // Safe admin check — only runs after user is confirmed non-null
   const isAdmin =
     !!user &&
     (user.roles.includes("systemAdmin") ||
       user.roles.includes("churchAdmin") ||
       user.roles.includes("financeManager"));
 
-  // Loading states
-  if (loadingUser || loadingChurch || loadingServices) {
+  if (loadingUser || loadingChurch || loadingEvents || loadingServices) {
     return <div className="p-6">Loading...</div>;
   }
 
@@ -61,7 +60,7 @@ export default function UserDashboardPage({
           <div className="px-4 md:px-8 py-4">
             <PageHeader
               title="My Dashboard"
-              subtitle="Your upcoming services, events, and schedule."
+              subtitle="Your upcoming events and schedule."
             />
           </div>
         </div>
@@ -160,28 +159,65 @@ export default function UserDashboardPage({
             </Card>
           )}
 
-          {/* Upcoming Services */}
-          <Card className="border border-border bg-card/80">
-            <CardHeader>
-              <CardTitle>Upcoming Services</CardTitle>
-              <CardDescription>Your next scheduled services.</CardDescription>
-            </CardHeader>
+          {/* Upcoming Events + Upcoming Services side-by-side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-            <CardContent className="space-y-4">
-              {services.length === 0 && (
-                <p className="text-sm text-muted-foreground">No upcoming services.</p>
-              )}
+            {/* Upcoming Events */}
+            <Card className="border border-border bg-card/80">
+              <CardHeader>
+                <CardTitle>Upcoming Events</CardTitle>
+                <CardDescription>What’s happening soon at your church.</CardDescription>
+              </CardHeader>
 
-              {services.map((service) => (
-                <div key={service.id} className="border-b border-border pb-3 last:border-none">
-                  <div className="font-medium">{service.title}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {service.dateString} at {service.timeString}
+              <CardContent className="space-y-4">
+                {events.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No upcoming events.</p>
+                )}
+
+                {events.map((event) => (
+                  <div key={event.id} className="border-b border-border pb-3 last:border-none">
+                    <div className="font-medium">{event.title}</div>
+
+                    <div className="text-sm text-muted-foreground">
+                      {event.dateString}
+                    </div>
+
+                    {!event.isPublic && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Private Event
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Upcoming Services */}
+            <Card className="border border-border bg-card/80">
+              <CardHeader>
+                <CardTitle>Upcoming Services</CardTitle>
+                <CardDescription>Your upcoming worship services.</CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-4">
+                {services.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No upcoming services.</p>
+                )}
+
+                {services.map((service) => (
+                  <div key={service.id} className="border-b border-border pb-3 last:border-none">
+                    <div className="font-medium">{service.title}</div>
+
+                    <div className="text-sm text-muted-foreground">
+                      {service.dateString} at {service.timeString}
+                    </div>
+                    
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+          </div>
 
         </div>
       </main>

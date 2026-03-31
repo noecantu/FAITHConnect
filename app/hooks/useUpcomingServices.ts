@@ -20,7 +20,7 @@ export function useUpcomingServices(churchId: string | null) {
 
     const load = async () => {
       try {
-        const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        const today = new Date().toISOString().slice(0, 10);
 
         const ref = collection(db, "churches", churchId, "servicePlans");
         const q = query(

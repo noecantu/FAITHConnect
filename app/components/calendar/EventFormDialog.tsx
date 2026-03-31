@@ -161,7 +161,7 @@ export function EventFormDialog({
                   <FormControl>
                     <div className="relative">
                       <Flatpickr
-                        disabled={!isAdmin && isEditing}   // <-- Managers can change date only when creating
+                        disabled={!isAdmin && isEditing}
                         value={field.value}
                         options={{
                           defaultDate: field.value,
