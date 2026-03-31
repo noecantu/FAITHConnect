@@ -83,6 +83,8 @@ export default function UserDashboardPage({
                       fill
                       sizes="80px"
                       className="object-cover"
+                      loading="eager"
+                      priority
                     />
                   ) : (
                     <AvatarFallback className="rounded-md text-xl">
