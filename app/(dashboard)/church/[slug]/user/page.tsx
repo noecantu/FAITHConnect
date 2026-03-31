@@ -123,20 +123,22 @@ export default function UserDashboardPage({
                   )}
                 </Avatar>
 
-                <div className="flex flex-col">
-                  <h1 className="text-lg font-semibold">
+                <div className="flex flex-col min-w-0">
+                  <h1 className="text-lg font-semibold truncate">
                     {user.firstName || user.lastName
                       ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
                       : user.displayName}
                   </h1>
 
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {user.email}
+                  </p>
 
-                  <div className="flex flex-wrap gap-1 mt-2">
+                  <div className="flex flex-wrap gap-1 mt-2 min-w-0">
                     {user.roles.map((role) => (
                       <span
                         key={role}
-                        className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border"
+                        className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border truncate max-w-[120px]"
                       >
                         {role}
                       </span>
