@@ -61,7 +61,7 @@ export function CalendarViewSwitcher({
         <GridCalendar
           month={month}
           events={events}
-          onSelect={onSelectDate}
+          onSelectDate={onSelectDate}
           onPrevMonth={onPrevMonth}
           onNextMonth={onNextMonth}
           onEdit={canManage ? handleEdit : undefined}

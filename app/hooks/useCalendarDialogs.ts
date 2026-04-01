@@ -72,8 +72,6 @@ export function useCalendarDialogs(
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editEvent, setEditEvent] = useState<EventType | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [isDayEventsDialogOpen, setIsDayEventsDialogOpen] = useState(false);
 
   const isEditing = editEvent !== null;
 
@@ -86,8 +84,11 @@ export function useCalendarDialogs(
 
   const isEventManager = user?.roles.includes("EventManager") ?? false;
 
-  // NEW: Ministry managers can create private events
-  const isMinistryManager = userGroups.length > 0 && !user?.roles.includes("Admin");
+  const isMinistryManager =
+  userGroups.length > 0 &&
+  canEdit &&
+  !user?.roles.includes("Admin") &&
+  !user?.roles.includes("EventManager");
 
   // -------------------------------
   // EDIT EVENT
@@ -127,7 +128,6 @@ export function useCalendarDialogs(
       groups: event.groups ?? [],
     });
 
-    setIsDayEventsDialogOpen(false);
     setIsFormOpen(true);
   }
 
@@ -153,7 +153,6 @@ export function useCalendarDialogs(
     });
 
     setEditEvent(null);
-    setIsDayEventsDialogOpen(false);
     setIsFormOpen(true);
   }
 
@@ -295,32 +294,19 @@ export function useCalendarDialogs(
     }
   }
 
-  // -------------------------------
-  // SELECT DATE
-  // -------------------------------
-  function handleSelectDate(date: Date) {
-    setSelectedDate(date);
-    setIsDayEventsDialogOpen(true);
-  }
-
   return {
     isFormOpen,
     editEvent,
     deleteId,
-    selectedDate,
-    isDayEventsDialogOpen,
     isEditing,
 
     setIsFormOpen,
     setEditEvent,
     setDeleteId,
-    setSelectedDate,
-    setIsDayEventsDialogOpen,
 
     handleEdit,
     handleAdd,
     handleDelete,
-    handleSelectDate,
     onSubmit,
   };
 }

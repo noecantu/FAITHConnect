@@ -14,10 +14,11 @@ import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Event } from '@/app/lib/types';
 import { dateKey } from '@/app/lib/calendar/utils';
+import { useRouter } from 'next/navigation';
 
 interface GridCalendarProps {
   month: Date;
-  onSelect: (date: Date) => void;
+  onSelectDate: (date: Date) => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
   events: Event[];
@@ -26,11 +27,14 @@ interface GridCalendarProps {
 
 export function GridCalendar({
   month,
-  onSelect,
+  onSelectDate,
   onPrevMonth,
   onNextMonth,
   events,
+  onEdit,
 }: GridCalendarProps) {
+
+  const router = useRouter();
 
   const eventsByDay = events.reduce((acc, event) => {
     const key = dateKey(event.date);
@@ -51,6 +55,19 @@ export function GridCalendar({
     ...monthDays,
     ...Array.from({ length: trailingBlanks }).map(() => null),
   ];
+
+  // 🔥 Canonical click handler for events vs service plans
+  const handleEventClick = (event: Event) => {
+    if (onEdit) return onEdit(event);
+
+    const isEvent = !!event.date;
+
+    if (isEvent) {
+      router.push(`/events/${event.id}`);
+    } else {
+      router.push(`/service-plan/${event.id}`);
+    }
+  };
 
   return (
     <Card>
@@ -102,7 +119,7 @@ export function GridCalendar({
               <button
                 key={day.toString()}
                 className={dayClass}
-                onClick={() => onSelect(day)}
+                onClick={() => onSelectDate(day)}
               >
                 <span className="text-sm font-medium">{format(day, 'd')}</span>
 
@@ -119,7 +136,11 @@ export function GridCalendar({
                     {dayEvents.slice(0, 2).map((event) => (
                       <div
                         key={event.id}
-                        className="text-xs bg-primary/20 text-white rounded-sm px-1 truncate w-full text-left"
+                        className="text-xs bg-primary/20 text-white rounded-sm px-1 truncate w-full text-left hover:bg-primary/30 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation(); // prevent selecting the day
+                          handleEventClick(event);
+                        }}
                       >
                         {event.title}
                       </div>

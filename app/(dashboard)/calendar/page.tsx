@@ -1,65 +1,34 @@
-'use client';
+//app/(dashboard)/calendar/page.tsx
 
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+"use client";
 
-import { PageHeader } from '@/app/components/page-header';
-import { Fab } from '@/app/components/ui/fab';
-import { Button } from '@/app/components/ui/button';
-import { Calendar, List } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { PageHeader } from "@/app/components/page-header";
+import { Fab } from "@/app/components/ui/fab";
+import { Button } from "@/app/components/ui/button";
+import { Calendar, List } from "lucide-react";
 
-import { useChurchId } from '@/app/hooks/useChurchId';
-import { useCalendarEvents } from '@/app/hooks/useCalendarEvents';
-import { useCalendarMonth } from '@/app/hooks/useCalendarMonth';
-import { useCalendarFilters } from '@/app/hooks/useCalendarFilters';
-import { useCalendarDialogs } from '@/app/hooks/useCalendarDialogs';
+import { useChurchId } from "@/app/hooks/useChurchId";
+import { useCalendarEvents } from "@/app/hooks/useCalendarEvents";
+import { useCalendarMonth } from "@/app/hooks/useCalendarMonth";
+import { useCalendarFilters } from "@/app/hooks/useCalendarFilters";
+import { CalendarControls } from "@/app/components/calendar/CalendarControls";
+import { CalendarViewSwitcher } from "@/app/components/calendar/CalendarViewSwitcher";
 
-import { CalendarControls } from '@/app/components/calendar/CalendarControls';
-import { CalendarDialogs } from '@/app/components/calendar/CalendarDialogs';
-import { CalendarViewSwitcher } from '@/app/components/calendar/CalendarViewSwitcher';
+import { can } from "@/app/lib/auth/permissions";
+import type { Role } from "@/app/lib/roleGroups";
+import type { UserProfile } from "@/app/lib/types";
+import { useUserCalendarSettings } from "@/app/hooks/useUserCalendarSettings";
+import { useRouter } from "next/navigation";
+import { dateKey } from "@/app/lib/calendar/utils";
 
-import { dateKey } from '@/app/lib/calendar/utils';
-import { createTheme } from '@mui/material/styles';
-
-import { canUser } from '@/app/lib/canUser';
-import { Role } from '@/app/lib/roleGroups';
-import { UserProfile } from '@/app/lib/types';
-
-import { eventSchema, type EventFormValues } from "@/app/components/calendar/EventFormDialog";
-import { useUserCalendarSettings } from '@/app/hooks/useUserCalendarSettings';
-import { extractUserGroups } from "@/app/lib/extractUserGroups";
-
-// ------------------------------
-// MUI Theme
-// ------------------------------
-const muiTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    background: {
-      default: '#0a0a0a',
-      paper: '#0f0f0f',
-    },
-    text: {
-      primary: '#ffffff',
-      secondary: 'rgba(255,255,255,0.7)',
-    },
-    primary: {
-      main: '#4f46e5',
-    },
-  },
-});
-
-// ------------------------------
-// Page Component
-// ------------------------------
 export default function CalendarPage() {
+  const router = useRouter();
   const { churchId } = useChurchId();
 
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
-  // Load user
   useEffect(() => {
     async function load() {
       const res = await fetch("/api/users/me");
@@ -77,50 +46,20 @@ export default function CalendarPage() {
     load();
   }, []);
 
-  // ❗ ALL HOOKS MUST RUN BEFORE ANY RETURN
+  const roles = user?.roles ?? [];
+  const isAdmin =
+    can(roles, "church.manage") || can(roles, "system.manage");
 
-  // Extract ministry groups (Music, Usher, Women, etc.)
-  const userGroups = user ? extractUserGroups(user) : [];
-  const primaryGroup = userGroups[0] ?? null;
-
-  // Ministry managers = anyone with a group but not Admin
-  const isMinistryManager =
-    userGroups.length > 0 && !user?.roles.includes("Admin");
-
-  // Admin + EventManager still use permission keys
-  const canCreate = canUser(user?.roles ?? [], "createEvents");
-
-  // FINAL canManage logic
-  const canManage = canCreate || isMinistryManager;
+  const canManage =
+    can(roles, "events.manage") || isAdmin;
 
   const { events } = useCalendarEvents(churchId, user);
   const month = useCalendarMonth();
   const filters = useCalendarFilters(events);
-
-  const form = useForm<EventFormValues>({
-    resolver: zodResolver(eventSchema),
-    defaultValues: {
-      title: '',
-      description: '',
-      date: new Date(),
-      isPublic: user?.roles.includes("Admin") ?? false,
-      groups: primaryGroup ? [primaryGroup] : [],
-    },
-  });
-
-  const dialogs = useCalendarDialogs(churchId, user, form);
   const { view, setView } = useUserCalendarSettings(user?.id ?? null);
-
-  // Selected day events
-  const selectedDayEvents = (() => {
-    const d = dialogs.selectedDate;
-    if (!d) return [];
-    return events.filter((e) => dateKey(e.date) === dateKey(d));
-  })();
 
   const viewControls = { view, setView };
 
-  // ❗ NOW we can safely return early
   if (loadingUser) return <div className="p-6">Loading...</div>;
   if (!user) return <div className="p-6">No user found.</div>;
 
@@ -160,24 +99,27 @@ export default function CalendarPage() {
         view={view}
         month={month.month}
         events={filters.filtered}
-        onSelectDate={dialogs.handleSelectDate}
+        onSelectDate={(date) => {
+          const key = dateKey(date);
+          router.push(`/calendar/day/${key}`);
+        }}
         onPrevMonth={month.prevMonth}
         onNextMonth={month.nextMonth}
-        onEdit={dialogs.handleEdit}
-        onDeleteRequest={dialogs.setDeleteId}
         canManage={canManage}
+        onEdit={(event) => {
+          if (!canManage) return;
+          // Service plan
+          if ("notes" in event) {
+            router.push(`/service-plan/${event.id}`);
+            return;
+          }
+          // Event
+          router.push(`/events/${event.id}`);
+        }}
       />
 
-      <CalendarDialogs
-        dialogs={dialogs}
-        selectedDayEvents={selectedDayEvents}
-        form={form}
-        muiTheme={muiTheme}
-        canManage={canManage}
-      />
-
-      {(canManage) && (
-        <Fab type="add" onClick={() => dialogs.handleAdd(new Date())} />
+      {canManage && (
+        <Fab type="add" onClick={() => router.push("/events/new")} />
       )}
     </>
   );

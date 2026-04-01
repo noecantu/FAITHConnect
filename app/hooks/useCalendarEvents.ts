@@ -5,6 +5,7 @@ import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
 import type { Event, UserProfile, ServicePlanFirestore } from "@/app/lib/types";
 import { canUserSeeEvent } from "@/app/lib/canUserSeeEvent";
+import { Role } from "../lib/auth/permissions/roles";
 
 // --------------------------------------------------
 // Normalizers
@@ -37,13 +38,7 @@ function normalizeEvent(raw: any, id: string): Event {
     description: raw.description ?? "",
     date,
     dateString: raw.dateString ?? date.toISOString().slice(0, 10),
-
-    // Handle legacy + new visibility fields
-    visibility:
-      raw.visibility ??
-      (raw.isPublic ? "public" : "private"),
-
-    // Always return an array
+    visibility: raw.visibility ?? (raw.isPublic ? "public" : "private"),
     groups: Array.isArray(raw.groups) ? raw.groups : [],
   };
 }
@@ -68,7 +63,7 @@ function normalizeServicePlan(raw: ServicePlanFirestore, id: string): Event {
 
 export function useCalendarEvents(
   churchId: string | null,
-  user: UserProfile | null
+  user: UserProfile | { id: string; roles: string[] } | null
 ) {
   const [events, setEvents] = useState<Event[]>([]);
 
@@ -81,7 +76,10 @@ export function useCalendarEvents(
     let latestEvents: Event[] = [];
     let latestServices: Event[] = [];
 
-    const currentUser = user;
+    const currentUser = {
+      ...user,
+      roles: user.roles as Role[],
+    };
 
     function updateCombined() {
       const combined = [...latestEvents, ...latestServices];

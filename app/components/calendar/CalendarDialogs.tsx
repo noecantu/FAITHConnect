@@ -90,18 +90,6 @@ export function CalendarDialogs({
         onDelete={(id) => setDeleteId(id)}
       />
 
-      {selectedDate && (
-        <DayEventsDialog
-          open={isDayEventsDialogOpen}
-          onOpenChange={setIsDayEventsDialogOpen}
-          date={selectedDate}
-          events={selectedDayEvents}
-          onAdd={handleAdd}
-          onEdit={handleEdit}
-          onDelete={(id) => setDeleteId(id)}
-          canManage={canManage}
-        />
-      )}
     </>
   );
 }

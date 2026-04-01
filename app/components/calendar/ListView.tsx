@@ -56,25 +56,24 @@ export function ListView({
             <ul className="space-y-2">
               {evts.map((e) => (
                 <li
-                  key={e.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => onEdit?.(e)}
-                  onKeyDown={(ev) => {
-                    if (ev.key === "Enter" || ev.key === " ") onEdit?.(e);
-                  }}
-                  className="border rounded-md p-3 flex items-start justify-between cursor-pointer hover:bg-muted/40 transition-colors"
-                >
-                  <div>
-                    <div className="font-medium">{e.title}</div>
-                    {e.description && (
-                      <div className="text-sm text-muted-foreground">
-                        {e.description}
-                      </div>
-                    )}
-                  </div>
-
-                </li>
+                key={e.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => onEdit?.(e)}
+                onKeyDown={(ev) => {
+                  if (ev.key === "Enter" || ev.key === " ") onEdit?.(e);
+                }}
+                className="border rounded-md p-3 flex items-start justify-between cursor-pointer hover:bg-muted/40 transition-colors"
+              >
+                <div>
+                  <div className="font-medium">{e.title}</div>
+                  {e.description && (
+                    <div className="text-sm text-muted-foreground">
+                      {e.description}
+                    </div>
+                  )}
+                </div>
+              </li>
               ))}
             </ul>
           </div>

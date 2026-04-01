@@ -141,18 +141,24 @@ export function EventFormDialog({
                   <FormControl>
                     <div className="relative">
                       <Flatpickr
-                        disabled={!canManage && isEditing}
-                        value={field.value}
+                        disabled={!canManage}
+                        value={
+                          field.value
+                            ? [new Date(field.value)] // RHF string → Date[]
+                            : []
+                        }
                         options={{
-                          defaultDate: field.value,
                           allowInput: false,
                           altInput: true,
                           altFormat: "m-d-Y",
-                          dateFormat: "m-d-Y",
+                          dateFormat: "Y-m-d", // canonical string format
                           monthSelectorType: "dropdown",
                         }}
                         onChange={([selected]) => {
-                          if (selected) field.onChange(selected);
+                          if (selected) {
+                            // Date → canonical string for RHF + Firestore
+                            field.onChange(format(selected, "yyyy-MM-dd"));
+                          }
                         }}
                         className="w-full px-3 py-2 text-sm rounded-md bg-transparent"
                       />
