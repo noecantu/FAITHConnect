@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { PageHeader } from "@/app/components/page-header";
 import { Fab } from "@/app/components/ui/fab";
 import { Button } from "@/app/components/ui/button";
@@ -10,6 +10,7 @@ import { Calendar, List } from "lucide-react";
 
 import { useChurchId } from "@/app/hooks/useChurchId";
 import { useCalendarEvents } from "@/app/hooks/useCalendarEvents";
+import { useUpcomingServices } from "@/app/hooks/useUpcomingServices";
 import { useCalendarMonth } from "@/app/hooks/useCalendarMonth";
 import { useCalendarFilters } from "@/app/hooks/useCalendarFilters";
 import { CalendarControls } from "@/app/components/calendar/CalendarControls";
@@ -17,10 +18,16 @@ import { CalendarViewSwitcher } from "@/app/components/calendar/CalendarViewSwit
 
 import { can } from "@/app/lib/auth/permissions";
 import type { Role } from "@/app/lib/roleGroups";
-import type { UserProfile } from "@/app/lib/types";
+import type { UserProfile, Event, ServicePlan } from "@/app/lib/types";
 import { useUserCalendarSettings } from "@/app/hooks/useUserCalendarSettings";
 import { useRouter } from "next/navigation";
 import { dateKey } from "@/app/lib/calendar/utils";
+import { canUserSeeEvent } from "@/app/lib/canUserSeeEvent";
+
+// ⭐ unified calendar item type
+type CalendarItem =
+  | (Event & { type: "event" })
+  | (ServicePlan & { type: "service" });
 
 export default function CalendarPage() {
   const router = useRouter();
@@ -54,8 +61,41 @@ export default function CalendarPage() {
     can(roles, "events.manage") || isAdmin;
 
   const { events } = useCalendarEvents(churchId, user);
+
+  // FIX 1 — call with only 1 argument
+  const { services } = useUpcomingServices(churchId);
+
+  // --- MERGE ---
+  const merged: CalendarItem[] = useMemo(() => {
+    const serviceItems: CalendarItem[] = services.map((sp) => ({
+      ...sp,
+      type: "service",
+      _key: `service-${sp.id}`,
+    }));
+
+    const realEvents: CalendarItem[] = events.map((ev) => ({
+      ...ev,
+      type: "event",
+      _key: `event-${ev.id}`,
+    }));
+
+    return [...realEvents, ...serviceItems];
+  }, [events, services]);
+
+  // --- VISIBILITY ---
+  const visible = useMemo(() => {
+    if (!user) return [];
+
+    return merged.filter((item) =>
+      canUserSeeEvent(user, {
+        visibility: item.visibility,
+        groups: item.groups,
+      })
+    );
+  }, [merged, user]);
+
   const month = useCalendarMonth();
-  const filters = useCalendarFilters(events);
+  const filters = useCalendarFilters(visible);
   const { view, setView } = useUserCalendarSettings(user?.id ?? null);
 
   const viewControls = { view, setView };
@@ -108,11 +148,13 @@ export default function CalendarPage() {
         canManage={canManage}
         onEdit={(event) => {
           if (!canManage) return;
-          // Service plan
-          if ("notes" in event) {
+
+          // ServicePlan
+          if ("timeString" in event) {
             router.push(`/service-plan/${event.id}`);
             return;
           }
+
           // Event
           router.push(`/events/${event.id}`);
         }}

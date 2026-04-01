@@ -168,7 +168,7 @@ export function GridCalendar({
                   <div className="hidden md:flex flex-col items-start w-full mt-1 space-y-1">
                     {dayEvents.slice(0, 2).map((event) => (
                       <div
-                        key={event.id}
+                        key={`${event.id}-${event.dateString}-${"timeString" in event ? "service" : "event"}`}
                         className="text-xs bg-primary/20 text-white rounded-sm px-1 truncate w-full text-left"
                       >
                         {event.title}

@@ -3,24 +3,22 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
-import type { ServicePlan, ServicePlanFirestore, UserProfile } from "@/app/lib/types";
-import { canUserSeeEvent } from "@/app/lib/canUserSeeEvent";
+import type { ServicePlan, ServicePlanFirestore } from "@/app/lib/types";
 
-export function useUpcomingServices(churchId: string | null, user: UserProfile | null) {
+export function useUpcomingServices(churchId: string | null) {
   const [services, setServices] = useState<ServicePlan[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isActive = true;
 
-    if (!churchId || !user) {
+    if (!churchId) {
       setServices([]);
       setLoading(false);
       return () => { isActive = false };
     }
 
     const safeChurchId = churchId;
-    const currentUser = user;
 
     const load = async () => {
       try {
@@ -47,21 +45,13 @@ export function useUpcomingServices(churchId: string | null, user: UserProfile |
             date,
             dateTime: date,
 
-            // ⭐ canonical visibility model
-            visibility: data.isPublic ? "public" : "private",
-            groups: data.groups ?? [],
+            // Always visible
+            visibility: "public",
+            groups: [],
           };
         });
 
-        // ⭐ canonical visibility engine
-        const visible = items.filter((service) =>
-          canUserSeeEvent(currentUser, {
-            visibility: service.visibility,
-            groups: service.groups,
-          })
-        );
-
-        setServices(visible);
+        setServices(items);
       } catch (err) {
         if (isActive) {
           console.error("Error loading upcoming services:", err);
@@ -77,7 +67,7 @@ export function useUpcomingServices(churchId: string | null, user: UserProfile |
     return () => {
       isActive = false;
     };
-  }, [churchId, user]);
+  }, [churchId]);
 
   return { services, loading };
 }
