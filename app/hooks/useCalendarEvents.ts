@@ -1,8 +1,70 @@
+'use client';
+
 import { useEffect, useState } from "react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
 import type { Event, UserProfile, ServicePlanFirestore } from "@/app/lib/types";
 import { canUserSeeEvent } from "@/app/lib/canUserSeeEvent";
+
+// --------------------------------------------------
+// Normalizers
+// --------------------------------------------------
+
+function normalizeDate(raw: any): Date {
+  if (!raw) return new Date();
+
+  // Firestore Timestamp
+  if (raw.toDate) return raw.toDate();
+
+  // ISO string or date string
+  if (typeof raw === "string") {
+    const d = new Date(raw);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  // JS Date
+  if (raw instanceof Date) return raw;
+
+  return new Date();
+}
+
+function normalizeEvent(raw: any, id: string): Event {
+  const date = normalizeDate(raw.date);
+
+  return {
+    id,
+    title: raw.title ?? "Untitled Event",
+    description: raw.description ?? "",
+    date,
+    dateString: raw.dateString ?? date.toISOString().slice(0, 10),
+
+    // Handle legacy + new visibility fields
+    visibility:
+      raw.visibility ??
+      (raw.isPublic ? "public" : "private"),
+
+    // Always return an array
+    groups: Array.isArray(raw.groups) ? raw.groups : [],
+  };
+}
+
+function normalizeServicePlan(raw: ServicePlanFirestore, id: string): Event {
+  const date = new Date(`${raw.dateString}T${raw.timeString}:00`);
+
+  return {
+    id,
+    title: raw.title ?? "Service",
+    notes: raw.notes ?? "",
+    date,
+    dateString: raw.dateString,
+    visibility: raw.isPublic ? "public" : "private",
+    groups: Array.isArray(raw.groups) ? raw.groups : [],
+  };
+}
+
+// --------------------------------------------------
+// Main Hook
+// --------------------------------------------------
 
 export function useCalendarEvents(
   churchId: string | null,
@@ -19,17 +81,13 @@ export function useCalendarEvents(
     let latestEvents: Event[] = [];
     let latestServices: Event[] = [];
 
-    if (!churchId || !user) {
-      setEvents([]);
-      return;
-    }
-
-    const currentUser = user; // ⭐ non-null guarantee
+    const currentUser = user;
 
     function updateCombined() {
       const combined = [...latestEvents, ...latestServices];
 
       const visible = combined.filter((item) => {
+        // Event Managers see everything
         if (currentUser.roles.includes("EventManager")) return true;
 
         return canUserSeeEvent(currentUser, {
@@ -49,26 +107,9 @@ export function useCalendarEvents(
     const eventsQuery = query(eventsRef, orderBy("date", "asc"));
 
     const unsubEvents = onSnapshot(eventsQuery, (snap) => {
-      latestEvents = snap.docs.map((d) => {
-        const raw = d.data() as any;
-
-        const date = raw.date?.toDate
-          ? raw.date.toDate()
-          : new Date(raw.date);
-
-        return {
-          id: d.id,
-          title: raw.title ?? "Event",
-          description: raw.description ?? "",
-          date,
-          dateString:
-            raw.dateString ??
-            raw.date?.toDate?.()?.toISOString?.()?.slice(0, 10) ??
-            "",
-          visibility: raw.visibility ?? "private",
-          groups: raw.groups ?? [],
-        } satisfies Event;
-      });
+      latestEvents = snap.docs.map((d) =>
+        normalizeEvent(d.data(), d.id)
+      );
 
       updateCombined();
     });
@@ -80,20 +121,9 @@ export function useCalendarEvents(
     const spQuery = query(spRef, orderBy("dateString", "asc"));
 
     const unsubSP = onSnapshot(spQuery, (snap) => {
-      latestServices = snap.docs.map((d) => {
-        const data = d.data() as ServicePlanFirestore;
-
-        const date = new Date(`${data.dateString}T${data.timeString}:00`);
-
-        return {
-          id: d.id,
-          title: data.title ?? "Service",
-          date,
-          dateString: data.dateString,
-          visibility: data.isPublic ? "public" : "private",
-          groups: data.groups ?? [],
-        } satisfies Event;
-      });
+      latestServices = snap.docs.map((d) =>
+        normalizeServicePlan(d.data() as ServicePlanFirestore, d.id)
+      );
 
       updateCombined();
     });
