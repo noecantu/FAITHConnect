@@ -59,12 +59,13 @@ export function useCalendarEvents(
         return {
           id: d.id,
           title: raw.title ?? "Event",
+          description: raw.description ?? "",
           date,
           dateString:
             raw.dateString ??
             raw.date?.toDate?.()?.toISOString?.()?.slice(0, 10) ??
             "",
-          visibility: raw.isPublic ? "public" : "private",
+          visibility: raw.visibility ?? "private",
           groups: raw.groups ?? [],
         } satisfies Event;
       });

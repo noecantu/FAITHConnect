@@ -82,13 +82,18 @@ export function useCalendarDialogs(
   const canDelete = user ? canUser(user.roles, "deleteEvents") : false;
 
   const userGroups = user ? extractUserGroups(user) : [];
+  const primaryGroup = userGroups[0] ?? null;
+
   const isEventManager = user?.roles.includes("EventManager") ?? false;
+
+  // NEW: Ministry managers can create private events
+  const isMinistryManager = userGroups.length > 0 && !user?.roles.includes("Admin");
 
   // -------------------------------
   // EDIT EVENT
   // -------------------------------
   function handleEdit(event: EventType) {
-    if (!canEdit) {
+    if (!canEdit && !isMinistryManager) {
       toast({
         title: 'Permission Denied',
         description: 'You cannot edit events.',
@@ -116,7 +121,7 @@ export function useCalendarDialogs(
 
     form.reset({
       title: event.title,
-      description: event.description ?? "",
+      description: event.description,
       date: normalizeDate(event.date),
       isPublic: event.visibility === "public",
       groups: event.groups ?? [],
@@ -130,7 +135,8 @@ export function useCalendarDialogs(
   // ADD EVENT
   // -------------------------------
   function handleAdd(date: Date) {
-    if (!canCreate) {
+    // FIX: Allow ministry managers to add events
+    if (!canCreate && !isMinistryManager) {
       toast({
         title: 'Permission Denied',
         description: 'You do not have permission to add events.',
@@ -142,8 +148,8 @@ export function useCalendarDialogs(
       title: "",
       description: "",
       date: normalizeDate(date),
-      isPublic: true,
-      groups: [],
+      isPublic: user?.roles.includes("Admin") ?? false,
+      groups: primaryGroup ? [primaryGroup] : [],
     });
 
     setEditEvent(null);
@@ -163,7 +169,7 @@ export function useCalendarDialogs(
       return;
     }
 
-    if (!canDelete) {
+    if (!canDelete && !isMinistryManager) {
       toast({
         title: 'Permission Denied',
         description: 'You cannot delete events.',
@@ -225,7 +231,11 @@ export function useCalendarDialogs(
     const dateToStore = safeDateOnly(normalized);
 
     const isPublic = data.isPublic ?? true;
-    const groups = Array.isArray(data.groups) ? data.groups : [];
+
+    // ✅ Normalize groups to lowercase
+    const groups = Array.isArray(data.groups)
+      ? data.groups.map(g => g.toLowerCase())
+      : [];
 
     try {
       if (isEditing && editEvent) {
@@ -237,7 +247,7 @@ export function useCalendarDialogs(
           description: data.description ?? '',
           date: dateToStore,
           visibility: isPublic ? "public" : "private",
-          groups,
+          groups, // ✅ now normalized
           updatedAt: serverTimestamp(),
         });
 
@@ -253,8 +263,17 @@ export function useCalendarDialogs(
           title: data.title,
           description: data.description ?? '',
           date: dateToStore,
-          visibility: data.isPublic ? "public" : "private",
-          groups,
+          visibility: user?.roles.includes("Admin")
+            ? (data.isPublic ? "public" : "private")
+            : "private",
+
+          // ✅ Normalize groups for new events too
+          groups: user?.roles.includes("Admin")
+            ? groups
+            : primaryGroup
+              ? [primaryGroup.toLowerCase()]
+              : [],
+
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });

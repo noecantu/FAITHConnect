@@ -28,6 +28,7 @@ import { UserProfile } from '@/app/lib/types';
 
 import { eventSchema, type EventFormValues } from "@/app/components/calendar/EventFormDialog";
 import { useUserCalendarSettings } from '@/app/hooks/useUserCalendarSettings';
+import { extractUserGroups } from "@/app/lib/extractUserGroups";
 
 // ------------------------------
 // MUI Theme
@@ -77,7 +78,20 @@ export default function CalendarPage() {
   }, []);
 
   // ❗ ALL HOOKS MUST RUN BEFORE ANY RETURN
-  const canManage = canUser(user?.roles ?? [], "createEvents");
+
+  // Extract ministry groups (Music, Usher, Women, etc.)
+  const userGroups = user ? extractUserGroups(user) : [];
+  const primaryGroup = userGroups[0] ?? null;
+
+  // Ministry managers = anyone with a group but not Admin
+  const isMinistryManager =
+    userGroups.length > 0 && !user?.roles.includes("Admin");
+
+  // Admin + EventManager still use permission keys
+  const canCreate = canUser(user?.roles ?? [], "createEvents");
+
+  // FINAL canManage logic
+  const canManage = canCreate || isMinistryManager;
 
   const { events } = useCalendarEvents(churchId, user);
   const month = useCalendarMonth();
@@ -89,8 +103,8 @@ export default function CalendarPage() {
       title: '',
       description: '',
       date: new Date(),
-      isPublic: false,
-      groups: [],
+      isPublic: user?.roles.includes("Admin") ?? false,
+      groups: primaryGroup ? [primaryGroup] : [],
     },
   });
 
@@ -162,7 +176,7 @@ export default function CalendarPage() {
         canManage={canManage}
       />
 
-      {canManage && (
+      {(canManage) && (
         <Fab type="add" onClick={() => dialogs.handleAdd(new Date())} />
       )}
     </>

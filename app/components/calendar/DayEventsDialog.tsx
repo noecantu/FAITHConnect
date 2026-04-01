@@ -28,7 +28,6 @@ export function DayEventsDialog({
   onDelete,
   canManage,
 }: DayEventsDialogProps) {
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <StandardDialogLayout
@@ -55,9 +54,13 @@ export function DayEventsDialog({
                 className="flex items-start justify-between rounded-lg border p-3 bg-card"
               >
                 <div className="space-y-1 overflow-hidden mr-2">
-                  <h4 className="font-semibold leading-none truncate">{event.title}</h4>
-                  {event.description && (
-                    <p className="text-sm text-muted-foreground">
+                  <h4 className="font-semibold leading-none truncate">
+                    {event.title}
+                  </h4>
+
+                  {/* FIXED: safe description rendering */}
+                  {event.description && event.description.length > 0 && (
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                       {event.description}
                     </p>
                   )}

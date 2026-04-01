@@ -16,18 +16,26 @@ export interface UserLike {
 export function extractUserGroups(user: UserLike): MinistryGroup[] {
   const { roles } = user;
 
-  // 1. Admins automatically belong to ALL groups
   if (isAdmin(roles)) {
-    return getAllGroupsForRoles(["Admin"]); // Admin already maps to all groups
+    return getAllGroupsForRoles(["Admin"]);
   }
 
   const groups = new Set<MinistryGroup>();
 
-  // 2. Add groups implied by roles (MusicManager → ["Music"], etc.)
+  // 2. Add groups implied by roles
   const roleGroups = getAllGroupsForRoles(roles);
   roleGroups.forEach(g => groups.add(g));
 
-  // 3. Legacy fallback: If generic GroupManager, use user.group
+  // 2b. Ensure ministry managers get their primary group
+  const managerGroup = roles
+    .map(r => normalizeGroupName(r))
+    .filter(Boolean)[0];
+
+  if (managerGroup) {
+    groups.add(managerGroup as MinistryGroup);
+  }
+
+  // 3. Legacy fallback
   if (roles.includes("GroupManager") && user.group) {
     const normalized = normalizeGroupName(user.group);
     if (normalized) groups.add(normalized);

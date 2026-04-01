@@ -72,6 +72,7 @@ export type Event = {
   dateString: string;
   date: Date;
   description?: string;
+  notes?: string;
   visibility: "public" | "private";
   groups: string[];
 };
