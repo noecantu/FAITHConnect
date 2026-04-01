@@ -15,6 +15,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Event } from '@/app/lib/types';
 import { dateKey } from '@/app/lib/calendar/utils';
 import { useRouter } from 'next/navigation';
+import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 
 interface GridCalendarProps {
   month: Date;
@@ -35,6 +36,14 @@ export function GridCalendar({
 }: GridCalendarProps) {
 
   const router = useRouter();
+
+  const { user } = useCurrentUser();
+
+  const managerRoles = user?.roles?.filter(r => r.endsWith("GroupManager")) ?? [];
+
+  const managerGroups = managerRoles.map(r =>
+    r.replace("GroupManager", "").toLowerCase()
+  );
 
   const eventsByDay = events.reduce((acc, event) => {
     const key = dateKey(event.date);
@@ -58,16 +67,40 @@ export function GridCalendar({
 
   // 🔥 Canonical click handler for events vs service plans
   const handleEventClick = (event: Event) => {
-    if (onEdit) return onEdit(event);
+    if (onEdit) {
+      if (canEditEvent(event)) {
+        return onEdit(event);
+      }
+      return; // not allowed
+    }
 
+    // fallback navigation
     const isEvent = !!event.date;
-
     if (isEvent) {
       router.push(`/events/${event.id}`);
     } else {
       router.push(`/service-plan/${event.id}`);
     }
   };
+
+  function canEditEvent(event: Event): boolean {
+    const roles = user?.roles ?? [];
+
+    // Admins / EventManagers
+    if (roles.includes("Admin") || roles.includes("EventManager")) {
+      return true;
+    }
+
+    // Normalize event groups
+    const eventGroups = (event.groups ?? []).map(g => g.toLowerCase());
+
+    // Group managers
+    if (managerGroups.some(g => eventGroups.includes(g))) {
+      return true;
+    }
+
+    return false;
+  }
 
   return (
     <Card>
@@ -136,11 +169,7 @@ export function GridCalendar({
                     {dayEvents.slice(0, 2).map((event) => (
                       <div
                         key={event.id}
-                        className="text-xs bg-primary/20 text-white rounded-sm px-1 truncate w-full text-left hover:bg-primary/30 cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation(); // prevent selecting the day
-                          handleEventClick(event);
-                        }}
+                        className="text-xs bg-primary/20 text-white rounded-sm px-1 truncate w-full text-left"
                       >
                         {event.title}
                       </div>

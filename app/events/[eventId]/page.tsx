@@ -7,6 +7,7 @@ import { db } from "@/app/lib/firebase/client";
 import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 import { useChurchId } from "@/app/hooks/useChurchId";
 import EventEditor from "@/app/components/calendar/EventEditor";
+import { can } from "@/app/lib/auth/permissions/can";
 
 export default function EditEventPage({
   params,
@@ -21,6 +22,14 @@ export default function EditEventPage({
 
   const [eventData, setEventData] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const { user } = useCurrentUser();
+  const managerRoles = user?.roles?.filter(r => r.endsWith("GroupManager")) ?? [];
+  const normalize = (g: string) =>
+    g.toLowerCase().replace(/s$/, "");
+  const managerGroups = managerRoles.map(r =>
+    normalize(r.replace("GroupManager", ""))
+  );
 
   // Load event
   useEffect(() => {
@@ -48,12 +57,12 @@ export default function EditEventPage({
 
 
   // Permission check AFTER hooks
-  if (!canManageEvents) {
+  if (!eventData || !canEditEvent(eventData)) {
     return (
       <div className="p-6">
         <h1 className="text-xl font-semibold">Unauthorized</h1>
         <p className="text-sm text-muted-foreground">
-          You do not have permission to edit events.
+          You do not have permission to edit this event.
         </p>
       </div>
     );
@@ -72,6 +81,25 @@ export default function EditEventPage({
         </p>
       </div>
     );
+  }
+
+  function canEditEvent(event: any): boolean {
+    const roles = user?.roles ?? [];
+
+    // Admin / EventManager
+    if (can(roles, "events.manage")) return true;
+    if (can(roles, "church.manage")) return true;
+    if (can(roles, "system.manage")) return true;
+
+    // Normalize event groups
+    const eventGroups = (event.groups ?? []).map(normalize);
+
+    // Group manager match
+    if (managerGroups.some(g => eventGroups.includes(g))) {
+      return true;
+    }
+
+    return false;
   }
 
   return (

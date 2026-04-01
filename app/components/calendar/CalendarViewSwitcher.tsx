@@ -37,11 +37,10 @@ export function CalendarViewSwitcher({
   // Stable edit handler
   const handleEdit = useCallback(
     (event: Event) => {
-      if (!canManage) return;
       if (!onEdit) return;
       onEdit(event);
     },
-    [canManage, onEdit]
+    [onEdit]
   );
 
   // Stable delete handler
@@ -64,7 +63,7 @@ export function CalendarViewSwitcher({
           onSelectDate={onSelectDate}
           onPrevMonth={onPrevMonth}
           onNextMonth={onNextMonth}
-          onEdit={canManage ? handleEdit : undefined}
+          onEdit={onEdit}
         />
       );
     }

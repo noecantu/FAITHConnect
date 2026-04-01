@@ -6,6 +6,8 @@ import type { Event } from "@/app/lib/types";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { usePreviewPagination } from "@/app/hooks/usePreviewPagination";
 import { PreviewPaginationFooter } from "@/app/components/layout/PreviewPaginationFooter";
+import { useCurrentUser } from "@/app/hooks/useCurrentUser";
+import { can } from "@/app/lib/auth/permissions/can";
 
 export function ListView({
   events,
@@ -15,6 +17,15 @@ export function ListView({
   onEdit?: (event: Event) => void;
   onDeleteRequest?: (id: string) => void;
 }) {
+
+  const { user } = useCurrentUser();
+  const managerRoles = user?.roles?.filter(r => r.endsWith("GroupManager")) ?? [];
+  const normalize = (g: string) =>
+    g.toLowerCase().replace(/s$/, ""); // remove trailing s
+  const managerGroups = managerRoles.map(r =>
+    normalize(r.replace("GroupManager", ""))
+  );
+
   // GROUP EVENTS BY DAY
   const grouped = React.useMemo(() => {
     const map = new Map<string, Event[]>();
@@ -40,6 +51,29 @@ export function ListView({
     visible
   } = usePreviewPagination(grouped, 20);
 
+  function canEditEvent(event: Event): boolean {
+    const roles = user?.roles ?? [];
+
+    // Admin / EventManager
+    if (can(roles, "events.manage")) return true;
+    if (can(roles, "church.manage")) return true;
+    if (can(roles, "system.manage")) return true;
+
+    // Normalize event groups
+    const eventGroups = (event.groups ?? []).map(normalize);
+
+console.log("DEBUG — managerGroups:", managerGroups);
+console.log("DEBUG — eventGroups:", eventGroups);
+console.log("DEBUG — raw event.groups:", event.groups);
+
+    // Group manager match
+    if (managerGroups.some(g => eventGroups.includes(g))) {
+      return true;
+    }
+
+    return false;
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -59,9 +93,18 @@ export function ListView({
                 key={e.id}
                 role="button"
                 tabIndex={0}
-                onClick={() => onEdit?.(e)}
+                onClick={() => {
+                  if (!onEdit) return;
+                  if (!canEditEvent(e)) return;
+                  onEdit(e);
+                }}
                 onKeyDown={(ev) => {
-                  if (ev.key === "Enter" || ev.key === " ") onEdit?.(e);
+                  if (!onEdit) return;
+                  if (!canEditEvent(e)) return;
+
+                  if (ev.key === "Enter" || ev.key === " ") {
+                    onEdit(e);
+                  }
                 }}
                 className="border rounded-md p-3 flex items-start justify-between cursor-pointer hover:bg-muted/40 transition-colors"
               >
