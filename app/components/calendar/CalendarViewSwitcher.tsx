@@ -3,22 +3,24 @@
 import { useCallback, useMemo } from "react";
 import { GridCalendar } from "./GridCalendar";
 import { ListView } from "./ListView";
-import type { Event } from "@/app/lib/types";
+import type { Event, ServicePlan } from "@/app/lib/types";
+
+type CalendarItem =
+  | (Event & { type: "event" })
+  | (ServicePlan & { type: "service" });
 
 interface CalendarViewSwitcherProps {
   view: "calendar" | "list";
 
-  // Calendar props
   month: Date;
-  events: Event[];
+  events: CalendarItem[];
   onSelectDate: (date: Date) => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
 
-  // Unified permission flag
   canManage: boolean;
 
-  onEdit?: (event: Event) => void;
+  onEdit?: (event: CalendarItem) => void;
   onDeleteRequest?: (id: string) => void;
 }
 
@@ -34,16 +36,14 @@ export function CalendarViewSwitcher({
   onDeleteRequest,
 }: CalendarViewSwitcherProps) {
 
-  // Stable edit handler
   const handleEdit = useCallback(
-    (event: Event) => {
+    (item: CalendarItem) => {
       if (!onEdit) return;
-      onEdit(event);
+      onEdit(item);
     },
     [onEdit]
   );
 
-  // Stable delete handler
   const handleDelete = useCallback(
     (id: string) => {
       if (!canManage) return;
@@ -53,7 +53,6 @@ export function CalendarViewSwitcher({
     [canManage, onDeleteRequest]
   );
 
-  // Memoized render
   return useMemo(() => {
     if (view === "calendar") {
       return (
@@ -63,7 +62,6 @@ export function CalendarViewSwitcher({
           onSelectDate={onSelectDate}
           onPrevMonth={onPrevMonth}
           onNextMonth={onNextMonth}
-          onEdit={onEdit}
         />
       );
     }

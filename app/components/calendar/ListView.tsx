@@ -2,45 +2,47 @@
 
 import * as React from "react";
 import { format } from "date-fns";
-import type { Event } from "@/app/lib/types";
+import type { Event, ServicePlan } from "@/app/lib/types";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { usePreviewPagination } from "@/app/hooks/usePreviewPagination";
 import { PreviewPaginationFooter } from "@/app/components/layout/PreviewPaginationFooter";
 import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 import { can } from "@/app/lib/auth/permissions/can";
 
+type CalendarItem =
+  | (Event & { type: "event" })
+  | (ServicePlan & { type: "service" });
+
 export function ListView({
   events,
   onEdit,
 }: {
-  events: Event[];
-  onEdit?: (event: Event) => void;
+  events: CalendarItem[];
+  onEdit?: (event: CalendarItem) => void;
   onDeleteRequest?: (id: string) => void;
 }) {
 
   const { user } = useCurrentUser();
   const managerRoles = user?.roles?.filter(r => r.endsWith("GroupManager")) ?? [];
   const normalize = (g: string) =>
-    g.toLowerCase().replace(/s$/, ""); // remove trailing s
+    g.toLowerCase().replace(/s$/, "");
   const managerGroups = managerRoles.map(r =>
     normalize(r.replace("GroupManager", ""))
   );
 
-  // GROUP EVENTS BY DAY
+  // GROUP BY DAY
   const grouped = React.useMemo(() => {
-    const map = new Map<string, Event[]>();
-
+    const map = new Map<string, CalendarItem[]>();
     for (const e of events) {
       const key = format(e.date, "yyyy-MM-dd");
       const arr = map.get(key) ?? [];
       arr.push(e);
       map.set(key, arr);
     }
-
     return Array.from(map.entries());
   }, [events]);
 
-  // PAGINATION — 20 groups per page
+  // PAGINATION
   const {
     page,
     totalPages,
@@ -51,27 +53,25 @@ export function ListView({
     visible
   } = usePreviewPagination(grouped, 20);
 
-  function canEditEvent(event: Event): boolean {
+  function canEditItem(item: CalendarItem): boolean {
     const roles = user?.roles ?? [];
 
-    // Admin / EventManager
+    // ServicePlan
+    if (item.type === "service") {
+      return (
+        can(roles, "events.manage") ||
+        can(roles, "church.manage") ||
+        can(roles, "system.manage")
+      );
+    }
+
+    // Event
     if (can(roles, "events.manage")) return true;
     if (can(roles, "church.manage")) return true;
     if (can(roles, "system.manage")) return true;
 
-    // Normalize event groups
-    const eventGroups = (event.groups ?? []).map(normalize);
-
-console.log("DEBUG — managerGroups:", managerGroups);
-console.log("DEBUG — eventGroups:", eventGroups);
-console.log("DEBUG — raw event.groups:", event.groups);
-
-    // Group manager match
-    if (managerGroups.some(g => eventGroups.includes(g))) {
-      return true;
-    }
-
-    return false;
+    const eventGroups = (item.groups ?? []).map(normalize);
+    return managerGroups.some(g => eventGroups.includes(g));
   }
 
   return (
@@ -90,39 +90,38 @@ console.log("DEBUG — raw event.groups:", event.groups);
             <ul className="space-y-2">
               {evts.map((e) => (
                 <li
-                key={e.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => {
-                  if (!onEdit) return;
-                  if (!canEditEvent(e)) return;
-                  onEdit(e);
-                }}
-                onKeyDown={(ev) => {
-                  if (!onEdit) return;
-                  if (!canEditEvent(e)) return;
-
-                  if (ev.key === "Enter" || ev.key === " ") {
+                  key={e.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => {
+                    if (!onEdit) return;
+                    if (!canEditItem(e)) return;
                     onEdit(e);
-                  }
-                }}
-                className="border rounded-md p-3 flex items-start justify-between cursor-pointer hover:bg-muted/40 transition-colors"
-              >
-                <div>
-                  <div className="font-medium">{e.title}</div>
-                  {e.description && (
-                    <div className="text-sm text-muted-foreground">
-                      {e.description}
-                    </div>
-                  )}
-                </div>
-              </li>
+                  }}
+                  onKeyDown={(ev) => {
+                    if (!onEdit) return;
+                    if (!canEditItem(e)) return;
+                    if (ev.key === "Enter" || ev.key === " ") {
+                      onEdit(e);
+                    }
+                  }}
+                  className="border rounded-md p-3 flex items-start justify-between cursor-pointer hover:bg-muted/40 transition-colors"
+                >
+                  <div>
+                    <div className="font-medium">{e.title}</div>
+
+                    {"description" in e && e.description && (
+                      <div className="text-sm text-muted-foreground">
+                        {e.description}
+                      </div>
+                    )}
+                  </div>
+                </li>
               ))}
             </ul>
           </div>
         ))}
 
-        {/* Unified footer */}
         <PreviewPaginationFooter
           start={start}
           end={end}

@@ -12,18 +12,16 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Event } from '@/app/lib/types';
+import type { Event, ServicePlan } from '@/app/lib/types';
 import { dateKey } from '@/app/lib/calendar/utils';
-import { useRouter } from 'next/navigation';
-import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 
 interface GridCalendarProps {
   month: Date;
   onSelectDate: (date: Date) => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
-  events: Event[];
-  onEdit?: (event: Event) => void;
+  events: (Event | ServicePlan)[];
+  onEdit?: (event: Event | ServicePlan) => void;
 }
 
 export function GridCalendar({
@@ -32,25 +30,14 @@ export function GridCalendar({
   onPrevMonth,
   onNextMonth,
   events,
-  onEdit,
-}: GridCalendarProps) {
+}: GridCalendarProps) {  
 
-  const router = useRouter();
-
-  const { user } = useCurrentUser();
-
-  const managerRoles = user?.roles?.filter(r => r.endsWith("GroupManager")) ?? [];
-
-  const managerGroups = managerRoles.map(r =>
-    r.replace("GroupManager", "").toLowerCase()
-  );
-
-  const eventsByDay = events.reduce((acc, event) => {
-    const key = dateKey(event.date);
+  const eventsByDay = events.reduce((acc, item) => {
+    const key = dateKey(item.date);
     if (!acc[key]) acc[key] = [];
-    acc[key].push(event);
+    acc[key].push(item);
     return acc;
-  }, {} as Record<string, Event[]>);
+  }, {} as Record<string, (Event | ServicePlan)[]>);
 
   const monthStart = startOfMonth(month);
   const monthEnd = endOfMonth(month);
@@ -64,43 +51,6 @@ export function GridCalendar({
     ...monthDays,
     ...Array.from({ length: trailingBlanks }).map(() => null),
   ];
-
-  // 🔥 Canonical click handler for events vs service plans
-  const handleEventClick = (event: Event) => {
-    if (onEdit) {
-      if (canEditEvent(event)) {
-        return onEdit(event);
-      }
-      return; // not allowed
-    }
-
-    // fallback navigation
-    const isEvent = !!event.date;
-    if (isEvent) {
-      router.push(`/events/${event.id}`);
-    } else {
-      router.push(`/service-plan/${event.id}`);
-    }
-  };
-
-  function canEditEvent(event: Event): boolean {
-    const roles = user?.roles ?? [];
-
-    // Admins / EventManagers
-    if (roles.includes("Admin") || roles.includes("EventManager")) {
-      return true;
-    }
-
-    // Normalize event groups
-    const eventGroups = (event.groups ?? []).map(g => g.toLowerCase());
-
-    // Group managers
-    if (managerGroups.some(g => eventGroups.includes(g))) {
-      return true;
-    }
-
-    return false;
-  }
 
   return (
     <Card>
