@@ -36,7 +36,7 @@ export default function StorageUsageCard({
         {onRefresh && (
           <Button
             variant="outline"
-            size="icon"
+            size="sm"
             onClick={onRefresh}
             disabled={refreshing}
           >
