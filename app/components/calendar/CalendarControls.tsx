@@ -34,6 +34,7 @@ interface FilterControls {
 }
 
 interface CalendarControlsProps {
+  events: { date: Date }[];
   month: MonthControls;
   view: ViewControls;
   filters: FilterControls;
@@ -41,17 +42,30 @@ interface CalendarControlsProps {
 }
 
 export function CalendarControls({
+  events,
   month,
   view,
   filters,
 }: CalendarControlsProps) {
-  const months = Array.from({ length: 12 }, (_, i) => ({
-    value: i,
-    label: format(new Date(0, i), 'MMMM'),
-  }));
 
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
+  // ⭐ Extract available years from actual event data
+  const years = Array.from(
+    new Set(events.map(e => e.date.getFullYear()))
+  ).sort((a, b) => a - b);
+
+  // ⭐ Extract available months for the selected year
+  const months = Array.from(
+    new Set(
+      events
+        .filter(e => e.date.getFullYear() === month.month.getFullYear())
+        .map(e => e.date.getMonth())
+    )
+  )
+    .sort((a, b) => a - b)
+    .map(m => ({
+      value: m,
+      label: format(new Date(0, m), 'MMMM'),
+    }));
 
   return (
     <div className="space-y-4 mb-4">

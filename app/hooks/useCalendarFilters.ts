@@ -1,24 +1,31 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { Event as EventType } from '../lib/types';
 
-export function useCalendarFilters(events: EventType[]) {
+export function useCalendarFilters<
+  T extends { title: string; date: Date | string }
+>(events: T[]) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'future' | 'past'>('all');
   const [sort, setSort] = useState<'newest' | 'oldest'>('newest');
 
   const filtered = useMemo(() => {
-    // Normalize dates so sorting ALWAYS works
-    let result = events.map(e => ({
-      ...e,
-      date: e.date instanceof Date ? e.date : new Date(e.date)
-    }));
+    // ⭐ Normalize dates AND narrow type
+    const normalized = events.map((e) => {
+      const date = e.date instanceof Date ? e.date : new Date(e.date);
+
+      // ⭐ Tell TS: this is still T, but with date: Date
+      return { ...e, date } as T & { date: Date };
+    });
+
+    let result = normalized;
 
     // SEARCH
     if (search.trim()) {
       const s = search.toLowerCase();
-      result = result.filter((e) => e.title.toLowerCase().includes(s));
+      result = result.filter((e) =>
+        e.title.toLowerCase().includes(s)
+      );
     }
 
     // FILTER
@@ -26,13 +33,17 @@ export function useCalendarFilters(events: EventType[]) {
     today.setHours(0, 0, 0, 0);
 
     if (filter === 'future') {
-      result = result.filter((e) => e.date.getTime() >= today.getTime());
+      result = result.filter(
+        (e) => e.date.getTime() >= today.getTime()
+      );
     } else if (filter === 'past') {
-      result = result.filter((e) => e.date.getTime() < today.getTime());
+      result = result.filter(
+        (e) => e.date.getTime() < today.getTime()
+      );
     }
 
-    // SORT (only newest/oldest now)
-    result.sort((a, b) => {
+    // SORT
+    result = [...result].sort((a, b) => {
       if (sort === 'newest') return b.date.getTime() - a.date.getTime();
       if (sort === 'oldest') return a.date.getTime() - b.date.getTime();
       return 0;

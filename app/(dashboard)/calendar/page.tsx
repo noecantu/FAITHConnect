@@ -1,5 +1,3 @@
-//app/(dashboard)/calendar/page.tsx
-
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
@@ -95,9 +93,11 @@ export default function CalendarPage() {
   }, [merged, user]);
 
   const month = useCalendarMonth();
-  const filters = useCalendarFilters(visible);
-  const { view, setView } = useUserCalendarSettings(user?.id ?? null);
 
+  // ⭐ FIX: preserve CalendarItem type
+  const filters = useCalendarFilters<CalendarItem>(visible);
+
+  const { view, setView } = useUserCalendarSettings(user?.id ?? null);
   const viewControls = { view, setView };
 
   if (loadingUser) return <div className="p-6">Loading...</div>;
@@ -133,6 +133,7 @@ export default function CalendarPage() {
         view={viewControls}
         filters={filters}
         user={user}
+        events={filters.filtered}
       />
 
       <CalendarViewSwitcher
