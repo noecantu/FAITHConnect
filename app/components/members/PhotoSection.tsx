@@ -35,7 +35,7 @@ export function PhotoSection({
   handleRemovePhoto,
 }: Props) {
   return (
-    <Card>
+    <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
       <CardHeader className="pb-2">
         <CardTitle className="text-xl">Photo</CardTitle>
       </CardHeader>

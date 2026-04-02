@@ -56,7 +56,7 @@ export function RelationshipsSection({
   const tempType = form.watch("__temp_rel_type");
 
   return (
-    <Card>
+    <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
       <CardHeader>
         <CardTitle className="text-xl">Relationships</CardTitle>
         <CardDescription>Manage member relationships.</CardDescription>

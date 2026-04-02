@@ -37,7 +37,7 @@ export function MemberInfoSection({ form }: Props) {
   }, [phone.digits, form]);
 
   return (
-    <Card>
+    <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
       <CardHeader>
         <CardTitle className="text-xl">Member Information</CardTitle>
       </CardHeader>
