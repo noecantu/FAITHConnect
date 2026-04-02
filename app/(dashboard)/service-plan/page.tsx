@@ -170,7 +170,7 @@ export default function ServicePlanPage() {
             <Select value={filter} onValueChange={handleFilterChange}>
               <SelectTrigger
                 className="
-                  w-[140px] h-9
+                  w-full h-9
                   bg-black/40 border border-white/30 backdrop-blur-xl
                   text-white/80
                   hover:bg-white/5 hover:border-white/20
@@ -189,7 +189,7 @@ export default function ServicePlanPage() {
             <Select value={sort} onValueChange={handleSortChange}>
               <SelectTrigger
                 className="
-                  w-[140px] h-9
+                  w-full h-9
                   bg-black/40 border border-white/30 backdrop-blur-xl
                   text-white/80
                   hover:bg-white/5 hover:border-white/20
