@@ -153,7 +153,7 @@ export default function SetListsPage() {
             />
 
             {search.length > 0 && (
-              <Button variant="outline" onClick={() => setSearch('')}>
+              <Button variant="ghost" className="bg-black/30 border border-white/30 backdrop-blur-xl" onClick={() => setSearch('')}>
                 Clear
               </Button>
             )}
@@ -203,25 +203,6 @@ export default function SetListsPage() {
           </div>
         </div>
       </div>
-
-      {/* Empty State */}
-      {rows.length === 0 && (
-        <div className="py-20 text-center text-muted-foreground">
-          <p>No set lists found.</p>
-          {(search || filter !== 'all') && (
-            <Button
-              variant="ghost"
-              className="mt-3"
-              onClick={() => {
-                setSearch('');
-                setFilter('all');
-              }}
-            >
-              Clear filters
-            </Button>
-          )}
-        </div>
-      )}
 
       {/* ⭐ Card wrapper for list + footer */}
       <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
