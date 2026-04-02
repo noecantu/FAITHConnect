@@ -21,6 +21,7 @@ import { useUserCalendarSettings } from "@/app/hooks/useUserCalendarSettings";
 import { useRouter } from "next/navigation";
 import { dateKey } from "@/app/lib/calendar/utils";
 import { canUserSeeEvent } from "@/app/lib/canUserSeeEvent";
+import { cn } from "@/app/lib/utils";
 
 type CalendarItem =
   | (Event & { type: "event" })
@@ -106,18 +107,30 @@ export default function CalendarPage() {
       >
         <div className="flex items-center gap-2">
           <Button
-            variant={view === "calendar" ? "default" : "outline"}
             size="sm"
+            variant="ghost"
             onClick={() => setView("calendar")}
+            className={cn(
+              "flex items-center gap-2",
+              "bg-black/30 border border-white/10 backdrop-blur-xl",
+              "hover:bg-white/5 hover:border-white/20 transition",
+              view === "calendar" && "bg-white/10 border-white/20"
+            )}
           >
             Calendar
             <Calendar className="h-5 w-5" />
           </Button>
 
           <Button
-            variant={view === "list" ? "default" : "outline"}
             size="sm"
+            variant="ghost"
             onClick={() => setView("list")}
+            className={cn(
+              "flex items-center gap-2",
+              "bg-black/30 border border-white/10 backdrop-blur-xl",
+              "hover:bg-white/5 hover:border-white/20 transition",
+              view === "list" && "bg-white/10 border-white/20"
+            )}
           >
             List
             <List className="h-5 w-5" />

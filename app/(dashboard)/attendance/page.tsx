@@ -241,13 +241,13 @@ export default function AttendancePageContent() {
         />
 
         <Button
-          variant="outline"
+          variant="ghost"
           onClick={() => {
             const today = new Date();
             setDate(today);
             router.push(`/attendance?date=${format(today, "yyyy-MM-dd")}`);
           }}
-          className="text-white/80 border-white/30 bg-black/30"
+          className="bg-black/30 border border-white/30 backdrop-blur-xl"
         >
           Today
         </Button>

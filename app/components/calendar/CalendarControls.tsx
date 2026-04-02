@@ -83,9 +83,9 @@ export function CalendarControls({
                 <SelectTrigger
                   className="
                     w-[140px] h-9
-                    bg-black/40 border border-white/10 backdrop-blur-xl
+                    bg-black/40 border border-white/30 backdrop-blur-xl
                     text-white/80
-                    hover:bg-white/5 hover:border-white/20
+                    hover:bg-white/5 hover:border-white/30
                     transition
                   "
                 >
@@ -110,9 +110,9 @@ export function CalendarControls({
                 <SelectTrigger
                   className="
                     w-[140px] h-9
-                    bg-black/40 border border-white/10 backdrop-blur-xl
+                    bg-black/40 border border-white/30 backdrop-blur-xl
                     text-white/80
-                    hover:bg-white/5 hover:border-white/20
+                    hover:bg-white/5 hover:border-white/30
                     transition
                   "
                 >
@@ -129,9 +129,9 @@ export function CalendarControls({
 
             {/* Today */}
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={month.goToday}
-              className="text-white/80 border-white/30 bg-black/30"
+              className="bg-black/30 border border-white/30 backdrop-blur-xl"
             >
               Today
             </Button>
@@ -166,7 +166,7 @@ export function CalendarControls({
                 <SelectTrigger
                   className="
                     w-[140px] h-9
-                    bg-black/40 border border-white/10 backdrop-blur-xl
+                    bg-black/40 border border-white/30 backdrop-blur-xl
                     text-white/80
                     hover:bg-white/5 hover:border-white/20
                     transition
