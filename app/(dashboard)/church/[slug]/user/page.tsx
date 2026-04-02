@@ -13,6 +13,7 @@ import { CalendarCheck, CalendarHeart, Calendar } from "lucide-react";
 import { useUpcomingEvents } from "@/app/hooks/useUpcomingEvents";
 import { useUpcomingServices } from "@/app/hooks/useUpcomingServices";
 import { isAdmin, Role } from "@/app/lib/roleGroups";
+import { PageHeader } from "@/app/components/page-header";
 
 export default function UserDashboardPage({
   params,
@@ -248,14 +249,5 @@ function QuickAction({ href, icon: Icon, label }: { href: string; icon: IconType
         <span>{label}</span>
       </Link>
     </Button>
-  );
-}
-
-function PageHeader({ title, subtitle }: { title: string; subtitle: string }) {
-  return (
-    <div>
-      <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">{title}</h1>
-      <p className="text-sm text-muted-foreground">{subtitle}</p>
-    </div>
   );
 }

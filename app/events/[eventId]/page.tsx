@@ -9,13 +9,23 @@ import { useChurchId } from "@/app/hooks/useChurchId";
 import EventEditor from "@/app/components/calendar/EventEditor";
 import { can } from "@/app/lib/auth/permissions/can";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/app/components/ui/dialog";
+
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+
 export default function EditEventPage({
   params,
 }: {
   params: Promise<{ eventId: string }>;
 }) {
   const router = useRouter();
-  const { canManageEvents } = useCurrentUser();
+  const { user } = useCurrentUser();
   const { churchId } = useChurchId();
 
   const { eventId } = use(params);
@@ -23,18 +33,23 @@ export default function EditEventPage({
   const [eventData, setEventData] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const { user } = useCurrentUser();
-  const managerRoles = user?.roles?.filter(r => r.endsWith("GroupManager")) ?? [];
+  // Manager group extraction
+  const managerRoles = user?.roles?.filter((r) =>
+    r.endsWith("GroupManager")
+  ) ?? [];
+
   const normalize = (g: string) =>
     g.toLowerCase().replace(/s$/, "");
-  const managerGroups = managerRoles.map(r =>
+
+  const managerGroups = managerRoles.map((r) =>
     normalize(r.replace("GroupManager", ""))
   );
 
-  // Load event
+  // Load event from Firestore
   useEffect(() => {
     async function load() {
       if (!churchId) return;
+
       const ref = doc(db, "churches", churchId, "events", eventId);
       const snap = await getDoc(ref);
 
@@ -55,34 +70,7 @@ export default function EditEventPage({
     load();
   }, [churchId, eventId]);
 
-
-  // Permission check AFTER hooks
-  if (!eventData || !canEditEvent(eventData)) {
-    return (
-      <div className="p-6">
-        <h1 className="text-xl font-semibold">Unauthorized</h1>
-        <p className="text-sm text-muted-foreground">
-          You do not have permission to edit this event.
-        </p>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return <div className="p-6">Loading…</div>;
-  }
-
-  if (!eventData) {
-    return (
-      <div className="p-6">
-        <h1 className="text-xl font-semibold">Not Found</h1>
-        <p className="text-sm text-muted-foreground">
-          This event does not exist.
-        </p>
-      </div>
-    );
-  }
-
+  // Permission logic
   function canEditEvent(event: any): boolean {
     const roles = user?.roles ?? [];
 
@@ -95,23 +83,92 @@ export default function EditEventPage({
     const eventGroups = (event.groups ?? []).map(normalize);
 
     // Group manager match
-    if (managerGroups.some(g => eventGroups.includes(g))) {
+    if (managerGroups.some((g) => eventGroups.includes(g))) {
       return true;
     }
 
     return false;
   }
 
-  return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">Edit Event</h1>
+  // --- Unauthorized ---
+  if (!loading && (!eventData || !canEditEvent(eventData))) {
+    return (
+      <Dialog open={true} onOpenChange={() => router.push("/calendar")}>
+        <DialogContent className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0">
 
-      <EventEditor
-        mode="edit"
-        initialEvent={eventData}
-        onCancel={() => router.push("/calendar")}
-        onSaved={() => router.push("/calendar")}
-      />
-    </div>
+          <VisuallyHidden>
+            <DialogTitle>Unauthorized</DialogTitle>
+          </VisuallyHidden>
+
+          <div className="p-6">
+            <h1 className="text-xl font-semibold">Unauthorized</h1>
+            <p className="text-sm text-muted-foreground">
+              You do not have permission to edit this event.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // --- Loading ---
+  if (loading) {
+    return (
+      <Dialog open={true} onOpenChange={() => router.push("/calendar")}>
+        <DialogContent className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0">
+
+          <VisuallyHidden>
+            <DialogTitle>Loading</DialogTitle>
+          </VisuallyHidden>
+
+          <div className="p-6">Loading…</div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // --- Not Found ---
+  if (!eventData) {
+    return (
+      <Dialog open={true} onOpenChange={() => router.push("/calendar")}>
+        <DialogContent className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0">
+
+          <VisuallyHidden>
+            <DialogTitle>Not Found</DialogTitle>
+          </VisuallyHidden>
+
+          <div className="p-6">
+            <h1 className="text-xl font-semibold">Not Found</h1>
+            <p className="text-sm text-muted-foreground">
+              This event does not exist.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // --- Normal Edit Event Dialog ---
+  return (
+    <Dialog
+      open={true}
+      onOpenChange={(open) => {
+        if (!open) router.push("/calendar");
+      }}
+    >
+      <DialogContent className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0">
+        <DialogHeader className="shrink-0 px-6 pt-6">
+          <DialogTitle>Edit Event</DialogTitle>
+          <DialogDescription>Update this calendar event.</DialogDescription>
+        </DialogHeader>
+
+        <EventEditor
+          mode="edit"
+          initialEvent={eventData}
+          onCancel={() => router.push("/calendar")}
+          onSaved={() => router.push("/calendar")}
+        />
+      </DialogContent>
+    </Dialog>
   );
 }

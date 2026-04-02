@@ -1,15 +1,25 @@
-// app/events/new/page.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
 import EventEditor from "@/app/components/calendar/EventEditor";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/app/components/ui/dialog";
 
 export default function NewEventPage() {
   const router = useRouter();
 
   return (
-    <Dialog open={true} onOpenChange={() => router.push("/calendar")}>
+    <Dialog
+      open={true}
+      onOpenChange={(open) => {
+        if (!open) router.push("/calendar");
+      }}
+    >
       <DialogContent className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0">
         <DialogHeader className="shrink-0 px-6 pt-6">
           <DialogTitle>Add Event</DialogTitle>
