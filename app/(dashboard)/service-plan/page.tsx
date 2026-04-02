@@ -165,7 +165,7 @@ export default function ServicePlanPage() {
           </div>
 
           {/* Controls */}
-          <div className="flex w-full gap-3 sm:w-auto sm:ml-auto">
+          <div className="grid grid-cols-2 gap-3 w-full sm:flex sm:w-auto sm:ml-auto">
 
             <Select value={filter} onValueChange={handleFilterChange}>
               <SelectTrigger
