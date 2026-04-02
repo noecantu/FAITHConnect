@@ -108,9 +108,9 @@ export default function ChurchSettingsPage() {
   useEffect(() => {
     const fetchUsage = async () => {
       try {
-        const res = await fetch("https://getfirestoreusage-nn2kyrzdaa-uc.a.run.app");
+        const res = await fetch("/api/admin/storage-usage");
         const data = await res.json();
-        setStorageUsed(data.usageBytes);
+        setStorageUsed(data.storageUsed);
       } catch (err) {
         console.error("Error fetching usage:", err);
         setStorageUsed(null);
