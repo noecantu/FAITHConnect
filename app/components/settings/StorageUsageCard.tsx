@@ -1,23 +1,56 @@
 'use client';
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/app/components/ui/card';
+import { Button } from '@/app/components/ui/button';
+import { Loader2, RefreshCw } from 'lucide-react';
 
 interface Props {
   storageUsed: number | null;
   hasLoaded: boolean;
+  quotaBytes?: number; // optional, default provided below
+  onRefresh?: () => void; // optional refresh callback
+  refreshing?: boolean; // parent controls spinner
 }
 
-export default function StorageUsageCard({ storageUsed, hasLoaded }: Props) {
+export default function StorageUsageCard({
+  storageUsed,
+  hasLoaded,
+  quotaBytes = 1_000_000_000, // 1 GB default quota
+  onRefresh,
+  refreshing = false,
+}: Props) {
+  const percent = storageUsed
+    ? Math.min((storageUsed / quotaBytes) * 100, 100)
+    : 0;
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Database Storage</CardTitle>
-        <CardDescription>
-          View usage and storage allocation for your organization.
-        </CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Database Storage</CardTitle>
+          <CardDescription>
+            View usage and storage allocation for your organization.
+          </CardDescription>
+        </div>
+
+        {onRefresh && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onRefresh}
+            disabled={refreshing}
+          >
+            {refreshing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+          </Button>
+        )}
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {/* STORAGE ROW */}
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">Total Storage Used</p>
 
@@ -37,6 +70,23 @@ export default function StorageUsageCard({ storageUsed, hasLoaded }: Props) {
             </p>
           )}
         </div>
+
+        {/* PROGRESS BAR */}
+        {hasLoaded && storageUsed !== null && (
+          <div className="w-full h-3 bg-muted rounded-md overflow-hidden">
+            <div
+              className="h-full bg-blue-600 transition-all duration-500"
+              style={{ width: `${percent}%` }}
+            />
+          </div>
+        )}
+
+        {/* QUOTA LABEL */}
+        {hasLoaded && storageUsed !== null && (
+          <p className="text-xs text-muted-foreground text-right">
+            {percent.toFixed(1)}% of {(quotaBytes / 1024 / 1024).toFixed(0)} MB Quota
+          </p>
+        )}
       </CardContent>
     </Card>
   );

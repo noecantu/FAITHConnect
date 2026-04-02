@@ -35,6 +35,7 @@ export default function ChurchSettingsPage() {
   // -----------------------------
   const [storageUsed, setStorageUsed] = useState<number | null>(null);
   const [hasLoadedUsage, setHasLoadedUsage] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // -----------------------------
   // USER MANAGEMENT HOOK
@@ -105,20 +106,22 @@ export default function ChurchSettingsPage() {
   // -----------------------------
   // LOAD STORAGE USAGE
   // -----------------------------
-  useEffect(() => {
-    const fetchUsage = async () => {
-      try {
-        const res = await fetch("/api/admin/storage-usage");
-        const data = await res.json();
-        setStorageUsed(data.storageUsed);
-      } catch (err) {
-        console.error("Error fetching usage:", err);
-        setStorageUsed(null);
-      } finally {
-        setHasLoadedUsage(true);
-      }
-    };
+  const fetchUsage = async () => {
+    try {
+      setRefreshing(true);
+      const res = await fetch("/api/admin/storage-usage");
+      const data = await res.json();
+      setStorageUsed(data.storageUsed);
+    } catch (err) {
+      console.error("Error fetching usage:", err);
+      setStorageUsed(null);
+    } finally {
+      setHasLoadedUsage(true);
+      setRefreshing(false);
+    }
+  };
 
+  useEffect(() => {
     fetchUsage();
   }, []);
 
@@ -173,6 +176,8 @@ export default function ChurchSettingsPage() {
           <StorageUsageCard
             storageUsed={storageUsed}
             hasLoaded={hasLoadedUsage}
+            refreshing={refreshing}
+            onRefresh={fetchUsage}
           />
         </>
       )}
