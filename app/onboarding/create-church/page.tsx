@@ -63,8 +63,8 @@ export default function CreateChurchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 flex items-center justify-center px-4">
-      <Card className="w-full max-w-sm bg-card">
+    <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black flex items-center justify-center px-4">
+      <Card className="relative w-full max-w-sm bg-black/30 border-white/10 backdrop-blur-xl">
         <CardHeader className="text-center space-y-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

@@ -6,7 +6,7 @@ import { cn } from './lib/utils';
 import { Toaster } from './components/ui/toaster';
 import { ConditionalLayout } from './conditional-layout';
 import { SettingsProvider } from './components/settings-provider';
-import { AppFooter } from './components/layout/AppFooter';
+// import { AppFooter } from './components/layout/AppFooter';
 import { Inter } from "next/font/google";
 
 export const metadata: Metadata = {
@@ -34,7 +34,7 @@ export default function RootLayout({
           <ConditionalLayout>{children}</ConditionalLayout>
         </SettingsProvider>
 
-        <AppFooter />
+        {/* <AppFooter /> */}
         <Toaster />
       </body>
     </html>

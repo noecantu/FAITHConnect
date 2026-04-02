@@ -6,7 +6,14 @@ export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Public routes
-  const publicPatterns = [/^\/login/, /^\/signup/, /^\/api/];
+  const publicPatterns = [
+    /^\/$/,        // homepage
+    /^\/marketing/,
+    /^\/login/,
+    /^\/signup/,
+    // /^\/landing/,  // optional if you use /landing
+    /^\/api/,
+  ];
   if (publicPatterns.some((pattern) => pattern.test(pathname))) {
     return NextResponse.next();
   }

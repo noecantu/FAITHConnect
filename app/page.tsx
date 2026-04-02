@@ -12,9 +12,9 @@ export default function HomePage() {
   useEffect(() => {
     if (loading) return;
 
-    // Not logged in → login
+    // Not logged in
     if (!user) {
-      router.push("/login");
+      router.push("/marketing");
       return;
     }
 
@@ -44,8 +44,8 @@ export default function HomePage() {
       return;
     }
 
-    // Fallback → login
-    router.push("/login");
+    // Fallback
+    router.push("/marketing");
   }, [user, loading, router]);
 
   return null;

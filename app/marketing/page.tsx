@@ -7,8 +7,7 @@ import Link from "next/link";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white">
-      
+    <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black">  
       {/* HERO */}
       <section className="max-w-5xl mx-auto px-6 pt-32 pb-24 text-center">
         <h1 className="text-4xl md:text-6xl font-bold mb-6">
@@ -18,11 +17,19 @@ export default function LandingPage() {
           FAITH Connect helps ministries track attendance, manage members, and stay organized — all in one beautiful, intuitive platform.
         </p>
 
-        <Link href="/onboarding">
-          <Button className="px-8 py-6 text-lg bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/20">
-            Get Started
-          </Button>
-        </Link>
+        <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
+            <Link href="/signup" className="w-full">
+                <Button className="w-full px-8 py-6 text-lg bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/20">
+                Get Started
+                </Button>
+            </Link>
+
+            <Link href="/login" className="w-full">
+                <Button className="w-full px-8 py-6 text-lg bg-white/10 hover:bg-white/20 rounded-xl shadow-lg shadow-blue-600/20">
+                Log In
+                </Button>
+            </Link>
+        </div>
       </section>
 
       {/* FEATURES */}
@@ -98,11 +105,6 @@ export default function LandingPage() {
           ))}
         </div>
       </section>
-
-      {/* FOOTER */}
-      <footer className="py-10 text-center text-white/50 text-sm">
-        © {new Date().getFullYear()} FAITH Connect. All rights reserved.
-      </footer>
     </div>
   );
 }

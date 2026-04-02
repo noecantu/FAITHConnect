@@ -57,7 +57,7 @@ export default function UserDashboardPage({
   if (!church) return <div className="p-6">No church found.</div>;
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen">
       <main className="flex-1 flex flex-col">
         <div className="border-b border-border bg-background/80 backdrop-blur">
           <div className="px-4 md:px-8 py-4">
