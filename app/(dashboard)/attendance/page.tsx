@@ -229,7 +229,15 @@ export default function AttendancePageContent() {
             setDate(selected);
             router.push(`/attendance?date=${format(selected, "yyyy-MM-dd")}`);
           }}
-          className="w-full sm:w-[150px] bg-black/40 text-white border-white/20 rounded-md px-3 py-2 text-center"
+          className="
+            w-full sm:w-[150px]
+            bg-black/40 text-white
+            border border-white/30
+            rounded-md px-3 py-2 text-center
+            hover:border-white/50
+            focus:outline-none focus:ring-2 focus:ring-white/40
+            cursor-pointer
+          "
         />
 
         <Button
@@ -399,7 +407,7 @@ export default function AttendancePageContent() {
               router.push(`/attendance?date=${selectedString}`);
             }
 
-            toast({ title: "Attendance saved" });
+            toast({ title: "Attendance Saved" });
           }}
           type="save"
         />

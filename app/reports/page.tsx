@@ -13,7 +13,7 @@ import { MemberPreviewTable } from "@/app/components/reports/MemberPreviewTable"
 import { AttendancePreviewTable } from "@/app/components/reports/AttendancePreviewTable";
 import { ContributionPreviewTable } from "@/app/components/reports/ContributionPreviewTable";
 import { Button } from "@/app/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { FileText, Loader2, Sheet } from "lucide-react";
 
 // NEW
 import { useUserRoles } from "@/app/hooks/useUserRoles";
@@ -152,44 +152,43 @@ export default function ReportsPage() {
       <PageHeader
         title="Reports"
         subtitle="Select a report type below."
-      />
+      >
+        {canExport && (
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleExportPDF}
+              size="sm"
+              disabled={isExportingPDF || isExportingExcel}
+            >
+              {isExportingPDF ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  PDF
+                </>
+              ) : (
+                "PDF"
+              )}
+              <FileText className="h-5 w-5" />
+            </Button>
 
-      {/* EXPORT BUTTONS */}
-      {canExport && (
-        <div className="flex justify-end gap-2">
-          <Button
-            onClick={handleExportPDF}
-            size="sm"
-            className="min-w-[80px]"
-            disabled={isExportingPDF || isExportingExcel}
-          >
-            {isExportingPDF ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                PDF
-              </>
-            ) : (
-              "PDF"
-            )}
-          </Button>
-
-          <Button
-            onClick={handleExportExcel}
-            size="sm"
-            className="min-w-[80px]"
-            disabled={isExportingPDF || isExportingExcel}
-          >
-            {isExportingExcel ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Excel
-              </>
-            ) : (
-              "Excel"
-            )}
-          </Button>
-        </div>
-      )}
+            <Button
+              onClick={handleExportExcel}
+              size="sm"
+              disabled={isExportingPDF || isExportingExcel}
+            >
+              {isExportingExcel ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Excel
+                </>
+              ) : (
+                "Excel"
+              )}
+              <Sheet className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
+      </PageHeader>
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* LEFT PANEL */}

@@ -107,17 +107,19 @@ export default function CalendarPage() {
         <div className="flex items-center gap-2">
           <Button
             variant={view === "calendar" ? "default" : "outline"}
-            size="icon"
+            size="sm"
             onClick={() => setView("calendar")}
           >
+            Calendar
             <Calendar className="h-5 w-5" />
           </Button>
 
           <Button
             variant={view === "list" ? "default" : "outline"}
-            size="icon"
+            size="sm"
             onClick={() => setView("list")}
           >
+            List
             <List className="h-5 w-5" />
           </Button>
         </div>
