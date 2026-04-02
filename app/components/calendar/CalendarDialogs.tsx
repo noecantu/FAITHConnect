@@ -2,7 +2,6 @@
 
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
 import { EventFormDialog } from './EventFormDialog';
-import { DayEventsDialog } from './DayEventsDialog';
 
 import type { Event } from "@/app/lib/types";
 import type { Theme } from "@mui/material/styles";
@@ -41,7 +40,6 @@ interface CalendarDialogsProps {
 
 export function CalendarDialogs({
   dialogs,
-  selectedDayEvents,
   form,
   canManage,
 }: CalendarDialogsProps) {
@@ -50,15 +48,11 @@ export function CalendarDialogs({
     isEditing,
     editEvent,
     selectedDate,
-    isDayEventsDialogOpen,
     deleteId,
     setDeleteId,
     setIsFormOpen,
-    setIsDayEventsDialogOpen,
     setEditEvent,
     handleDelete,
-    handleAdd,
-    handleEdit,
     onSubmit,
   } = dialogs;
 

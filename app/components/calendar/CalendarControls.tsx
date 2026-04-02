@@ -80,7 +80,15 @@ export function CalendarControls({
                 month.setMonth(setMonthDate(month.month, Number(value)))
               }
             >
-              <SelectTrigger className="w-full sm:w-32">
+                <SelectTrigger
+                  className="
+                    w-[140px] h-9
+                    bg-black/40 border border-white/10 backdrop-blur-xl
+                    text-white/80
+                    hover:bg-white/5 hover:border-white/20
+                    transition
+                  "
+                >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -99,7 +107,15 @@ export function CalendarControls({
                 month.setMonth(setYearDate(month.month, Number(value)))
               }
             >
-              <SelectTrigger className="w-full sm:w-24">
+                <SelectTrigger
+                  className="
+                    w-[140px] h-9
+                    bg-black/40 border border-white/10 backdrop-blur-xl
+                    text-white/80
+                    hover:bg-white/5 hover:border-white/20
+                    transition
+                  "
+                >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -115,7 +131,7 @@ export function CalendarControls({
             <Button
               variant="outline"
               onClick={month.goToday}
-              className="w-full sm:w-20"
+              className="text-white/80 border-white/30 bg-black/30"
             >
               Today
             </Button>
@@ -147,7 +163,15 @@ export function CalendarControls({
                 value={filters.filter}
                 onValueChange={(v) => filters.setFilter(v as any)}
               >
-                <SelectTrigger className="w-full sm:w-36">
+                <SelectTrigger
+                  className="
+                    w-[140px] h-9
+                    bg-black/40 border border-white/10 backdrop-blur-xl
+                    text-white/80
+                    hover:bg-white/5 hover:border-white/20
+                    transition
+                  "
+                >
                   <SelectValue placeholder="Filter" />
                 </SelectTrigger>
                 <SelectContent>

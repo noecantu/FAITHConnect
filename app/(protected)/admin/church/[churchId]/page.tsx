@@ -407,12 +407,18 @@ function QuickAction({
   return (
     <Button
       asChild
-      variant="outline"
-      className="w-full justify-start gap-2 border-border bg-background/60 hover:bg-muted/70"
+      variant="ghost"
+      className="
+        w-full justify-start gap-3
+        bg-black/40 border border-white/10 backdrop-blur-xl
+        hover:bg-white/5 hover:border-white/20
+        text-white/80
+        transition
+      "
     >
       <Link href={href}>
-        <Icon className="h-4 w-4 text-foreground/70" />
-        <span>{label}</span>
+        <Icon className="h-5 w-5 text-white/70" />
+        <span className="font-medium">{label}</span>
       </Link>
     </Button>
   );

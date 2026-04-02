@@ -247,7 +247,7 @@ export default function AttendancePageContent() {
             setDate(today);
             router.push(`/attendance?date=${format(today, "yyyy-MM-dd")}`);
           }}
-          className="text-white/80 border-white/20"
+          className="text-white/80 border-white/30 bg-black/30"
         >
           Today
         </Button>
