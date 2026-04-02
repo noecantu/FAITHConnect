@@ -168,7 +168,7 @@ export default function EventEditor({
             <div className="space-y-2">
               <label className="text-white/60 text-sm">Who can see this event?</label>
 
-              <div className="flex rounded-md overflow-hidden border border-white/10 bg-black/40">
+              <div className="flex rounded-md overflow-hidden border border-white/10 bg-black/30">
                 <button
                   type="button"
                   onClick={() => {

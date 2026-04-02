@@ -65,7 +65,7 @@ export default function UserFormCard({
   targetUserId,
 }: Props) {
   return (
-    <Card className="p-4 space-y-4 relative">
+    <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
       <button
         onClick={onClose}
         className="

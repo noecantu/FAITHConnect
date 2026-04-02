@@ -62,7 +62,7 @@ export function ContributionsTable<TData, TValue>({
           className="max-w-sm"
         />
       </div>
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-black/20 backdrop-blur-xl">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -86,7 +86,7 @@ export function ContributionsTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className="cursor-pointer hover:bg-muted/40"
+                  className="cursor-pointer hover:bg-white/5"
                   onClick={() => onRowClick?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -100,7 +100,7 @@ export function ContributionsTable<TData, TValue>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="h-24 text-center text-white/60"
                 >
                   No results.
                 </TableCell>

@@ -75,7 +75,7 @@ export function ListView({
   }
 
   return (
-    <Card>
+    <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
       <CardHeader>
         <CardTitle>All Events</CardTitle>
       </CardHeader>

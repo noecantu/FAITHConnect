@@ -59,22 +59,17 @@ export default function UserDashboardPage({
   return (
     <div className="flex min-h-screen">
       <main className="flex-1 flex flex-col">
-        <div className="border-b border-border bg-background/80 backdrop-blur">
-          <div className="px-4 md:px-8 py-4">
-            <PageHeader
-              title="My Dashboard"
-              subtitle="Your upcoming events and schedule."
-            />
-          </div>
-        </div>
-
+        <PageHeader
+          title="My Dashboard"
+          subtitle="Your upcoming events and schedule."
+        />
         <div className="flex-1 px-4 md:px-8 py-6 space-y-6">
 
           {/* Identity Header — Two Cards Side-by-Side */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
             {/* Church Identity Card */}
-            <Card className="border border-border bg-card/80">
+            <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
               <CardContent className="flex items-center gap-4 p-4 md:p-6">
                 <Avatar className="h-32 w-32 rounded-md overflow-hidden border border-border bg-white shadow-sm">
                   {church.logoUrl ? (
@@ -106,7 +101,7 @@ export default function UserDashboardPage({
             </Card>
 
             {/* User Identity Card */}
-            <Card className="border border-border bg-card/80 transition">
+            <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
               <CardContent className="flex items-center gap-4 p-4 md:p-6">
                 <Avatar className="h-32 w-32 rounded-md overflow-hidden border border-border bg-white shadow-sm">
                   {user.profilePhotoUrl ? (
@@ -152,7 +147,7 @@ export default function UserDashboardPage({
 
           {/* Quick Actions — Admin Only */}
           {isAdminUser && (
-            <Card className="border border-border bg-card/80">
+            <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
               <CardHeader className="pb-3">
                 <CardTitle>Quick Actions</CardTitle>
                 <CardDescription>Jump into your church activity.</CardDescription>
@@ -170,7 +165,7 @@ export default function UserDashboardPage({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
             {/* Upcoming Events */}
-            <Card className="border border-border bg-card/80">
+            <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
               <CardHeader>
                 <CardTitle>Upcoming Events</CardTitle>
                 <CardDescription>What’s happening soon at your church.</CardDescription>
@@ -200,7 +195,7 @@ export default function UserDashboardPage({
             </Card>
 
             {/* Upcoming Services */}
-            <Card className="border border-border bg-card/80">
+            <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
               <CardHeader>
                 <CardTitle>Upcoming Services</CardTitle>
                 <CardDescription>Your upcoming worship services.</CardDescription>

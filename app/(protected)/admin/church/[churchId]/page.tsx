@@ -270,21 +270,19 @@ export default function ChurchAdminDashboard() {
   // NORMAL RENDER
   // ---------------------------
   return (
-    <div className="flex min-h-screen bg-background">
+    <div>
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
-        <div className="border-border bg-background/80 backdrop-blur">
           <div className="px-4 md:px-8 py-4">
             <PageHeader
               title="Church Admin Dashboard"
               subtitle="Manage your church’s members, events, and ministries."
             />
           </div>
-        </div>
         <div className="flex-1 px-4 md:px-8 py-6 space-y-6">
 
         {/* Identity Header */}
-        <Card className="border border-border bg-card/80">
+        <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
           <CardContent className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 md:p-6">
             
             {/* Left: Logo + Name */}
@@ -349,7 +347,7 @@ export default function ChurchAdminDashboard() {
           </div>
 
           {/* Quick Actions */}
-          <Card className="border border-border bg-card/80">
+          <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
             <CardHeader className="pb-3">
               <CardTitle>Quick Access</CardTitle>
               <CardDescription>Main Areas</CardDescription>
@@ -384,7 +382,7 @@ function StatCard({
   value: number;
 }) {
   return (
-    <Card className="border border-border bg-card/80">
+    <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <CardDescription className="text-xs">{description}</CardDescription>

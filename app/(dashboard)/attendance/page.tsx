@@ -231,7 +231,7 @@ export default function AttendancePageContent() {
           }}
           className="
             w-full sm:w-[150px]
-            bg-black/40 text-white
+            bg-black/30 text-white
             border border-white/30
             rounded-md px-3 py-2 text-center
             hover:border-white/50
@@ -262,7 +262,7 @@ export default function AttendancePageContent() {
 
       {/* ACTION BUTTONS */}
       {mode !== "history" && (
-        <Card className="border border-white/10 bg-white/5 backdrop-blur-sm mb-4">
+        <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-4">
 
             {/* GENERATE QR */}
@@ -302,7 +302,7 @@ export default function AttendancePageContent() {
                   placeholder="Visitor name"
                   value={visitorName}
                   onChange={(e) => setVisitorName(e.target.value)}
-                  className="bg-black/40 text-white"
+                  className="bg-black/30 text-white"
                   disabled={!canEdit}
                 />
 

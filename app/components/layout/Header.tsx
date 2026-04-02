@@ -28,9 +28,13 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
+    <header
+      className="sticky top-0 z-50 flex h-16 items-center
+        border-b border-white/10
+        bg-black/30 backdrop-blur-xl
+        px-4 md:px-6"
+    >
       <Link href={dashboardHref} className="flex items-center gap-2 font-semibold">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/FAITH_CONNECT_FLAME_LOGO.svg"
           alt="Faith Connect Logo"

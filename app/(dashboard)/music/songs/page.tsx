@@ -127,7 +127,7 @@ export default function SongsPage() {
       <PageHeader title="Songs" subtitle={subtitleText}/>
 
       {/* Sticky Search + Sort Bar */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="sticky top-0 z-10">
         <div className="flex flex-wrap items-center gap-3 py-2 w-full">
 
           {/* Search */}
@@ -183,7 +183,7 @@ export default function SongsPage() {
             ref={(el) => {
               groupRefs.current[groupKey] = el;
             }}
-            className="p-6 space-y-4"
+            className="p-6 space-y-4 bg-black/30 border-white/10 backdrop-blur-xl"
           >
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">{groupKey}</h2>

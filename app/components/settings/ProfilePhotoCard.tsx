@@ -70,7 +70,7 @@ export function ProfilePhotoCard({
   }, [registerSave, handleSave]);
 
   return (
-    <Card>
+    <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
       <CardHeader>
         <CardTitle>Profile Photo</CardTitle>
       </CardHeader>

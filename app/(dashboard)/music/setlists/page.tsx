@@ -140,7 +140,7 @@ export default function SetListsPage() {
       />
 
       {/* Toolbar */}
-      <div className="sticky top-16 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
+      <div className="sticky top-16 z-10">
         <div className="flex flex-wrap items-center gap-3 w-full">
 
           {/* Search bar */}
@@ -208,7 +208,7 @@ export default function SetListsPage() {
       )}
 
       {/* ⭐ Card wrapper for list + footer */}
-      <Card>
+      <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
         <CardHeader>
           <CardTitle>All Sets</CardTitle>
         </CardHeader>

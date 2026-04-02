@@ -27,7 +27,7 @@ export default function RootLayout({
       <body
         className={cn(
           inter.variable,
-          "min-h-screen bg-background font-sans antialiased flex flex-col"
+          "min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white font-sans antialiased flex flex-col"
         )}
       >
         <SettingsProvider>

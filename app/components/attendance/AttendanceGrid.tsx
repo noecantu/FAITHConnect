@@ -32,7 +32,7 @@ export function AttendanceGrid({
     <div
       className="
         border border-white/10
-        bg-white/5
+        bg-black/30
         backdrop-blur-sm
         rounded-md
         p-4

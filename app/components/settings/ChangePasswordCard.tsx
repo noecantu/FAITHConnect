@@ -50,7 +50,7 @@ export function ChangePasswordCard({ onDirtyChange, registerSave }: ChangePasswo
   }, [registerSave, handleSave]);
 
   return (
-    <Card>
+    <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
       <CardHeader>
         <CardTitle>Change Password</CardTitle>
       </CardHeader>
