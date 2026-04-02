@@ -248,7 +248,15 @@ export default function ContributionsPage() {
               value={selectedYear ? String(selectedYear) : ""}
               onValueChange={(v) => setYearPersisted(Number(v))}
             >
-              <SelectTrigger className="w-[140px] h-9">
+              <SelectTrigger
+                className="
+                  w-[140px] h-9
+                  bg-black/40 border border-white/30 backdrop-blur-xl
+                  text-white/80
+                  hover:bg-white/5 hover:border-white/20
+                  transition
+                "
+              >
                 <SelectValue placeholder="Year" />
               </SelectTrigger>
               <SelectContent>
@@ -266,7 +274,15 @@ export default function ContributionsPage() {
                 value={selectedMonth ? String(selectedMonth) : ""}
                 onValueChange={(v) => setMonthPersisted(Number(v))}
               >
-                <SelectTrigger className="w-[140px] h-9">
+                <SelectTrigger
+                  className="
+                    w-[140px] h-9
+                    bg-black/40 border border-white/30 backdrop-blur-xl
+                    text-white/80
+                    hover:bg-white/5 hover:border-white/20
+                    transition
+                  "
+                >
                   <SelectValue placeholder="Month" />
                 </SelectTrigger>
                 <SelectContent>
@@ -287,7 +303,15 @@ export default function ContributionsPage() {
                 value={selectedWeek ? String(selectedWeek) : ""}
                 onValueChange={(v) => setWeekPersisted(Number(v))}
               >
-                <SelectTrigger className="w-[140px] h-9">
+                <SelectTrigger
+                  className="
+                    w-[140px] h-9
+                    bg-black/40 border border-white/30 backdrop-blur-xl
+                    text-white/80
+                    hover:bg-white/5 hover:border-white/20
+                    transition
+                  "
+                >
                   <SelectValue placeholder="Week" />
                 </SelectTrigger>
                 <SelectContent>

@@ -159,7 +159,16 @@ export default function SongsPage() {
                 });
               }}
             >
-              <SelectTrigger className="flex-1 min-w-0 sm:w-[150px]">
+                <SelectTrigger
+                  className="
+                    w-[140px] h-9
+                    bg-black/40 border border-white/30 backdrop-blur-xl
+                    text-white/80
+                    hover:bg-white/5 hover:border-white/20
+                    transition
+                  "
+                >
+
                 <SelectValue placeholder="Sort" />
               </SelectTrigger>
 

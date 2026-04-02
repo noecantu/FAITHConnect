@@ -168,7 +168,15 @@ export default function ServicePlanPage() {
           <div className="flex w-full gap-3 sm:w-auto sm:ml-auto">
 
             <Select value={filter} onValueChange={handleFilterChange}>
-              <SelectTrigger className="flex-1 min-w-0 sm:w-[130px]">
+              <SelectTrigger
+                className="
+                  w-[140px] h-9
+                  bg-black/40 border border-white/30 backdrop-blur-xl
+                  text-white/80
+                  hover:bg-white/5 hover:border-white/20
+                  transition
+                "
+              >
                 <SelectValue placeholder="Filter" />
               </SelectTrigger>
               <SelectContent>
@@ -179,7 +187,15 @@ export default function ServicePlanPage() {
             </Select>
 
             <Select value={sort} onValueChange={handleSortChange}>
-              <SelectTrigger className="flex-1 min-w-0 sm:w-[150px]">
+              <SelectTrigger
+                className="
+                  w-[140px] h-9
+                  bg-black/40 border border-white/30 backdrop-blur-xl
+                  text-white/80
+                  hover:bg-white/5 hover:border-white/20
+                  transition
+                "
+              >
                 <SelectValue placeholder="Sort" />
               </SelectTrigger>
               <SelectContent>

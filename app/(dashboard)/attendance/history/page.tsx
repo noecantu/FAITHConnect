@@ -272,7 +272,7 @@ export default function AttendanceHistoryPage() {
               <SelectTrigger
                 className="
                   w-[140px] h-9
-                  bg-black/40 border border-white/10 backdrop-blur-xl
+                  bg-black/40 border border-white/30 backdrop-blur-xl
                   text-white/80
                   hover:bg-white/5 hover:border-white/20
                   transition
@@ -298,7 +298,7 @@ export default function AttendanceHistoryPage() {
                 <SelectTrigger
                   className="
                     w-[140px] h-9
-                    bg-black/40 border border-white/10 backdrop-blur-xl
+                    bg-black/40 border border-white/30 backdrop-blur-xl
                     text-white/80
                     hover:bg-white/5 hover:border-white/20
                     transition
@@ -327,7 +327,7 @@ export default function AttendanceHistoryPage() {
                 <SelectTrigger
                   className="
                     w-[140px] h-9
-                    bg-black/40 border border-white/10 backdrop-blur-xl
+                    bg-black/40 border border-white/30 backdrop-blur-xl
                     text-white/80
                     hover:bg-white/5 hover:border-white/20
                     transition

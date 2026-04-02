@@ -49,7 +49,15 @@ export function AttendanceHistoryControls({ filters }: AttendanceHistoryControls
               value={filters.filter}
               onValueChange={(v: AttendanceFilters["filter"]) => filters.setFilter(v)}
             >
-              <SelectTrigger className="w-full sm:w-36">
+              <SelectTrigger
+                className="
+                  w-[140px] h-9
+                  bg-black/40 border border-white/30 backdrop-blur-xl
+                  text-white/80
+                  hover:bg-white/5 hover:border-white/20
+                  transition
+                "
+              >
                 <SelectValue placeholder="Filter" />
               </SelectTrigger>
               <SelectContent>
@@ -64,7 +72,15 @@ export function AttendanceHistoryControls({ filters }: AttendanceHistoryControls
               value={filters.sort}
               onValueChange={(v: AttendanceFilters["sort"]) => filters.setSort(v)}
             >
-              <SelectTrigger className="w-full sm:w-36">
+              <SelectTrigger
+                className="
+                  w-[140px] h-9
+                  bg-black/40 border border-white/30 backdrop-blur-xl
+                  text-white/80
+                  hover:bg-white/5 hover:border-white/20
+                  transition
+                "
+              >
                 <SelectValue placeholder="Sort" />
               </SelectTrigger>
               <SelectContent>

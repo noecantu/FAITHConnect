@@ -185,7 +185,15 @@ export function CalendarControls({
                 value={filters.sort}
                 onValueChange={(v) => filters.setSort(v as any)}
               >
-                <SelectTrigger className="w-full sm:w-36">
+                <SelectTrigger
+                  className="
+                    w-[140px] h-9
+                    bg-black/40 border border-white/30 backdrop-blur-xl
+                    text-white/80
+                    hover:bg-white/5 hover:border-white/20
+                    transition
+                  "
+                >
                   <SelectValue placeholder="Sort" />
                 </SelectTrigger>
                 <SelectContent>
