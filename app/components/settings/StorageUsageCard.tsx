@@ -15,7 +15,7 @@ interface Props {
 export default function StorageUsageCard({
   storageUsed,
   hasLoaded,
-  quotaBytes = 1_000_000_000, // 1 GB default quota
+  quotaBytes = 1_000_000_000,
   onRefresh,
   refreshing = false,
 }: Props) {
@@ -29,7 +29,7 @@ export default function StorageUsageCard({
         <div>
           <CardTitle>Database Storage</CardTitle>
           <CardDescription>
-            View usage and storage allocation for your organization.
+            Organization Storage Usage
           </CardDescription>
         </div>
 
