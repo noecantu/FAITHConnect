@@ -31,40 +31,43 @@ export function ContributionPreviewTable({ contributions, members }: Props) {
 
   return (
     <div className="space-y-2">
-      <table className="w-full text-sm">
-        <thead className="bg-muted">
-          <tr>
-            <th className="p-2 text-left">Member</th>
-            <th className="p-2 text-left">Amount</th>
-            <th className="p-2 text-left">Date</th>
-            <th className="p-2 text-left">Category</th>
-            <th className="p-2 text-left">Type</th>
-            <th className="p-2 text-left">Notes</th>
-          </tr>
-        </thead>
+      {/* 🔵 Add wrapper here */}
+      <div className="overflow-auto border rounded-md bg-card">
+        <table className="w-full text-sm">
+          <thead className="bg-muted">
+            <tr>
+              <th className="p-2 text-left">Member</th>
+              <th className="p-2 text-left">Amount</th>
+              <th className="p-2 text-left">Date</th>
+              <th className="p-2 text-left">Category</th>
+              <th className="p-2 text-left">Type</th>
+              <th className="p-2 text-left">Notes</th>
+            </tr>
+          </thead>
 
-        <tbody>
-          {visible.map((c) => {
-            const member = members.find((m) => m.id === c.memberId);
-            const memberName = member
-              ? `${member.firstName} ${member.lastName}`
-              : c.memberName ?? "Unknown";
+          <tbody>
+            {visible.map((c) => {
+              const member = members.find((m) => m.id === c.memberId);
+              const memberName = member
+                ? `${member.firstName} ${member.lastName}`
+                : c.memberName ?? "Unknown";
 
-            return (
-              <tr key={c.id} className="border-t">
-                <td className="p-2">{memberName}</td>
-                <td className="p-2">${c.amount.toFixed(2)}</td>
-                <td className="p-2">
-                  {new Date(c.date).toLocaleDateString()}
-                </td>
-                <td className="p-2">{c.category ?? ""}</td>
-                <td className="p-2">{c.contributionType ?? ""}</td>
-                <td className="p-2">{c.notes ?? ""}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+              return (
+                <tr key={c.id} className="border-t">
+                  <td className="p-2">{memberName}</td>
+                  <td className="p-2">${c.amount.toFixed(2)}</td>
+                  <td className="p-2">
+                    {new Date(c.date).toLocaleDateString()}
+                  </td>
+                  <td className="p-2">{c.category ?? ""}</td>
+                  <td className="p-2">{c.contributionType ?? ""}</td>
+                  <td className="p-2">{c.notes ?? ""}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
 
       <PreviewPaginationFooter
         start={start}

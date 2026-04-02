@@ -41,7 +41,7 @@ export function AttendancePreviewTable({ attendance }: Props) {
 
   return (
     <div className="space-y-2">
-      <div className="overflow-auto border rounded-md">
+      <div className="overflow-auto border rounded-md bg-card">
         <table className="w-full text-sm">
           <thead className="bg-muted">
             <tr>
