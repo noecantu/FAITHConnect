@@ -22,7 +22,6 @@ import { useRouter } from "next/navigation";
 import { dateKey } from "@/app/lib/calendar/utils";
 import { canUserSeeEvent } from "@/app/lib/canUserSeeEvent";
 
-// ⭐ unified calendar item type
 type CalendarItem =
   | (Event & { type: "event" })
   | (ServicePlan & { type: "service" });
@@ -60,10 +59,8 @@ export default function CalendarPage() {
 
   const { events } = useCalendarEvents(churchId, user);
 
-  // FIX 1 — call with only 1 argument
   const { services } = useUpcomingServices(churchId);
 
-  // --- MERGE ---
   const merged: CalendarItem[] = useMemo(() => {
     const serviceItems: CalendarItem[] = services.map((sp) => ({
       ...sp,
@@ -80,7 +77,6 @@ export default function CalendarPage() {
     return [...realEvents, ...serviceItems];
   }, [events, services]);
 
-  // --- VISIBILITY ---
   const visible = useMemo(() => {
     if (!user) return [];
 
@@ -94,7 +90,6 @@ export default function CalendarPage() {
 
   const month = useCalendarMonth();
 
-  // ⭐ FIX: preserve CalendarItem type
   const filters = useCalendarFilters<CalendarItem>(visible);
 
   const { view, setView } = useUserCalendarSettings(user?.id ?? null);

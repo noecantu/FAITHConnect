@@ -48,12 +48,10 @@ export function CalendarControls({
   filters,
 }: CalendarControlsProps) {
 
-  // ⭐ Extract available years from actual event data
   const years = Array.from(
     new Set(events.map(e => e.date.getFullYear()))
   ).sort((a, b) => a - b);
 
-  // ⭐ Extract available months for the selected year
   const months = Array.from(
     new Set(
       events
@@ -73,7 +71,7 @@ export function CalendarControls({
       {/* CALENDAR VIEW CONTROLS */}
       {view.view === "calendar" && (
         <div className="flex justify-end w-full">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2">
+          <div className="flex flex-row items-center justify-end gap-2">
 
             {/* Month */}
             <Select
