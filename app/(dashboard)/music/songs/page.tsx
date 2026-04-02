@@ -183,7 +183,7 @@ export default function SongsPage() {
             ref={(el) => {
               groupRefs.current[groupKey] = el;
             }}
-            className="p-6 space-y-4 bg-black/30 border-white/10 backdrop-blur-xl"
+            className="relative p-6 space-y-4 bg-black/30 border-white/10 backdrop-blur-xl"
           >
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">{groupKey}</h2>
@@ -191,6 +191,7 @@ export default function SongsPage() {
                 Songs: {grouped[groupKey].length}
               </span>
             </div>
+
             <Separator />
 
             <div className="max-h-[300px] overflow-y-auto pr-2">
@@ -200,7 +201,11 @@ export default function SongsPage() {
                   .map((song) => (
                     <li key={song.id}>
                       <Link href={`/music/songs/${song.id}`}>
-                        <Card className="p-4 hover:bg-accent cursor-pointer">
+                        <Card
+                          className="relative p-4 cursor-pointer 
+                                    bg-black/40 border-white/10 backdrop-blur-xl 
+                                    hover:bg-white/5 transition"
+                        >
                           <div className="flex items-center justify-between">
                             <div>
                               <h3 className="font-medium">{song.title}</h3>
@@ -217,7 +222,6 @@ export default function SongsPage() {
                                 <Music size={16} className="text-green-400/40" />
                               )}
                             </div>
-
                           </div>
                         </Card>
                       </Link>
