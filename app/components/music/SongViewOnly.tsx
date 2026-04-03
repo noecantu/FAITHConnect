@@ -43,31 +43,49 @@ export default function SongViewOnly({ songId }: { songId: string }) {
       </div>
 
       <div className="flex gap-3">
+        {/* Lyrics Button */}
         <button
-          onClick={() => setShowLyrics(true)}
-          style={{ backgroundColor: getSectionColor("praise") }}
+          onClick={() => song.lyrics && setShowLyrics(true)}
+          disabled={!song.lyrics?.trim()}
+          style={{
+            backgroundColor: song.lyrics
+              ? getSectionColor("praise")
+              : "rgba(255,255,255,0.1)",
+            opacity: song.lyrics ? 1 : 0.4,
+            cursor: song.lyrics ? "pointer" : "not-allowed",
+          }}
           className="
             px-4 py-2 rounded
             border border-white/10
             text-white
-            hover:bg-white/10
             backdrop-blur-sm
             transition
+            disabled:hover:bg-transparent
+            hover:bg-white/10
           "
         >
           Fullscreen Lyrics
         </button>
 
+        {/* Chords Button */}
         <button
-          onClick={() => setShowChords(true)}
-          style={{ backgroundColor: getSectionColor("altarcall") }}
+          onClick={() => song.chords && setShowChords(true)}
+          disabled={!song.chords?.trim()}
+          style={{
+            backgroundColor: song.chords
+              ? getSectionColor("altarcall")
+              : "rgba(255,255,255,0.1)",
+            opacity: song.chords ? 1 : 0.4,
+            cursor: song.chords ? "pointer" : "not-allowed",
+          }}
           className="
             px-4 py-2 rounded
             border border-white/10
             text-white
-            hover:bg-white/10
             backdrop-blur-sm
             transition
+            disabled:hover:bg-transparent
+            hover:bg-white/10
           "
         >
           Fullscreen Chords
