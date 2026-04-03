@@ -37,7 +37,6 @@ export function DayEventsDialog({
             ? 'No events scheduled for this day.'
             : `${events.length} event${events.length === 1 ? '' : 's'} scheduled.`
         }
-        onClose={() => onOpenChange(false)}
         footer={
           canManage && (
             <Button onClick={() => onAdd(date)} className="w-full sm:w-auto">
