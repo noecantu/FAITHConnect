@@ -247,14 +247,14 @@ export default function AttendancePageContent() {
             setDate(today);
             router.push(`/attendance?date=${format(today, "yyyy-MM-dd")}`);
           }}
-          className="bg-black/30 border border-white/30 backdrop-blur-xl"
+          className="w-full sm:w-auto bg-black/30 border border-white/30 backdrop-blur-xl"
         >
           Today
         </Button>
 
         <Button
           onClick={() => router.push("/attendance/history")}
-          className="text-white/80 border-white/20"
+          className="w-full sm:w-auto text-white/80 border-white/20"
         >
           History
         </Button>
