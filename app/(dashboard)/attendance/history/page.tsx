@@ -350,7 +350,7 @@ export default function AttendanceHistoryPage() {
       </PageHeader>
 
       {/* CHART (matches Contributions layout) */}
-      <Card className="h-full flex flex-col">
+      <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
         <CardHeader>
           <CardTitle>Attendance Overview</CardTitle>
         </CardHeader>
@@ -362,9 +362,8 @@ export default function AttendanceHistoryPage() {
           )}
         </CardContent>
       </Card>
-
       {/* TABLE */}
-      <Card>
+      <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
         <CardHeader>
           <CardTitle>Attendance Records</CardTitle>
         </CardHeader>
