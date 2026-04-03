@@ -310,13 +310,22 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   border: none !important;
 }
 
+/* Make Flatpickr responsive */
 .flatpickr-input,
 .flatpickr-alt-input {
-  width: fit-content !important;
-  max-width: fit-content !important;
+  width: 100% !important;
+  max-width: 100% !important;
   display: block !important;
   box-sizing: border-box !important;
-  min-width: 0 !important;
+}
+
+/* Desktop width */
+@media (min-width: 640px) {
+  .flatpickr-input,
+  .flatpickr-alt-input {
+    width: 150px !important;
+    max-width: 150px !important;
+  }
 }
 
 .flatpickr-confirm {
