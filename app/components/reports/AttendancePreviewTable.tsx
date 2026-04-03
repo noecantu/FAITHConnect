@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { AttendanceRecord } from '@/app/hooks/useAttendanceForReports';
 import { Member } from '@/app/lib/types';
+import { PreviewPaginationFooter } from "../layout/PreviewPaginationFooter";
+import { ReportContainer } from "../reports/ReportContainer";
 
 interface Props {
   attendance: AttendanceRecord[];
@@ -25,7 +27,6 @@ export function AttendancePreviewTable({ attendance }: Props) {
   const start = page * PAGE_SIZE;
   const end = start + PAGE_SIZE;
   const visibleRows = attendance.slice(start, end);
-
   const totalPages = Math.ceil(attendance.length / PAGE_SIZE);
 
   const getName = (row: AttendanceRecord) => {
@@ -40,7 +41,19 @@ export function AttendancePreviewTable({ attendance }: Props) {
   };
 
   return (
-    <div className="space-y-2 w-full">
+    <ReportContainer
+      footer={
+        <PreviewPaginationFooter
+          start={start}
+          end={end}
+          total={attendance.length}
+          page={page}
+          totalPages={totalPages}
+          setPage={setPage}
+          label="records"
+        />
+      }
+    >
       <div className="w-full overflow-x-auto rounded-md border border-white/10 bg-black/20 backdrop-blur-xl">
         <table className="w-full min-w-max text-sm">
           <thead className="bg-slate-800 border-b border-white/50">
@@ -69,31 +82,6 @@ export function AttendancePreviewTable({ attendance }: Props) {
           </tbody>
         </table>
       </div>
-
-      {/* Pagination Footer */}
-      <div className="flex items-center justify-between pt-2">
-        <p className="text-xs text-white/60">
-          Showing {start + 1}–{Math.min(end, attendance.length)} of {attendance.length} records
-        </p>
-
-        <div className="space-x-2">
-          <button
-            className="px-3 py-1.5 text-xs rounded bg-black/30 border border-white/20 backdrop-blur-xl hover:bg-white/10 transition disabled:opacity-40"
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
-            disabled={page === 0}
-          >
-            Previous
-          </button>
-
-          <button
-            className="px-3 py-1.5 text-xs rounded bg-black/30 border border-white/20 backdrop-blur-xl hover:bg-white/10 transition disabled:opacity-40"
-            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-            disabled={page >= totalPages - 1}
-          >
-            Next
-          </button>
-        </div>
-      </div>
-    </div>
+    </ReportContainer>
   );
 }
