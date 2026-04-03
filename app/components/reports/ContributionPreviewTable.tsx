@@ -33,7 +33,7 @@ export function ContributionPreviewTable({ contributions, members }: Props) {
     <div className="space-y-2 w-full">
       <div className="w-full overflow-x-auto rounded-md border border-white/10 bg-black/20 backdrop-blur-xl">
         <table className="w-full min-w-max text-sm">
-          <thead className="bg-white/5 border-b border-white/10">
+          <thead className="bg-slate-800 border-b border-white/50">
             <tr>
               <th className="p-3 text-left font-medium text-white/80">Member</th>
               <th className="p-3 text-left font-medium text-white/80">Amount</th>

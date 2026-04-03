@@ -95,7 +95,7 @@ export function MemberPreviewTable({ members, selectedFields }: Props) {
     <div className="w-full max-w-full overflow-hidden">
       <div className="overflow-x-auto rounded-md border border-white/10 bg-black/20 backdrop-blur-xl w-full">
         <table className="min-w-max text-sm">
-          <thead className="bg-white/5 border-b border-white/10">
+          <thead className="bg-slate-800 border-b border-white/50">
             <tr>
               <th className="text-left px-4 py-3 font-medium text-white/80">
                 Name

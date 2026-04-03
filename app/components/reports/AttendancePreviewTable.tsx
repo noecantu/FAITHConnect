@@ -43,7 +43,7 @@ export function AttendancePreviewTable({ attendance }: Props) {
     <div className="space-y-2 w-full">
       <div className="w-full overflow-x-auto rounded-md border border-white/10 bg-black/20 backdrop-blur-xl">
         <table className="w-full min-w-max text-sm">
-          <thead className="bg-white/5 border-b border-white/10">
+          <thead className="bg-slate-800 border-b border-white/50">
             <tr>
               <th className="text-left px-4 py-3 font-medium text-white/80">Date</th>
               <th className="text-left px-4 py-3 font-medium text-white/80">Name</th>
