@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { PageHeader } from '@/app/components/page-header';
 import { Card } from '@/app/components/ui/card';
@@ -12,7 +12,7 @@ import { format } from 'date-fns';
 import { Fab } from '@/app/components/ui/fab';
 import { useRouter } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu';
-import { Copy, Pencil, Trash } from 'lucide-react';
+import { Copy, FileText, Music, Pencil, Trash } from 'lucide-react';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/app/components/ui/alert-dialog';
 import { getSectionColor } from '@/app/lib/sectionColors';
 import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dialog';
@@ -20,6 +20,7 @@ import { Button } from '@/app/components/ui/button';
 import { duplicateSetList } from '@/app/lib/duplicateSetList';
 import { useToast } from '@/app/hooks/use-toast';
 import { useAuth } from '@/app/hooks/useAuth';
+import { useSongs } from '@/app/hooks/useSongs';
 
 export default function SetListDetailPage() {
   const { id } = useParams();
@@ -34,6 +35,14 @@ export default function SetListDetailPage() {
 
   const [setList, setSetList] = useState<SetList | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // ✅ Load all songs for this church
+  const { songs: allSongs } = useSongs(churchId);
+
+  // ✅ Build a lookup map: { songId: Song }
+  const songMap = useMemo(() => {
+    return Object.fromEntries(allSongs.map((s) => [s.id, s]));
+  }, [allSongs]);
 
   useEffect(() => {
     if (!churchId || !id) return;
@@ -76,12 +85,11 @@ export default function SetListDetailPage() {
     );
   }
 
-  const formattedDate = format(setList.dateTime, 'M/d/yy, h:mm a');
+  const formattedDate = format(setList.dateTime, "M/d/yy, h:mm a");
 
   return (
     <div className="space-y-6">
-      <PageHeader title={setList.title} subtitle={formattedDate}>
-      </PageHeader>
+      <PageHeader title={setList.title} subtitle={formattedDate} />
 
       {/* Overview */}
       {(setList.serviceType ||
@@ -93,25 +101,29 @@ export default function SetListDetailPage() {
 
           {setList.serviceType && (
             <p className="text-sm text-muted-foreground">
-              <span className="font-medium">Service Type:</span> {setList.serviceType}
+              <span className="font-medium">Service Type:</span>{" "}
+              {setList.serviceType}
             </p>
           )}
 
           {setList.serviceNotes?.theme && (
             <p className="text-sm text-muted-foreground">
-              <span className="font-medium">Theme:</span> {setList.serviceNotes.theme}
+              <span className="font-medium">Theme:</span>{" "}
+              {setList.serviceNotes.theme}
             </p>
           )}
 
           {setList.serviceNotes?.scripture && (
             <p className="text-sm text-muted-foreground">
-              <span className="font-medium">Scripture:</span> {setList.serviceNotes.scripture}
+              <span className="font-medium">Scripture:</span>{" "}
+              {setList.serviceNotes.scripture}
             </p>
           )}
 
           {setList.serviceNotes?.notes && (
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              <span className="font-medium">Notes:</span> {setList.serviceNotes.notes}
+              <span className="font-medium">Notes:</span>{" "}
+              {setList.serviceNotes.notes}
             </p>
           )}
         </Card>
@@ -129,37 +141,66 @@ export default function SetListDetailPage() {
           >
             {/* Section Header */}
             <h2 className="text-lg font-semibold">
-              {section.title}{' '}
+              {section.title}{" "}
               <span className="text-muted-foreground text-sm">
-                ({section.songs.length}{' '}
-                {section.songs.length === 1 ? 'Song' : 'Songs'})
+                ({section.songs.length}{" "}
+                {section.songs.length === 1 ? "Song" : "Songs"})
               </span>
             </h2>
 
             {/* Songs */}
             <div className="space-y-3">
-              {section.songs.map((song) => (
-                <Card
-                  key={song.songId}
-                  className="p-3 space-y-2 cursor-pointer hover:bg-accent transition"
-                  onClick={() => router.push(`/music/songs/${song.songId}/view`)}
-                >
-                  <p className="font-medium">{song.title}</p>
+              {section.songs.map((song) => {
+                // ✅ Lookup the full song object
+                const fullSong = songMap[song.songId];
 
-                  {/* Musical metadata */}
-                  <div className="text-sm text-muted-foreground flex gap-2">
-                    <span>Key: {song.key}</span>
-                    {song.bpm && <span>| BPM: {song.bpm}</span>}
-                    {song.timeSignature && <span>| Time: {song.timeSignature}</span>}
-                  </div>
+                return (
+                  <Card
+                    key={song.songId}
+                    className="relative p-4 cursor-pointer 
+                      bg-black/40 border-white/10 backdrop-blur-xl 
+                      hover:bg-white/5 transition"
+                    onClick={() =>
+                      router.push(`/music/songs/${song.songId}/view`)
+                    }
+                  >
+                    <div className="flex items-center justify-between">
+                      {/* Left side */}
+                      <div>
+                        <h3 className="font-medium">{song.title}</h3>
 
-                  {song.notes && (
-                    <div className="text-sm text-muted-foreground">
-                      Notes: {song.notes}
+                        <p className="text-sm text-muted-foreground">
+                          Key: {song.key || "—"} • Tempo:{" "}
+                          {song.bpm ?? "—"} • Time Signature:{" "}
+                          {song.timeSignature ?? "—"}
+                        </p>
+
+                        {song.notes && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Notes: {song.notes}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Right side: icons */}
+                      <div className="flex items-center gap-2 ml-2">
+                        {fullSong?.lyrics && (
+                          <FileText
+                            size={16}
+                            className="text-blue-400/40"
+                          />
+                        )}
+                        {fullSong?.chords && (
+                          <Music
+                            size={16}
+                            className="text-green-400/40"
+                          />
+                        )}
+                      </div>
                     </div>
-                  )}
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
 
               {section.songs.length === 0 && (
                 <p className="text-sm text-muted-foreground italic">
@@ -167,11 +208,11 @@ export default function SetListDetailPage() {
                 </p>
               )}
             </div>
-
           </Card>
         ))}
       </div>
 
+      {/* Floating menu */}
       {canEdit && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -186,7 +227,9 @@ export default function SetListDetailPage() {
             {/* Edit */}
             <DropdownMenuItem
               className="flex items-center justify-center p-2"
-              onClick={() => router.push(`/music/setlists/${setList.id}/edit`)}
+              onClick={() =>
+                router.push(`/music/setlists/${setList.id}/edit`)
+              }
             >
               <Pencil className="h-4 w-4" />
             </DropdownMenuItem>
@@ -204,28 +247,35 @@ export default function SetListDetailPage() {
 
               <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Duplicate this set list?</AlertDialogTitle>
+                  <AlertDialogTitle>
+                    Duplicate this set list?
+                  </AlertDialogTitle>
                   <AlertDialogDescription>
-                    A new copy of “{setList.title}” will be created with the same sections and songs.
+                    A new copy of “{setList.title}” will be created with
+                    the same sections and songs.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel asChild>
-                    <Button variant="outline">
-                      Cancel
-                    </Button>
+                    <Button variant="outline">Cancel</Button>
                   </AlertDialogCancel>
-                    <AlertDialogAction asChild>
-                      <Button
-                        variant="default"
-                        onClick={() => {
-                          if (!churchId) return;
-                          duplicateSetList(churchId, setList.id, router, toast, user);
-                        }}
-                      >
-                        Duplicate
-                      </Button>
-                    </AlertDialogAction>
+                  <AlertDialogAction asChild>
+                    <Button
+                      variant="default"
+                      onClick={() => {
+                        if (!churchId) return;
+                        duplicateSetList(
+                          churchId,
+                          setList.id,
+                          router,
+                          toast,
+                          user
+                        );
+                      }}
+                    >
+                      Duplicate
+                    </Button>
+                  </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -243,22 +293,25 @@ export default function SetListDetailPage() {
 
               <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete this set list?</AlertDialogTitle>
+                  <AlertDialogTitle>
+                    Delete this set list?
+                  </AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. This will permanently remove “{setList.title}”.
+                    This action cannot be undone. This will permanently
+                    remove “{setList.title}”.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel asChild>
-                    <Button variant="outline">
-                      Cancel
-                    </Button>
+                    <Button variant="outline">Cancel</Button>
                   </AlertDialogCancel>
 
                   <AlertDialogAction asChild>
                     <Button
                       variant="destructive"
-                      onClick={() => deleteSetList(churchId, setList.id, router)}
+                      onClick={() =>
+                        deleteSetList(churchId, setList.id, router)
+                      }
                     >
                       Delete
                     </Button>
@@ -269,7 +322,6 @@ export default function SetListDetailPage() {
           </DropdownMenuContent>
         </DropdownMenu>
       )}
-
     </div>
   );
 }

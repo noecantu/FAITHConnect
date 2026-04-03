@@ -14,7 +14,7 @@ import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Event, ServicePlan } from '@/app/lib/types';
 import { dateKey } from '@/app/lib/calendar/utils';
-import { getGroupColor } from "@/app/lib/auth/permissions/groupColors";
+import { getGroupColor } from "@/app/lib/groupColors";
 
 interface GridCalendarProps {
   month: Date;
