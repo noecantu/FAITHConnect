@@ -186,10 +186,10 @@ export default function SongsPage() {
         {sortedGroupKeys.map((groupKey) => (
           <Card
             key={groupKey}
-            ref={(el) => {
+              ref={(el) => {
               groupRefs.current[groupKey] = el;
             }}
-            className="relative p-6 space-y-4 bg-black/30 border-white/10 backdrop-blur-xl"
+            className="relative p-6 space-y-4 bg-black/50 border-white/10 backdrop-blur-xl"
           >
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">{groupKey}</h2>
