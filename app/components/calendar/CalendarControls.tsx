@@ -70,12 +70,7 @@ export function CalendarControls({
       {/* CALENDAR VIEW CONTROLS */}
       {view.view === "calendar" && (
         <div className="flex justify-end w-full">
-          <div
-            className="
-              flex flex-row items-center justify-end gap-2
-              max-sm:flex-col max-sm:items-stretch
-            "
-          >
+          <div className="flex flex-row items-center justify-end gap-2 w-full">
 
             {/* Month */}
             <Select
@@ -84,15 +79,17 @@ export function CalendarControls({
                 month.setMonth(setMonthDate(month.month, Number(value)))
               }
             >
-                <SelectTrigger
-                  className="
-                    w-[140px] h-9
-                    bg-black/40 border border-white/30 backdrop-blur-xl
-                    text-white/80
-                    hover:bg-white/5 hover:border-white/30
-                    transition
-                  "
-                >
+              <SelectTrigger
+                className="
+                  w-[140px] h-9
+                  bg-black/40 border border-white/30 backdrop-blur-xl
+                  text-white/80
+                  hover:bg-white/5 hover:border-white/30
+                  transition
+                  sm:w-[140px]
+                  max-sm:flex-1
+                "
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -111,15 +108,17 @@ export function CalendarControls({
                 month.setMonth(setYearDate(month.month, Number(value)))
               }
             >
-                <SelectTrigger
-                  className="
-                    w-[140px] h-9
-                    bg-black/40 border border-white/30 backdrop-blur-xl
-                    text-white/80
-                    hover:bg-white/5 hover:border-white/30
-                    transition
-                  "
-                >
+              <SelectTrigger
+                className="
+                  w-[140px] h-9
+                  bg-black/40 border border-white/30 backdrop-blur-xl
+                  text-white/80
+                  hover:bg-white/5 hover:border-white/30
+                  transition
+                  sm:w-[140px]
+                  max-sm:flex-1
+                "
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -135,7 +134,10 @@ export function CalendarControls({
             <Button
               variant="ghost"
               onClick={month.goToday}
-              className="bg-black/30 border border-white/30 backdrop-blur-xl"
+              className="
+                bg-black/30 border border-white/30 backdrop-blur-xl
+                whitespace-nowrap
+              "
             >
               Today
             </Button>
