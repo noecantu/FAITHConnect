@@ -39,7 +39,7 @@ export default function EventEditor({
   const [title, setTitle] = useState(initialEvent?.title ?? "");
   const [description, setDescription] = useState(initialEvent?.description ?? "");
   const [date, setDate] = useState(
-    initialEvent?.date ? new Date(initialEvent.date) : null
+    initialEvent?.date ? new Date(initialEvent.date) : new Date()
   );
 
   const [isPublic, setIsPublic] = useState(
