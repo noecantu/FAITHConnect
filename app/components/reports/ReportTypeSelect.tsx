@@ -34,16 +34,14 @@ export function ReportTypeSelect({
         </SelectTrigger>
 
         <SelectContent>
-          {canReadMembers && (
-            <SelectItem value="members">Members</SelectItem>
+          {canReadAttendance && (
+            <SelectItem value="attendance">Attendance</SelectItem>
           )}
-
           {canReadContributions && (
             <SelectItem value="contributions">Contributions</SelectItem>
           )}
-
-          {canReadAttendance && (
-            <SelectItem value="attendance">Attendance</SelectItem>
+          {canReadMembers && (
+            <SelectItem value="members">Members</SelectItem>
           )}
         </SelectContent>
       </Select>

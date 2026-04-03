@@ -92,15 +92,20 @@ export function MemberPreviewTable({ members, selectedFields }: Props) {
   };
 
   return (
-    <div className="space-y-2">
-      <div className="overflow-auto border rounded-md bg-card">
-        <table className="min-w-full text-sm">
-          <thead className="bg-muted">
+    <div className="w-full max-w-full overflow-hidden">
+      <div className="overflow-x-auto rounded-md border border-white/10 bg-black/20 backdrop-blur-xl w-full">
+        <table className="min-w-max text-sm">
+          <thead className="bg-white/5 border-b border-white/10">
             <tr>
-              <th className="text-left px-3 py-2">Name</th>
+              <th className="text-left px-4 py-3 font-medium text-white/80">
+                Name
+              </th>
 
               {selectedFields.map((field) => (
-                <th key={field} className="text-left px-3 py-2">
+                <th
+                  key={field}
+                  className="text-left px-4 py-3 font-medium text-white/80"
+                >
                   {fieldLabelMap[field] ?? field}
                 </th>
               ))}
@@ -109,13 +114,16 @@ export function MemberPreviewTable({ members, selectedFields }: Props) {
 
           <tbody>
             {visibleMembers.map((member) => (
-              <tr key={member.id} className="border-t">
-                <td className="px-3 py-2">
+              <tr
+                key={member.id}
+                className="border-t border-white/10 hover:bg-white/5 transition-colors"
+              >
+                <td className="px-4 py-3 text-white/90">
                   {member.firstName} {member.lastName}
                 </td>
 
                 {selectedFields.map((field) => (
-                  <td key={field} className="px-3 py-2">
+                  <td key={field} className="px-4 py-3 text-white/70">
                     {formatField(member, field)}
                   </td>
                 ))}
@@ -127,13 +135,13 @@ export function MemberPreviewTable({ members, selectedFields }: Props) {
 
       {/* Pagination Footer */}
       <div className="flex items-center justify-between pt-2">
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-white/60">
           Showing {start + 1}–{Math.min(end, members.length)} of {members.length} members
         </p>
 
         <div className="space-x-2">
           <button
-            className="px-2 py-1 border rounded text-xs disabled:opacity-50"
+            className="px-3 py-1.5 text-xs rounded bg-black/30 border border-white/20 backdrop-blur-xl hover:bg-white/10 transition disabled:opacity-40"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page === 0}
           >
@@ -141,7 +149,7 @@ export function MemberPreviewTable({ members, selectedFields }: Props) {
           </button>
 
           <button
-            className="px-2 py-1 border rounded text-xs disabled:opacity-50"
+            className="px-3 py-1.5 text-xs rounded bg-black/30 border border-white/20 backdrop-blur-xl hover:bg-white/10 transition disabled:opacity-40"
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
           >

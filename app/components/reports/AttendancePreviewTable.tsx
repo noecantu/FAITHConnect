@@ -40,25 +40,28 @@ export function AttendancePreviewTable({ attendance }: Props) {
   };
 
   return (
-    <div className="space-y-2">
-      <div className="overflow-auto border rounded-md bg-card">
-        <table className="w-full text-sm">
-          <thead className="bg-muted">
+    <div className="space-y-2 w-full">
+      <div className="w-full overflow-x-auto rounded-md border border-white/10 bg-black/20 backdrop-blur-xl">
+        <table className="w-full min-w-max text-sm">
+          <thead className="bg-white/5 border-b border-white/10">
             <tr>
-              <th className="text-left px-3 py-2">Date</th>
-              <th className="text-left px-3 py-2">Name</th>
-              <th className="text-left px-3 py-2">Type</th>
-              <th className="text-left px-3 py-2">Status</th>
+              <th className="text-left px-4 py-3 font-medium text-white/80">Date</th>
+              <th className="text-left px-4 py-3 font-medium text-white/80">Name</th>
+              <th className="text-left px-4 py-3 font-medium text-white/80">Type</th>
+              <th className="text-left px-4 py-3 font-medium text-white/80">Status</th>
             </tr>
           </thead>
 
           <tbody>
             {visibleRows.map((row) => (
-              <tr key={row.id} className="border-b last:border-0">
-                <td className="px-3 py-2">{row.date}</td>
-                <td className="px-3 py-2">{getName(row)}</td>
-                <td className="px-3 py-2">{getType(row)}</td>
-                <td className="px-3 py-2">
+              <tr
+                key={row.id}
+                className="border-b border-white/10 hover:bg-white/5 transition-colors"
+              >
+                <td className="px-4 py-3 text-white/90">{row.date}</td>
+                <td className="px-4 py-3 text-white/90">{getName(row)}</td>
+                <td className="px-4 py-3 text-white/90">{getType(row)}</td>
+                <td className="px-4 py-3 text-white/90">
                   {row.attended ? "Present" : "Absent"}
                 </td>
               </tr>
@@ -69,13 +72,13 @@ export function AttendancePreviewTable({ attendance }: Props) {
 
       {/* Pagination Footer */}
       <div className="flex items-center justify-between pt-2">
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-white/60">
           Showing {start + 1}–{Math.min(end, attendance.length)} of {attendance.length} records
         </p>
 
         <div className="space-x-2">
           <button
-            className="px-2 py-1 border rounded text-xs disabled:opacity-50"
+            className="px-3 py-1.5 text-xs rounded bg-black/30 border border-white/20 backdrop-blur-xl hover:bg-white/10 transition disabled:opacity-40"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page === 0}
           >
@@ -83,7 +86,7 @@ export function AttendancePreviewTable({ attendance }: Props) {
           </button>
 
           <button
-            className="px-2 py-1 border rounded text-xs disabled:opacity-50"
+            className="px-3 py-1.5 text-xs rounded bg-black/30 border border-white/20 backdrop-blur-xl hover:bg-white/10 transition disabled:opacity-40"
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
           >

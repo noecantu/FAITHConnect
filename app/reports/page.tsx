@@ -225,16 +225,14 @@ export default function ReportsPage() {
         />
 
         {/* RIGHT PANEL */}
-        <div className="space-y-6 w-full">
-
-          {/* MEMBER REPORT */}
-          {reportType === "members" && canReadMembers && (
-            <MemberPreviewTable
-              members={filteredMembers}
-              selectedFields={selectedFields}
+        <div className="space-y-6 w-full min-w-0">
+          {/* ATTENDANCE REPORT */}
+          {reportType === "attendance" && canReadAttendance && (
+            <AttendancePreviewTable
+              attendance={filteredAttendance}
+              members={members}
             />
           )}
-
           {/* CONTRIBUTIONS REPORT */}
           {reportType === "contributions" && canReadContributions && (
             <ContributionPreviewTable
@@ -243,15 +241,13 @@ export default function ReportsPage() {
               selectedFields={[]}
             />
           )}
-
-          {/* ATTENDANCE REPORT */}
-          {reportType === "attendance" && canReadAttendance && (
-            <AttendancePreviewTable
-              attendance={filteredAttendance}
-              members={members}
+          {/* MEMBER REPORT */}
+          {reportType === "members" && canReadMembers && (
+            <MemberPreviewTable
+              members={filteredMembers}
+              selectedFields={selectedFields}
             />
           )}
-
         </div>
       </div>
     </div>
