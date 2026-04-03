@@ -115,7 +115,7 @@ export default function MembersPage() {
       <SearchBar
         value={search}
         onChange={setSearch}
-        placeholder="Search members..."
+        placeholder="Search Members..."
       />
 
       {/* MEMBERS GRID */}

@@ -151,7 +151,7 @@ export function CalendarControls({
               <SearchBar
                 value={filters.search}
                 onChange={filters.setSearch}
-                placeholder="Search events…"
+                placeholder="Search Events…"
               />
             </div>
 

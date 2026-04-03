@@ -153,7 +153,7 @@ export default function ServicePlanPage() {
             <SearchBar
               value={search}
               onChange={setSearch}
-              placeholder="Search service plans..."
+              placeholder="Search Service Plans..."
             />
           </div>
 

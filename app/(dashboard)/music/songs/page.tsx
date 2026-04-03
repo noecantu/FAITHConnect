@@ -132,7 +132,7 @@ export default function SongsPage() {
             <SearchBar
               value={search}
               onChange={setSearch}
-              placeholder="Search songs..."
+              placeholder="Search Songs..."
             />
           </div>
 

@@ -147,7 +147,7 @@ export default function SetListsPage() {
             <SearchBar
               value={search}
               onChange={setSearch}
-              placeholder="Search set lists..."
+              placeholder="Search Set Lists..."
             />
           </div>
 

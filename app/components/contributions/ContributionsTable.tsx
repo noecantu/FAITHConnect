@@ -59,7 +59,7 @@ export function ContributionsTable<TData, TValue>({
       <SearchBar
         value={globalFilter}
         onChange={setGlobalFilter}
-        placeholder="Search contributions..."
+        placeholder="Search Contributions..."
       />
 
       {/* Table */}
