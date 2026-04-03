@@ -123,9 +123,7 @@ export default function SongsPage() {
 
   return (
     <div className="space-y-6">
-
       <PageHeader title="Songs" subtitle={subtitleText}/>
-
       {/* Sticky Search + Sort Bar */}
       <div className="sticky top-0 z-10">
         <div className="flex flex-wrap items-center gap-3 py-2 w-full">
@@ -159,16 +157,15 @@ export default function SongsPage() {
                 });
               }}
             >
-                <SelectTrigger
-                  className="
-                    w-[140px] h-9
-                    bg-black/40 border border-white/30 backdrop-blur-xl
-                    text-white/80
-                    hover:bg-white/5 hover:border-white/20
-                    transition
-                  "
-                >
-
+              <SelectTrigger
+                className="
+                  w-full sm:w-[140px] h-9
+                  bg-black/40 border border-white/30 backdrop-blur-xl
+                  text-white/80
+                  hover:bg-white/5 hover:border-white/20
+                  transition
+                "
+              >
                 <SelectValue placeholder="Sort" />
               </SelectTrigger>
 
