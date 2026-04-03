@@ -14,6 +14,7 @@ import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Event, ServicePlan } from '@/app/lib/types';
 import { dateKey } from '@/app/lib/calendar/utils';
+import { getGroupColor } from "@/app/lib/auth/permissions/groupColors";
 
 interface GridCalendarProps {
   month: Date;
@@ -42,7 +43,7 @@ export function GridCalendar({
   const monthStart = startOfMonth(month);
   const monthEnd = endOfMonth(month);
   const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
-
+  
   const leadingBlanks = getDay(monthStart);
   const trailingBlanks = 6 - getDay(monthEnd);
 
@@ -116,14 +117,20 @@ export function GridCalendar({
                 {/* Desktop event titles */}
                 {count > 0 && (
                   <div className="hidden md:flex flex-col items-start w-full mt-1 space-y-1">
-                    {dayEvents.slice(0, 2).map((event) => (
-                      <div
-                        key={`${event.id}-${event.dateString}-${"timeString" in event ? "service" : "event"}`}
-                        className="text-xs bg-primary/20 text-white rounded-sm px-1 truncate w-full text-left"
-                      >
-                        {event.title}
-                      </div>
-                    ))}
+                    {dayEvents.slice(0, 2).map((event) => {
+                      const groups = "groups" in event ? event.groups : [];
+                      const color = getGroupColor(groups);
+
+                      return (
+                        <div
+                          key={`${event.id}-${event.dateString}-${"timeString" in event ? "service" : "event"}`}
+                          className="text-xs text-white rounded-sm px-1 truncate w-full text-left"
+                          style={{ backgroundColor: color }}
+                        >
+                          {event.title}
+                        </div>
+                      );
+                    })}
 
                     {count > 2 && (
                       <div className="text-xs text-muted-foreground">
