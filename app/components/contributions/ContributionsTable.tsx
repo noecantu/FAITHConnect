@@ -20,8 +20,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/app/components/ui/table';
-import { Input } from '@/app/components/ui/input';
 import { PreviewPaginationFooter } from '../layout/PreviewPaginationFooter';
+import { SearchBar } from '../ui/search-bar';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -53,22 +53,26 @@ export function ContributionsTable<TData, TValue>({
   });
 
   return (
-    <div>
-      <div className="flex items-center py-4">
-        <Input
-          placeholder="Filter by member name..."
-          value={globalFilter ?? ''}
-          onChange={(event) => setGlobalFilter(String(event.target.value))}
-          className="max-w-sm"
-        />
-      </div>
-      <div className="rounded-md border bg-black/20 backdrop-blur-xl">
-        <Table>
-          <TableHeader>
+    <div className="w-full space-y-3">
+
+      {/* Search Bar */}
+      <SearchBar
+        value={globalFilter}
+        onChange={setGlobalFilter}
+        placeholder="Search contributions..."
+      />
+
+      {/* Table */}
+      <div className="w-full overflow-x-auto rounded-md border border-white/10 bg-black/20 backdrop-blur-xl">
+        <Table className="min-w-max text-sm">
+          <TableHeader className="bg-white/5 border-b border-white/10">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    className="px-4 py-3 text-white/80 font-medium"
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -80,17 +84,25 @@ export function ContributionsTable<TData, TValue>({
               </TableRow>
             ))}
           </TableHeader>
+
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className="cursor-pointer hover:bg-white/5"
+                  className="
+                    cursor-pointer
+                    border-b border-white/10
+                    hover:bg-white/5 transition-colors
+                  "
                   onClick={() => onRowClick?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className="px-4 py-3 text-white/90"
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -109,9 +121,17 @@ export function ContributionsTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
       <PreviewPaginationFooter
-        start={table.getState().pagination.pageIndex * table.getState().pagination.pageSize}
-        end={(table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize}
+        start={
+          table.getState().pagination.pageIndex *
+          table.getState().pagination.pageSize
+        }
+        end={
+          (table.getState().pagination.pageIndex + 1) *
+          table.getState().pagination.pageSize
+        }
         total={table.getFilteredRowModel().rows.length}
         page={table.getState().pagination.pageIndex}
         totalPages={table.getPageCount()}

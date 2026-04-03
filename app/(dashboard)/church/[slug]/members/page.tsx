@@ -4,8 +4,6 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
 import { PageHeader } from '@/app/components/page-header';
-import { Button } from '@/app/components/ui/button';
-import { Input } from '@/app/components/ui/input';
 import { Fab } from '@/app/components/ui/fab';
 import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
 
@@ -21,6 +19,7 @@ import MemberCard from '../../../../components/members/MemberCard';
 
 import { updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
+import { SearchBar } from '@/app/components/ui/search-bar';
 
 export default function MembersPage() {
   const router = useRouter();
@@ -34,13 +33,6 @@ export default function MembersPage() {
 
   const [members, setMembers] = useState<Member[]>([]);
   const [search, setSearch] = useState('');
-  const [previousScroll, setPreviousScroll] = useState(0);
-
-  // Relationship search feeds into the same search bar
-  function handleSearchFromRelationship(name: string) {
-    setPreviousScroll(window.scrollY);
-    setSearch(name);
-  }
 
   // Real-time listener
   useEffect(() => {
@@ -84,15 +76,6 @@ export default function MembersPage() {
     return `Active: ${active} | Prospects: ${prospect} | Archived: ${archived}`;
   }, [members]);
 
-  // Clear search + restore scroll
-  function handleClear() {
-    setSearch('');
-
-    requestAnimationFrame(() => {
-      window.scrollTo(0, previousScroll);
-    });
-  }
-
   return (
     <>
       {/* HEADER */}
@@ -129,22 +112,11 @@ export default function MembersPage() {
       </PageHeader>
 
       {/* SEARCH BAR */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="w-full flex items-center gap-2">
-          <Input
-            className="w-full"
-            placeholder="Search members..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-
-          {search.length > 0 && (
-            <Button variant="outline" onClick={handleClear} className="shrink-0">
-              Clear
-            </Button>
-          )}
-        </div>
-      </div>
+      <SearchBar
+        value={search}
+        onChange={setSearch}
+        placeholder="Search members..."
+      />
 
       {/* MEMBERS GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
@@ -154,7 +126,6 @@ export default function MembersPage() {
             member={member}
             allMembers={members}
             showPhoto={cardView === 'show'}
-            searchAction={handleSearchFromRelationship}
           />
         ))}
       </div>

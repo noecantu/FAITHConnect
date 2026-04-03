@@ -330,7 +330,7 @@ export default function ContributionsPage() {
 
       {/* Chart */}
       <div className="grid gap-8">
-        <Card className="h-full flex flex-col">
+        <Card className="border border-white/10 bg-black/20 backdrop-blur-xl">
           <CardHeader>
             <CardTitle>Contribution Overview</CardTitle>
           </CardHeader>
@@ -342,7 +342,7 @@ export default function ContributionsPage() {
 
       {/* Table */}
       <div className="mt-8">
-        <Card>
+        <Card className="border border-white/10 bg-black/20 backdrop-blur-xl">
           <CardHeader>
             <CardTitle>All Contributions</CardTitle>
           </CardHeader>

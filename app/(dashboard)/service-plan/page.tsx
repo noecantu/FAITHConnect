@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { PageHeader } from '@/app/components/page-header';
-import { Input } from '@/app/components/ui/input';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import {
@@ -21,6 +20,7 @@ import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { useRouter } from 'next/navigation';
 import { usePreviewPagination } from '@/app/hooks/usePreviewPagination';
 import { PreviewPaginationFooter } from '@/app/components/layout/PreviewPaginationFooter';
+import { SearchBar } from '@/app/components/ui/search-bar';
 
 // TYPES
 type SortType = "date-desc" | "date-asc" | "title-asc";
@@ -150,18 +150,11 @@ export default function ServicePlanPage() {
 
           {/* Search bar */}
           <div className="w-full sm:flex-1 flex items-center gap-3">
-            <Input
-              className="w-full"
-              placeholder="Search service plans..."
+            <SearchBar
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={setSearch}
+              placeholder="Search service plans..."
             />
-
-            {search.length > 0 && (
-              <Button variant="ghost" className="bg-black/30 border border-white/30 backdrop-blur-xl" onClick={() => setSearch('')}>
-                Clear
-              </Button>
-            )}
           </div>
 
           {/* Controls */}

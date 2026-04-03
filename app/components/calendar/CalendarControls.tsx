@@ -2,7 +2,6 @@
 
 import { format, setMonth as setMonthDate, setYear as setYearDate } from 'date-fns';
 import { Button } from '../ui/button';
-import { Input } from '../ui/input';
 import {
   Select,
   SelectTrigger,
@@ -10,6 +9,7 @@ import {
   SelectContent,
   SelectItem,
 } from '../ui/select';
+import { SearchBar } from '../ui/search-bar';
 
 interface MonthControls {
   month: Date;
@@ -148,11 +148,10 @@ export function CalendarControls({
 
             {/* Search */}
             <div className="w-full md:flex-1">
-              <Input
-                placeholder="Search events…"
+              <SearchBar
                 value={filters.search}
-                onChange={(e) => filters.setSearch(e.target.value)}
-                className="w-full"
+                onChange={filters.setSearch}
+                placeholder="Search events…"
               />
             </div>
 

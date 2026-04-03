@@ -41,11 +41,7 @@ export const getColumns = (): ColumnDef<Contribution>[] => [
     header: 'Notes',
     cell: ({ row }) => {
       const notes = row.original.notes;
-      return notes ? (
-        <span className="text-muted-foreground">{notes}</span>
-      ) : (
-        <span className="text-muted-foreground italic">—</span>
-      );
+      return notes;
     },
   },
 ];

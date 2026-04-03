@@ -3,8 +3,6 @@
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { PageHeader } from '@/app/components/page-header';
-import { Button } from '@/app/components/ui/button';
-import { Input } from '@/app/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import {
   Select,
@@ -20,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { Fab } from '@/app/components/ui/fab';
 import { usePreviewPagination } from '@/app/hooks/usePreviewPagination';
 import { PreviewPaginationFooter } from '@/app/components/layout/PreviewPaginationFooter';
+import { SearchBar } from '@/app/components/ui/search-bar';
 
 // TYPES
 type SortType = 'date-desc' | 'date-asc' | 'title-asc';
@@ -145,18 +144,11 @@ export default function SetListsPage() {
 
           {/* Search bar */}
           <div className="w-full sm:flex-1 flex items-center gap-3">
-            <Input
-              className="w-full"
-              placeholder="Search set lists..."
+            <SearchBar
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={setSearch}
+              placeholder="Search set lists..."
             />
-
-            {search.length > 0 && (
-              <Button variant="ghost" className="bg-black/30 border border-white/30 backdrop-blur-xl" onClick={() => setSearch('')}>
-                Clear
-              </Button>
-            )}
           </div>
 
           {/* Controls */}

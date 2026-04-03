@@ -3,9 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { Card } from '@/app/components/ui/card';
-import { Button } from '@/app/components/ui/button';
 import { Separator } from '@/app/components/ui/separator';
-import { Input } from '@/app/components/ui/input';
 import { PageHeader } from '@/app/components/page-header';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useSongs } from '@/app/hooks/useSongs';
@@ -19,6 +17,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
 import { useAuth } from '@/app/hooks/useAuth';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
+import { SearchBar } from '@/app/components/ui/search-bar';
 
 export default function SongsPage() {
   const { churchId } = useChurchId();
@@ -130,18 +129,11 @@ export default function SongsPage() {
 
           {/* Search */}
           <div className="w-full sm:flex-1 flex items-center gap-3">
-            <Input
-              className="w-full"
-              placeholder="Search songs..."
+            <SearchBar
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={setSearch}
+              placeholder="Search songs..."
             />
-
-            {search.length > 0 && (
-              <Button variant="outline" onClick={() => setSearch('')}>
-                Clear
-              </Button>
-            )}
           </div>
 
           {/* Sort */}
@@ -216,7 +208,7 @@ export default function SongsPage() {
                             <div>
                               <h3 className="font-medium">{song.title}</h3>
                               <p className="text-sm text-muted-foreground">
-                                Key: {song.key || '—'} • Tempo: {song.bpm ?? '—'} • Signature: {song.timeSignature ?? '—'}
+                                Key: {song.key || '—'} • Tempo: {song.bpm ?? '—'} • Time Signature: {song.timeSignature ?? '—'}
                               </p>
                             </div>
 
