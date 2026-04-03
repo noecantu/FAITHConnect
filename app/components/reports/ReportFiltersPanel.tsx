@@ -87,7 +87,8 @@ export function ReportFiltersPanel({
   canReadAttendance,
 }: ReportFiltersPanelProps) {
   return (
-    <Card className="w-full lg:w-80 h-fit">
+    // <Card className="w-full lg:w-80 h-fit">
+    <Card className="relative w-full lg:w-80 h-fit bg-black/30 border-white/10 backdrop-blur-xl">
       <CardHeader>
         <CardTitle>Filters</CardTitle>
       </CardHeader>
@@ -164,20 +165,29 @@ export function ReportFiltersPanel({
             <div className="space-y-2">
               <label className="text-sm font-medium">Time Frame</label>
               <div className="flex gap-2">
-                {["week", "month", "year"].map((tf) => (
-                  <Button
-                    key={tf}
-                    variant={timeFrame === tf ? "default" : "outline"}
-                    onClick={() => {
-                      setTimeFrame(tf as any);
-                      setSelectedYear(null);
-                      setSelectedMonth(null);
-                      setSelectedWeek(null);
-                    }}
-                  >
-                    {tf.charAt(0).toUpperCase() + tf.slice(1)}
-                  </Button>
-                ))}
+                {["week", "month", "year"].map((tf) => {
+                  const isActive = timeFrame === tf;
+
+                  return (
+                    <Button
+                      key={tf}
+                      variant={isActive ? "default" : "outline"}
+                      className={
+                        isActive
+                          ? "" // let default variant use your theme's default button style
+                          : "bg-black/30 border border-white/30 backdrop-blur-xl"
+                      }
+                      onClick={() => {
+                        setTimeFrame(tf as any);
+                        setSelectedYear(null);
+                        setSelectedMonth(null);
+                        setSelectedWeek(null);
+                      }}
+                    >
+                      {tf.charAt(0).toUpperCase() + tf.slice(1)}
+                    </Button>
+                  );
+                })}
               </div>
             </div>
 

@@ -154,40 +154,44 @@ export default function ReportsPage() {
         subtitle="Select a report type below."
       >
         {canExport && (
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={handleExportPDF}
-              size="sm"
-              disabled={isExportingPDF || isExportingExcel}
-            >
-              {isExportingPDF ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  PDF
-                </>
-              ) : (
-                "PDF"
-              )}
-              <FileText className="h-5 w-5" />
-            </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleExportPDF}
+            size="sm"
+            variant="outline"
+            className="bg-black/30 border border-white/30 backdrop-blur-xl"
+            disabled={isExportingPDF || isExportingExcel}
+          >
+            {isExportingPDF ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                PDF
+              </>
+            ) : (
+              "PDF"
+            )}
+            <FileText className="h-5 w-5" />
+          </Button>
 
-            <Button
-              onClick={handleExportExcel}
-              size="sm"
-              disabled={isExportingPDF || isExportingExcel}
-            >
-              {isExportingExcel ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Excel
-                </>
-              ) : (
-                "Excel"
-              )}
-              <Sheet className="h-5 w-5" />
-            </Button>
-          </div>
-        )}
+          <Button
+            onClick={handleExportExcel}
+            size="sm"
+            variant="outline"
+            className="bg-black/30 border border-white/30 backdrop-blur-xl"
+            disabled={isExportingPDF || isExportingExcel}
+          >
+            {isExportingExcel ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Excel
+              </>
+            ) : (
+              "Excel"
+            )}
+            <Sheet className="h-5 w-5" />
+          </Button>
+        </div>
+      )}
       </PageHeader>
 
       <div className="flex flex-col lg:flex-row gap-6">
