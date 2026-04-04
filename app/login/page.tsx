@@ -17,11 +17,19 @@ import { Label } from "@/app/components/ui/label";
 import { useToast } from "@/app/hooks/use-toast";
 import { can } from "@/app/lib/auth/permissions/can";
 import type { Role } from "@/app/lib/auth/permissions/roles";
+import { Switch } from "@/app/components/ui/switch";
+import {
+  browserLocalPersistence,
+  browserSessionPersistence,
+  setPersistence,
+} from "firebase/auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+
   const router = useRouter();
   const { toast } = useToast();
 
@@ -30,30 +38,34 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // 1. Sign in with Firebase Auth
+      // 1. Set Firebase persistence based on the toggle
+      await setPersistence(
+        auth,
+        remember ? browserLocalPersistence : browserSessionPersistence
+      );
+
+      // 2. Sign in
       const { user } = await signInWithEmailAndPassword(
         auth,
         email.trim(),
         password
       );
 
-      // 2. Create Firebase session cookie
+      // 3. Create session cookie
       const idToken = await user.getIdToken(true);
+
       await fetch("/api/auth/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ idToken }),
+        body: JSON.stringify({ idToken, remember }),
       });
 
-      // 3. Fetch user profile
+      // 4. Fetch profile
       const profileRes = await fetch("/api/users/me", {
         credentials: "include",
       });
       const profile = await profileRes.json();
-
-      console.log("PROFILE:", profile);
-      console.log("ROLES:", profile.roles);
 
       const roles = (profile.roles ?? []) as Role[];
 
@@ -62,39 +74,31 @@ export default function LoginPage() {
         description: "Welcome back!",
       });
 
-      // ---------------------------------------
-      // Permission-based redirects
-      // ---------------------------------------
-
-      // Root Admin
+      // 5. Redirect logic
       if (can(roles, "system.manage")) {
         router.replace("/admin");
         return;
       }
 
-      // Church Admin
       if (can(roles, "church.manage")) {
-        if (profile.churchId) {
-          router.replace(`/admin/church/${profile.churchId}`);
-        } else {
-          router.replace("/onboarding/create-church");
-        }
+        router.replace(
+          profile.churchId
+            ? `/admin/church/${profile.churchId}`
+            : "/onboarding/create-church"
+        );
         return;
       }
 
-      // Member
       if (can(roles, "auth.login")) {
-        if (profile.churchId) {
-          router.replace(`/church/${profile.churchId}/user`);
-        } else {
-          router.replace("/");
-        }
+        router.replace(
+          profile.churchId
+            ? `/church/${profile.churchId}/user`
+            : "/"
+        );
         return;
       }
 
-      // Fallback
       router.replace("/");
-
     } catch (error) {
       console.error("Login error:", error);
       toast({
@@ -121,6 +125,7 @@ export default function LoginPage() {
 
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
+            {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -135,6 +140,7 @@ export default function LoginPage() {
               />
             </div>
 
+            {/* Password */}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -148,8 +154,30 @@ export default function LoginPage() {
               />
             </div>
 
+            {/* Forgot + Remember */}
+            <div className="flex items-center justify-between">
+              <a
+                href="/forgot-password"
+                className="text-sm text-blue-400 hover:underline"
+              >
+                Forgot your password?
+              </a>
+
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="remember"
+                  checked={remember}
+                  onCheckedChange={setRemember}
+                />
+                <Label htmlFor="remember" className="text-sm">
+                  Remember Me
+                </Label>
+              </div>
+            </div>
+
+            {/* Submit */}
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Logging in..." : "Log In"}
+              {isLoading ? "Logging in..." : "Sign In"}
             </Button>
           </form>
         </CardContent>

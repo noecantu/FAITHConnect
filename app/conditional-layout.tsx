@@ -9,6 +9,7 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
 
   const hideHeaderAndFooter =
     pathname === '/login' ||
+    pathname.startsWith('/forgot-password') ||
     pathname.includes('/check-in') ||
     pathname.includes('/signup') ||
     pathname.includes('/onboarding/create-church') ||
