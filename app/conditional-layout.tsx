@@ -12,6 +12,7 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
     pathname.startsWith('/forgot-password') ||
     pathname.includes('/check-in') ||
     pathname.includes('/signup') ||
+    pathname.includes('/onboarding') ||
     pathname.includes('/onboarding/create-church') ||
     pathname.includes('/member-portal-login') ||
     pathname.startsWith('/member-portal') ||

@@ -4,12 +4,23 @@ import { Button } from "@/app/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { CheckCircle, Users, Calendar, QrCode, Shield, BarChart } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black">  
+    <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black">
       {/* HERO */}
       <section className="max-w-5xl mx-auto px-6 pt-32 pb-24 text-center">
+        {/* LOGO HEADER */}
+      <div className="flex justify-center mb-10">
+        <Image
+          src="/FAITH_CONNECT_FLAME_LOGO.svg"
+          alt="FAITH Connect Logo"
+          width={300}
+          height={300}
+          className="opacity-95 drop-shadow-lg"
+        />
+      </div>
         <h1 className="text-4xl md:text-6xl font-bold mb-6">
           Church Management Made Effortless
         </h1>
@@ -18,14 +29,14 @@ export default function LandingPage() {
         </p>
 
         <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
-            <Link href="/signup" className="w-full">
+            <Link href="/onboarding" className="w-full">
                 <Button className="w-full px-8 py-6 text-lg bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/20">
                 Get Started
                 </Button>
             </Link>
 
             <Link href="/login" className="w-full">
-                <Button className="w-full px-8 py-6 text-lg bg-white/10 hover:bg-white/20 rounded-xl shadow-lg shadow-blue-600/20">
+                <Button className="w-full px-8 py-6 text-lg bg-white/10 hover:bg-white/20 rounded-xl shadow-lg shadow-grey-600/20">
                 Log In
                 </Button>
             </Link>
@@ -60,7 +71,7 @@ export default function LandingPage() {
           {[
             {
               name: "Starter",
-              price: "$0",
+              price: "$9/mo",
               features: ["Up to 50 members", "Attendance tracking", "Basic reports"],
               plan: "starter",
             },
