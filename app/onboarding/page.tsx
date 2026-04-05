@@ -43,14 +43,13 @@ export default function OnboardingChoosePlan() {
       {/* LOGO + HALO */}
       <div className="relative flex justify-center mb-6">
         {/* Glowing halo */}
-        <div className="absolute w-40 h-40 bg-blue-600/20 blur-3xl rounded-full -z-10"></div>
+        <div className="absolute w-72 h-72 bg-blue-600/20 blur-3xl rounded-full z-0"></div>
 
-        <Image
-          src="/FAITH_CONNECT_FLAME_LOGO.svg"
-          alt="FAITH Connect Logo"
-          width={300}
-          height={300}
-          className="opacity-95 drop-shadow-xl"
+        <img
+          src="/FAITH_Connect_FLAME_LOGO.svg"
+          alt="Faith Connect Logo"
+          className="relative z-10 mx-auto h-72 w-72"
+          draggable={false}
         />
       </div>
 

@@ -4,7 +4,6 @@ import { Button } from "@/app/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { CheckCircle, Users, Calendar, QrCode, Shield, BarChart } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 
 export default function LandingPage() {
   return (
@@ -12,15 +11,18 @@ export default function LandingPage() {
       {/* HERO */}
       <section className="max-w-5xl mx-auto px-6 pt-32 pb-24 text-center">
         {/* LOGO HEADER */}
-      <div className="flex justify-center mb-10">
-        <Image
-          src="/FAITH_CONNECT_FLAME_LOGO.svg"
-          alt="FAITH Connect Logo"
-          width={300}
-          height={300}
-          className="opacity-95 drop-shadow-lg"
-        />
-      </div>
+        <div className="relative flex justify-center mb-6">
+          <div className="absolute inset-0 flex items-center justify-center z-0">
+            <div className="w-72 h-72 bg-blue-600/20 blur-3xl rounded-full"></div>
+          </div>
+
+          <img
+            src="/FAITH_Connect_FLAME_LOGO.svg"
+            alt="Faith Connect Logo"
+            className="relative z-10 mx-auto h-72 w-72"
+            draggable={false}
+          />
+        </div>
         <h1 className="text-4xl md:text-6xl font-bold mb-6">
           Church Management Made Effortless
         </h1>
@@ -44,7 +46,8 @@ export default function LandingPage() {
       </section>
 
       {/* FEATURES */}
-      <section className="max-w-6xl mx-auto px-6 py-20 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <h2 className="text-3xl font-bold text-center mb-12">Highlights</h2>
+      <section className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
           { icon: QrCode, title: "QR Attendance", desc: "Fast, accurate check-ins with auto-generated QR codes." },
           { icon: Users, title: "Member Management", desc: "Keep your congregation organized and up to date." },
@@ -65,7 +68,7 @@ export default function LandingPage() {
 
       {/* PRICING */}
       <section className="max-w-6xl mx-auto px-6 py-24">
-        <h2 className="text-3xl font-bold text-center mb-12">Choose Your Plan</h2>
+        <h2 className="text-3xl font-bold text-center mb-12">Available Plans</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
@@ -80,7 +83,7 @@ export default function LandingPage() {
               price: "$19/mo",
               features: ["Up to 300 members", "QR attendance", "Full reports", "User roles"],
               plan: "standard",
-              highlight: true,
+              highlight: false,
             },
             {
               name: "Pro",
@@ -106,12 +109,6 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-
-              <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
-                <Link href={`/onboarding?plan=${p.plan}`} prefetch={false}>
-                  Choose Plan
-                </Link>
-              </Button>
             </Card>
           ))}
         </div>
