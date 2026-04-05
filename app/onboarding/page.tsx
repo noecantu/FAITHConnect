@@ -47,7 +47,7 @@ export default function OnboardingChoosePlan() {
         </div>
 
         <img
-          src="/FAITH_Connect_FLAME_LOGO.svg"
+          src="/FAITH_CONNECT_FLAME_LOGO.svg"
           alt="Faith Connect Logo"
           className="relative z-10 mx-auto h-40 w-40 sm:h-56 sm:w-56 md:h-72 md:w-72"
           draggable={false}
