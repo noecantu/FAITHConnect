@@ -12,15 +12,17 @@ export default function LandingPage() {
       <section className="max-w-5xl mx-auto px-6 pt-32 pb-24 text-center">
         {/* LOGO HEADER */}
         <div className="relative flex justify-center mb-6">
+          {/* Glowing halo */}
           <div className="absolute inset-0 flex items-center justify-center z-0">
-            <div className="w-72 h-72 bg-blue-600/20 blur-3xl rounded-full"></div>
-              </div>
-                <img
-                  src="/FAITH_Connect_FLAME_LOGO.svg"
-                  alt="Faith Connect Logo"
-                  className="relative z-10 mx-auto h-40 w-40 sm:h-56 sm:w-56 md:h-72 md:w-72"
-                  draggable={false}
-                />
+            <div className="h-40 w-40 sm:h-56 sm:w-56 md:h-72 md:w-72 bg-blue-600/20 blur-3xl rounded-full"></div>
+          </div>
+
+          <img
+            src="/FAITH_Connect_FLAME_LOGO.svg"
+            alt="Faith Connect Logo"
+            className="relative z-10 mx-auto h-40 w-40 sm:h-56 sm:w-56 md:h-72 md:w-72"
+            draggable={false}
+          />
         </div>
         <h1 className="text-4xl md:text-6xl font-bold mb-6">
           Church Management Made Effortless

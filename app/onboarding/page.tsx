@@ -3,7 +3,6 @@
 import { Button } from "@/app/components/ui/button";
 import { Card } from "@/app/components/ui/card";
 import Link from "next/link";
-import Image from "next/image";
 import { CheckCircle, ArrowLeft } from "lucide-react";
 
 const plans = [
@@ -42,15 +41,17 @@ export default function OnboardingChoosePlan() {
 
       {/* LOGO HEADER */}
       <div className="relative flex justify-center mb-6">
+        {/* Glowing halo */}
         <div className="absolute inset-0 flex items-center justify-center z-0">
-          <div className="w-72 h-72 bg-blue-600/20 blur-3xl rounded-full"></div>
-            </div>
-              <img
-                src="/FAITH_Connect_FLAME_LOGO.svg"
-                alt="Faith Connect Logo"
-                className="relative z-10 mx-auto h-40 w-40 sm:h-56 sm:w-56 md:h-72 md:w-72"
-                draggable={false}
-              />
+          <div className="h-40 w-40 sm:h-56 sm:w-56 md:h-72 md:w-72 bg-blue-600/20 blur-3xl rounded-full"></div>
+        </div>
+
+        <img
+          src="/FAITH_Connect_FLAME_LOGO.svg"
+          alt="Faith Connect Logo"
+          className="relative z-10 mx-auto h-40 w-40 sm:h-56 sm:w-56 md:h-72 md:w-72"
+          draggable={false}
+        />
       </div>
 
       {/* TAGLINE */}
