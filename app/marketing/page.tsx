@@ -29,17 +29,17 @@ export default function LandingPage() {
         </p>
 
         <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
-            <Link href="/onboarding" className="w-full">
-                <Button className="w-full px-8 py-6 text-lg bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/20">
-                Get Started
-                </Button>
+          <Button asChild className="w-full px-8 py-6 text-lg bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/20">
+            <Link href="/onboarding" prefetch={false}>
+              Get Started
             </Link>
+          </Button>
 
-            <Link href="/login" className="w-full">
-                <Button className="w-full px-8 py-6 text-lg bg-white/10 hover:bg-white/20 rounded-xl shadow-lg shadow-grey-600/20">
-                Log In
-                </Button>
+          <Button asChild className="w-full px-8 py-6 text-lg bg-white/10 hover:bg-white/20 rounded-xl shadow-lg shadow-grey-600/20">
+            <Link href="/login">
+              Log In
             </Link>
+          </Button>
         </div>
       </section>
 
@@ -107,11 +107,11 @@ export default function LandingPage() {
                 ))}
               </ul>
 
-              <Link href={`/onboarding?plan=${p.plan}`}>
-                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+              <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
+                <Link href={`/onboarding?plan=${p.plan}`} prefetch={false}>
                   Choose Plan
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </Card>
           ))}
         </div>

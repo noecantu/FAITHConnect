@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "./hooks/useAuth";
 import { can } from "@/app/lib/auth/permissions/can";
 
 export default function HomePage() {
   const router = useRouter();
   const { user, loading } = useAuth();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (loading) return;
@@ -33,7 +34,7 @@ export default function HomePage() {
     }
 
     // New user with no church → onboarding
-    if (!user.churchId) {
+    if (!user.churchId && !pathname.startsWith("/onboarding")) {
       router.push("/onboarding/create-church");
       return;
     }

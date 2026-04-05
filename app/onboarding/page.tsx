@@ -86,7 +86,7 @@ export default function OnboardingChoosePlan() {
               ))}
             </ul>
 
-            <Link href={`/onboarding/billing?plan=${p.plan}`}>
+            <Link href={`/onboarding/billing?plan=${p.plan}`} prefetch={false}>
               <Button className="w-full bg-blue-600 hover:bg-blue-700">
                 Choose {p.name}
               </Button>
