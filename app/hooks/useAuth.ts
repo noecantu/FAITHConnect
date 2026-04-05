@@ -4,10 +4,18 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "@/app/lib/firebase/client";
+import { usePathname } from "next/navigation";
 import type { User } from "@/app/lib/types";
 import type { Role } from "@/app/lib/auth/permissions/roles";
 
 export function useAuth(): { user: User | null; loading: boolean } {
+  const pathname = usePathname();
+
+  // Public routes where user is NOT required
+  const isPublicRoute =
+    pathname.startsWith("/signup") ||
+    pathname.startsWith("/onboarding/billing");
+
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -18,7 +26,10 @@ export function useAuth(): { user: User | null; loading: boolean } {
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       if (!isActive) return;
 
-      setLoading(true);
+      // IMPORTANT: keep loading = true on public routes
+      if (isPublicRoute) {
+        setLoading(true);
+      }
 
       if (unsubscribeUserDoc) {
         unsubscribeUserDoc();
@@ -28,7 +39,12 @@ export function useAuth(): { user: User | null; loading: boolean } {
       // Logged out
       if (!firebaseUser) {
         setUser(null);
-        setLoading(false);
+
+        // Only stop loading if NOT on a public route
+        if (!isPublicRoute) {
+          setLoading(false);
+        }
+
         return;
       }
 
@@ -66,10 +82,7 @@ export function useAuth(): { user: User | null; loading: boolean } {
           setUser(mergedUser);
           setLoading(false);
         },
-        (error) => {
-          if (error.code !== "permission-denied") {
-            console.error("useAuth userDoc listener error:", error);
-          }
+        () => {
           if (isActive) setLoading(false);
         }
       );
@@ -80,7 +93,7 @@ export function useAuth(): { user: User | null; loading: boolean } {
       unsubscribeAuth();
       if (unsubscribeUserDoc) unsubscribeUserDoc();
     };
-  }, []);
+  }, [pathname, isPublicRoute]);
 
   return { user, loading };
 }

@@ -13,13 +13,29 @@ export default function HomePage() {
   useEffect(() => {
     if (loading) return;
 
-    // Not logged in
+    // ---------------------------------------
+    // PUBLIC ROUTES (NO REDIRECT)
+    // ---------------------------------------
+    if (
+      pathname.startsWith("/signup") ||
+      pathname.startsWith("/onboarding/billing") // includes /billing and /billing/success
+    ) {
+      return;
+    }
+
+    // ---------------------------------------
+    // NOT LOGGED IN → SEND TO MARKETING
+    // ---------------------------------------
     if (!user) {
       router.push("/marketing");
       return;
     }
 
     const roles = user.roles ?? [];
+
+    // ---------------------------------------
+    // ROLE-BASED REDIRECTS
+    // ---------------------------------------
 
     // Root Admin → Master Admin Dashboard
     if (can(roles, "system.manage")) {
@@ -47,7 +63,7 @@ export default function HomePage() {
 
     // Fallback
     router.push("/marketing");
-  }, [user, loading, router]);
+  }, [user, loading, pathname, router]);
 
   return null;
 }

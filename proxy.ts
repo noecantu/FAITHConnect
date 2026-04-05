@@ -5,8 +5,6 @@ import { verifySignupToken } from "@/app/lib/auth/verifySignupToken";
 export async function proxy(req: NextRequest) {
   const { pathname, searchParams } = req.nextUrl;
 
-  console.log("PROXY PATHNAME:", pathname);
-
   // Ignore prefetch and internal Next.js router requests
   if (
     req.headers.get("purpose") === "prefetch" ||
@@ -16,29 +14,39 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Ignore Next.js internal dev server requests
+  // Ignore Next.js internals
   if (pathname.startsWith("/_next") || pathname.startsWith("/__nextjs")) {
     return NextResponse.next();
   }
 
-  // Protect /signup
+  // ---------------------------------------
+  // ALLOW SIGNUP
+  // ---------------------------------------
   if (pathname === "/signup") {
-    const token = searchParams.get("token");
+    const hasStripeSession = searchParams.has("session_id");
+    const hasToken = searchParams.has("token");
 
-    if (!token) {
-      return NextResponse.redirect(new URL("/", req.url));
+    // Coming from Stripe → allow
+    if (hasStripeSession) {
+      return NextResponse.next();
     }
 
-    const tokenStatus = await verifySignupToken(token);
-
-    if (!tokenStatus.valid) {
-      return NextResponse.redirect(new URL("/", req.url));
+    // Using token-based signup → validate token
+    if (hasToken) {
+      const tokenStatus = await verifySignupToken(searchParams.get("token")!);
+      if (!tokenStatus.valid) {
+        return NextResponse.redirect(new URL("/", req.url));
+      }
+      return NextResponse.next();
     }
 
-    return NextResponse.next();
+    // No session_id and no token → block
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
-  // Public routes
+  // ---------------------------------------
+  // PUBLIC ROUTES
+  // ---------------------------------------
   const publicPatterns = [
     /^\/$/,                 // homepage
     /^\/marketing/,         // marketing pages
@@ -51,7 +59,9 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Auth-protected routes
+  // ---------------------------------------
+  // PROTECTED ROUTES
+  // ---------------------------------------
   const sessionCookie = req.cookies.get("session")?.value;
 
   if (!sessionCookie) {
@@ -63,7 +73,6 @@ export async function proxy(req: NextRequest) {
 
 export const config = {
   matcher: [
-    // Run proxy on all routes EXCEPT Next.js internals and static assets
     "/((?!_next|__nextjs|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml)$).*)",
   ],
 };
