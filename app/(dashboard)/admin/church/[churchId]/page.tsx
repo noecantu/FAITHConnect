@@ -271,23 +271,18 @@ export default function ChurchAdminDashboard() {
   // ---------------------------
   return (
     <div className="pt-20 px-4 md:px-8 space-y-6">
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col">
-          <div className="px-4 md:px-8 py-4">
-            <PageHeader
-              title="Church Admin Dashboard"
-              subtitle="Manage your church’s members, events, and ministries."
-            />
-          </div>
-        <div className="flex-1 px-4 md:px-8 py-6 space-y-6">
+      <main className="flex-1 flex flex-col space-y-6">
+        {/* Page Header */}
+        <PageHeader
+          title="Church Admin Dashboard"
+          subtitle="Manage your church’s members, events, and ministries."
+        />
 
         {/* Identity Header */}
         <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
           <CardContent className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 md:p-6">
-            
             {/* Left: Logo + Name */}
             <div className="flex items-center gap-4">
-              {/* Logo */}
               {church.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -301,7 +296,6 @@ export default function ChurchAdminDashboard() {
                 </div>
               )}
 
-              {/* Name + Timezone */}
               <div className="space-y-1">
                 <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
                   {church.name}
@@ -318,50 +312,48 @@ export default function ChurchAdminDashboard() {
                 Status: {church.status === "disabled" ? "Disabled" : "Active"}
               </span>
             </div>
-
           </CardContent>
         </Card>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <StatCard
-              title="Members"
-              description="Including Prospects"
-              value={memberCount}
-            />
-            <StatCard
-              title="Upcoming Services"
-              description="Scheduled From Today"
-              value={serviceCount}
-            />
-            <StatCard
-              title="Events This Week"
-              description="Monday - Sunday"
-              value={eventCount}
-            />
-            <StatCard
-              title="Attendance This Week"
-              description="Monday – Sunday"
-              value={attendanceThisWeek}
-            />
-          </div>
-
-          {/* Quick Actions */}
-          <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
-            <CardHeader className="pb-3">
-              <CardTitle>Quick Access</CardTitle>
-              <CardDescription>Main Areas</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <QuickAction href="/attendance" icon={CalendarCheck} label="Attendance" />
-              <QuickAction href="/calendar" icon={Calendar} label="Events" />
-              <QuickAction href="/church/${churchId}/members" icon={UserPlus} label="Members" />
-              <QuickAction href="/reports" icon={FileText} label="Reports" />
-              <QuickAction href="/music/setlists" icon={Music} label="Set Lists" />
-              <QuickAction href="/service-plan" icon={CalendarHeart} label="Service Plans" />
-            </CardContent>
-          </Card>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <StatCard
+            title="Members"
+            description="Including Prospects"
+            value={memberCount}
+          />
+          <StatCard
+            title="Upcoming Services"
+            description="Scheduled From Today"
+            value={serviceCount}
+          />
+          <StatCard
+            title="Events This Week"
+            description="Monday - Sunday"
+            value={eventCount}
+          />
+          <StatCard
+            title="Attendance This Week"
+            description="Monday – Sunday"
+            value={attendanceThisWeek}
+          />
         </div>
+
+        {/* Quick Actions */}
+        <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
+          <CardHeader className="pb-3">
+            <CardTitle>Quick Access</CardTitle>
+            <CardDescription>Main Areas</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <QuickAction href="/attendance" icon={CalendarCheck} label="Attendance" />
+            <QuickAction href="/calendar" icon={Calendar} label="Events" />
+            <QuickAction href={`/church/${churchId}/members`} icon={UserPlus} label="Members" />
+            <QuickAction href="/reports" icon={FileText} label="Reports" />
+            <QuickAction href="/music/setlists" icon={Music} label="Set Lists" />
+            <QuickAction href="/service-plan" icon={CalendarHeart} label="Service Plans" />
+          </CardContent>
+        </Card>
       </main>
     </div>
   );

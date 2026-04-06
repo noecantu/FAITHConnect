@@ -226,7 +226,7 @@ export default function AttendanceHistoryPage() {
   // Render
   // --------------------------------------------------
   return (
-    <>
+    <div className="pt-20 px-4 md:px-8 space-y-6">
       {/* HEADER (matches Contributions) */}
       <PageHeader title="Attendance History" subtitle={summaryText}>
         <div className="flex flex-col gap-4 w-full">
@@ -460,6 +460,6 @@ export default function AttendanceHistoryPage() {
           />
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 }

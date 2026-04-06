@@ -26,94 +26,85 @@ export default function FullscreenModal({
     .replace(/ — Lyrics$/i, "");
 
   return (
-    <div className="pt-20 px-4 md:px-8 space-y-6">
-      <Dialog open={open} onOpenChange={onClose}>
-        <ZoomProvider>
-          <DialogContent
-            aria-describedby={undefined}
+    <Dialog open={open} onOpenChange={onClose}>
+      <ZoomProvider>
+        <DialogContent
+          aria-describedby={undefined}
+          className="
+            fixed inset-0
+            p-0 m-0
+            bg-black text-white
+            border-none shadow-none
+            !max-w-none !max-h-none
+            !translate-x-0 !translate-y-0
+          "
+          style={{ transform: "none" }}
+        >
+          <VisuallyHidden>
+            <DialogTitle>{cleanTitle}</DialogTitle>
+          </VisuallyHidden>
+
+          {/* FULLSCREEN SHELL */}
+          <div
             className="
-              fixed inset-0
-              p-0 m-0
-              bg-black text-white
-              border-none shadow-none
-              !max-w-none !max-h-none
-              !translate-x-0 !translate-y-0
+              relative
+              w-full h-full
+              flex flex-col
+              overflow-hidden
+              pt-20 px-4 md:px-8
             "
             style={{
-              transform: "none",
+              paddingTop: "calc(env(safe-area-inset-top) + 80px)",
+              paddingBottom: "env(safe-area-inset-bottom)",
             }}
           >
-            <VisuallyHidden>
-              <DialogTitle>{cleanTitle}</DialogTitle>
-            </VisuallyHidden>
-
-            {/* FULLSCREEN SHELL */}
+            {/* HEADER */}
             <div
               className="
-                relative
-                w-full h-full
-                flex flex-col
-                overflow-hidden
+                sticky top-0
+                z-40
+                bg-black
+                px-6 py-4
+                border-b border-white/10
+                flex justify-between items-center
               "
-              style={{
-                paddingTop: "env(safe-area-inset-top)",
-                paddingBottom: "env(safe-area-inset-bottom)",
-              }}
             >
-              {/* HEADER */}
-              <div
+              <h1 className="text-3xl font-semibold">{cleanTitle}</h1>
+
+              <button
+                onClick={() => onClose(false)}
                 className="
-                  sticky top-0
-                  z-40
-                  bg-black
-                  px-6 py-4
-                  border-b border-white/10
-                  flex justify-between items-center
+                  p-2
+                  rounded-full
+                  bg-white/10
+                  backdrop-blur
                 "
               >
-                <h1 className="text-3xl font-semibold">{cleanTitle}</h1>
-
-                <button
-                  onClick={() => onClose(false)}
-                  className="
-                    p-2
-                    rounded-full
-                    bg-white/10
-                    backdrop-blur
-                  "
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-
-              {/* SCROLL AREA */}
-              <div
-                className="
-                  flex-1
-                  overflow-y-auto
-                  px-6 py-6
-                "
-              >
-                <ZoomableText>{content}</ZoomableText>
-              </div>
-
-              {/* FOOTER (STICKY) */}
-              <div
-                className="
-                  sticky bottom-0
-                  z-40
-                  bg-black
-                  px-6 py-4
-                  border-t border-white/10
-                  flex justify-center
-                "
-              >
-                <ZoomControls />
-              </div>
+                <X className="w-6 h-6" />
+              </button>
             </div>
-          </DialogContent>
-        </ZoomProvider>
-      </Dialog>
-    </div>
+
+            {/* SCROLL AREA */}
+            <div className="flex-1 overflow-y-auto px-6 py-6">
+              <ZoomableText>{content}</ZoomableText>
+            </div>
+
+            {/* FOOTER */}
+            <div
+              className="
+                sticky bottom-0
+                z-40
+                bg-black
+                px-6 py-4
+                border-t border-white/10
+                flex justify-center
+              "
+            >
+              <ZoomControls />
+            </div>
+          </div>
+        </DialogContent>
+      </ZoomProvider>
+    </Dialog>
   );
 }
