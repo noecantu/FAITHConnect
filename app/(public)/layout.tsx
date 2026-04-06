@@ -1,9 +1,7 @@
-import { ConditionalLayout } from "@/app/conditional-layout";
-
-export default function PublicLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <ConditionalLayout>{children}</ConditionalLayout>;
+export default function CheckInLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen w-full flex items-center justify-center">
+      {children}
+    </div>
+  );
 }

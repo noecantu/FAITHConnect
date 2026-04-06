@@ -21,7 +21,7 @@ export default function SongViewOnly({ songId }: { songId: string }) {
   if (!song) return null;
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="pt-20 px-4 md:px-8 space-y-6">
       <h1 className="text-3xl font-semibold">{song.title}</h1>
 
       <div className="text-gray-500 flex items-center gap-4">

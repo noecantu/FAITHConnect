@@ -74,7 +74,7 @@ export default function NewSetListPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="pt-20 px-4 md:px-8 space-y-6">
       <PageHeader title="Create New Set List" />
 
       <div className="p-6 space-y-6">

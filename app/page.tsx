@@ -1,69 +1,25 @@
-"use client";
+//app/page.tsx
 
-import { useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { useAuth } from "./hooks/useAuth";
-import { can } from "@/app/lib/auth/permissions/can";
+import AnimatedBackground from "./onboarding/components/AnimatedBackground";
+import Hero from "./onboarding/components/Hero";
+import SpotlightOne from "./onboarding/components/SpotlightOne";
+import SpotlightTwo from "./onboarding/components/SpotlightTwo";
+import Features from "./onboarding/components/Features";
+import Pricing from "./onboarding/components/Pricing";
 
-export default function HomePage() {
-  const router = useRouter();
-  const { user, loading } = useAuth();
-  const pathname = usePathname();
+export default function LandingPage() {
+  return (
+    <div className="relative text-white">
 
-  useEffect(() => {
-    if (loading) return;
+      {/* Background Motion Layer */}
+      <AnimatedBackground />
 
-    // ---------------------------------------
-    // PUBLIC ROUTES (NO REDIRECT)
-    // ---------------------------------------
-    if (
-      pathname.startsWith("/signup") ||
-      pathname.startsWith("/onboarding/billing") // includes /billing and /billing/success
-    ) {
-      return;
-    }
-
-    // ---------------------------------------
-    // NOT LOGGED IN → SEND TO MARKETING
-    // ---------------------------------------
-    if (!user) {
-      router.push("/marketing");
-      return;
-    }
-
-    const roles = user.roles ?? [];
-
-    // ---------------------------------------
-    // ROLE-BASED REDIRECTS
-    // ---------------------------------------
-
-    // Root Admin → Master Admin Dashboard
-    if (can(roles, "system.manage")) {
-      router.push("/admin");
-      return;
-    }
-
-    // Church Admin → Church Admin Dashboard (slug-based)
-    if (can(roles, "church.manage") && user.churchId) {
-      router.push(`/admin/church/${user.churchId}`);
-      return;
-    }
-
-    // New user with no church → onboarding
-    if (!user.churchId && !pathname.startsWith("/onboarding")) {
-      router.push("/onboarding/create-church");
-      return;
-    }
-
-    // Regular member → Members Page
-    if (can(roles, "members.read")) {
-      router.push("/members");
-      return;
-    }
-
-    // Fallback
-    router.push("/marketing");
-  }, [user, loading, pathname, router]);
-
-  return null;
+      {/* Foreground Content */}
+      <Hero />
+      <SpotlightOne />
+      <SpotlightTwo />
+      <Features />
+      <Pricing />
+    </div>
+  );
 }

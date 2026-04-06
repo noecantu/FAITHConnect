@@ -21,7 +21,7 @@ export default function ConfirmPlanPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black px-6 py-20">
+    <div className="min-h-screen px-6 py-20">
 
       {/* BACK BUTTON */}
       <div className="max-w-5xl mx-auto mb-8">

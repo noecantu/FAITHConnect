@@ -100,7 +100,7 @@ export default function CalendarPage() {
   if (!user) return <div className="p-6">No user found.</div>;
 
   return (
-    <>
+    <div className="pt-20 px-4 md:px-8 space-y-6">
       <PageHeader
         title="Calendar of Events"
         subtitle="Select a date to view or add events."
@@ -174,6 +174,6 @@ export default function CalendarPage() {
       {canManage && (
         <Fab type="add" onClick={() => router.push("/events/new")} />
       )}
-    </>
+    </div>
   );
 }

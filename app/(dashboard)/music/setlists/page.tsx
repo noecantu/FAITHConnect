@@ -132,7 +132,7 @@ export default function SetListsPage() {
 
   // RENDER
   return (
-    <>
+    <div className="pt-20 px-4 md:px-8 space-y-6">
       <PageHeader
         title="Set Lists"
         subtitle={`Total: ${lists.length}`}
@@ -252,6 +252,6 @@ export default function SetListsPage() {
           onClick={() => router.push("/music/setlists/new")}
         />
       )}
-    </>
+    </div>
   );
 }

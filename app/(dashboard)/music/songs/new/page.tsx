@@ -49,7 +49,7 @@ export default function NewSongPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="pt-20 px-4 md:px-8 space-y-6">
       <PageHeader title="Add New Song" />
       <SongForm mode="new" onSave={handleCreate} saving={saving} />
 

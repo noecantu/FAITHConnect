@@ -88,7 +88,7 @@ export default function SetListDetailPage() {
   const formattedDate = format(setList.dateTime, "M/d/yy, h:mm a");
 
   return (
-    <div className="space-y-6">
+    <div className="pt-20 px-4 md:px-8 space-y-6">
       <PageHeader title={setList.title} subtitle={formattedDate} />
 
       {/* Overview */}

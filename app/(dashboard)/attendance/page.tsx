@@ -196,7 +196,7 @@ export default function AttendancePageContent() {
 
   // MAIN RENDER
   return (
-    <>
+    <div className="pt-20 px-4 md:px-8 space-y-6">
       <PageHeader title="Attendance" subtitle={dateString} />
 
       {/* MODE LABEL */}
@@ -438,6 +438,6 @@ export default function AttendancePageContent() {
           )}
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

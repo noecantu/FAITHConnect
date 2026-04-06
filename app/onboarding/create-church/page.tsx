@@ -62,7 +62,7 @@ export default function CreateChurchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black px-6 py-20 flex items-center justify-center text-white">
+    <div className="min-h-screen px-6 py-20 flex items-center justify-center">
 
       {/* BACK BUTTON */}
       <div className="absolute top-8 left-8">

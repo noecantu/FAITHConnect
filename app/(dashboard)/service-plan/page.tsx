@@ -138,7 +138,7 @@ export default function ServicePlanPage() {
 
   // RENDER
   return (
-    <>
+    <div className="pt-20 px-4 md:px-8 space-y-6">
       <PageHeader
         title={`Service Plans`}
         subtitle={`Total: ${plans.length}`}
@@ -259,6 +259,6 @@ export default function ServicePlanPage() {
       {canManage && (
         <Fab type="add" onClick={() => router.push("/service-plan/new")} />
       )}
-    </>
+    </div>
   );
 }

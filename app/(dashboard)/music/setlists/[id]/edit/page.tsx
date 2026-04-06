@@ -106,7 +106,7 @@ export default function EditSetListPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="pt-20 px-4 md:px-8 space-y-6">
       <PageHeader title="Edit Set List" />
 
       <Card className="p-6 space-y-4">
