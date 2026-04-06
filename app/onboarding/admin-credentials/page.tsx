@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/app/lib/firebase/client";
@@ -11,75 +11,36 @@ import {
   CardTitle,
   CardDescription,
 } from "@/app/components/ui/card";
+import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/app/hooks/use-toast";
-import { can } from "@/app/lib/auth/permissions/can";
-import type { Role } from "@/app/lib/auth/permissions/roles";
+import { Button } from "@/app/components/ui/button";
 
-export default function SignupPage() {
+export default function AdminCredentialsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const searchParams = useSearchParams();
-  const sessionId = searchParams.get("session_id");
 
-  // Save Stripe session_id in a cookie so user can resume signup later
-  useEffect(() => {
-    if (sessionId) {
-      document.cookie = `stripe_session_id=${sessionId}; path=/; max-age=86400`; 
-    }
-  }, [sessionId]);
+  const plan = searchParams.get("plan");
 
-  const [isChecking, setIsChecking] = useState(true);
-  const [isVerified, setIsVerified] = useState(false);
-  const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
-
-  // Form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  // ---------------------------------------
-  // 1. VERIFY STRIPE SESSION BEFORE SIGNUP
-  // ---------------------------------------
-  useEffect(() => {
-    if (!sessionId) {
-      router.replace("/onboarding/billing");
-      return;
-    }
 
-    fetch(`/api/stripe/verify?session_id=${sessionId}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === "paid") {
-          setIsVerified(true);
-          setSubscriptionId(data.subscription ?? null);
-        } else {
-          router.replace("/onboarding/billing");
-        }
-      })
-      .catch(() => router.replace("/onboarding/billing"))
-      .finally(() => setIsChecking(false));
-  }, [sessionId, router]);
-
-  // Loading screen while verifying
-  if (isChecking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-white">
-        <p>Verifying your subscription…</p>
-      </div>
-    );
-  }
-
-  // If not verified, redirect will happen
-  if (!isVerified) return null;
-
-  // ---------------------------------------
-  // 2. HANDLE SIGNUP AFTER VERIFICATION
-  // ---------------------------------------
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
+    if (!plan) {
+      toast({
+        title: "Missing Plan",
+        description: "Please choose a plan first.",
+      });
+      router.replace("/onboarding");
+      return;
+    }
 
     if (password !== confirmPassword) {
       toast({
@@ -99,14 +60,12 @@ export default function SignupPage() {
 
       const idToken = await user.getIdToken(true);
 
-      // Create session cookie
       await fetch("/api/auth/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken }),
       });
 
-      // Create Firestore profile WITH subscription ID
       await fetch("/api/users/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -115,75 +74,84 @@ export default function SignupPage() {
           email,
           firstName,
           lastName,
-          roles: ["Admin"] satisfies Role[],
+          roles: ["Admin"],
           churchId: null,
-          subscriptionId,
+          plan,
+          onboardingStep: "billing",
+          onboardingComplete: false,
         }),
       });
 
-      // ⭐ Clear the Stripe session cookie now that signup is complete
-      document.cookie = "stripe_session_id=; path=/; max-age=0";
-
-      const profileRes = await fetch("/api/users/me");
-      const profile = await profileRes.json();
-      const roles = (profile.roles ?? []) as Role[];
-
       toast({
         title: "Account Created",
-        description: "Welcome to FAITH Connect!",
+        description: "Continue to billing.",
       });
 
-      // Redirect based on permissions
-      if (can(roles, "system.manage")) {
-        router.replace("/admin");
-        return;
-      }
-
-      if (can(roles, "church.manage")) {
-        if (profile.churchId) {
-          router.replace(`/admin/church/${profile.churchId}`);
-        } else {
-          router.replace("/onboarding/create-church");
-        }
-        return;
-      }
-
-      if (can(roles, "members.read")) {
-        router.replace("/members");
-        return;
-      }
-
-      router.replace("/");
-
-    } catch (error) {
+      router.replace(`/onboarding/billing?plan=${plan}`);
+    } catch (error: any) {
       console.error("Signup error:", error);
-      toast({
-        title: "Signup Failed",
-        description: "Unable to create your account.",
-      });
+
+      if (error.code === "auth/email-already-in-use") {
+        toast({
+          title: "Account already exists",
+          description: "Try logging in instead.",
+          action: (
+            <Button onClick={() => router.push("/login")}>
+              Go to Login
+            </Button>
+          ),
+        });
+      } else {
+        toast({
+          title: "Signup Failed",
+          description: "Unable to create your account.",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ---------------------------------------
-  // 3. RENDER SIGNUP FORM
-  // ---------------------------------------
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black flex items-center justify-center px-4">
-      <Card className="relative w-full max-w-sm bg-black/30 border-white/10 backdrop-blur-xl">
-        <CardHeader className="text-center space-y-2">
+    <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black px-6 py-20 flex items-center justify-center">
+
+      {/* BACK BUTTON */}
+      <div className="absolute top-8 left-8">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center text-white/60 hover:text-white transition"
+        >
+          <ArrowLeft className="h-5 w-5 mr-2" />
+          Back
+        </button>
+      </div>
+
+      <Card className="relative w-full max-w-md bg-white/5 border-white/10 backdrop-blur-xl p-8 shadow-xl">
+
+        {/* LOGO */}
+        <div className="relative flex justify-center mb-6">
+          <div className="absolute inset-0 flex items-center justify-center z-0">
+            <div className="h-32 w-32 bg-blue-600/20 blur-3xl rounded-full"></div>
+          </div>
+
           <img
-            src="/FAITH_Connect_FLAME_LOGO.svg"
+            src="/FAITH_CONNECT_FLAME_LOGO.svg"
             alt="FAITH Connect Logo"
-            className="mx-auto h-20 w-20"
+            className="relative z-10 mx-auto h-24 w-24"
+            draggable={false}
           />
-          <CardTitle>Create Your Account</CardTitle>
-          <CardDescription>Start Your Church on FAITH Connect</CardDescription>
+        </div>
+
+        <CardHeader className="text-center space-y-2">
+          <CardTitle className="text-3xl font-bold">Create Your Account</CardTitle>
+          <CardDescription className="text-white/60">
+            Step 3 of 4 — Admin Credentials
+          </CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 mt-4">
           <form onSubmit={handleSignup} className="space-y-5">
+
             <div className="space-y-2">
               <label className="text-zinc-300">First Name</label>
               <input
@@ -240,9 +208,9 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-white/10 hover:bg-white/20 text-white py-2 rounded-md"
+              className="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg text-lg shadow-lg shadow-blue-600/20"
             >
-              {isLoading ? "Creating..." : "Create Account"}
+              {isLoading ? "Creating..." : "Continue to Billing"}
             </button>
           </form>
         </CardContent>

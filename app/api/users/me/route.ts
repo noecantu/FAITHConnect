@@ -24,17 +24,19 @@ export async function GET(req: Request) {
     const user = snap.data();
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     return NextResponse.json({
       id: uid,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      profilePhotoUrl: user.profilePhotoUrl || null,
+      email: user.email ?? null,
+      firstName: user.firstName ?? null,
+      lastName: user.lastName ?? null,
+      profilePhotoUrl: user.profilePhotoUrl ?? null,
       roles: user.roles ?? [],
-      churchId: user.churchId || null,
+      churchId: user.churchId ?? null,
+      onboardingStep: user.onboardingStep ?? "choose-plan",
+      onboardingComplete: user.onboardingComplete ?? false,
     });
   } catch (err) {
     console.error("Error in /api/users/me:", err);

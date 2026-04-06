@@ -1,4 +1,4 @@
-// app/(marketing)/page.tsx
+// app/marketing/page.tsx
 
 import { Button } from "@/app/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
@@ -16,7 +16,6 @@ export default function LandingPage() {
           <div className="absolute inset-0 flex items-center justify-center z-0">
             <div className="h-40 w-40 sm:h-56 sm:w-56 md:h-72 md:w-72 bg-blue-600/20 blur-3xl rounded-full"></div>
           </div>
-
           <img
             src="/FAITH_CONNECT_FLAME_LOGO.svg"
             alt="Faith Connect Logo"

@@ -7,27 +7,39 @@ import type { Role } from "@/app/lib/auth/permissions/roles";
 
 export async function POST(req: Request) {
   try {
-    const { token, churchName } = await req.json();
+    const { churchName } = await req.json();
 
-    if (!token || !churchName) {
+    if (!churchName) {
       return NextResponse.json(
-        { error: "Missing required fields." },
+        { error: "Missing churchName." },
         { status: 400 }
       );
     }
 
-    // Verify Firebase ID token
-    const decoded = await adminAuth.verifyIdToken(token);
+    // Extract session cookie
+    const cookieHeader = req.headers.get("cookie") || "";
+    const match = cookieHeader.match(/session=([^;]+)/);
+    const sessionCookie = match?.[1];
+
+    if (!sessionCookie) {
+      return NextResponse.json(
+        { error: "Not authenticated." },
+        { status: 401 }
+      );
+    }
+
+    // Verify session cookie → get UID
+    const decoded = await adminAuth.verifySessionCookie(sessionCookie, true);
     const uid = decoded.uid;
 
-    // Create a slug from the church name
+    // Create slug from church name
     const slug = churchName
       .trim()
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
 
-    // 1. Create church (doc ID = slug)
+    // 1. Create church
     await adminDb
       .collection("churches")
       .doc(slug)
@@ -52,18 +64,20 @@ export async function POST(req: Request) {
         {
           churchId: slug,
           roles: adminRole,
+          onboardingStep: "done",
+          onboardingComplete: true,
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
       );
 
-    // 2b. Apply custom claims for Storage + Security Rules
-    await admin.auth().setCustomUserClaims(uid, {
+    // 3. Apply custom claims
+    await adminAuth.setCustomUserClaims(uid, {
       roles: adminRole,
       churchId: slug,
     });
 
-    // 3. Create membership record
+    // 4. Add membership record
     await adminDb
       .collection("churches")
       .doc(slug)
@@ -75,6 +89,7 @@ export async function POST(req: Request) {
       });
 
     return NextResponse.json({ churchId: slug });
+
   } catch (error) {
     console.error("Error creating church:", error);
     return NextResponse.json(

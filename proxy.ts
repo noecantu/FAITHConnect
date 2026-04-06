@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verifySignupToken } from "@/app/lib/auth/verifySignupToken";
 
 export async function proxy(req: NextRequest) {
-  const { pathname, searchParams } = req.nextUrl;
+  const { pathname } = req.nextUrl;
 
   // Ignore prefetch and internal Next.js router requests
   if (
@@ -20,39 +19,15 @@ export async function proxy(req: NextRequest) {
   }
 
   // ---------------------------------------
-  // ALLOW SIGNUP
-  // ---------------------------------------
-  if (pathname === "/signup") {
-    const hasStripeSession = searchParams.has("session_id");
-    const hasToken = searchParams.has("token");
-
-    // Coming from Stripe → allow
-    if (hasStripeSession) {
-      return NextResponse.next();
-    }
-
-    // Using token-based signup → validate token
-    if (hasToken) {
-      const tokenStatus = await verifySignupToken(searchParams.get("token")!);
-      if (!tokenStatus.valid) {
-        return NextResponse.redirect(new URL("/", req.url));
-      }
-      return NextResponse.next();
-    }
-
-    // No session_id and no token → block
-    return NextResponse.redirect(new URL("/", req.url));
-  }
-
-  // ---------------------------------------
   // PUBLIC ROUTES
   // ---------------------------------------
   const publicPatterns = [
-    /^\/$/,                 // homepage
-    /^\/marketing/,         // marketing pages
-    /^\/login/,             // login
-    /^\/api/,               // API routes
-    /^\/onboarding(\/.*)?$/ // onboarding flow
+    /^\/$/,                     // homepage
+    /^\/marketing(\/.*)?$/,     // marketing pages
+    /^\/login(\/.*)?$/,         // login
+    /^\/api(\/.*)?$/,           // API routes
+    /^\/onboarding(\/.*)?$/,    // onboarding flow
+    /^\/stripe(\/.*)?$/,        // stripe callbacks
   ];
 
   if (publicPatterns.some((pattern) => pattern.test(pathname))) {
