@@ -303,6 +303,9 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
         </div>
 
         <DialogFooter className="shrink-0 border-t px-6 pb-6 pt-4 flex justify-end gap-2">
+          <Button variant="outline" type="button" onClick={onClose}>
+            Cancel
+          </Button>
           <Button type="submit" form="service-plan-form">
             {isEdit ? "Save Changes" : "Create Service Plan"}
           </Button>
