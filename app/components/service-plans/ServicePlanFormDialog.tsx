@@ -171,7 +171,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-grow overflow-y-auto px-6 py-4">
+        <div className="flex-grow overflow-y-auto px-6 py-2">
           <Form {...form}>
             <form
               id="service-plan-form"
@@ -189,6 +189,44 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
               )}
               className="space-y-6"
             >
+              {/* Date & Time */}
+              <FormItem>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                  {/* Date */}
+                  <div className="flex flex-col space-y-1">
+                    <label className="text-sm font-medium">Date</label>
+                    <Input
+                      type="date"
+                      value={localDateString}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        setLocalDateString(value)
+                        form.setValue("dateString", value)
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Time */}
+                  <div className="flex flex-col space-y-1">
+                    <label className="text-sm font-medium">Time</label>
+                    <Input
+                      type="time"
+                      value={localTimeString}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        setLocalTimeString(value)
+                        form.setValue("timeString", value)
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+
+                </div>
+                <FormMessage />
+              </FormItem>
+
               {/* Title */}
               <FormField
                 control={form.control}
@@ -203,46 +241,6 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                   </FormItem>
                 )}
               />
-
-              {/* Date & Time */}
-              <FormItem>
-                <FormLabel>Date & Time</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Flatpickr
-                      value={`${localDateString} ${localTimeString}`}
-                      options={{
-                        enableTime: true,
-                        time_24hr: false,
-                        dateFormat: "Y-m-d H:i",
-                        altInput: false,
-                        closeOnSelect: false,
-                        plugins: [
-                          confirmDatePlugin({
-                            confirmIcon: "<i class='fa fa-check'></i>",
-                            confirmText: "OK",
-                            showAlways: true,
-                            theme: "light",
-                          }),
-                        ],
-                      }}
-                      onOpen={() => {
-                        const dialog = document.querySelector("[role='dialog']");
-                        if (dialog) dialog.setAttribute("data-allow-focus", "true");
-                      }}
-                      onClose={(_, __, instance) => {
-                        const d = instance.selectedDates[0];
-                        if (!d) return;
-
-                        setLocalDateString(format(d, "yyyy-MM-dd"));
-                        setLocalTimeString(format(d, "HH:mm"));
-                      }}
-                      className="flatpickr-input w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
 
               {/* Notes */}
               <FormField
