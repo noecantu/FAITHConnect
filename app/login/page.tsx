@@ -17,7 +17,6 @@ import { Label } from "@/app/components/ui/label";
 import { useToast } from "@/app/hooks/use-toast";
 import { can } from "@/app/lib/auth/permissions/can";
 import type { Role } from "@/app/lib/auth/permissions/roles";
-import { Switch } from "@/app/components/ui/switch";
 import {
   browserLocalPersistence,
   browserSessionPersistence,
@@ -27,7 +26,7 @@ import {
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(true);
+  const [remember] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();

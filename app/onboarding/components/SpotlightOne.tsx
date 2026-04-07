@@ -21,14 +21,20 @@ export default function SpotlightOne() {
         </motion.div>
 
         {/* Image */}
-        <motion.img
-          src="/dashboard-attendance.png"
-          className="rounded-xl shadow-xl"
+        <motion.div
           initial={{ opacity: 0, x: 40 }}
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-        />
+        >
+          <img
+            src="/dashboard-attendance.png"
+            width={600}
+            height={600}
+            className="rounded-xl shadow-xl w-full h-auto"
+            alt="Attendance Dashboard"
+          />
+        </motion.div>
       </div>
     </section>
   );
