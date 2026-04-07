@@ -1,3 +1,4 @@
+//app/(dashboard)/calendar/day/[date]/page.tsx
 "use client";
 
 import { use } from "react";
