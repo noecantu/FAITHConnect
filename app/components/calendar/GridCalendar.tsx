@@ -89,7 +89,19 @@ export function GridCalendar({
               );
             }
 
-            const dayEvents = eventsByDay[dateKey(day)] || [];
+            const dayEvents = (eventsByDay[dateKey(day)] || []).sort((a, b) => {
+            const timeA =
+              "timeString" in a
+                ? new Date(`${a.dateString}T${a.timeString}`)
+                : a.date;
+
+            const timeB =
+              "timeString" in b
+                ? new Date(`${b.dateString}T${b.timeString}`)
+                : b.date;
+
+            return timeA.getTime() - timeB.getTime();
+          });
             const count = dayEvents.length;
 
             const dayClass = [
@@ -127,7 +139,9 @@ export function GridCalendar({
                           className="text-xs text-white rounded-sm px-1 truncate w-full text-left"
                           style={{ backgroundColor: color }}
                         >
-                          {event.title}
+                          {"timeString" in event
+                            ? `${format(new Date(`${event.dateString}T${event.timeString}`), "h:mm a")} — ${event.title}`
+                            : `${format(event.date, "h:mm a")} — ${event.title}`}
                         </div>
                       );
                     })}
