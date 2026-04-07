@@ -26,7 +26,7 @@ const plans = [
 export default function Pricing() {
   return (
     <section className="max-w-6xl mx-auto px-6 py-24">
-      <h2 className="text-3xl font-bold text-center mb-12">Available Plans</h2>
+      <h2 className="text-3xl font-bold text-center mb-6">Available Plans</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map((p, i) => (
