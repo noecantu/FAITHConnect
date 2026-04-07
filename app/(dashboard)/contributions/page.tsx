@@ -245,7 +245,7 @@ export default function ContributionsPage() {
             </div>
 
             {/* Dynamic Dropdowns */}
-            <div className="flex flex-wrap justify-end items-center gap-4 w-full">
+            <div className="flex flex-row justify-end items-center gap-4 w-full">
 
               {/* Year */}
               <Select
@@ -255,7 +255,7 @@ export default function ContributionsPage() {
                 <SelectTrigger
                   className="
                     h-9
-                    w-full min-[360px]:w-1/2 sm:w-[140px]
+                    flex-1 min-[360px]:flex-none min-[360px]:w-1/2 sm:w-[140px]
                     bg-black/40 border border-white/30 backdrop-blur-xl
                     text-white/80
                     hover:bg-white/5 hover:border-white/20
@@ -283,7 +283,7 @@ export default function ContributionsPage() {
                   <SelectTrigger
                     className="
                       h-9
-                      w-full min-[360px]:w-1/2 sm:w-[140px]
+                      flex-1 min-[360px]:flex-none min-[360px]:w-1/2 sm:w-[140px]
                       bg-black/40 border border-white/30 backdrop-blur-xl
                       text-white/80
                       hover:bg-white/5 hover:border-white/20
@@ -296,9 +296,7 @@ export default function ContributionsPage() {
                   <SelectContent>
                     {availableMonths.map(month => (
                       <SelectItem key={month} value={String(month)}>
-                        {new Date(0, month - 1).toLocaleString("default", {
-                          month: "long",
-                        })}
+                        {new Date(0, month - 1).toLocaleString('default', { month: 'long' })}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -314,7 +312,7 @@ export default function ContributionsPage() {
                   <SelectTrigger
                     className="
                       h-9
-                      w-full min-[360px]:w-1/2 sm:w-[140px]
+                      flex-1 min-[360px]:flex-none min-[360px]:w-1/2 sm:w-[140px]
                       bg-black/40 border border-white/30 backdrop-blur-xl
                       text-white/80
                       hover:bg-white/5 hover:border-white/20
