@@ -60,7 +60,7 @@ export default function DayEventsPage({
           if (item.type === "service") {
             router.push(`/service-plan/${item.id}`);
           } else {
-            router.push(`/events/${item.id}`);
+            router.push(`/calendar/${item.id}`);
           }
         }}
       />

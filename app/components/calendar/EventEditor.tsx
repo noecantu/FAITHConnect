@@ -1,9 +1,9 @@
-//app/components/calendar/EventEditor.tsx
+// app/components/calendar/EventEditor.tsx
 "use client";
 
 import { useEffect, useState } from "react";
-import Flatpickr from "react-flatpickr";
-import "flatpickr/dist/flatpickr.css";
+
+import dayjs from "dayjs";
 
 import { useChurchId } from "@/app/hooks/useChurchId";
 import { createEvent, updateEvent } from "@/app/lib/events";
@@ -36,11 +36,25 @@ export default function EventEditor({
   // --- USER STATE ---
   const [user, setUser] = useState<UserProfile | null>(null);
 
-  // --- FORM STATE (hooks must be unconditional) ---
+  // --- BASE DATE/TIME FROM INITIAL EVENT ---
+  const initialDateObj = initialEvent?.date
+    ? new Date(initialEvent.date)
+    : new Date();
+
+  const [localDateString, setLocalDateString] = useState(
+    initialEvent?.dateString ?? dayjs(initialDateObj).format("YYYY-MM-DD")
+  );
+
+  const [localTimeString, setLocalTimeString] = useState(
+    initialEvent?.timeString ?? dayjs(initialDateObj).format("HH:mm")
+  );
+
+  const [date, setDate] = useState<Date>(initialDateObj);
+
+  // --- FORM STATE ---
   const [title, setTitle] = useState(initialEvent?.title ?? "");
-  const [description, setDescription] = useState(initialEvent?.description ?? "");
-  const [date, setDate] = useState(
-    initialEvent?.date ? new Date(initialEvent.date) : new Date()
+  const [description, setDescription] = useState(
+    initialEvent?.description ?? ""
   );
 
   const [isPublic, setIsPublic] = useState(
@@ -53,7 +67,7 @@ export default function EventEditor({
 
   const [saving, setSaving] = useState(false);
 
-  // --- LOAD USER (same pattern as CalendarPage) ---
+  // --- LOAD USER ---
   useEffect(() => {
     async function load() {
       const res = await fetch("/api/users/me");
@@ -70,7 +84,7 @@ export default function EventEditor({
     load();
   }, []);
 
-  // --- ROLE + GROUP LOGIC (must run AFTER hooks, BEFORE UI) ---
+  // --- ROLE + GROUP LOGIC ---
   const roles = user?.roles ?? [];
   const admin = isAdmin(roles);
 
@@ -78,14 +92,14 @@ export default function EventEditor({
   const isManager = user && !admin && userGroups.length === 1;
   const managerGroup = isManager ? userGroups[0].toLowerCase() : null;
 
-  // --- LOADING UI (safe because all hooks already ran) ---
+  // --- LOADING UI ---
   if (!user) {
     return <div className="p-4">Loading...</div>;
   }
 
   // --- SAVE HANDLER ---
   const handleSave = async () => {
-    if (!title || !date) return;
+    if (!title || !localDateString || !localTimeString) return;
 
     setSaving(true);
 
@@ -97,11 +111,16 @@ export default function EventEditor({
       finalGroups = [managerGroup!];
     }
 
+    const combinedDate = new Date(
+      `${localDateString}T${localTimeString}:00`
+    );
+
     const payload = {
       title,
       description,
-      dateString: date.toISOString().split("T")[0],
-      date,
+      dateString: localDateString,
+      timeString: localTimeString,
+      date: combinedDate,
       isPublic: finalIsPublic,
       groups: finalIsPublic ? [] : finalGroups,
     };
@@ -116,27 +135,54 @@ export default function EventEditor({
     onSaved();
   };
 
+  // --- HANDLERS FOR DATE/TIME INPUTS ---
+  const handleDateChange = (value: string) => {
+    setLocalDateString(value);
+    if (!value || !localTimeString) return;
+
+    const updated = new Date(`${value}T${localTimeString}:00`);
+    setDate(updated);
+  };
+
+  const handleTimeChange = (value: string) => {
+    setLocalTimeString(value);
+    if (!localDateString || !value) return;
+
+    const updated = new Date(`${localDateString}T${value}:00`);
+    setDate(updated);
+  };
+
   return (
     <>
       {/* Scrollable content */}
-      <div className="flex-grow overflow-y-auto px-6 py-4 space-y-4">
+      <div className="flex-grow overflow-y-auto px-6 py-2 space-y-4">
+        {/* Date & Time */}
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-        {/* Date */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Date</label>
-          <Flatpickr
-            value={date || ""}
-            options={{
-              dateFormat: "Y-m-d",
-              altInput: true,
-              altFormat: "F j, Y",
-              static: true,
-              closeOnSelect: true,
-              appendTo: typeof window !== "undefined" ? document.body : undefined,
-            }}
-            onChange={(selected) => setDate(selected[0] ?? null)}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          />
+            {/* Date */}
+            <div className="flex flex-col space-y-1">
+              <label className="text-sm font-medium">Date</label>
+              <Input
+                type="date"
+                value={localDateString}
+                onChange={(e) => handleDateChange(e.target.value)}
+                className="w-full"
+              />
+            </div>
+
+            {/* Time */}
+            <div className="flex flex-col space-y-1">
+              <label className="text-sm font-medium">Time</label>
+              <Input
+                type="time"
+                value={localTimeString}
+                onChange={(e) => handleTimeChange(e.target.value)}
+                className="w-full"
+              />
+            </div>
+
+          </div>
         </div>
 
         {/* Title */}
@@ -151,7 +197,9 @@ export default function EventEditor({
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium mb-1">Description</label>
+          <label className="block text-sm font-medium mb-1">
+            Description
+          </label>
           <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -160,14 +208,15 @@ export default function EventEditor({
           />
         </div>
 
-        {/* ⭐ VISIBILITY SECTION */}
+        {/* Visibility */}
         {admin && (
           <div className="space-y-4 border-t border-white/20 pt-6 mt-6">
             <h3 className="text-lg font-semibold">Visibility</h3>
 
-            {/* Public / Private */}
             <div className="space-y-2">
-              <label className="text-white/60 text-sm">Who can see this event?</label>
+              <label className="text-white/60 text-sm">
+                Who can see this event?
+              </label>
 
               <div className="flex rounded-md overflow-hidden border border-white/10 bg-black/30">
                 <button
@@ -201,7 +250,6 @@ export default function EventEditor({
               </div>
             </div>
 
-            {/* Group selection */}
             {!isPublic && (
               <div className="space-y-2">
                 <label className="text-sm">Visible to Groups</label>
@@ -215,7 +263,6 @@ export default function EventEditor({
           </div>
         )}
 
-        {/* ⭐ Manager view */}
         {isManager && (
           <div className="space-y-2 border-t border-white/10 pt-4 mt-4">
             <label className="text-sm">Group</label>
@@ -229,8 +276,15 @@ export default function EventEditor({
         <Button variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button onClick={handleSave} disabled={saving || !title || !date}>
-          {saving ? "Saving..." : mode === "create" ? "Add Event" : "Save Event"}
+        <Button
+          onClick={handleSave}
+          disabled={saving || !title || !localDateString || !localTimeString}
+        >
+          {saving
+            ? "Saving..."
+            : mode === "create"
+            ? "Add Event"
+            : "Save Event"}
         </Button>
       </div>
     </>

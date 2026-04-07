@@ -169,12 +169,12 @@ export default function CalendarPage() {
           }
 
           // Event
-          router.push(`/events/${event.id}`);
+          router.push(`/calendar/${event.id}`);
         }}
       />
 
       {canManage && (
-        <Fab type="add" onClick={() => router.push("/events/new")} />
+        <Fab type="add" onClick={() => router.push("/calendar/new")} />
       )}
     </DashboardPage>
   );

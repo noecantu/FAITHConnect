@@ -1,4 +1,4 @@
-//app/events/[eventId]/page.tsx
+//app/(dashbaord)/[eventId]/page.tsx
 "use client";
 
 import { use, useEffect, useState } from "react";
@@ -35,9 +35,8 @@ export default function EditEventPage({
   const [loading, setLoading] = useState(true);
 
   // Manager group extraction
-  const managerRoles = user?.roles?.filter((r) =>
-    r.endsWith("GroupManager")
-  ) ?? [];
+  const managerRoles =
+    user?.roles?.filter((r) => r.endsWith("GroupManager")) ?? [];
 
   const normalize = (g: string) =>
     g.toLowerCase().replace(/s$/, "");
@@ -96,7 +95,6 @@ export default function EditEventPage({
     return (
       <Dialog open={true} onOpenChange={() => router.push("/calendar")}>
         <DialogContent className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0">
-
           <VisuallyHidden>
             <DialogTitle>Unauthorized</DialogTitle>
           </VisuallyHidden>
@@ -117,7 +115,6 @@ export default function EditEventPage({
     return (
       <Dialog open={true} onOpenChange={() => router.push("/calendar")}>
         <DialogContent className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0">
-
           <VisuallyHidden>
             <DialogTitle>Loading</DialogTitle>
           </VisuallyHidden>
@@ -133,7 +130,6 @@ export default function EditEventPage({
     return (
       <Dialog open={true} onOpenChange={() => router.push("/calendar")}>
         <DialogContent className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0">
-
           <VisuallyHidden>
             <DialogTitle>Not Found</DialogTitle>
           </VisuallyHidden>
@@ -157,7 +153,22 @@ export default function EditEventPage({
         if (!open) router.push("/calendar");
       }}
     >
-      <DialogContent className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0">
+      <DialogContent
+        className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        onInteractOutside={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest(".flatpickr-calendar")) {
+            e.preventDefault();
+          }
+        }}
+        onPointerDownOutside={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest(".flatpickr-calendar")) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader className="shrink-0 px-6 pt-6">
           <DialogTitle>Edit Event</DialogTitle>
           <DialogDescription>Update this calendar event.</DialogDescription>

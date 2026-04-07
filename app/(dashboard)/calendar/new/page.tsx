@@ -1,4 +1,4 @@
-//app/events/new/page.tsx
+//app/(dashbaord)/calendar/new/page.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -17,11 +17,27 @@ export default function NewEventPage() {
   return (
     <Dialog
       open={true}
+      modal={false}
       onOpenChange={(open) => {
         if (!open) router.push("/calendar");
       }}
     >
-      <DialogContent className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0">
+      <DialogContent
+        className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        onInteractOutside={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest(".flatpickr-calendar")) {
+            e.preventDefault();
+          }
+        }}
+        onPointerDownOutside={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest(".flatpickr-calendar")) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader className="shrink-0 px-6 pt-6">
           <DialogTitle>Add Event</DialogTitle>
           <DialogDescription>Create a new calendar event.</DialogDescription>
