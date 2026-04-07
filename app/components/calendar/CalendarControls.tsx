@@ -70,7 +70,8 @@ export function CalendarControls({
       {/* CALENDAR VIEW CONTROLS */}
       {view.view === "calendar" && (
         <div className="flex justify-end w-full">
-          <div className="flex flex-col sm:flex-row items-center justify-end gap-2 w-full">
+          <div className="flex flex-row items-center justify-end gap-2 w-full">
+
             {/* Month */}
             <Select
               value={String(month.month.getMonth())}
@@ -80,12 +81,13 @@ export function CalendarControls({
             >
               <SelectTrigger
                 className="
-                  h-9
-                  w-full sm:w-[140px]
+                  w-[140px] h-9
                   bg-black/40 border border-white/30 backdrop-blur-xl
                   text-white/80
                   hover:bg-white/5 hover:border-white/30
                   transition
+                  sm:w-[140px]
+                  max-sm:flex-1
                 "
               >
                 <SelectValue />
