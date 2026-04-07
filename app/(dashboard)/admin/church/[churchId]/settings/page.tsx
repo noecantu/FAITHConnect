@@ -18,6 +18,8 @@ import UserFormCard from '../../../../../components/settings/UserFormCard';
 import DeleteUserDialog from '../../../../../components/settings/DeleteUserDialog';
 import ChurchLogoCard from '../../../../../components/settings/ChurchLogoCard';
 import ChurchProfileCard from '../../../../../components/settings/ChurchProfileCard';
+import DashboardLayout from '@/app/(dashboard)/layout';
+import { DashboardPage } from '@/app/(dashboard)/layout/DashboardPage';
 
 export default function ChurchSettingsPage() {
   const { churchId } = useChurchId();
@@ -146,7 +148,7 @@ export default function ChurchSettingsPage() {
   // RENDER
   // -----------------------------
   return (
-    <div className="pt-20 px-4 md:px-8 space-y-6">
+    <DashboardPage>
       <PageHeader
         title="Settings"
         subtitle="Manage settings for your organization."
@@ -217,6 +219,6 @@ export default function ChurchSettingsPage() {
           isDeleting={isDeleting}
         />
       )}
-    </div>
+    </DashboardPage>
   );
 }

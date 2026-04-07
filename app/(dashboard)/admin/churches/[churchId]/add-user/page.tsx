@@ -16,6 +16,7 @@ import { useToast } from "@/app/hooks/use-toast";
 
 // Reuse your existing role definitions
 import { ROLE_MAP, ALL_ROLES } from '@/app/lib/auth/permissions/roles';
+import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
 
 export default function AddUserPage() {
   const params = useParams();
@@ -94,7 +95,7 @@ export default function AddUserPage() {
   }
 
   return (
-    <div className="p-6 space-y-8">
+    <DashboardPage>
       <PageHeader
         title="Add Church User"
         subtitle="Create a new user for this church"
@@ -178,6 +179,6 @@ export default function AddUserPage() {
 
         </CardContent>
       </Card>
-    </div>
+    </DashboardPage>
   );
 }

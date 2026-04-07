@@ -23,6 +23,7 @@ import {
 } from "@/app/components/ui/alert-dialog";
 import type { Church } from "@/app/lib/types";
 import { AlertDialogAction, AlertDialogCancel } from "@radix-ui/react-alert-dialog";
+import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
 
 export default function MasterChurchDetailsClient({
   church,
@@ -49,7 +50,7 @@ export default function MasterChurchDetailsClient({
     .toUpperCase();
 
   return (
-    <div className="p-6 space-y-8">
+    <DashboardPage>
 
       <PageHeader
         title={localChurch.name}
@@ -217,6 +218,6 @@ export default function MasterChurchDetailsClient({
         </AlertDialogContent>
       </AlertDialog>
 
-    </div>
+    </DashboardPage>
   );
 }

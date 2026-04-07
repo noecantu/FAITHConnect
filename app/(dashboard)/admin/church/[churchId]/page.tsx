@@ -35,6 +35,7 @@ import {
 import Link from "next/link";
 import type { Church } from "@/app/lib/types";
 import { useAuth } from "@/app/hooks/useAuth";
+import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
 
 export default function ChurchAdminDashboard() {
   const { churchId } = useParams();
@@ -228,41 +229,41 @@ export default function ChurchAdminDashboard() {
 
   if (userLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen text-foreground">
+      <DashboardPage>
         Loading…
-      </div>
+      </DashboardPage>
     );
   }
 
   if (!user) {
     return (
-      <div className="flex justify-center items-center min-h-screen text-foreground">
+      <DashboardPage>
         You do not have access to this church.
-      </div>
+      </DashboardPage>
     );
   }
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen text-foreground">
+      <DashboardPage>
         Loading Church Dashboard…
-      </div>
+      </DashboardPage>
     );
   }
 
   if (!church) {
     return (
-      <div className="flex justify-center items-center min-h-screen text-foreground">
+      <DashboardPage>
         Loading Church Dashboard…
-      </div>
+      </DashboardPage>
     );
   }
 
   if (church.status === "disabled") {
     return (
-      <div className="flex justify-center items-center min-h-screen text-foreground">
+      <DashboardPage>
         This church is currently disabled.
-      </div>
+      </DashboardPage>
     );
   }
 
@@ -270,7 +271,7 @@ export default function ChurchAdminDashboard() {
   // NORMAL RENDER
   // ---------------------------
   return (
-    <div className="pt-20 px-4 md:px-8 space-y-6">
+    <DashboardPage>
       <main className="flex-1 flex flex-col space-y-6">
         {/* Page Header */}
         <PageHeader
@@ -355,7 +356,7 @@ export default function ChurchAdminDashboard() {
           </CardContent>
         </Card>
       </main>
-    </div>
+    </DashboardPage>
   );
 }
 

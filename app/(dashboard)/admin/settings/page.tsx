@@ -12,6 +12,7 @@ import { Label } from "@/app/components/ui/label";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import type { SystemSettings } from "@/app/lib/types";
 import { setDoc } from "firebase/firestore";
+import { DashboardPage } from "../../layout/DashboardPage";
 
 export default function AdminSystemSettingsPage() {
   const [saving, setSaving] = useState(false);
@@ -45,14 +46,14 @@ export default function AdminSystemSettingsPage() {
 
   if (!settings) {
     return (
-      <div className="p-6">
+      <DashboardPage>
         <PageHeader title="System Settings" subtitle="Loading settings…" />
-      </div>
+      </DashboardPage>
     );
   }
 
   return (
-    <div className="p-6 space-y-8">
+    <DashboardPage>
       <PageHeader
         title="System Settings"
         subtitle="Global configuration for the FAITH Connect platform"
@@ -142,6 +143,6 @@ export default function AdminSystemSettingsPage() {
           {saving ? "Saving…" : "Save Settings"}
         </Button>
       </div>
-    </div>
+    </DashboardPage>
   );
 }

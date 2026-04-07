@@ -10,6 +10,7 @@ import { createSetList } from '@/app/lib/setlists';
 import { Fab } from '@/app/components/ui/fab';
 import { SetListForm } from '@/app/components/music/SetListForm';
 import { SetListSection } from '@/app/lib/types';
+import { DashboardPage } from '@/app/(dashboard)/layout/DashboardPage';
 
 export default function NewSetListPage() {
   const router = useRouter();
@@ -74,7 +75,7 @@ export default function NewSetListPage() {
   };
 
   return (
-    <div className="pt-20 px-4 md:px-8 space-y-6">
+    <DashboardPage>
       <PageHeader title="Create New Set List" />
 
       <div className="p-6 space-y-6">
@@ -92,6 +93,6 @@ export default function NewSetListPage() {
         onClick={() => submitForm()}
         disabled={saving}
       />
-    </div>
+    </DashboardPage>
   );
 }

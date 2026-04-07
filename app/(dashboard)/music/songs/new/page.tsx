@@ -9,6 +9,7 @@ import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { createSong } from '@/app/lib/songs';
 import type { SongInput } from '@/app/lib/types';
 import { Fab } from '@/app/components/ui/fab';
+import { DashboardPage } from '@/app/(dashboard)/layout/DashboardPage';
 
 export default function NewSongPage() {
   const router = useRouter();
@@ -49,7 +50,7 @@ export default function NewSongPage() {
   };
 
   return (
-    <div className="pt-20 px-4 md:px-8 space-y-6">
+    <DashboardPage>
       <PageHeader title="Add New Song" />
       <SongForm mode="new" onSave={handleCreate} saving={saving} />
 
@@ -63,6 +64,6 @@ export default function NewSongPage() {
         disabled={saving}
       />
 
-    </div>
+    </DashboardPage>
   );
 }

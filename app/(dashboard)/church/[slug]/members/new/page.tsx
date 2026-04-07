@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useChurchId } from "@/app/hooks/useChurchId";
 import MemberForm from "@/app/components/members/MemberForm";
+import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
+import { PageHeader } from "@/app/components/page-header";
 
 export default function NewMemberPage() {
   const router = useRouter();
@@ -13,15 +15,16 @@ export default function NewMemberPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Add Member</h1>
+    <DashboardPage>
+      <PageHeader
+        title="Add Member"
+        subtitle="Create a new member profile."
+      />
 
       <MemberForm
         churchId={churchId ?? ""}
-        onSuccess={() => {
-          router.push(`/church/${churchId}/members`);
-        }}
+        onSuccess={() => router.push(`/church/${churchId}/members`)}
       />
-    </div>
+    </DashboardPage>
   );
 }

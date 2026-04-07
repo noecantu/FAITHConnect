@@ -20,6 +20,7 @@ import MemberCard from '../../../../components/members/MemberCard';
 import { updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
 import { SearchBar } from '@/app/components/ui/search-bar';
+import { DashboardPage } from '@/app/(dashboard)/layout/DashboardPage';
 
 export default function MembersPage() {
   const router = useRouter();
@@ -77,7 +78,7 @@ export default function MembersPage() {
   }, [members]);
 
   return (
-    <>
+    <DashboardPage>
       {/* HEADER */}
       <PageHeader title="Members" subtitle={statusSummary}>
         <div className="flex flex-wrap justify-end items-center gap-4 w-full">
@@ -137,6 +138,6 @@ export default function MembersPage() {
           onClick={() => router.push(`/church/${churchId}/members/new`)}
         />
       )}
-    </>
+    </DashboardPage>
   );
 }

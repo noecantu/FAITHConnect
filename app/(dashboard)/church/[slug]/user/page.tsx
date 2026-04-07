@@ -14,6 +14,8 @@ import { useUpcomingEvents } from "@/app/hooks/useUpcomingEvents";
 import { useUpcomingServices } from "@/app/hooks/useUpcomingServices";
 import { isAdmin, Role } from "@/app/lib/roleGroups";
 import { PageHeader } from "@/app/components/page-header";
+import DashboardLayout from "@/app/(dashboard)/layout";
+import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
 
 export default function UserDashboardPage({
   params,
@@ -57,7 +59,7 @@ export default function UserDashboardPage({
   if (!church) return <div className="p-6">No church found.</div>;
 
   return (
-    <div className="flex min-h-screen">
+    <DashboardPage>
       <main className="flex-1 flex flex-col">
         <PageHeader
           title="My Dashboard"
@@ -223,7 +225,7 @@ export default function UserDashboardPage({
 
         </div>
       </main>
-    </div>
+    </DashboardPage>
   );
 }
 

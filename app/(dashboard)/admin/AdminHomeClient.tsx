@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardContent,
 } from "@/app/components/ui/card";
+import { DashboardPage } from "../layout/DashboardPage";
 
 export default function AdminHomeClient({
   churchCount,
@@ -36,7 +37,7 @@ export default function AdminHomeClient({
   };
 
   return (
-    <div className="p-6 space-y-10">
+    <DashboardPage>
 
       {/* Header */}
       <div>
@@ -197,6 +198,6 @@ export default function AdminHomeClient({
 
         </div>
       </section>
-    </div>
+    </DashboardPage>
   );
 }

@@ -284,7 +284,7 @@ export default function MemberForm({
       <form
         id="member-form"
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6 pl-6 pr-4 py-4"
+        className="space-y-6"
       >
         <MemberInfoSection form={form} />
         <StatusSection form={form} />

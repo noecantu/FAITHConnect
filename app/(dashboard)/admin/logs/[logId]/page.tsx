@@ -3,6 +3,7 @@
 import { adminDb } from "@/app/lib/firebase/admin";
 import LogDetailView from "./LogDetailView";
 import { normalizeFirestore } from "@/app/lib/normalize";
+import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
 
 export default async function LogDetailPage({
   params,
@@ -28,9 +29,9 @@ export default async function LogDetailPage({
   const log = normalizeFirestore(snap.data());
 
   return (
-    <div className="p-6 space-y-8">
+    <DashboardPage>
       <h1 className="text-2xl font-bold">Log Details</h1>
       <LogDetailView logId={logId} log={log} />
-    </div>
+    </DashboardPage>
   );
 }

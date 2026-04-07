@@ -35,6 +35,7 @@ import { TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 
 import { useAttendanceHistorySettings } from '@/app/hooks/useAttendanceHistorySettings';
 import { useAuth } from '@/app/hooks/useAuth';
+import { DashboardPage } from '../../layout/DashboardPage';
 
 // --------------------------------------------------
 // Helper: Summary Text (mirrors Contributions summary)
@@ -207,19 +208,19 @@ export default function AttendanceHistoryPage() {
   // ------------------------------
   if (loading) {
     return (
-      <>
+      <DashboardPage>
         <PageHeader title="Attendance History" />
         <p className="text-muted-foreground">Loading attendance history…</p>
-      </>
+      </DashboardPage>
     );
   }
 
   if (!canView) {
     return (
-      <>
+      <DashboardPage>
         <PageHeader title="Attendance History" />
         <p className="text-muted-foreground">You do not have permission to view attendance.</p>
-      </>
+      </DashboardPage>
     );
   }
   // --------------------------------------------------

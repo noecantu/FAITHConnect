@@ -36,6 +36,7 @@ import {
 } from "@/app/components/ui/select";
 
 import type { Church } from "@/app/lib/types";
+import { DashboardPage } from "../../layout/DashboardPage";
 
 export default function GlobalChurchListPage() {
   const PAGE_SIZE = 10;
@@ -154,7 +155,7 @@ export default function GlobalChurchListPage() {
   // RENDER
   // -----------------------------
   return (
-    <div className="p-6 space-y-8">
+    <DashboardPage>
       <PageHeader
         title="All Churches"
         subtitle="Manage every church in the FAITH Connect system."
@@ -265,6 +266,6 @@ export default function GlobalChurchListPage() {
           Next
         </Button>
       </div>
-    </div>
+    </DashboardPage>
   );
 }

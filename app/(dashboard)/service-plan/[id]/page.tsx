@@ -8,6 +8,7 @@ import { DuplicateServicePlanDialog } from '@/app/components/service-plans/Dupli
 import { DeleteServicePlanDialog } from '@/app/components/service-plans/DeleteServicePlanDialog';
 import { format } from 'date-fns';
 import { useState } from 'react';
+import { DashboardPage } from '../../layout/DashboardPage';
 
 export default function ServicePlanDetailPage() {
   const router = useRouter();
@@ -26,21 +27,21 @@ export default function ServicePlanDetailPage() {
 
   if (loading) {
     return (
-      <>
+      <DashboardPage>
         <PageHeader title="Service Plan" />
         <p className="text-muted-foreground">Loading service plan…</p>
-      </>
+      </DashboardPage>
     );
   }
 
   if (!canView || !plan) {
     return (
-      <>
+      <DashboardPage>
         <PageHeader title="Service Plan" />
         <p className="text-muted-foreground">
           {canView ? 'Service Plan not found.' : 'You do not have permission to view this service plan.'}
         </p>
-      </>
+      </DashboardPage>
     );
   }
 
@@ -49,7 +50,8 @@ export default function ServicePlanDetailPage() {
     : '—';
 
   return (
-    <>
+    <DashboardPage>
+      <PageHeader title="Service Plan" />
       <ServicePlanDetailView
         plan={plan}
         members={members}
@@ -81,6 +83,6 @@ export default function ServicePlanDetailPage() {
         />
       )}
 
-    </>
+    </DashboardPage>
   );
 }

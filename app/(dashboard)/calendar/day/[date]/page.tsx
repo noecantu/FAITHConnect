@@ -12,6 +12,7 @@ import { parse } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 import type { Event, ServicePlan } from "@/app/lib/types";
+import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
 
 type CalendarItem =
   | (Event & { type: "event" })
@@ -46,7 +47,7 @@ export default function DayEventsPage({
   }, [merged, dayKey]);
 
   return (
-    <>
+    <DashboardPage>
       <PageHeader
         title={`Events for ${day.toDateString()}`}
         subtitle="All events scheduled for this day."
@@ -62,6 +63,6 @@ export default function DayEventsPage({
           }
         }}
       />
-    </>
+    </DashboardPage>
   );
 }

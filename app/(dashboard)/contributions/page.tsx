@@ -31,6 +31,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
 import { useContributionHistorySettings } from "@/app/hooks/useContributionHistorySettings";
 import { useAuth } from "@/app/hooks/useAuth";
+import { DashboardPage } from '../layout/DashboardPage';
 
 // ------------------------------
 // Page Component
@@ -193,18 +194,20 @@ export default function ContributionsPage() {
 
   if (!canView) {
     return (
-      <ThemeProvider theme={darkTheme}>
-        <PageHeader
-          title="Contributions"
-          subtitle={summaryText}
-          className="mb-2"
-        />
-        {/* You can add a small message here if you want */}
-      </ThemeProvider>
+      <DashboardPage>
+        <ThemeProvider theme={darkTheme}>
+          <PageHeader
+            title="Contributions"
+            subtitle={summaryText}
+            className="mb-2"
+          />
+          {/* You can add a small message here if you want */}
+        </ThemeProvider>
+      </DashboardPage>
     );
   }
   return (
-    <div className="pt-20 px-4 md:px-8 space-y-6">
+    <DashboardPage>
       <ThemeProvider theme={darkTheme}>
         <PageHeader
           title="Contributions"
@@ -380,6 +383,6 @@ export default function ContributionsPage() {
           />
         )}
       </ThemeProvider>
-    </div>
+    </DashboardPage>
   );
 }

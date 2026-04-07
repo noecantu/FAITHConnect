@@ -25,6 +25,7 @@ import { QRCodeCanvas } from "qrcode.react";
 import { AttendanceGrid } from "@/app/components/attendance/AttendanceGrid";
 import { Card, CardContent } from "@/app/components/ui/card";
 import { useCan } from "@/app/hooks/useCan";
+import { DashboardPage } from "../layout/DashboardPage";
 
 export default function AttendancePageContent() {
   const searchParams = useSearchParams();
@@ -164,21 +165,21 @@ export default function AttendancePageContent() {
   // LOADING / PERMISSION STATES
   if (loading) {
     return (
-      <>
+      <DashboardPage>
         <PageHeader title="Attendance" subtitle={dateString} />
         <p className="text-muted-foreground">Loading Attendance…</p>
-      </>
+      </DashboardPage>
     );
   }
 
   if (!canView) {
     return (
-      <>
+      <DashboardPage>
         <PageHeader title="Attendance" subtitle={dateString} />
         <p className="text-muted-foreground">
           You do not have permission to view attendance.
         </p>
-      </>
+      </DashboardPage>
     );
   }
 
@@ -196,7 +197,7 @@ export default function AttendancePageContent() {
 
   // MAIN RENDER
   return (
-    <div className="pt-20 px-4 md:px-8 space-y-6">
+    <DashboardPage>
       <PageHeader title="Attendance" subtitle={dateString} />
 
       {/* MODE LABEL */}
@@ -438,6 +439,6 @@ export default function AttendancePageContent() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardPage>
   );
 }

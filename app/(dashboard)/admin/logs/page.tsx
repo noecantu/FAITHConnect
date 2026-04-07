@@ -3,6 +3,7 @@
 import { adminDb } from "@/app/lib/firebase/admin";
 import ActivityLogTable from "./ActivityLogTable";
 import { normalizeFirestore } from "@/app/lib/normalize";
+import { DashboardPage } from "../../layout/DashboardPage";
 
 export default async function ActivityLogsPage() {
   const snap = await adminDb
@@ -19,13 +20,13 @@ export default async function ActivityLogsPage() {
   console.log("LOGS RECEIVED:", logs);
 
   return (
-    <div className="p-6 space-y-8">
+    <DashboardPage>
       <h1 className="text-2xl font-bold">Activity Logs</h1>
       <p className="text-muted-foreground">
         System-level audit trail of all administrative actions.
       </p>
 
       <ActivityLogTable logs={logs} />
-    </div>
+    </DashboardPage>
   );
 }

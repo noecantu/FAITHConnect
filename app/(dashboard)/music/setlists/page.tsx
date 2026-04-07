@@ -19,6 +19,7 @@ import { Fab } from '@/app/components/ui/fab';
 import { usePreviewPagination } from '@/app/hooks/usePreviewPagination';
 import { PreviewPaginationFooter } from '@/app/components/layout/PreviewPaginationFooter';
 import { SearchBar } from '@/app/components/ui/search-bar';
+import { DashboardPage } from '../../layout/DashboardPage';
 
 // TYPES
 type SortType = 'date-desc' | 'date-asc' | 'title-asc';
@@ -112,27 +113,27 @@ export default function SetListsPage() {
   // LOADING + PERMISSIONS — SAFE NOW
   if (!churchId || loading || rolesLoading) {
     return (
-      <>
+      <DashboardPage>
         <PageHeader title="Set Lists" />
         <p className="text-muted-foreground">Loading set lists…</p>
-      </>
+      </DashboardPage>
     );
   }
 
   if (!canView) {
     return (
-      <>
+      <DashboardPage>
         <PageHeader title="Set Lists" />
         <p className="text-muted-foreground">
           You do not have permission to view set lists.
         </p>
-      </>
+      </DashboardPage>
     );
   }
 
   // RENDER
   return (
-    <div className="pt-20 px-4 md:px-8 space-y-6">
+    <DashboardPage>
       <PageHeader
         title="Set Lists"
         subtitle={`Total: ${lists.length}`}
@@ -252,6 +253,6 @@ export default function SetListsPage() {
           onClick={() => router.push("/music/setlists/new")}
         />
       )}
-    </div>
+    </DashboardPage>
   );
 }

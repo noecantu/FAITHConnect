@@ -11,6 +11,7 @@ import { getSetListById, updateSetList } from '@/app/lib/setlists';
 import { SetList } from '@/app/lib/types';
 import { Fab } from '@/app/components/ui/fab';
 import { SetListForm } from '@/app/components/music/SetListForm';
+import { DashboardPage } from '@/app/(dashboard)/layout/DashboardPage';
 
 export default function EditSetListPage() {
   const { id } = useParams();
@@ -106,7 +107,7 @@ export default function EditSetListPage() {
   };
 
   return (
-    <div className="pt-20 px-4 md:px-8 space-y-6">
+    <DashboardPage>
       <PageHeader title="Edit Set List" />
 
       <Card className="p-6 space-y-4">
@@ -124,6 +125,6 @@ export default function EditSetListPage() {
         onClick={() => submitForm()}
         disabled={saving}
       />
-    </div>
+    </DashboardPage>
   );
 }

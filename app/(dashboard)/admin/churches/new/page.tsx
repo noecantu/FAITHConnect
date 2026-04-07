@@ -19,6 +19,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/ca
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Button } from "@/app/components/ui/button";
+import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
 
 export default function NewChurchPage() {
   const router = useRouter();
@@ -92,7 +93,7 @@ export default function NewChurchPage() {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-black">
+    <DashboardPage>
       <Card className="w-full max-w-lg bg-card text-card-foreground">
         <CardHeader>
           <CardTitle>Create New Church</CardTitle>
@@ -156,6 +157,6 @@ export default function NewChurchPage() {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </DashboardPage>
   );
 }

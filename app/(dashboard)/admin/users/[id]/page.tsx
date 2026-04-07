@@ -3,6 +3,7 @@
 import { adminDb } from "@/app/lib/firebase/admin";
 import EditUserForm from "./EditUserForm";
 import { normalizeFirestore } from "@/app/lib/normalize";
+import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
 
 export default async function UserProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id: userId } = await params;
@@ -19,9 +20,9 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
   };
 
   return (
-    <div className="p-6 space-y-8">
+    <DashboardPage>
       <h1 className="text-2xl font-bold">Edit User</h1>
       <EditUserForm userId={userId} user={user} />
-    </div>
+    </DashboardPage>
   );
 }

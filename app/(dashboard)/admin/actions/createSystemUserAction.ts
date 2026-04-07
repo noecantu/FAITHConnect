@@ -1,4 +1,4 @@
-// app/admin/actions/createSystemUserAction.ts
+//app/admin/actions/createSystemUserAction.ts
 "use server";
 
 import { adminAuth, adminDb } from "@/app/lib/firebase/admin";

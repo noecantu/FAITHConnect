@@ -1,9 +1,7 @@
 // app/admin/users/create/CreateSystemUserClient.tsx
-"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createSystemUserAction } from "@/app/(protected)/admin/actions/createSystemUserAction";
 import { useToast } from "@/app/hooks/use-toast";
 import { useAuth } from "@/app/hooks/useAuth";
 
@@ -19,6 +17,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/app/components/ui/select";
+import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
 
 const ACCOUNT_TYPES = [
   { value: "RootAdmin", label: "Root Administrator" },
@@ -64,14 +63,20 @@ export default function CreateSystemUserClient() {
         `${currentUser.firstName ?? ""} ${currentUser.lastName ?? ""}`.trim() ||
         "System Admin";
 
-      const result = await createSystemUserAction({
-        firstName,
-        lastName,
-        email,
-        password,
-        actorUid,
-        actorName,
+      const response = await fetch("/api/system-users/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          password,
+          actorUid,
+          actorName,
+        }),
       });
+
+      const result = await response.json();
 
       if (result.success) {
         toast({
@@ -97,7 +102,7 @@ export default function CreateSystemUserClient() {
   }
 
   return (
-    <div className="p-6 space-y-8">
+    <DashboardPage>
       <PageHeader
         title="Create System-Level User"
         subtitle="Add a new system administrator or support account."
@@ -178,6 +183,6 @@ export default function CreateSystemUserClient() {
           </Button>
         </CardContent>
       </Card>
-    </div>
+    </DashboardPage>
   );
 }

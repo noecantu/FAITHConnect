@@ -21,6 +21,7 @@ import { duplicateSetList } from '@/app/lib/duplicateSetList';
 import { useToast } from '@/app/hooks/use-toast';
 import { useAuth } from '@/app/hooks/useAuth';
 import { useSongs } from '@/app/hooks/useSongs';
+import { DashboardPage } from '@/app/(dashboard)/layout/DashboardPage';
 
 export default function SetListDetailPage() {
   const { id } = useParams();
@@ -88,7 +89,7 @@ export default function SetListDetailPage() {
   const formattedDate = format(setList.dateTime, "M/d/yy, h:mm a");
 
   return (
-    <div className="pt-20 px-4 md:px-8 space-y-6">
+    <DashboardPage>
       <PageHeader title={setList.title} subtitle={formattedDate} />
 
       {/* Overview */}
@@ -322,6 +323,6 @@ export default function SetListDetailPage() {
           </DropdownMenuContent>
         </DropdownMenu>
       )}
-    </div>
+    </DashboardPage>
   );
 }
