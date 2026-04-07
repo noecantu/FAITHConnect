@@ -14,7 +14,6 @@ import { useUpcomingEvents } from "@/app/hooks/useUpcomingEvents";
 import { useUpcomingServices } from "@/app/hooks/useUpcomingServices";
 import { isAdmin, Role } from "@/app/lib/roleGroups";
 import { PageHeader } from "@/app/components/page-header";
-import DashboardLayout from "@/app/(dashboard)/layout";
 import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
 
 export default function UserDashboardPage({
@@ -65,7 +64,7 @@ export default function UserDashboardPage({
           title="My Dashboard"
           subtitle="Your upcoming events and schedule."
         />
-        <div className="flex-1 px-4 md:px-8 py-6 space-y-6">
+        <div className="flex-1 py-6 space-y-6">
 
           {/* Identity Header — Two Cards Side-by-Side */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

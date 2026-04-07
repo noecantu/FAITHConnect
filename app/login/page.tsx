@@ -155,7 +155,7 @@ export default function LoginPage() {
             </div>
 
             {/* Forgot + Remember */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-center">
               <a
                 href="/forgot-password"
                 className="text-sm text-blue-400 hover:underline"
@@ -163,7 +163,7 @@ export default function LoginPage() {
                 Forgot your password?
               </a>
 
-              <div className="flex items-center gap-2">
+              {/* <div className="flex items-center gap-2">
                 <Switch
                   id="remember"
                   checked={remember}
@@ -172,7 +172,7 @@ export default function LoginPage() {
                 <Label htmlFor="remember" className="text-sm">
                   Remember Me
                 </Label>
-              </div>
+              </div> */}
             </div>
 
             {/* Submit */}
