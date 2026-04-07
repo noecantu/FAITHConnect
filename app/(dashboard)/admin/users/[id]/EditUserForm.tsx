@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useToast } from "@/app/hooks/use-toast";
-import { updateUserAction } from "@/app/(dashboard)/admin/actions/updateUserAction";
 
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
@@ -23,6 +22,17 @@ import { SYSTEM_ROLE_MAP } from "@/app/lib/system-role-map";
 import type { User } from "@/app/lib/types";
 import RoleSelector from "@/app/components/settings/RoleSelector";
 
+// ✅ Replaces invalid server-action import
+async function updateUser(input: any) {
+  const res = await fetch("/api/users/update", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+
+  return res.json();
+}
+
 export default function EditUserForm({
   userId,
   user,
@@ -34,7 +44,6 @@ export default function EditUserForm({
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
 
-  // Detect if this is a system-level user
   const userRoles = user.roles ?? [];
 
   const isSystemUser = userRoles.every((r) =>
@@ -45,22 +54,18 @@ export default function EditUserForm({
     ALL_ROLES.includes(r as Role)
   );
 
-  // State
   const [firstName, setFirstName] = useState(user.firstName ?? "");
   const [lastName, setLastName] = useState(user.lastName ?? "");
   const [email, setEmail] = useState(user.email ?? "");
 
-  // System users have exactly ONE system role
   const [systemRole, setSystemRole] = useState<SystemRole>(
-    isSystemUser
-      ? (user.roles[0] as SystemRole)
-      : SYSTEM_ROLES[0]
+    isSystemUser ? (user.roles[0] as SystemRole) : SYSTEM_ROLES[0]
   );
 
-  // Church users have church roles + churchId
   const [roles, setRoles] = useState<Role[]>(
     !isSystemUser ? (user.roles as Role[]) ?? [] : []
   );
+
   const [churchId, setChurchId] = useState(
     !isSystemUser ? user.churchId ?? "" : ""
   );
@@ -77,7 +82,6 @@ export default function EditUserForm({
       toast({
         title: "Not Authorized",
         description: "You must be logged in as an admin.",
-        // variant: "destructive",
       });
       return;
     }
@@ -87,7 +91,7 @@ export default function EditUserForm({
     const actorUid = currentUser.id;
     const actorName = `${currentUser.firstName} ${currentUser.lastName}`.trim();
 
-    await updateUserAction({
+    await updateUser({
       userId,
       firstName,
       lastName,
@@ -162,7 +166,6 @@ export default function EditUserForm({
       {/* CHURCH USER UI */}
       {isChurchUser && (
         <>
-          {/* Church */}
           <div className="space-y-2">
             <Label>Church</Label>
             <Select value={churchId} onValueChange={setChurchId}>
@@ -170,7 +173,6 @@ export default function EditUserForm({
                 <SelectValue placeholder="Select a church" />
               </SelectTrigger>
               <SelectContent>
-                {/* TODO: Replace with real church list */}
                 <SelectItem value={user.churchId ?? ""}>
                   {user.churchId ?? "(No church)"}
                 </SelectItem>
@@ -178,7 +180,6 @@ export default function EditUserForm({
             </Select>
           </div>
 
-          {/* Roles */}
           <RoleSelector
             selectedRoles={roles}
             onChange={toggleRole}
