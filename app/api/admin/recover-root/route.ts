@@ -1,3 +1,5 @@
+import "server-only";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
