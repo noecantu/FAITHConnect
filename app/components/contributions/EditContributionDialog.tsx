@@ -40,7 +40,6 @@ import { useChurchId } from '@/app/hooks/useChurchId';
 import { updateContribution, deleteContribution } from '@/app/lib/contributions';
 import type { Contribution, Member } from '@/app/lib/types';
 
-import Flatpickr from "react-flatpickr";
 import { StandardDialogLayout } from '@/app/components/layout/StandardDialogLayout';
 import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dialog';
 
@@ -187,25 +186,22 @@ export function EditContributionDialog({
                   <FormItem>
                     <FormLabel>Date</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Flatpickr
-                          defaultValue={field.value ? dayjs(field.value).format("YYYY-MM-DD") : undefined}
-                          options={{
-                          dateFormat: "Y-m-d",
-                          altInput: true,
-                          altFormat: "F j, Y",
-                          allowInput: false,
-                          static: true,
-                          closeOnSelect: true,
+                      <Input
+                        type="date"
+                        value={dayjs(field.value).format("YYYY-MM-DD")}
+                        onChange={(e) => {
+                          const value = e.target.value // "YYYY-MM-DD"
+                          if (!value) {
+                            field.onChange(null as any)
+                            return
+                          }
+
+                          const [year, month, day] = value.split("-").map(Number)
+                          const newDate = new Date(year, month - 1, day) // local date, no timezone shift
+                          field.onChange(newDate)
                         }}
-                        onChange={(selectedDates) => {
-                          const d = selectedDates?.[0];
-                          if (!d) return;
-                          field.onChange(dayjs(d).format("YYYY-MM-DD"));
-                        }}
-                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        className="w-full"
                       />
-                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

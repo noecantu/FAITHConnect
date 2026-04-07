@@ -1,16 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Flatpickr from 'react-flatpickr';
-import { format } from 'date-fns';
 
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Label } from '@/app/components/ui/label';
 import { SetList, SetListSection } from '@/app/lib/types';
 import { SetListSectionEditor } from '@/app/components/music/SetListSectionEditor';
-import confirmDatePlugin from "flatpickr/dist/plugins/confirmDate/confirmDate";
-import "flatpickr/dist/plugins/confirmDate/confirmDate.css";
 
 interface SetListFormProps {
   mode: 'create' | 'edit';
@@ -65,44 +61,47 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady }: SetListFor
 
   return (
     <div className="space-y-4">
+      {/* Date & Time */}
+      <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+          {/* Date */}
+          <div className="flex flex-col space-y-1">
+            <Label>Date</Label>
+            <Input
+              type="date"
+              value={dateString}
+              onChange={(e) => {
+                const value = e.target.value
+                setDateString(value)
+              }}
+              className="w-full"
+            />
+          </div>
+
+          {/* Time */}
+          <div className="flex flex-col space-y-1">
+            <Label>Time</Label>
+            <Input
+              type="time"
+              value={timeString}
+              onChange={(e) => {
+                const value = e.target.value
+                setTimeString(value)
+              }}
+              className="w-full"
+            />
+          </div>
+
+        </div>
+      </div>
+
       {/* Title */}
       <div>
         <Label>Title</Label>
         <Input value={title} onChange={(e) => setTitle(e.target.value)} />
       </div>
-
-      {/* Date & Time */}
-      <Flatpickr
-        defaultValue={
-          dateString && timeString
-            ? `${dateString} ${timeString}`
-            : undefined
-        }
-        options={{
-          enableTime: true,
-          time_24hr: false,
-          dateFormat: "Y-m-d H:i",
-          altInput: false,
-          closeOnSelect: false,
-          plugins: [
-            confirmDatePlugin({
-              confirmIcon: "<i class='fa fa-check'></i>",
-              confirmText: "OK",
-              showAlways: true,
-              theme: "light"
-            })
-          ]
-        }}
-        onClose={(_, __, instance) => {
-          const d = instance.selectedDates[0];
-          if (!d) return;
-
-          setDateString(format(d, "yyyy-MM-dd"));
-          setTimeString(format(d, "HH:mm"));
-        }}
-        className="flatpickr-input w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-      />
-
+      
       {/* NEW: Service Details */}
       <div className="space-y-4 rounded-md border p-4 bg-white/5">
         <h2 className="text-lg font-semibold">Service Details</h2>

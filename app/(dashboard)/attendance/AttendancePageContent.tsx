@@ -4,7 +4,6 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { format } from "date-fns";
-import Flatpickr from "react-flatpickr";
 import { PageHeader } from "@/app/components/page-header";
 import { Fab } from "@/app/components/ui/fab";
 import { Input } from "@/app/components/ui/input";
@@ -216,20 +215,19 @@ export default function AttendancePageContent() {
 
       {/* DATE PICKER + TODAY + HISTORY */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 mb-4">
-        <Flatpickr
-          defaultValue={format(date, "MM-dd-yyyy")}
-          options={{
-            dateFormat: "m-d-Y",
-            allowInput: false,
-            altInput: true,
-            altFormat: "m-d-Y",
-            monthSelectorType: "dropdown",
-            closeOnSelect: true,
-          }}
-          onChange={([selected]) => {
-            if (!selected) return;
-            setDate(selected);
-            router.push(`/attendance?date=${format(selected, "yyyy-MM-dd")}`);
+        <Input
+          type="date"
+          value={format(date, "yyyy-MM-dd")}
+          onChange={(e) => {
+            const value = e.target.value
+            if (!value) return
+
+            // Avoid timezone shift — construct local date
+            const [year, month, day] = value.split("-").map(Number)
+            const newDate = new Date(year, month - 1, day)
+
+            setDate(newDate)
+            router.push(`/attendance?date=${value}`)
           }}
           className="
             w-full sm:w-[150px]
@@ -241,7 +239,6 @@ export default function AttendancePageContent() {
             cursor-pointer
           "
         />
-
         <Button
           variant="ghost"
           onClick={() => {

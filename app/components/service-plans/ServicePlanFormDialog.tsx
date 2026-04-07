@@ -32,14 +32,11 @@ import type { ServicePlan, ServicePlanSection } from '@/app/lib/types';
 import { useMembers } from '@/app/hooks/useMembers';
 import { useSongs } from '@/app/hooks/useSongs';
 
-import Flatpickr from "react-flatpickr";
 import dayjs from 'dayjs';
 import { SectionEditor } from './SectionEditor';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { SECTION_TEMPLATES } from '@/app/lib/sectionTemplates';
 import { useState } from 'react';
-import confirmDatePlugin from 'flatpickr/dist/plugins/confirmDate/confirmDate';
-import { format } from "date-fns";
 
 // ZOD SCHEMAS — NEW ARCHITECTURE
 const sectionSchema = z.object({
@@ -151,18 +148,6 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
       <DialogContent
         className="w-[95vw] max-w-3xl max-h-[85dvh] flex flex-col p-0"
         onOpenAutoFocus={(e) => e.preventDefault()}
-        onInteractOutside={(e) => {
-          const target = e.target as HTMLElement;
-          if (target.closest(".flatpickr-calendar")) {
-            e.preventDefault();
-          }
-        }}
-        onPointerDownOutside={(e) => {
-          const target = e.target as HTMLElement;
-          if (target.closest(".flatpickr-calendar")) {
-            e.preventDefault();
-          }
-        }}
       >
         <DialogHeader className="shrink-0 px-6 pt-6">
           <DialogTitle>{isEdit ? "Edit Service Plan" : "Add Service Plan"}</DialogTitle>

@@ -23,7 +23,6 @@ import {
   FormMessage,
 } from "../ui/form";
 
-import Flatpickr from "react-flatpickr";
 import { format } from "date-fns";
 
 import type { Event } from "@/app/lib/types";
@@ -140,25 +139,22 @@ export function EventFormDialog({
                   <FormLabel>Date</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Flatpickr
+                      <Input
+                        type="date"
                         disabled={!canManage}
                         value={
                           field.value
-                            ? [new Date(field.value)] // RHF string → Date[]
-                            : []
+                            ? typeof field.value === "string"
+                              ? field.value
+                              : format(field.value, "yyyy-MM-dd")
+                            : ""
                         }
-                        options={{
-                          allowInput: false,
-                          altInput: true,
-                          altFormat: "m-d-Y",
-                          dateFormat: "Y-m-d", // canonical string format
-                          monthSelectorType: "dropdown",
-                        }}
-                        onChange={([selected]) => {
-                          if (selected) {
-                            // Date → canonical string for RHF + Firestore
-                            field.onChange(format(selected, "yyyy-MM-dd"));
-                          }
+                        onChange={(e) => {
+                          const value = e.target.value
+                          if (!value) return
+
+                          // Store canonical string (no timezone issues)
+                          field.onChange(value)
                         }}
                         className="w-full px-3 py-2 text-sm rounded-md bg-transparent"
                       />

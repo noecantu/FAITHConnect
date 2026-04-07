@@ -34,7 +34,6 @@ import {
 import { useToast } from '@/app/hooks/use-toast';
 import { addContribution } from '@/app/lib/contributions';
 import type { Contribution, Member } from '@/app/lib/types';
-import Flatpickr from "react-flatpickr";
 import dayjs from 'dayjs';
 
 const contributionSchema = z.object({
@@ -182,25 +181,22 @@ export function AddContributionDialog({
                   <FormItem>
                     <FormLabel>Date</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Flatpickr
-                          defaultValue={field.value || undefined}
-                          options={{
-                            dateFormat: "Y-m-d",
-                            altInput: true,
-                            altFormat: "F j, Y",
-                            allowInput: false,
-                            static: true,
-                            closeOnSelect: true,
-                          }}
-                          onChange={(selectedDates) => {
-                            const d = selectedDates?.[0];
-                            if (!d) return;
-                            field.onChange(dayjs(d).format("YYYY-MM-DD"));
-                          }}
-                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                        />
-                      </div>
+                      <Input
+                        type="date"
+                        value={dayjs(field.value).format("YYYY-MM-DD")}
+                        onChange={(e) => {
+                          const value = e.target.value // "YYYY-MM-DD"
+                          if (!value) {
+                            field.onChange(null as any)
+                            return
+                          }
+
+                          const [year, month, day] = value.split("-").map(Number)
+                          const newDate = new Date(year, month - 1, day) // local date, no timezone shift
+                          field.onChange(newDate)
+                        }}
+                        className="w-full"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -261,8 +257,15 @@ export function AddContributionDialog({
                         placeholder="0.00"
                         {...field}
                         onChange={(e) => {
-                          const v = e.target.value;
-                          field.onChange(v === "" ? 0 : Number(v));
+                          const value = e.target.value // "YYYY-MM-DD"
+                          if (!value) {
+                            field.onChange(null as any)
+                            return
+                          }
+
+                          const [year, month, day] = value.split("-").map(Number)
+                          const newDate = new Date(year, month - 1, day) // local date, no timezone shift
+                          field.onChange(newDate)
                         }}
                       />
                     </FormControl>

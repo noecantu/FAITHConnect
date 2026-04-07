@@ -11,6 +11,7 @@ import { Fab } from '@/app/components/ui/fab';
 import { SetListForm } from '@/app/components/music/SetListForm';
 import { SetListSection } from '@/app/lib/types';
 import { DashboardPage } from '@/app/(dashboard)/layout/DashboardPage';
+import { Card } from '@/app/components/ui/card';
 
 export default function NewSetListPage() {
   const router = useRouter();
@@ -78,7 +79,7 @@ export default function NewSetListPage() {
     <DashboardPage>
       <PageHeader title="Create New Set List" />
 
-      <div className="p-6 space-y-6">
+      <Card className="p-6 space-y-4">
         <SetListForm
           mode="create"
           initial={undefined}
@@ -86,7 +87,7 @@ export default function NewSetListPage() {
           onSubmit={handleSubmit}
           onReady={(fn) => setSubmitForm(() => fn)}
         />
-      </div>
+      </Card>
 
       <Fab
         type="save"

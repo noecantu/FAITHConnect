@@ -156,18 +156,6 @@ export default function EditEventPage({
       <DialogContent
         className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0"
         onOpenAutoFocus={(e) => e.preventDefault()}
-        onInteractOutside={(e) => {
-          const target = e.target as HTMLElement;
-          if (target.closest(".flatpickr-calendar")) {
-            e.preventDefault();
-          }
-        }}
-        onPointerDownOutside={(e) => {
-          const target = e.target as HTMLElement;
-          if (target.closest(".flatpickr-calendar")) {
-            e.preventDefault();
-          }
-        }}
       >
         <DialogHeader className="shrink-0 px-6 pt-6">
           <DialogTitle>Edit Event</DialogTitle>
