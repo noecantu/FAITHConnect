@@ -74,6 +74,20 @@ export function ListView({
     return managerGroups.some(g => eventGroups.includes(g));
   }
 
+  function getEventTime(e: CalendarItem): string {
+    if ("timeString" in e) {
+      return format(new Date(`${e.dateString}T${e.timeString}`), "h:mm a");
+    }
+    return format(e.date, "h:mm a");
+  }
+  
+  function getEventTimestamp(e: CalendarItem): number {
+    if ("timeString" in e) {
+      return new Date(`${e.dateString}T${e.timeString}`).getTime();
+    }
+    return e.date.getTime();
+  }
+
   return (
     <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
       <CardHeader>
@@ -81,46 +95,54 @@ export function ListView({
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {visible.map(([day, evts]) => (
-          <div key={day}>
-            <h3 className="font-semibold mb-2">
-              {format(new Date(day), "PPP")}
-            </h3>
+        {visible.map(([day, evts]) => {
+          const sorted = [...evts].sort(
+            (a, b) => getEventTimestamp(a) - getEventTimestamp(b)
+          );
 
-            <ul className="space-y-2">
-              {evts.map((e) => (
-                <li
-                  key={e.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => {
-                    if (!onEdit) return;
-                    if (!canEditItem(e)) return;
-                    onEdit(e);
-                  }}
-                  onKeyDown={(ev) => {
-                    if (!onEdit) return;
-                    if (!canEditItem(e)) return;
-                    if (ev.key === "Enter" || ev.key === " ") {
+          return (
+            <div key={day}>
+              <h3 className="font-semibold mb-2">
+                {format(new Date(day), "PPP")}
+              </h3>
+
+              <ul className="space-y-2">
+                {sorted.map((e) => (
+                  <li
+                    key={e.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      if (!onEdit) return;
+                      if (!canEditItem(e)) return;
                       onEdit(e);
-                    }
-                  }}
-                  className="border rounded-md p-3 flex items-start justify-between cursor-pointer hover:bg-muted/40 transition-colors"
-                >
-                  <div>
-                    <div className="font-medium">{e.title}</div>
-
-                    {"description" in e && e.description && (
-                      <div className="text-sm text-muted-foreground">
-                        {e.description}
+                    }}
+                    onKeyDown={(ev) => {
+                      if (!onEdit) return;
+                      if (!canEditItem(e)) return;
+                      if (ev.key === "Enter" || ev.key === " ") {
+                        onEdit(e);
+                      }
+                    }}
+                    className="border rounded-md p-3 flex items-start justify-between cursor-pointer hover:bg-muted/40 transition-colors"
+                  >
+                    <div>
+                      <div className="font-medium">
+                        {getEventTime(e)} — {e.title}
                       </div>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+
+                      {"description" in e && e.description && (
+                        <div className="text-sm text-muted-foreground">
+                          {e.description}
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
 
         <PreviewPaginationFooter
           start={start}

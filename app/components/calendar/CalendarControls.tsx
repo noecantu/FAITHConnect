@@ -70,8 +70,7 @@ export function CalendarControls({
       {/* CALENDAR VIEW CONTROLS */}
       {view.view === "calendar" && (
         <div className="flex justify-end w-full">
-          <div className="flex flex-row items-center justify-end gap-2 w-full">
-
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-2 w-full">
             {/* Month */}
             <Select
               value={String(month.month.getMonth())}
