@@ -80,13 +80,12 @@ export function CalendarControls({
             >
               <SelectTrigger
                 className="
-                  w-[140px] h-9
+                  h-9
+                  w-full sm:w-[140px]
                   bg-black/40 border border-white/30 backdrop-blur-xl
                   text-white/80
                   hover:bg-white/5 hover:border-white/30
                   transition
-                  sm:w-[140px]
-                  max-sm:flex-1
                 "
               >
                 <SelectValue />
