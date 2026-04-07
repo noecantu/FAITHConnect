@@ -12,20 +12,27 @@ export const metadata: Metadata = {
   description: 'Church member management application.',
 };
 
-// ❗ MUST be at module scope
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={cn("font-sans dark", inter.variable)} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={cn("font-sans dark", inter.variable)}
+      suppressHydrationWarning
+    >
       <body
         className={cn(
           inter.variable,
-          "min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white font-sans antialiased"
+          // 👇 The magic: full-height flex column
+          "min-h-screen flex flex-col bg-gradient-to-br from-black via-slate-900 to-black text-white font-sans antialiased"
         )}
       >
         <SettingsProvider>
-          {children}
+          {/* 👇 This wrapper grows to fill the screen */}
+          <div className="flex-1 flex flex-col">
+            {children}
+          </div>
         </SettingsProvider>
 
         <Toaster />

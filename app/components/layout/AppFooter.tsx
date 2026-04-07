@@ -4,4 +4,4 @@ export function AppFooter() {
         <p>© 2026 Cantu Productions | All Rights Reserved</p>
       </footer>
     );
-  }  
+  }
