@@ -1,5 +1,6 @@
-export const dynamic = "force-dynamic";
+//app/(dashboard)/attendance/page.tsx
 "use client";
+export const dynamic = "force-dynamic";
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
