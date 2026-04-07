@@ -254,7 +254,8 @@ export default function ContributionsPage() {
               >
                 <SelectTrigger
                   className="
-                    w-[140px] h-9
+                    h-9
+                    w-full min-[360px]:w-1/2 sm:w-[140px]
                     bg-black/40 border border-white/30 backdrop-blur-xl
                     text-white/80
                     hover:bg-white/5 hover:border-white/20
@@ -263,6 +264,7 @@ export default function ContributionsPage() {
                 >
                   <SelectValue placeholder="Year" />
                 </SelectTrigger>
+
                 <SelectContent>
                   {availableYears.map(year => (
                     <SelectItem key={year} value={String(year)}>
@@ -280,7 +282,8 @@ export default function ContributionsPage() {
                 >
                   <SelectTrigger
                     className="
-                      w-[140px] h-9
+                      h-9
+                      w-full min-[360px]:w-1/2 sm:w-[140px]
                       bg-black/40 border border-white/30 backdrop-blur-xl
                       text-white/80
                       hover:bg-white/5 hover:border-white/20
@@ -289,6 +292,7 @@ export default function ContributionsPage() {
                   >
                     <SelectValue placeholder="Month" />
                   </SelectTrigger>
+
                   <SelectContent>
                     {availableMonths.map(month => (
                       <SelectItem key={month} value={String(month)}>
@@ -309,7 +313,8 @@ export default function ContributionsPage() {
                 >
                   <SelectTrigger
                     className="
-                      w-[140px] h-9
+                      h-9
+                      w-full min-[360px]:w-1/2 sm:w-[140px]
                       bg-black/40 border border-white/30 backdrop-blur-xl
                       text-white/80
                       hover:bg-white/5 hover:border-white/20
@@ -318,6 +323,7 @@ export default function ContributionsPage() {
                   >
                     <SelectValue placeholder="Week" />
                   </SelectTrigger>
+
                   <SelectContent>
                     {availableWeeks.map(week => (
                       <SelectItem key={week} value={String(week)}>
