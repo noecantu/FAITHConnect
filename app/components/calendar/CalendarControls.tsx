@@ -170,7 +170,7 @@ export function CalendarControls({
               >
                 <SelectTrigger
                   className="
-                    w-[140px] h-9
+                    w-full sm:w-[140px] h-9
                     bg-black/40 border border-white/30 backdrop-blur-xl
                     text-white/80
                     hover:bg-white/5 hover:border-white/20
@@ -192,7 +192,7 @@ export function CalendarControls({
               >
                 <SelectTrigger
                   className="
-                    w-[140px] h-9
+                    w-full sm:w-[140px] h-9
                     bg-black/40 border border-white/30 backdrop-blur-xl
                     text-white/80
                     hover:bg-white/5 hover:border-white/20
