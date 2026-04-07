@@ -162,7 +162,7 @@ export function CalendarControls({
             </div>
 
             {/* Filter + Sort */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 md:justify-end">
+            <div className="flex flex-col gap-3 min-[400px]:flex-row min-[400px]:gap-4 md:justify-end">
 
               <Select
                 value={filters.filter}
@@ -170,7 +170,8 @@ export function CalendarControls({
               >
                 <SelectTrigger
                   className="
-                    w-full sm:w-[140px] h-9
+                    h-9
+                    w-full min-[400px]:w-[140px]
                     bg-black/40 border border-white/30 backdrop-blur-xl
                     text-white/80
                     hover:bg-white/5 hover:border-white/20
@@ -179,6 +180,7 @@ export function CalendarControls({
                 >
                   <SelectValue placeholder="Filter" />
                 </SelectTrigger>
+
                 <SelectContent>
                   <SelectItem value="all">All</SelectItem>
                   <SelectItem value="future">Future</SelectItem>
@@ -192,7 +194,8 @@ export function CalendarControls({
               >
                 <SelectTrigger
                   className="
-                    w-full sm:w-[140px] h-9
+                    h-9
+                    w-full min-[400px]:w-[140px]
                     bg-black/40 border border-white/30 backdrop-blur-xl
                     text-white/80
                     hover:bg-white/5 hover:border-white/20
@@ -201,6 +204,7 @@ export function CalendarControls({
                 >
                   <SelectValue placeholder="Sort" />
                 </SelectTrigger>
+
                 <SelectContent>
                   <SelectItem value="newest">Newest</SelectItem>
                   <SelectItem value="oldest">Oldest</SelectItem>
