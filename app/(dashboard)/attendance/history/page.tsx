@@ -10,6 +10,7 @@ import { AttendanceStackedChart } from '@/app/components/attendance/attendance-s
 import { deleteAttendanceDay } from '@/app/lib/attendance';
 import { useRouter } from "next/navigation";
 import { Button } from '@/app/components/ui/button';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 import {
   AlertDialog,
@@ -223,15 +224,26 @@ export default function AttendanceHistoryPage() {
       </DashboardPage>
     );
   }
+
+  // ------------------------------
+  // Theme
+  // ------------------------------
+  const darkTheme = createTheme({
+    palette: { mode: 'dark' },
+  });
+
   // --------------------------------------------------
   // Render
   // --------------------------------------------------
   return (
-    <div className="pt-20 px-4 md:px-8 space-y-6">
-      {/* HEADER (matches Contributions) */}
-      <PageHeader title="Attendance History" subtitle={summaryText}>
-        <div className="flex flex-col gap-4 w-full">
-
+    <DashboardPage>
+      <ThemeProvider theme={darkTheme}>
+        <PageHeader
+          title="Attendance History"
+          subtitle={summaryText}
+          className="mb-2"
+        >
+          <div className="flex flex-col gap-4">
           {/* Breakdown Controls */}
             <div className="flex flex-wrap justify-end items-center gap-4 mt-2 w-full">
               <span className="text-sm font-medium text-muted-foreground">
@@ -463,6 +475,7 @@ export default function AttendanceHistoryPage() {
           />
         </CardContent>
       </Card>
-    </div>
+      </ThemeProvider>
+    </DashboardPage>
   );
 }
