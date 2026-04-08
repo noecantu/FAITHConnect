@@ -151,34 +151,6 @@ export function GridCalendar({
               >
                 <span className="text-sm font-medium">{format(day, 'd')}</span>
 
-                {/* Mobile color-coded dots */}
-                {count > 0 && (
-                  <div className="md:hidden flex gap-1 mt-1 flex-wrap">
-                    {dayEvents.slice(0, 4).map((event) => {
-                      const groups = "groups" in event ? event.groups : [];
-                      const color = getGroupColor(groups);
-
-                      return (
-                        <span
-                          key={`dot-${event.id}`}
-                          className="h-2 w-2 rounded-full shadow-md"
-                          style={{
-                            backgroundColor: color,
-                            boxShadow: `0 0 6px ${color}CC`,
-                            outline: "1px solid rgba(255,255,255,0.5)",
-                          }}
-                        />
-                      );
-                    })}
-
-                    {count > 4 && (
-                      <span className="text-[10px] text-muted-foreground">
-                        +{count - 4}
-                      </span>
-                    )}
-                  </div>
-                )}
-
                 {/* Mobile count bubble */}
                 {count > 0 && (
                   <div className="
