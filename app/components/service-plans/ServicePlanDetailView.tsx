@@ -13,6 +13,7 @@ import { Pencil, Copy, Trash } from 'lucide-react';
 import type { ServicePlan, Member, Song } from '@/app/lib/types';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { getSectionColor } from '@/app/lib/sectionColors';
+import { Separator } from '@/app/components/ui/separator';
 
 export interface ServicePlanDetailViewProps {
   plan: ServicePlan;
@@ -57,6 +58,8 @@ export function ServicePlanDetailView({
               <h2 className="text-lg font-semibold tracking-tight">
                 {section.title}
               </h2>
+
+              <Separator className="my-2 bg-white/30" />
 
               <div className="space-y-4">
                 {hasPerson && (

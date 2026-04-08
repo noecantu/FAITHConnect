@@ -22,6 +22,7 @@ import { useToast } from '@/app/hooks/use-toast';
 import { useAuth } from '@/app/hooks/useAuth';
 import { useSongs } from '@/app/hooks/useSongs';
 import { DashboardPage } from '@/app/(dashboard)/layout/DashboardPage';
+import { Separator } from '@/app/components/ui/separator';
 
 export default function SetListDetailPage() {
   const { id } = useParams();
@@ -148,6 +149,8 @@ export default function SetListDetailPage() {
                 {section.songs.length === 1 ? "Song" : "Songs"})
               </span>
             </h2>
+
+            <Separator className="my-2 bg-white/30" />
 
             {/* Songs */}
             <div className="space-y-3">
