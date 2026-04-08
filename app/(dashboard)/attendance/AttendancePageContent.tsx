@@ -23,9 +23,10 @@ import { useAttendance } from "@/app/hooks/useAttendance";
 import { useToast } from "@/app/hooks/use-toast";
 import { QRCodeCanvas } from "qrcode.react";
 import { AttendanceGrid } from "@/app/components/attendance/AttendanceGrid";
-import { Card, CardContent } from "@/app/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/app/components/ui/card";
 import { useCan } from "@/app/hooks/useCan";
 import { DashboardPage } from "../layout/DashboardPage";
+import { Separator } from "@/app/components/ui/separator";
 
 export default function AttendancePageContent() {
   const searchParams = useSearchParams();
@@ -255,7 +256,13 @@ export default function AttendancePageContent() {
       {/* ACTION BUTTONS */}
       {mode !== "history" && (
         <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-4">
+          <CardHeader className="pb-2">
+            <h1 className="text-sm font-medium text-white/70 tracking-wide">
+              Quick Actions
+            </h1>
+          </CardHeader>
+          <Separator/>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4">
 
             {/* GENERATE QR */}
             <Button
@@ -366,25 +373,37 @@ export default function AttendancePageContent() {
         </Button>
       )}
 
-      {/* TEXT-ONLY CARDS */}
-      <AttendanceGrid
-        members={sortedMembers}
-        visitors={sortedVisitors}
-        records={records}
-        mode={mode}
-        canEdit={canEdit}
-        onToggle={(id) => {
-          if (!canEdit) return;
-          setRecords((prev) => ({
-            ...prev,
-            [id]: !prev[id],
-          }));
-        }}
-        onRemoveVisitor={(id) => {
-          if (!canEdit) return;
-          setVisitors((prev) => prev.filter((v) => v.id !== id));
-        }}
-      />
+      {/* MEMBER SECTION */}
+      <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl mt-8">
+        <CardHeader className="pb-2">
+          <h1 className="text-sm font-medium text-white/70 tracking-wide">
+            Members
+          </h1>
+        </CardHeader>
+
+        <Separator />
+
+        <CardContent className="p-4">
+          <AttendanceGrid
+            members={sortedMembers}
+            visitors={sortedVisitors}
+            records={records}
+            mode={mode}
+            canEdit={canEdit}
+            onToggle={(id) => {
+              if (!canEdit) return;
+              setRecords((prev) => ({
+                ...prev,
+                [id]: !prev[id],
+              }));
+            }}
+            onRemoveVisitor={(id) => {
+              if (!canEdit) return;
+              setVisitors((prev) => prev.filter((v) => v.id !== id));
+            }}
+          />
+        </CardContent>
+      </Card>
 
       {/* SAVE BUTTON */}
       {mode !== "history" && (
