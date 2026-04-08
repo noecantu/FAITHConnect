@@ -44,7 +44,7 @@ export function ContributionPreviewTable({ contributions, members }: Props) {
         />
       }
     >
-      <div className="overflow-x-auto rounded-md border border-white/20 bg-black/20 backdrop-blur-xl w-full min-h-[360px]">
+      <div className="overflow-x-auto rounded-md border border-white/20 bg-black/50 backdrop-blur-xl w-full min-h-[360px]">
         <table className="w-full min-w-max text-sm">
           <thead className="bg-slate-800 border-b border-white/50">
             <tr>
