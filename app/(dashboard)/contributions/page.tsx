@@ -83,7 +83,6 @@ export default function ContributionsPage() {
     setBreakdownPersisted,
     setYearPersisted,
     setMonthPersisted,
-    setWeekPersisted,
   } = useContributionHistorySettings(user);
 
   // ------------------------------
@@ -106,27 +105,6 @@ export default function ContributionsPage() {
         contributions
           .filter(c => new Date(c.date).getFullYear() === Number(selectedYear))
           .map(c => new Date(c.date).getMonth() + 1)
-      )
-    ).sort((a, b) => a - b);
-  }, [contributions, selectedYear]);
-
-  // ------------------------------
-  // Available Weeks (for selected year)
-  // ------------------------------
-  const availableWeeks = useMemo(() => {
-    if (!selectedYear) return [];
-
-    const getWeek = (date: Date) => {
-      const firstDay = new Date(date.getFullYear(), 0, 1);
-      const diff = (date.getTime() - firstDay.getTime()) / 86400000;
-      return Math.ceil((diff + firstDay.getDay() + 1) / 7);
-    };
-
-    return Array.from(
-      new Set(
-        contributions
-          .filter(c => new Date(c.date).getFullYear() === Number(selectedYear))
-          .map(c => getWeek(new Date(c.date)))
       )
     ).sort((a, b) => a - b);
   }, [contributions, selectedYear]);
@@ -237,10 +215,6 @@ export default function ContributionsPage() {
                   <label htmlFor="tf-month" className="text-sm text-muted-foreground">Month</label>
                 </div>
 
-                <div className="flex items-center gap-1">
-                  <RadioGroupItem value="week" id="tf-week" />
-                  <label htmlFor="tf-week" className="text-sm text-muted-foreground">Week</label>
-                </div>
               </RadioGroup>
             </div>
 
@@ -297,35 +271,6 @@ export default function ContributionsPage() {
                     {availableMonths.map(month => (
                       <SelectItem key={month} value={String(month)}>
                         {new Date(0, month - 1).toLocaleString('default', { month: 'long' })}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-              {/* Week */}
-              {timeFrame === "week" && (
-                <Select
-                  value={selectedWeek ? String(selectedWeek) : ""}
-                  onValueChange={(v) => setWeekPersisted(Number(v))}
-                >
-                  <SelectTrigger
-                    className="
-                      h-9
-                      flex-1 min-[360px]:flex-none min-[360px]:w-1/2 sm:w-[140px]
-                      bg-black/80 border border-white/20 backdrop-blur-xl
-                      text-white/80
-                      hover:bg-white/5 hover:border-white/20
-                      transition
-                    "
-                  >
-                    <SelectValue placeholder="Week" />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    {availableWeeks.map(week => (
-                      <SelectItem key={week} value={String(week)}>
-                        Week {week}
                       </SelectItem>
                     ))}
                   </SelectContent>
