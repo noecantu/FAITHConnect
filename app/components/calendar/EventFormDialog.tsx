@@ -55,7 +55,7 @@ function SegmentedControl({
   options: { label: string; value: string }[];
 }) {
   return (
-    <div className="flex rounded-md overflow-hidden border border-white/20 bg-black/30">
+    <div className="flex rounded-md overflow-hidden border border-white/20 bg-black/80">
       {options.map((opt) => {
         const active = value === opt.value;
         return (
@@ -182,7 +182,7 @@ export function EventFormDialog({
                   <FormControl>
                     <Input
                       placeholder="e.g., Sunday Service"
-                      className="bg-black/30 border-white/20"
+                      className="bg-black/80 border-white/20"
                       {...field}
                     />
                   </FormControl>
@@ -201,7 +201,7 @@ export function EventFormDialog({
                   <FormControl>
                     <Textarea
                       placeholder="Event details..."
-                      className="bg-black/30 border-white/20 resize-none"
+                      className="bg-black/80 border-white/20 resize-none"
                       rows={4}
                       {...field}
                       value={field.value ?? ""}

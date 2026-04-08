@@ -88,7 +88,7 @@ export function ReportFiltersPanel({
 }: ReportFiltersPanelProps) {
   return (
     // <Card className="w-full lg:w-80 h-fit">
-    <Card className="relative w-full lg:w-80 h-fit bg-black/30 border-white/20 backdrop-blur-xl">
+    <Card className="relative w-full lg:w-80 h-fit bg-black/80 border-white/20 backdrop-blur-xl">
       <CardHeader>
         <CardTitle>Filters</CardTitle>
       </CardHeader>
@@ -139,7 +139,7 @@ export function ReportFiltersPanel({
                 h-10
                 rounded-md
                 border border-white/20
-                bg-black/20
+                bg-black/80
                 text-white text-sm
                 px-3
                 focus:outline-none
@@ -175,7 +175,7 @@ export function ReportFiltersPanel({
                       className={
                         isActive
                           ? "" // let default variant use your theme's default button style
-                          : "bg-black/30 border border-white/20 backdrop-blur-xl"
+                          : "bg-black/80 border border-white/20 backdrop-blur-xl"
                       }
                       onClick={() => {
                         setTimeFrame(tf as any);
@@ -200,7 +200,7 @@ export function ReportFiltersPanel({
                   h-10
                   rounded-md
                   border border-white/20
-                  bg-black/20
+                  bg-black/80
                   text-white text-sm
                   px-3
                   focus:outline-none
@@ -234,7 +234,7 @@ export function ReportFiltersPanel({
                     h-10
                     rounded-md
                     border border-white/20
-                    bg-black/20
+                    bg-black/80
                     text-white text-sm
                     px-3
                     focus:outline-none
@@ -266,7 +266,7 @@ export function ReportFiltersPanel({
                     h-10
                     rounded-md
                     border border-white/20
-                    bg-black/20
+                    bg-black/80
                     text-white text-sm
                     px-3
                     focus:outline-none

@@ -166,7 +166,7 @@ export default function ServicePlanPage() {
               <SelectTrigger
                 className="
                   w-full h-9
-                  bg-black/40 border border-white/20 backdrop-blur-xl
+                  bg-black/80 border border-white/20 backdrop-blur-xl
                   text-white/80
                   hover:bg-white/5 hover:border-white/20
                   transition
@@ -185,7 +185,7 @@ export default function ServicePlanPage() {
               <SelectTrigger
                 className="
                   w-full h-9
-                  bg-black/40 border border-white/20 backdrop-blur-xl
+                  bg-black/80 border border-white/20 backdrop-blur-xl
                   text-white/80
                   hover:bg-white/5 hover:border-white/20
                   transition
@@ -205,7 +205,7 @@ export default function ServicePlanPage() {
       </div>
 
       {/* ⭐ Card wrapper for list */}
-      <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
+      <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
         <CardHeader>
           <CardTitle>All Service Plans</CardTitle>
         </CardHeader>

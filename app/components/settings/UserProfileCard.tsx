@@ -58,7 +58,7 @@ export default function UserProfileCard({
   }, [registerSave, save]);
 
   return (
-    <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
+    <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
       <CardHeader>
         <CardTitle>Profile</CardTitle>
       </CardHeader>

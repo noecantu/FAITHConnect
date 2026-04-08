@@ -114,7 +114,7 @@ export default function CreateChurchPage() {
                 onChange={(e) => setChurchName(e.target.value)}
                 required
                 placeholder="e.g. Grace Fellowship Church"
-                className="bg-black/20 border-white/20 text-white"
+                className="bg-black/80 border-white/20 text-white"
               />
             </div>
 

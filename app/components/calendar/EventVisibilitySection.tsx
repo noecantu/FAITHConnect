@@ -21,7 +21,7 @@ function SegmentedControl({
   options: { label: string; value: string }[];
 }) {
   return (
-    <div className="flex rounded-md overflow-hidden border border-white/20 bg-black/30">
+    <div className="flex rounded-md overflow-hidden border border-white/20 bg-black/80">
       {options.map((opt) => {
         const active = value === opt.value;
         return (

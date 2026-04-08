@@ -231,7 +231,7 @@ export default function AttendancePageContent() {
           }}
           className="
             w-full sm:w-[150px]
-            bg-black/30 text-white
+            bg-black/80 text-white
             border border-white/20
             rounded-md px-3 py-2 text-center
             hover:border-white/50
@@ -246,7 +246,7 @@ export default function AttendancePageContent() {
             setDate(today);
             router.push(`/attendance?date=${format(today, "yyyy-MM-dd")}`);
           }}
-          className="w-full sm:w-auto bg-black/30 border border-white/20 backdrop-blur-xl"
+          className="w-full sm:w-auto bg-black/80 border border-white/20 backdrop-blur-xl"
         >
           Today
         </Button>
@@ -254,7 +254,7 @@ export default function AttendancePageContent() {
 
       {/* ACTION BUTTONS */}
       {mode !== "history" && (
-        <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
+        <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-4">
 
             {/* GENERATE QR */}
@@ -294,7 +294,7 @@ export default function AttendancePageContent() {
                   placeholder="Visitor name"
                   value={visitorName}
                   onChange={(e) => setVisitorName(e.target.value)}
-                  className="bg-black/30 text-white"
+                  className="bg-black/80 text-white"
                   disabled={!canEdit}
                 />
 

@@ -19,7 +19,7 @@ export function AttendanceDateSelect({
         value={value ?? "all"}
         onValueChange={(v) => onChange(v === "all" ? null : v)}
       >
-        <SelectTrigger className="bg-black/20 border-white/20 text-white">
+        <SelectTrigger className="bg-black/80 border-white/20 text-white">
           <SelectValue placeholder="All Dates" />
         </SelectTrigger>
 

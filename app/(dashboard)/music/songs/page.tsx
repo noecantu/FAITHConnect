@@ -153,7 +153,7 @@ export default function SongsPage() {
               <SelectTrigger
                 className="
                   w-full sm:w-[140px] h-9
-                  bg-black/40 border border-white/20 backdrop-blur-xl
+                  bg-black/80 border border-white/20 backdrop-blur-xl
                   text-white/80
                   hover:bg-white/5 hover:border-white/20
                   transition

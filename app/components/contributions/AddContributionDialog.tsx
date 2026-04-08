@@ -337,7 +337,7 @@ export function AddContributionDialog({
                           w-full
                           rounded-md
                           border border-white/20
-                          bg-black/20
+                          bg-black/80
                           text-white text-sm
                           px-3 py-2
                           focus:outline-none

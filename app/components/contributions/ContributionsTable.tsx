@@ -63,7 +63,7 @@ export function ContributionsTable<TData, TValue>({
       />
 
       {/* Table */}
-      <div className="w-full overflow-x-auto rounded-md border border-white/20 bg-black/20 backdrop-blur-xl">
+      <div className="w-full overflow-x-auto rounded-md border border-white/20 bg-black/80 backdrop-blur-xl">
         <Table className="min-w-max text-sm">
 
           {/* HEADER */}

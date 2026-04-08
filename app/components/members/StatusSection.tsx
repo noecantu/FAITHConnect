@@ -28,7 +28,7 @@ type Props = {
 
 export function StatusSection({ form }: Props) {
   return (
-    <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
+    <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
       <CardHeader>
         <CardTitle className="text-xl">Status</CardTitle>
       </CardHeader>

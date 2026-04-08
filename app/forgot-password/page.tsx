@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black flex items-center justify-center px-4">
-      <Card className="relative w-full max-w-sm bg-black/30 border-white/20 backdrop-blur-xl">
+      <Card className="relative w-full max-w-sm bg-black/80 border-white/20 backdrop-blur-xl">
         <CardHeader className="text-center space-y-2">
           <img
             src="/F-Flame_Vector_Optimized.svg"

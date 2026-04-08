@@ -59,7 +59,7 @@ export function SearchBar({
         onChange={(e) => setInternal(e.target.value)}
         className="
           w-full h-10 pr-10
-          bg-black/40 border border-white/20 backdrop-blur-xl
+          bg-black/80 border border-white/20 backdrop-blur-xl
           text-white/90 placeholder:text-white/40
           focus-visible:ring-white/20
         "

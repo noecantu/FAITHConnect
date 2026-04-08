@@ -280,7 +280,7 @@ export default function ChurchAdminDashboard() {
         />
 
         {/* Identity Header */}
-        <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
+        <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
           <CardContent className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 md:p-6">
             {/* Left: Logo + Name */}
             <div className="flex items-center gap-4">
@@ -341,7 +341,7 @@ export default function ChurchAdminDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
+        <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
           <CardHeader className="pb-3">
             <CardTitle>Quick Access</CardTitle>
             <CardDescription>Main Areas</CardDescription>
@@ -375,7 +375,7 @@ function StatCard({
   value: number;
 }) {
   return (
-    <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
+    <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <CardDescription className="text-xs">{description}</CardDescription>
@@ -403,7 +403,7 @@ function QuickAction({
       variant="ghost"
       className="
         w-full justify-start gap-3
-        bg-black/40 border border-white/20 backdrop-blur-xl
+        bg-black/80 border border-white/20 backdrop-blur-xl
         hover:bg-white/5 hover:border-white/20
         text-white/80
         transition

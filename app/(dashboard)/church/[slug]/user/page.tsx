@@ -70,7 +70,7 @@ export default function UserDashboardPage({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
             {/* Church Identity Card */}
-            <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
+            <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
               <CardContent className="flex items-center gap-4 p-4 md:p-6">
                 <Avatar className="h-32 w-32 rounded-md overflow-hidden border border-border bg-white shadow-sm">
                   {church.logoUrl ? (
@@ -102,7 +102,7 @@ export default function UserDashboardPage({
             </Card>
 
             {/* User Identity Card */}
-            <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
+            <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
               <CardContent className="flex items-center gap-4 p-4 md:p-6">
                 <Avatar className="h-32 w-32 rounded-md overflow-hidden border border-border bg-white shadow-sm">
                   {user.profilePhotoUrl ? (
@@ -148,7 +148,7 @@ export default function UserDashboardPage({
 
           {/* Quick Actions — Admin Only */}
           {isAdminUser && (
-            <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
+            <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
               <CardHeader className="pb-3">
                 <CardTitle>Quick Actions</CardTitle>
                 <CardDescription>Jump into your church activity.</CardDescription>
@@ -166,7 +166,7 @@ export default function UserDashboardPage({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
             {/* Upcoming Events */}
-            <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
+            <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
               <CardHeader>
                 <CardTitle>Upcoming Events</CardTitle>
                 <CardDescription>What’s happening soon at your church.</CardDescription>
@@ -196,7 +196,7 @@ export default function UserDashboardPage({
             </Card>
 
             {/* Upcoming Services */}
-            <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
+            <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
               <CardHeader>
                 <CardTitle>Upcoming Services</CardTitle>
                 <CardDescription>Your upcoming worship services.</CardDescription>

@@ -35,7 +35,7 @@ export default function UserListCard({ users, onCreate, onSelectUser }: Props) {
   const goNext = () => setPage((p) => Math.min(totalPages, p + 1));
 
   return (
-    <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
+    <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
       <CardHeader>
         <div className="flex items-start justify-between w-full">
           <div>

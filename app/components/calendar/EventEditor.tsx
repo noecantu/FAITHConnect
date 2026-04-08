@@ -208,7 +208,7 @@ export default function EventEditor({
                 Who can see this event?
               </label>
 
-              <div className="flex rounded-md overflow-hidden border border-white/20 bg-black/30">
+              <div className="flex rounded-md overflow-hidden border border-white/20 bg-black/80">
                 <button
                   type="button"
                   onClick={() => {

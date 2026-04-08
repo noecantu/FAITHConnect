@@ -41,7 +41,7 @@ export default function Header() {
         className="fixed top-0 left-0 w-full z-[9999]
           flex h-16 items-center
           border-b border-white/20
-          bg-black/30 backdrop-blur-xl
+          bg-black/80 backdrop-blur-xl
           px-4 md:px-6"
       >
         <div className="h-16" />
