@@ -419,11 +419,11 @@ export default function AttendanceHistoryPage() {
                 focus:outline-none focus:ring-2 focus:ring-white/30
               "
             >
-              <option value="date-desc">Date ↓ (Newest)</option>
-              <option value="date-asc">Date ↑ (Oldest)</option>
-              <option value="present">Most Present</option>
-              <option value="absent">Most Absent</option>
-              <option value="visitors">Most Visitors</option>
+              <option value="date-desc">Date ↓</option>
+              <option value="date-asc">Date ↑</option>
+              <option value="present">Present</option>
+              <option value="absent">Absent</option>
+              <option value="visitors">Visitors</option>
             </select>
           </div>
         </CardHeader>
