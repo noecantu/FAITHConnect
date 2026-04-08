@@ -188,13 +188,13 @@ export default function SetListDetailPage() {
                         {fullSong?.lyrics && (
                           <FileText
                             size={16}
-                            className="text-blue-400/40"
+                            className="text-blue-400/80"
                           />
                         )}
                         {fullSong?.chords && (
                           <Music
                             size={16}
-                            className="text-green-400/40"
+                            className="text-green-400/80"
                           />
                         )}
                       </div>

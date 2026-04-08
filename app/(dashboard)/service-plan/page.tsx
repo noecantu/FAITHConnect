@@ -228,7 +228,7 @@ export default function ServicePlanPage() {
                       router.push(`/service-plan/${plan.id}`);
                     }
                   }}
-                  className="border rounded-md p-4 flex items-start justify-between cursor-pointer hover:bg-muted/40 transition-colors"
+                  className="border border-white/10 rounded-md p-4 flex items-start justify-between cursor-pointer bg-white/5 hover:bg-white/10 transition-colors"
                 >
                   <div>
                     <div className="font-medium">{plan.title}</div>

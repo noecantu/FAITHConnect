@@ -218,7 +218,7 @@ export default function SetListsPage() {
                     router.push(`/music/setlists/${row.id}`);
                   }
                 }}
-                className="border rounded-md p-4 flex items-start justify-between cursor-pointer hover:bg-muted/40 transition-colors"
+                className="border border-white/10 rounded-md p-4 flex items-start justify-between cursor-pointer bg-white/5 hover:bg-white/10 transition-colors"
               >
                 <div>
                   <div className="font-medium">{row.title}</div>

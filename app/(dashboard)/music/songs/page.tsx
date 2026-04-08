@@ -215,10 +215,10 @@ export default function SongsPage() {
 
                             <div className="flex items-center gap-2 ml-2">
                               {song.lyrics && (
-                                <FileText size={16} className="text-blue-400/40" />
+                                <FileText size={16} className="text-blue-400/80" />
                               )}
                               {song.chords && (
-                                <Music size={16} className="text-green-400/40" />
+                                <Music size={16} className="text-green-400/80" />
                               )}
                             </div>
                           </div>
