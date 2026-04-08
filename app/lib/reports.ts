@@ -226,6 +226,7 @@ export function generateMembersExcel(
       };
 
       selectedFields.forEach(f => {
+        if (f === "qrCode") return;
         const label = fieldLabelMap[f] ?? capitalize(f);
         const value = m[f as keyof Member];
 
