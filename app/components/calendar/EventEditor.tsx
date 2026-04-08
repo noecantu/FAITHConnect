@@ -49,8 +49,6 @@ export default function EventEditor({
     initialEvent?.timeString ?? dayjs(initialDateObj).format("HH:mm")
   );
 
-  const [date, setDate] = useState<Date>(initialDateObj);
-
   // --- FORM STATE ---
   const [title, setTitle] = useState(initialEvent?.title ?? "");
   const [description, setDescription] = useState(
@@ -138,18 +136,10 @@ export default function EventEditor({
   // --- HANDLERS FOR DATE/TIME INPUTS ---
   const handleDateChange = (value: string) => {
     setLocalDateString(value);
-    if (!value || !localTimeString) return;
-
-    const updated = new Date(`${value}T${localTimeString}:00`);
-    setDate(updated);
   };
 
   const handleTimeChange = (value: string) => {
     setLocalTimeString(value);
-    if (!localDateString || !value) return;
-
-    const updated = new Date(`${localDateString}T${value}:00`);
-    setDate(updated);
   };
 
   return (
