@@ -105,6 +105,12 @@ export async function generateMembersPDF(
   // 2. Header
   // -----------------------------
   if (logoBase64) {
+    if (!logoBase64.startsWith("data:image/")) {
+      console.error("Logo is not an image:", logoBase64.substring(0, 50));
+    } else {
+      doc.addImage(logoBase64, "PNG", 40, 20, 100, 0);
+    }
+
     doc.addImage(logoBase64, "PNG", 40, 20, 100, 0);
   }
 
@@ -158,7 +164,14 @@ export async function generateMembersPDF(
       const { x, y } = data.cell;
       const size = 40;
 
-      doc.addImage(base64, "PNG", x + 2, y + 2, size, size);
+      const isPng = base64.startsWith("data:image/png");
+      const isJpg = base64.startsWith("data:image/jpeg");
+
+      if (isPng) {
+        doc.addImage(base64, "PNG", x + 2, y + 2, size, size);
+      } else if (isJpg) {
+        doc.addImage(base64, "JPEG", x + 2, y + 2, size, size);
+      }
     }
   });
 

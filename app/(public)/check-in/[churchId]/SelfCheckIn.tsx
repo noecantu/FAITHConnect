@@ -88,7 +88,7 @@ export default function SelfCheckIn({ church, date }: SelfCheckInProps) {
         {/* Logo */}
         <div className="flex justify-center mb-0">
           <img
-            src="/FAITH_Connect_FLAME_LOGO.svg"
+            src="/FAITH_CONNECT_FLAME_LOGO.svg"
             alt="Faith Connect Logo"
             className="h-40 w-40"
           />
