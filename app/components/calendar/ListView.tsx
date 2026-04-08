@@ -8,6 +8,7 @@ import { usePreviewPagination } from "@/app/hooks/usePreviewPagination";
 import { PreviewPaginationFooter } from "@/app/components/layout/PreviewPaginationFooter";
 import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 import { can } from "@/app/lib/auth/permissions/can";
+import { getGroupColor } from "@/app/lib/groupColors";
 
 type CalendarItem =
   | (Event & { type: "event" })
@@ -124,7 +125,13 @@ export function ListView({
                         onEdit(e);
                       }
                     }}
-                    className="border rounded-md p-3 flex items-start justify-between cursor-pointer hover:bg-muted/40 transition-colors"
+                    className="
+                      border rounded-md p-3 flex items-start justify-between cursor-pointer 
+                      hover:bg-muted/40 transition-colors
+                    "
+                    style={{
+                      borderLeft: `24px solid ${getGroupColor("groups" in e ? e.groups : [])}`,
+                    }}
                   >
                     <div>
                       <div className="font-medium">
