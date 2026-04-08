@@ -54,18 +54,7 @@ export function GridCalendar({
   ];
 
   return (
-    <Card
-      className="
-        relative 
-        bg-black/40 
-        border-white/10 
-        backdrop-blur-2xl 
-        shadow-2xl 
-        rounded-xl 
-        overflow-hidden
-        before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/5 before:to-transparent
-      "
-    >
+    <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
       <CardHeader className="flex flex-row items-center justify-between">
         <Button variant="ghost" size="icon" onClick={onPrevMonth}>
           <ChevronLeft className="h-4 w-4" />
