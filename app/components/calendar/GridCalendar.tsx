@@ -174,7 +174,7 @@ export function GridCalendar({
                           key={`${event.id}-${event.dateString}-${"timeString" in event ? "service" : "event"}`}
                           className="
                             text-xs text-white 
-                            rounded-md px-2 py-0.5 
+                            rounded-sm px-2 py-0.5
                             truncate w-full text-left 
                             shadow-sm 
                             border border-white/10
