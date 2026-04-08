@@ -263,7 +263,7 @@ export default function AttendanceHistoryPage() {
           </div>
 
           {/* Dynamic Dropdowns */}
-          <div className="flex flex-row justify-end items-center gap-4 w-full">
+          <div className="flex flex-row justify-start items-center gap-4 w-full">
 
             {/* Year */}
             <Select
