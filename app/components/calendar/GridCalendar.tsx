@@ -171,8 +171,8 @@ export function GridCalendar({
                           style={{ backgroundColor: color }}
                         >
                           {"timeString" in event
-                            ? `${format(new Date(`${event.dateString}T${event.timeString}`), "h:mm a")} — ${event.title}`
-                            : `${format(event.date, "h:mm a")} — ${event.title}`}
+                            ? `${format(new Date(`${event.dateString}T${event.timeString}`), "h:mm a")} - ${event.title}`
+                            : `${format(event.date, "h:mm a")} - ${event.title}`}
                         </div>
                       );
                     })}
