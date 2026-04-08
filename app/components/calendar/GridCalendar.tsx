@@ -54,7 +54,18 @@ export function GridCalendar({
   ];
 
   return (
-    <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
+    <Card
+      className="
+        relative 
+        bg-black/40 
+        border-white/10 
+        backdrop-blur-2xl 
+        shadow-2xl 
+        rounded-xl 
+        overflow-hidden
+        before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/5 before:to-transparent
+      "
+    >
       <CardHeader className="flex flex-row items-center justify-between">
         <Button variant="ghost" size="icon" onClick={onPrevMonth}>
           <ChevronLeft className="h-4 w-4" />
@@ -70,7 +81,18 @@ export function GridCalendar({
       </CardHeader>
 
       <CardContent>
-        <div className="grid grid-cols-7 text-center text-sm font-semibold text-muted-foreground">
+        {/* Weekday Header */}
+        <div
+          className="
+            grid grid-cols-7 
+            text-center text-xs font-semibold tracking-wide uppercase
+            text-white/70 
+            bg-white/5 
+            backdrop-blur-sm 
+            border-b border-white/10 
+            py-2
+          "
+        >
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
             <div key={day} className="py-2">
               {day}
@@ -78,7 +100,11 @@ export function GridCalendar({
           ))}
         </div>
 
-        <div className="grid grid-cols-7 border-t border-l">
+        {/* Calendar Grid */}
+        <div
+          key={format(month, 'yyyy-MM')}
+          className="grid grid-cols-7 border-t border-l animate-fadeIn"
+        >
           {cells.map((day, index) => {
             if (!day) {
               return (
@@ -90,26 +116,32 @@ export function GridCalendar({
             }
 
             const dayEvents = (eventsByDay[dateKey(day)] || []).sort((a, b) => {
-            const timeA =
-              "timeString" in a
-                ? new Date(`${a.dateString}T${a.timeString}`)
-                : a.date;
+              const timeA =
+                "timeString" in a
+                  ? new Date(`${a.dateString}T${a.timeString}`)
+                  : a.date;
 
-            const timeB =
-              "timeString" in b
-                ? new Date(`${b.dateString}T${b.timeString}`)
-                : b.date;
+              const timeB =
+                "timeString" in b
+                  ? new Date(`${b.dateString}T${b.timeString}`)
+                  : b.date;
 
-            return timeA.getTime() - timeB.getTime();
-          });
+              return timeA.getTime() - timeB.getTime();
+            });
+
             const count = dayEvents.length;
 
             const dayClass = [
-              'relative flex flex-col items-start justify-start p-1 sm:p-2 border-r border-b aspect-square overflow-hidden',
-              isPast(day) && !isToday(day) ? 'bg-muted/30' : '',
-              isToday(day) ? 'bg-primary/10' : '',
-              'hover:bg-muted',
-            ].join(' ');
+              "relative flex flex-col items-start justify-start p-2 border-r border-b aspect-square overflow-hidden",
+              "transition-all duration-150",
+              "hover:bg-white/10 hover:shadow-lg hover:z-10 hover:scale-[1.02]",
+              isToday(day)
+                ? "bg-primary/20 ring-2 ring-primary/40 ring-offset-1 ring-offset-black"
+                : "",
+              isPast(day) && !isToday(day)
+                ? "bg-white/5 text-white/40"
+                : "",
+            ].join(" ");
 
             return (
               <button
@@ -129,8 +161,12 @@ export function GridCalendar({
                       return (
                         <span
                           key={`dot-${event.id}`}
-                          className="h-1.5 w-1.5 rounded-full"
-                          style={{ backgroundColor: color }}
+                          className="h-2 w-2 rounded-full shadow-md"
+                          style={{
+                            backgroundColor: color,
+                            boxShadow: `0 0 6px ${color}CC`,
+                            outline: "1px solid rgba(255,255,255,0.5)",
+                          }}
                         />
                       );
                     })}
@@ -143,14 +179,18 @@ export function GridCalendar({
                   </div>
                 )}
 
-                {/* Mobile count */}
+                {/* Mobile count bubble */}
                 {count > 0 && (
-                  <div className="md:hidden absolute bottom-1 right-1 text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center text-[10px] bg-primary text-primary-foreground">
+                  <div className="
+                    md:hidden absolute bottom-1 right-1 text-xs rounded-full 
+                    h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center 
+                    text-[10px] bg-primary text-primary-foreground
+                  ">
                     {count}
                   </div>
                 )}
 
-                {/* Desktop event titles */}
+                {/* Desktop event chips */}
                 {count > 0 && (
                   <div className="hidden md:flex flex-col items-start w-full mt-1 space-y-1">
                     {dayEvents.slice(0, 2).map((event) => {
@@ -160,7 +200,13 @@ export function GridCalendar({
                       return (
                         <div
                           key={`${event.id}-${event.dateString}-${"timeString" in event ? "service" : "event"}`}
-                          className="text-xs text-white rounded-sm px-1 truncate w-full text-left"
+                          className="
+                            text-xs text-white 
+                            rounded-md px-2 py-0.5 
+                            truncate w-full text-left 
+                            shadow-sm 
+                            border border-white/10
+                          "
                           style={{ backgroundColor: color }}
                         >
                           {"timeString" in event
