@@ -229,17 +229,17 @@ export default function ContributionsPage() {
               >
                 <div className="flex items-center gap-1">
                   <RadioGroupItem value="year" id="tf-year" />
-                  <label htmlFor="tf-year" className="text-sm">Year</label>
+                  <label htmlFor="tf-year" className="text-sm text-muted-foreground">Year</label>
                 </div>
 
                 <div className="flex items-center gap-1">
                   <RadioGroupItem value="month" id="tf-month" />
-                  <label htmlFor="tf-month" className="text-sm">Month</label>
+                  <label htmlFor="tf-month" className="text-sm text-muted-foreground">Month</label>
                 </div>
 
                 <div className="flex items-center gap-1">
                   <RadioGroupItem value="week" id="tf-week" />
-                  <label htmlFor="tf-week" className="text-sm">Week</label>
+                  <label htmlFor="tf-week" className="text-sm text-muted-foreground">Week</label>
                 </div>
               </RadioGroup>
             </div>
