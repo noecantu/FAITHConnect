@@ -202,7 +202,7 @@ export default function SongsPage() {
                       <Link href={`/music/songs/${song.id}`}>
                         <Card
                           className="relative p-4 cursor-pointer 
-                                    bg-black/80 border-white/20 backdrop-blur-xl 
+                                    bg-black/70 border-white/20 backdrop-blur-xl 
                                     hover:bg-white/5 transition"
                         >
                           <div className="flex items-center justify-between">
