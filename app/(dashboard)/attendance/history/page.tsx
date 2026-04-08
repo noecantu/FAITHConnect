@@ -37,6 +37,7 @@ import { TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 import { useAttendanceHistorySettings } from '@/app/hooks/useAttendanceHistorySettings';
 import { useAuth } from '@/app/hooks/useAuth';
 import { DashboardPage } from '../../layout/DashboardPage';
+import { Separator } from '@/app/components/ui/separator';
 
 // --------------------------------------------------
 // Helper: Summary Text (mirrors Contributions summary)
@@ -86,6 +87,8 @@ export default function AttendanceHistoryPage() {
   const canDelete = useCan("attendance.manage");
 
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+
+  const [sortKey, setSortKey] = useState("date-desc");
 
   // Summaries (one per date)
   const summary = summarizeAttendance(data);
@@ -204,6 +207,30 @@ export default function AttendanceHistoryPage() {
     total,
   } = usePreviewPagination(filteredAttendance, 20);
 
+    const sorted = useMemo(() => {
+      const arr = [...visible];
+
+      switch (sortKey) {
+        case "date-asc":
+          return arr.sort((a, b) => a.dateString.localeCompare(b.dateString));
+
+        case "date-desc":
+          return arr.sort((a, b) => b.dateString.localeCompare(a.dateString));
+
+        case "present":
+          return arr.sort((a, b) => b.membersPresent - a.membersPresent);
+
+        case "absent":
+          return arr.sort((a, b) => b.membersAbsent - a.membersAbsent);
+
+        case "visitors":
+          return arr.sort((a, b) => b.visitorCount - a.visitorCount);
+
+        default:
+          return arr;
+      }
+    }, [visible, sortKey]);
+    
   // ------------------------------
   // Conditional returns
   // ------------------------------
@@ -263,11 +290,6 @@ export default function AttendanceHistoryPage() {
                 <div className="flex items-center gap-1">
                   <RadioGroupItem value="month" id="tf-month" />
                   <label htmlFor="tf-month" className="text-sm text-muted-foreground">Month</label>
-                </div>
-
-                <div className="flex items-center gap-1">
-                  <RadioGroupItem value="week" id="tf-week" />
-                  <label htmlFor="tf-week" className="text-sm text-muted-foreground">Week</label>
                 </div>
               </RadioGroup>
             </div>
@@ -377,12 +399,36 @@ export default function AttendanceHistoryPage() {
           )}
         </CardContent>
       </Card>
+
       {/* TABLE */}
       <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Attendance Records</CardTitle>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-white/60">Sort:</span>
+
+            <select
+              value={sortKey}
+              onChange={(e) => setSortKey(e.target.value)}
+              className="
+                bg-black/40 text-white/80 text-sm
+                border border-white/20 rounded-md
+                px-2 py-1
+                hover:border-white/40
+                focus:outline-none focus:ring-2 focus:ring-white/30
+              "
+            >
+              <option value="date-desc">Date ↓ (Newest)</option>
+              <option value="date-asc">Date ↑ (Oldest)</option>
+              <option value="present">Most Present</option>
+              <option value="absent">Most Absent</option>
+              <option value="visitors">Most Visitors</option>
+            </select>
+          </div>
         </CardHeader>
 
+        <Separator />
         <CardContent className="space-y-2">
           <table className="w-full text-sm">
             <TableHeader>
@@ -396,7 +442,7 @@ export default function AttendanceHistoryPage() {
             </TableHeader>
 
             <tbody>
-              {visible.map((s) => (
+              {sorted.map((s) => (
                 <tr
                   key={s.dateString}
                   className="border-b hover:bg-accent cursor-pointer"
@@ -462,6 +508,7 @@ export default function AttendanceHistoryPage() {
                 </tr>
               ))}
             </tbody>
+
           </table>
 
           <PreviewPaginationFooter
