@@ -147,7 +147,7 @@ export default function ServicePlanPage() {
       />
 
       {/* Toolbar */}
-      <div className="sticky top-16 z-10">
+      <div className="top-16 z-10">
         <div className="flex flex-wrap items-center gap-3 w-full">
 
           {/* Search bar */}
