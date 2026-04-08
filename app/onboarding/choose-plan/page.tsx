@@ -71,7 +71,7 @@ export default function OnboardingChoosePlan() {
         {plans.map((p, i) => (
           <Card
             key={i}
-            className={`bg-white/5 border-white/10 backdrop-blur-sm p-6 ${
+            className={`bg-white/5 border-white/20 backdrop-blur-sm p-6 ${
               p.highlight ? "border-blue-500 shadow-lg shadow-blue-500/20" : ""
             }`}
           >

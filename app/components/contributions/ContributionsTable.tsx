@@ -63,15 +63,17 @@ export function ContributionsTable<TData, TValue>({
       />
 
       {/* Table */}
-      <div className="w-full overflow-x-auto rounded-md border border-white/10 bg-black/20 backdrop-blur-xl">
+      <div className="w-full overflow-x-auto rounded-md border border-white/20 bg-black/20 backdrop-blur-xl">
         <Table className="min-w-max text-sm">
-          <TableHeader className="bg-white/5 border-b border-white/10">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
+
+          {/* HEADER */}
+          <TableHeader>
+            <TableRow className="bg-white/5 border-b border-white/20">
+              {table.getHeaderGroups().map((headerGroup) =>
+                headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className="px-4 py-3 text-white/80 font-medium"
+                    className="px-4 py-3 text-white/80 font-medium border-none"
                   >
                     {header.isPlaceholder
                       ? null
@@ -80,22 +82,19 @@ export function ContributionsTable<TData, TValue>({
                           header.getContext()
                         )}
                   </TableHead>
-                ))}
-              </TableRow>
-            ))}
+                ))
+              )}
+            </TableRow>
           </TableHeader>
 
+          {/* BODY */}
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className="
-                    cursor-pointer
-                    border-b border-white/10
-                    hover:bg-white/5 transition-colors
-                  "
+                  className="cursor-pointer border-b border-white/10 hover:bg-white/5 transition-colors"
                   onClick={() => onRowClick?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -119,6 +118,7 @@ export function ContributionsTable<TData, TValue>({
               </TableRow>
             )}
           </TableBody>
+
         </Table>
       </div>
 

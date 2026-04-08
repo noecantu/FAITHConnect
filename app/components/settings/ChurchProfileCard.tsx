@@ -111,7 +111,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
   };
   
   return (
-    <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
+    <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
       <CardHeader>
         <CardTitle>{name || "Church Profile"}</CardTitle>
         <CardDescription>Manage your church’s identity and details.</CardDescription>

@@ -126,7 +126,7 @@ export default function AdminCredentialsPage() {
         </button>
       </div>
 
-      <Card className="relative w-full max-w-md bg-white/5 border-white/10 backdrop-blur-xl p-8 shadow-xl">
+      <Card className="relative w-full max-w-md bg-white/5 border-white/20 backdrop-blur-xl p-8 shadow-xl">
 
         {/* LOGO */}
         <div className="relative flex justify-center mb-6">
@@ -155,7 +155,7 @@ export default function AdminCredentialsPage() {
             <div className="space-y-2">
               <label className="text-zinc-300">First Name</label>
               <input
-                className="w-full rounded-md bg-black/20 border border-white/10 px-3 py-2 text-white"
+                className="w-full rounded-md bg-black/20 border border-white/20 px-3 py-2 text-white"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 required
@@ -165,7 +165,7 @@ export default function AdminCredentialsPage() {
             <div className="space-y-2">
               <label className="text-zinc-300">Last Name</label>
               <input
-                className="w-full rounded-md bg-black/20 border border-white/10 px-3 py-2 text-white"
+                className="w-full rounded-md bg-black/20 border border-white/20 px-3 py-2 text-white"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 required
@@ -176,7 +176,7 @@ export default function AdminCredentialsPage() {
               <label className="text-zinc-300">Email</label>
               <input
                 type="email"
-                className="w-full rounded-md bg-black/20 border border-white/10 px-3 py-2 text-white"
+                className="w-full rounded-md bg-black/20 border border-white/20 px-3 py-2 text-white"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -187,7 +187,7 @@ export default function AdminCredentialsPage() {
               <label className="text-zinc-300">Password</label>
               <input
                 type="password"
-                className="w-full rounded-md bg-black/20 border border-white/10 px-3 py-2 text-white"
+                className="w-full rounded-md bg-black/20 border border-white/20 px-3 py-2 text-white"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -198,7 +198,7 @@ export default function AdminCredentialsPage() {
               <label className="text-zinc-300">Confirm Password</label>
               <input
                 type="password"
-                className="w-full rounded-md bg-black/20 border border-white/10 px-3 py-2 text-white"
+                className="w-full rounded-md bg-black/20 border border-white/20 px-3 py-2 text-white"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required

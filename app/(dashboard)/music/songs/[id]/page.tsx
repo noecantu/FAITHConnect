@@ -260,7 +260,7 @@ export default function SongDetailPage() {
             <DropdownMenuContent
               side="top"
               align="end"
-              className="min-w-0 w-10 bg-white/10 backdrop-blur-sm border border-white/10 p-1"
+              className="min-w-0 w-10 bg-white/10 backdrop-blur-sm border border-white/20 p-1"
             >
 
             <DropdownMenuItem
@@ -280,7 +280,7 @@ export default function SongDetailPage() {
                 </DropdownMenuItem>
               </AlertDialogTrigger>
 
-              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/20">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Duplicate this song?</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -316,7 +316,7 @@ export default function SongDetailPage() {
                 </DropdownMenuItem>
               </AlertDialogTrigger>
 
-              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/20">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete this song?</AlertDialogTitle>
                   <AlertDialogDescription>

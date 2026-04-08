@@ -82,9 +82,9 @@ export function CalendarControls({
               <SelectTrigger
                 className="
                   w-[140px] h-9
-                  bg-black/40 border border-white/30 backdrop-blur-xl
+                  bg-black/40 border border-white/20 backdrop-blur-xl
                   text-white/80
-                  hover:bg-white/5 hover:border-white/30
+                  hover:bg-white/5 hover:border-white/20
                   transition
                   sm:w-[140px]
                   max-sm:flex-1
@@ -111,9 +111,9 @@ export function CalendarControls({
               <SelectTrigger
                 className="
                   w-[140px] h-9
-                  bg-black/40 border border-white/30 backdrop-blur-xl
+                  bg-black/40 border border-white/20 backdrop-blur-xl
                   text-white/80
-                  hover:bg-white/5 hover:border-white/30
+                  hover:bg-white/5 hover:border-white/20
                   transition
                   sm:w-[140px]
                   max-sm:flex-1
@@ -135,7 +135,7 @@ export function CalendarControls({
               variant="ghost"
               onClick={month.goToday}
               className="
-                bg-black/30 border border-white/30 backdrop-blur-xl
+                bg-black/30 border border-white/20 backdrop-blur-xl
                 whitespace-nowrap
               "
             >
@@ -172,7 +172,7 @@ export function CalendarControls({
                   className="
                     h-9
                     w-full min-[360px]:w-1/2
-                    bg-black/40 border border-white/30 backdrop-blur-xl
+                    bg-black/40 border border-white/20 backdrop-blur-xl
                     text-white/80
                     hover:bg-white/5 hover:border-white/20
                     transition
@@ -196,7 +196,7 @@ export function CalendarControls({
                   className="
                     h-9
                     w-full min-[360px]:w-1/2
-                    bg-black/40 border border-white/30 backdrop-blur-xl
+                    bg-black/40 border border-white/20 backdrop-blur-xl
                     text-white/80
                     hover:bg-white/5 hover:border-white/20
                     transition

@@ -56,7 +56,7 @@ export default function SongViewOnly({ songId }: { songId: string }) {
           }}
           className="
             px-4 py-2 rounded
-            border border-white/10
+            border border-white/20
             text-white
             backdrop-blur-sm
             transition
@@ -80,7 +80,7 @@ export default function SongViewOnly({ songId }: { songId: string }) {
           }}
           className="
             px-4 py-2 rounded
-            border border-white/10
+            border border-white/20
             text-white
             backdrop-blur-sm
             transition

@@ -54,7 +54,7 @@ export function AttendancePreviewTable({ attendance }: Props) {
         />
       }
     >
-      <div className="w-full overflow-x-auto rounded-md border border-white/10 bg-black/20 backdrop-blur-xl">
+      <div className="w-full overflow-x-auto rounded-md border border-white/20 bg-black/20 backdrop-blur-xl">
         <table className="w-full min-w-max text-sm">
           <thead className="bg-slate-800 border-b border-white/50">
             <tr>
@@ -69,7 +69,7 @@ export function AttendancePreviewTable({ attendance }: Props) {
             {visibleRows.map((row) => (
               <tr
                 key={row.id}
-                className="border-b border-white/10 hover:bg-white/5 transition-colors"
+                className="border-b border-white/20 hover:bg-white/5 transition-colors"
               >
                 <td className="px-4 py-3 text-white/90">{row.date}</td>
                 <td className="px-4 py-3 text-white/90">{getName(row)}</td>

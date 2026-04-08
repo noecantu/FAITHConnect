@@ -162,7 +162,7 @@ export default function SetListDetailPage() {
                   <Card
                     key={song.songId}
                     className="relative p-4 cursor-pointer 
-                      bg-black/40 border-white/10 backdrop-blur-xl 
+                      bg-black/40 border-white/20 backdrop-blur-xl 
                       hover:bg-white/5 transition"
                     onClick={() =>
                       router.push(`/music/songs/${song.songId}/view`)
@@ -226,7 +226,7 @@ export default function SetListDetailPage() {
           <DropdownMenuContent
             side="top"
             align="end"
-            className="min-w-0 w-10 bg-white/10 backdrop-blur-sm border border-white/10 p-1"
+            className="min-w-0 w-10 bg-white/10 backdrop-blur-sm border border-white/20 p-1"
           >
             {/* Edit */}
             <DropdownMenuItem
@@ -249,7 +249,7 @@ export default function SetListDetailPage() {
                 </DropdownMenuItem>
               </AlertDialogTrigger>
 
-              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/20">
                 <AlertDialogHeader>
                   <AlertDialogTitle>
                     Duplicate this set list?
@@ -295,7 +295,7 @@ export default function SetListDetailPage() {
                 </DropdownMenuItem>
               </AlertDialogTrigger>
 
-              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/20">
                 <AlertDialogHeader>
                   <AlertDialogTitle>
                     Delete this set list?

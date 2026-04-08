@@ -61,7 +61,7 @@ export default function ConfirmPlanPage() {
       <h1 className="text-4xl font-bold text-center mb-12">Confirm Your Plan</h1>
 
       <div className="max-w-lg mx-auto">
-        <Card className="bg-white/5 border-white/10 backdrop-blur-sm p-8">
+        <Card className="bg-white/5 border-white/20 backdrop-blur-sm p-8">
           <h2 className="text-3xl font-semibold mb-2">{plan}</h2>
           {price && <p className="text-2xl text-white/70 mb-6">{price}</p>}
 

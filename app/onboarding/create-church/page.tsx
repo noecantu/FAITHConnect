@@ -75,7 +75,7 @@ export default function CreateChurchPage() {
         </button>
       </div>
 
-      <Card className="relative w-full max-w-md bg-white/5 border-white/10 backdrop-blur-xl p-8 shadow-xl">
+      <Card className="relative w-full max-w-md bg-white/5 border-white/20 backdrop-blur-xl p-8 shadow-xl">
 
         {/* LOGO + GLOW */}
         <div className="relative flex justify-center mb-6">
@@ -114,7 +114,7 @@ export default function CreateChurchPage() {
                 onChange={(e) => setChurchName(e.target.value)}
                 required
                 placeholder="e.g. Grace Fellowship Church"
-                className="bg-black/20 border-white/10 text-white"
+                className="bg-black/20 border-white/20 text-white"
               />
             </div>
 

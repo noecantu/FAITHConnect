@@ -284,7 +284,7 @@ export default function AttendanceHistoryPage() {
                   className="
                     h-9
                     flex-1 min-[360px]:flex-none min-[360px]:w-1/2 sm:w-[140px]
-                    bg-black/40 border border-white/30 backdrop-blur-xl
+                    bg-black/40 border border-white/20 backdrop-blur-xl
                     text-white/80
                     hover:bg-white/5 hover:border-white/20
                     transition
@@ -312,7 +312,7 @@ export default function AttendanceHistoryPage() {
                     className="
                       h-9
                       flex-1 min-[360px]:flex-none min-[360px]:w-1/2 sm:w-[140px]
-                      bg-black/40 border border-white/30 backdrop-blur-xl
+                      bg-black/40 border border-white/20 backdrop-blur-xl
                       text-white/80
                       hover:bg-white/5 hover:border-white/20
                       transition
@@ -341,7 +341,7 @@ export default function AttendanceHistoryPage() {
                     className="
                       h-9
                       flex-1 min-[360px]:flex-none min-[360px]:w-1/2 sm:w-[140px]
-                      bg-black/40 border border-white/30 backdrop-blur-xl
+                      bg-black/40 border border-white/20 backdrop-blur-xl
                       text-white/80
                       hover:bg-white/5 hover:border-white/20
                       transition
@@ -365,7 +365,7 @@ export default function AttendanceHistoryPage() {
       </PageHeader>
 
       {/* CHART (matches Contributions layout) */}
-      <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
+      <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
         <CardHeader>
           <CardTitle>Attendance Overview</CardTitle>
         </CardHeader>
@@ -378,7 +378,7 @@ export default function AttendanceHistoryPage() {
         </CardContent>
       </Card>
       {/* TABLE */}
-      <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
+      <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
         <CardHeader>
           <CardTitle>Attendance Records</CardTitle>
         </CardHeader>
@@ -423,7 +423,7 @@ export default function AttendanceHistoryPage() {
                         </Button>
                       </AlertDialogTrigger>
 
-                      <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+                      <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/20">
                         <AlertDialogHeader>
                           <AlertDialogTitle>
                             Delete attendance for {deleteTarget}?

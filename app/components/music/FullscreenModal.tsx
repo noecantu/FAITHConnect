@@ -65,7 +65,7 @@ export default function FullscreenModal({
                 z-40
                 bg-black
                 px-6 py-4
-                border-b border-white/10
+                border-b border-white/20
                 flex justify-between items-center
               "
             >
@@ -96,7 +96,7 @@ export default function FullscreenModal({
                 z-40
                 bg-black
                 px-6 py-4
-                border-t border-white/10
+                border-t border-white/20
                 flex justify-center
               "
             >

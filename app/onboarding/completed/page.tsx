@@ -27,7 +27,7 @@ export default function OnboardingCompletedPage() {
         </div>
       </div>
 
-      <Card className="relative w-full max-w-md bg-white/5 border-white/10 backdrop-blur-xl p-10 shadow-xl text-center">
+      <Card className="relative w-full max-w-md bg-white/5 border-white/20 backdrop-blur-xl p-10 shadow-xl text-center">
 
         <CardHeader>
           <CardTitle className="text-3xl font-bold">You're All Set!</CardTitle>

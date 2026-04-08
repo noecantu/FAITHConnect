@@ -105,7 +105,7 @@ export function MemberPreviewTable({ members, selectedFields }: Props) {
       }
     >
       <div className="w-full max-w-full overflow-hidden">
-        <div className="overflow-x-auto rounded-md border border-white/10 bg-black/20 backdrop-blur-xl w-full min-h-[300px]">
+        <div className="overflow-x-auto rounded-md border border-white/20 bg-black/20 backdrop-blur-xl w-full min-h-[300px]">
           <table className="min-w-max text-sm">
             <thead className="bg-slate-800 border-b border-white/50">
               <tr>
@@ -128,7 +128,7 @@ export function MemberPreviewTable({ members, selectedFields }: Props) {
               {visibleMembers.map((member) => (
                 <tr
                   key={member.id}
-                  className="border-t border-white/10 hover:bg-white/5 transition-colors"
+                  className="border-t border-white/20 hover:bg-white/5 transition-colors"
                 >
                   <td className="px-4 py-3 text-white/90">
                     {member.firstName} {member.lastName}

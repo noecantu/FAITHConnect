@@ -39,7 +39,7 @@ export default function Pricing() {
             whileHover={{ scale: 1.05 }}
           >
             <Card
-              className={`bg-white/5 border-white/10 backdrop-blur-sm p-6 ${
+              className={`bg-white/5 border-white/20 backdrop-blur-sm p-6 ${
                 p.highlight ? "border-blue-500 shadow-lg shadow-blue-500/20" : ""
               }`}
             >

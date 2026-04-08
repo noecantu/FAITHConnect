@@ -153,7 +153,7 @@ export default function SongsPage() {
               <SelectTrigger
                 className="
                   w-full sm:w-[140px] h-9
-                  bg-black/40 border border-white/30 backdrop-blur-xl
+                  bg-black/40 border border-white/20 backdrop-blur-xl
                   text-white/80
                   hover:bg-white/5 hover:border-white/20
                   transition
@@ -182,7 +182,7 @@ export default function SongsPage() {
               ref={(el) => {
               groupRefs.current[groupKey] = el;
             }}
-            className="relative p-6 space-y-4 bg-black/50 border-white/10 backdrop-blur-xl"
+            className="relative p-6 space-y-4 bg-black/50 border-white/20 backdrop-blur-xl"
           >
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">{groupKey}</h2>

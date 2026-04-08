@@ -166,7 +166,7 @@ export default function ServicePlanPage() {
               <SelectTrigger
                 className="
                   w-full h-9
-                  bg-black/40 border border-white/30 backdrop-blur-xl
+                  bg-black/40 border border-white/20 backdrop-blur-xl
                   text-white/80
                   hover:bg-white/5 hover:border-white/20
                   transition
@@ -185,7 +185,7 @@ export default function ServicePlanPage() {
               <SelectTrigger
                 className="
                   w-full h-9
-                  bg-black/40 border border-white/30 backdrop-blur-xl
+                  bg-black/40 border border-white/20 backdrop-blur-xl
                   text-white/80
                   hover:bg-white/5 hover:border-white/20
                   transition
@@ -205,7 +205,7 @@ export default function ServicePlanPage() {
       </div>
 
       {/* ⭐ Card wrapper for list */}
-      <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
+      <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
         <CardHeader>
           <CardTitle>All Service Plans</CardTitle>
         </CardHeader>
@@ -228,7 +228,7 @@ export default function ServicePlanPage() {
                       router.push(`/service-plan/${plan.id}`);
                     }
                   }}
-                  className="border border-white/10 rounded-md p-4 flex items-start justify-between cursor-pointer bg-white/5 hover:bg-white/10 transition-colors"
+                  className="border border-white/20 rounded-md p-4 flex items-start justify-between cursor-pointer bg-white/5 hover:bg-white/10 transition-colors"
                 >
                   <div>
                     <div className="font-medium">{plan.title}</div>

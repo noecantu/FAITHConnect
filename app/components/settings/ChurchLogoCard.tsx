@@ -169,7 +169,7 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
   };
 
   return (
-    <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
+    <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
       {/* Header (title + description only) */}
       <CardHeader>
         <CardTitle>Church Logo</CardTitle>

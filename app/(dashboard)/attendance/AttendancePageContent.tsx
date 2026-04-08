@@ -232,7 +232,7 @@ export default function AttendancePageContent() {
           className="
             w-full sm:w-[150px]
             bg-black/30 text-white
-            border border-white/30
+            border border-white/20
             rounded-md px-3 py-2 text-center
             hover:border-white/50
             focus:outline-none focus:ring-2 focus:ring-white/40
@@ -246,7 +246,7 @@ export default function AttendancePageContent() {
             setDate(today);
             router.push(`/attendance?date=${format(today, "yyyy-MM-dd")}`);
           }}
-          className="w-full sm:w-auto bg-black/30 border border-white/30 backdrop-blur-xl"
+          className="w-full sm:w-auto bg-black/30 border border-white/20 backdrop-blur-xl"
         >
           Today
         </Button>
@@ -254,7 +254,7 @@ export default function AttendancePageContent() {
 
       {/* ACTION BUTTONS */}
       {mode !== "history" && (
-        <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
+        <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-4">
 
             {/* GENERATE QR */}
@@ -285,7 +285,7 @@ export default function AttendancePageContent() {
                 </Button>
               </DialogTrigger>
 
-              <DialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+              <DialogContent className="bg-white/10 backdrop-blur-sm border border-white/20">
                 <DialogHeader>
                   <DialogTitle>Add Visitor</DialogTitle>
                 </DialogHeader>
@@ -407,7 +407,7 @@ export default function AttendancePageContent() {
 
       {/* QR MODAL */}
       <Dialog open={qrOpen} onOpenChange={setQrOpen}>
-        <DialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+        <DialogContent className="bg-white/10 backdrop-blur-sm border border-white/20">
           <DialogHeader>
             <DialogTitle>Attendance QR Code</DialogTitle>
             <DialogDescription>

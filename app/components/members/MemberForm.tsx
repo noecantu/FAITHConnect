@@ -85,7 +85,7 @@ function MemberFabMenu({
         <DropdownMenuContent
           side="top"
           align="end"
-          className="min-w-0 w-10 bg-white/10 backdrop-blur-sm border border-white/10 p-1"
+          className="min-w-0 w-10 bg-white/10 backdrop-blur-sm border border-white/20 p-1"
         >
           {/* SAVE */}
           <DropdownMenuItem
@@ -127,7 +127,7 @@ function MemberFabMenu({
                 </DropdownMenuItem>
               </AlertDialogTrigger>
 
-              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/10">
+              <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/20">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete this member?</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -161,7 +161,7 @@ function MemberFabMenu({
       {/* CHECK-IN CODE DIALOG */}
       {showCheckInCode && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/30">
-          <div className="bg-white/10 backdrop-blur-sm border border-white/10 p-6 rounded-lg">
+          <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-6 rounded-lg">
             <h2 className="text-lg font-bold mb-4">Check-In Code</h2>
             <p className="text-3xl font-mono tracking-widest text-center">
               {form.getValues("checkInCode")}

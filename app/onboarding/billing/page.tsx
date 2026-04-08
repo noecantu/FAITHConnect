@@ -77,7 +77,7 @@ export default function BillingPage() {
 
       <h1 className="text-4xl font-bold text-center mb-12">Billing</h1>
 
-      <div className="max-w-md mx-auto bg-white/5 border border-white/10 backdrop-blur-sm rounded-xl p-8 shadow-lg shadow-blue-600/10">
+      <div className="max-w-md mx-auto bg-white/5 border border-white/20 backdrop-blur-sm rounded-xl p-8 shadow-lg shadow-blue-600/10">
         <p className="text-white/70 text-center mb-6">
           Complete your subscription to continue setting up your church.
         </p>

@@ -127,7 +127,7 @@ export default function MemberCard({
     return (
       <Card
         className="relative flex flex-col overflow-hidden cursor-pointer 
-                  bg-black/30 border-white/10 backdrop-blur-xl"
+                  bg-black/30 border-white/20 backdrop-blur-xl"
         onClick={() =>
           router.push(`/church/${churchId}/members/${member.id}/edit`)
         }
@@ -261,7 +261,7 @@ export default function MemberCard({
   return (
     <Card
       className="relative flex flex-col overflow-hidden cursor-pointer 
-                bg-black/30 border-white/10 backdrop-blur-xl"
+                bg-black/30 border-white/20 backdrop-blur-xl"
       onClick={() =>
         router.push(`/church/${churchId}/members/${member.id}`)
       }

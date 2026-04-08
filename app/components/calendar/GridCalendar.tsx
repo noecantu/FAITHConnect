@@ -54,7 +54,7 @@ export function GridCalendar({
   ];
 
   return (
-    <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
+    <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
       <CardHeader className="flex flex-row items-center justify-between">
         <Button variant="ghost" size="icon" onClick={onPrevMonth}>
           <ChevronLeft className="h-4 w-4" />
@@ -78,7 +78,7 @@ export function GridCalendar({
             text-white/70 
             bg-white/5 
             backdrop-blur-sm 
-            border-b border-white/10 
+            border-b border-white/20 
             py-2
           "
         >
@@ -166,7 +166,7 @@ export function GridCalendar({
                             rounded-sm px-2 py-0.5
                             truncate w-full text-left 
                             shadow-sm 
-                            border border-white/10
+                            border border-white/20
                           "
                           style={{ backgroundColor: color }}
                         >

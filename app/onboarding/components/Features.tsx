@@ -28,7 +28,7 @@ export default function Features() {
             viewport={{ once: true }}
             whileHover={{ scale: 1.03 }}
           >
-            <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+            <Card className="bg-white/5 border-white/20 backdrop-blur-sm">
               <CardHeader>
                 <f.icon className="h-8 w-8 text-blue-400 mb-2" />
                 <CardTitle>{f.title}</CardTitle>

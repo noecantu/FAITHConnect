@@ -21,7 +21,7 @@ function SegmentedControl({
   options: { label: string; value: string }[];
 }) {
   return (
-    <div className="flex rounded-md overflow-hidden border border-white/10 bg-black/30">
+    <div className="flex rounded-md overflow-hidden border border-white/20 bg-black/30">
       {options.map((opt) => {
         const active = value === opt.value;
         return (
@@ -114,7 +114,7 @@ export function EventVisibilitySection({
 
       {/* MANAGER VIEW */}
       {isManager && (
-        <div className="space-y-2 border-t border-white/10 pt-4 mt-4">
+        <div className="space-y-2 border-t border-white/20 pt-4 mt-4">
           <FormLabel>Group</FormLabel>
           <div className="text-sm text-white/70">{managerGroup}</div>
         </div>

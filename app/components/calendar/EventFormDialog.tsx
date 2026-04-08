@@ -55,7 +55,7 @@ function SegmentedControl({
   options: { label: string; value: string }[];
 }) {
   return (
-    <div className="flex rounded-md overflow-hidden border border-white/10 bg-black/30">
+    <div className="flex rounded-md overflow-hidden border border-white/20 bg-black/30">
       {options.map((opt) => {
         const active = value === opt.value;
         return (
@@ -110,7 +110,7 @@ export function EventFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         onOpenAutoFocus={(e) => e.preventDefault()}
-        className="max-w-lg bg-black/60 backdrop-blur-xl border border-white/10 text-white space-y-4"
+        className="max-w-lg bg-black/60 backdrop-blur-xl border border-white/20 text-white space-y-4"
       >
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">

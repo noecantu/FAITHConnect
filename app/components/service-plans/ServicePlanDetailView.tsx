@@ -124,7 +124,7 @@ export function ServicePlanDetailView({
           <DropdownMenuContent
             side="top"
             align="end"
-            className="min-w-0 w-10 bg-white/10 backdrop-blur-sm border border-white/10 p-1 rounded-md"
+            className="min-w-0 w-10 bg-white/10 backdrop-blur-sm border border-white/20 p-1 rounded-md"
           >
             <DropdownMenuItem
               className="flex items-center justify-center p-2"

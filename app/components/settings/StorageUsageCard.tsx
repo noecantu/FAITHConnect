@@ -24,7 +24,7 @@ export default function StorageUsageCard({
     : 0;
 
   return (
-    <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
+    <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Database Storage</CardTitle>

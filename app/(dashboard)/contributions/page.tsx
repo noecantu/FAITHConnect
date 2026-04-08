@@ -256,7 +256,7 @@ export default function ContributionsPage() {
                   className="
                     h-9
                     flex-1 min-[360px]:flex-none min-[360px]:w-1/2 sm:w-[140px]
-                    bg-black/40 border border-white/30 backdrop-blur-xl
+                    bg-black/40 border border-white/20 backdrop-blur-xl
                     text-white/80
                     hover:bg-white/5 hover:border-white/20
                     transition
@@ -284,7 +284,7 @@ export default function ContributionsPage() {
                     className="
                       h-9
                       flex-1 min-[360px]:flex-none min-[360px]:w-1/2 sm:w-[140px]
-                      bg-black/40 border border-white/30 backdrop-blur-xl
+                      bg-black/40 border border-white/20 backdrop-blur-xl
                       text-white/80
                       hover:bg-white/5 hover:border-white/20
                       transition
@@ -313,7 +313,7 @@ export default function ContributionsPage() {
                     className="
                       h-9
                       flex-1 min-[360px]:flex-none min-[360px]:w-1/2 sm:w-[140px]
-                      bg-black/40 border border-white/30 backdrop-blur-xl
+                      bg-black/40 border border-white/20 backdrop-blur-xl
                       text-white/80
                       hover:bg-white/5 hover:border-white/20
                       transition
@@ -338,7 +338,7 @@ export default function ContributionsPage() {
 
         {/* Chart */}
         <div className="grid gap-8">
-          <Card className="border border-white/10 bg-black/20 backdrop-blur-xl">
+          <Card className="border border-white/20 bg-black/20 backdrop-blur-xl">
             <CardHeader>
               <CardTitle>Contribution Overview</CardTitle>
             </CardHeader>
@@ -350,7 +350,7 @@ export default function ContributionsPage() {
 
         {/* Table */}
         <div className="mt-8">
-          <Card className="border border-white/10 bg-black/20 backdrop-blur-xl">
+          <Card className="border border-white/20 bg-black/20 backdrop-blur-xl">
             <CardHeader>
               <CardTitle>All Contributions</CardTitle>
             </CardHeader>

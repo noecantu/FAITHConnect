@@ -114,7 +114,7 @@ export default function CalendarPage() {
             onClick={() => setView("calendar")}
             className={cn(
               "flex items-center gap-2",
-              "bg-black/30 border border-white/10 backdrop-blur-xl",
+              "bg-black/30 border border-white/20 backdrop-blur-xl",
               "hover:bg-white/5 hover:border-white/20 transition",
               view === "calendar" && "bg-white/10 border-white/20"
             )}
@@ -129,7 +129,7 @@ export default function CalendarPage() {
             onClick={() => setView("list")}
             className={cn(
               "flex items-center gap-2",
-              "bg-black/30 border border-white/10 backdrop-blur-xl",
+              "bg-black/30 border border-white/20 backdrop-blur-xl",
               "hover:bg-white/5 hover:border-white/20 transition",
               view === "list" && "bg-white/10 border-white/20"
             )}

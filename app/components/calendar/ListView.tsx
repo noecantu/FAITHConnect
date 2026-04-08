@@ -90,7 +90,7 @@ export function ListView({
   }
 
   return (
-    <Card className="relative bg-black/30 border-white/10 backdrop-blur-xl">
+    <Card className="relative bg-black/30 border-white/20 backdrop-blur-xl">
       <CardHeader>
         <CardTitle>All Events</CardTitle>
       </CardHeader>

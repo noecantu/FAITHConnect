@@ -160,7 +160,7 @@ export default function ReportsPage() {
             onClick={handleExportPDF}
             size="sm"
             variant="outline"
-            className="bg-black/30 border border-white/30 backdrop-blur-xl"
+            className="bg-black/30 border border-white/20 backdrop-blur-xl"
             disabled={isExportingPDF || isExportingExcel}
           >
             {isExportingPDF ? (
@@ -178,7 +178,7 @@ export default function ReportsPage() {
             onClick={handleExportExcel}
             size="sm"
             variant="outline"
-            className="bg-black/30 border border-white/30 backdrop-blur-xl"
+            className="bg-black/30 border border-white/20 backdrop-blur-xl"
             disabled={isExportingPDF || isExportingExcel}
           >
             {isExportingExcel ? (

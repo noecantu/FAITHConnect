@@ -208,7 +208,7 @@ export default function EventEditor({
                 Who can see this event?
               </label>
 
-              <div className="flex rounded-md overflow-hidden border border-white/10 bg-black/30">
+              <div className="flex rounded-md overflow-hidden border border-white/20 bg-black/30">
                 <button
                   type="button"
                   onClick={() => {
@@ -254,7 +254,7 @@ export default function EventEditor({
         )}
 
         {isManager && (
-          <div className="space-y-2 border-t border-white/10 pt-4 mt-4">
+          <div className="space-y-2 border-t border-white/20 pt-4 mt-4">
             <label className="text-sm">Group</label>
             <div className="text-sm text-white/70">{managerGroup}</div>
           </div>
