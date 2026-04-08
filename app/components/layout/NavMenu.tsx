@@ -97,7 +97,13 @@ export function NavMenu() {
 
   const churchAdminMenu = [
     { href: `/admin/church/${churchId}`, label: "Dashboard", icon: Home },
-    { href: "/attendance", label: "Attendance", icon: CalendarCheck, permission: canSeeAttendance },
+    {
+      href: "/attendance",
+      label: "Attendance",
+      icon: CalendarCheck,
+      permission: canSeeAttendance,
+      isSubmenu: true,
+    },
     { href: "/calendar", label: "Calendar", icon: Calendar },
     { href: "/contributions", label: "Contributions", icon: DollarSign, permission: canSeeContributions },
     { href: `/church/${churchId}/members`, label: "Members", icon: Users },
@@ -152,6 +158,39 @@ export function NavMenu() {
                   >
                     <Music className="mr-2 h-4 w-4" />
                     <span>Songs</span>
+                  </DropdownMenuItem>
+                </Link>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          );
+        }
+        // Attendance submenu
+        if (item.isSubmenu && item.href === "/attendance") {
+          return (
+            <DropdownMenuSub key="attendance">
+              <DropdownMenuSubTrigger
+                className={pathname.startsWith("/attendance") ? "bg-accent" : ""}
+              >
+                <item.icon className="mr-2 h-4 w-4" />
+                <span>Attendance</span>
+              </DropdownMenuSubTrigger>
+
+              <DropdownMenuSubContent>
+                <Link href="/attendance">
+                  <DropdownMenuItem
+                    className={pathname === "/attendance" ? "bg-accent" : ""}
+                  >
+                    <CalendarCheck className="mr-2 h-4 w-4" />
+                    <span>Take Attendance</span>
+                  </DropdownMenuItem>
+                </Link>
+
+                <Link href="/attendance/history">
+                  <DropdownMenuItem
+                    className={pathname.startsWith("/attendance/history") ? "bg-accent" : ""}
+                  >
+                    <FileText className="mr-2 h-4 w-4" />
+                    <span>Attendance History</span>
                   </DropdownMenuItem>
                 </Link>
               </DropdownMenuSubContent>

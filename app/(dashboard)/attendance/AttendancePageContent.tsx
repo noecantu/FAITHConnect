@@ -250,13 +250,6 @@ export default function AttendancePageContent() {
         >
           Today
         </Button>
-
-        <Button
-          onClick={() => router.push("/attendance/history")}
-          className="w-full sm:w-auto text-white/80 border-white/20"
-        >
-          History
-        </Button>
       </div>
 
       {/* ACTION BUTTONS */}
