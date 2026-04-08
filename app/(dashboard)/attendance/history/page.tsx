@@ -400,8 +400,10 @@ export default function AttendanceHistoryPage() {
         </CardContent>
       </Card>
 
-      {/* TABLE */}
+      {/* CARD WRAPPER */}
       <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
+
+        {/* HEADER WITH SORT DROPDOWN */}
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Attendance Records</CardTitle>
 
@@ -429,88 +431,96 @@ export default function AttendanceHistoryPage() {
         </CardHeader>
 
         <Separator />
-        <CardContent className="space-y-2">
-          <table className="w-full text-sm">
-            <TableHeader>
-              <TableRow className="border-b">
-                <TableHead className="text-left py-2 px-2">Date</TableHead>
-                <TableHead className="text-center py-2 px-2">Present</TableHead>
-                <TableHead className="text-center py-2 px-2">Absent</TableHead>
-                <TableHead className="text-center py-2 px-2">Visitors</TableHead>
-                <TableHead className="text-center py-2 px-2">Action</TableHead>
-              </TableRow>
-            </TableHeader>
 
-            <tbody>
-              {sorted.map((s) => (
-                <tr
-                  key={s.dateString}
-                  className="border-b hover:bg-accent cursor-pointer"
-                  onClick={() => router.push(`/attendance?date=${s.dateString}`)}
-                >
-                  <td className="py-2 px-2">{s.dateString}</td>
-                  <td className="py-2 px-2 text-center">{s.membersPresent}</td>
-                  <td className="py-2 px-2 text-center">{s.membersAbsent}</td>
-                  <td className="py-2 px-2 text-center">{s.visitorCount}</td>
+        {/* CONTENT */}
+        <CardContent className="space-y-4">
 
-                  <td
-                    className="py-2 px-2 text-center"
-                    onClick={(e) => e.stopPropagation()}
+          {/* SCROLL WRAPPER */}
+          <div className="overflow-x-auto w-full">
+            <table className="w-full min-w-[600px] text-sm">
+
+              <TableHeader>
+                <TableRow className="border-b">
+                  <TableHead className="text-left py-2 px-2">Date</TableHead>
+                  <TableHead className="text-center py-2 px-2">Present</TableHead>
+                  <TableHead className="text-center py-2 px-2">Absent</TableHead>
+                  <TableHead className="text-center py-2 px-2">Visitors</TableHead>
+                  <TableHead className="text-center py-2 px-2">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <tbody>
+                {sorted.map((s) => (
+                  <tr
+                    key={s.dateString}
+                    className="border-b hover:bg-accent cursor-pointer"
+                    onClick={() => router.push(`/attendance?date=${s.dateString}`)}
                   >
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          className="h-8 px-3 text-red-800 hover:text-red-600"
-                          disabled={!canDelete}
-                          onClick={() => canDelete && setDeleteTarget(s.dateString)}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
+                    <td className="py-2 px-2">{s.dateString}</td>
+                    <td className="py-2 px-2 text-center">{s.membersPresent}</td>
+                    <td className="py-2 px-2 text-center">{s.membersAbsent}</td>
+                    <td className="py-2 px-2 text-center">{s.visitorCount}</td>
 
-                      <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/20">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            Delete attendance for {deleteTarget}?
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently remove all attendance records for this date.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
+                    <td
+                      className="py-2 px-2 text-center"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className="h-8 px-3 text-red-800 hover:text-red-600"
+                            disabled={!canDelete}
+                            onClick={() => canDelete && setDeleteTarget(s.dateString)}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
 
-                        <AlertDialogFooter>
-                          <AlertDialogCancel asChild>
-                            <Button variant="outline" className="w-full">
-                              Cancel
-                            </Button>
-                          </AlertDialogCancel>
+                        <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/20">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Delete attendance for {deleteTarget}?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently remove all attendance records for this date.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
 
-                          <AlertDialogAction asChild>
-                            <Button
-                              variant="destructive"
-                              className="w-full"
-                              onClick={async () => {
-                                if (!canDelete) return;
-                                if (!deleteTarget || !churchId) return;
-                                await deleteAttendanceDay(churchId, deleteTarget);
-                                setDeleteTarget(null);
-                                refresh();
-                              }}
-                            >
-                              Delete
-                            </Button>
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel asChild>
+                              <Button variant="outline" className="w-full">
+                                Cancel
+                              </Button>
+                            </AlertDialogCancel>
 
-          </table>
+                            <AlertDialogAction asChild>
+                              <Button
+                                variant="destructive"
+                                className="w-full"
+                                onClick={async () => {
+                                  if (!canDelete) return;
+                                  if (!deleteTarget || !churchId) return;
+                                  await deleteAttendanceDay(churchId, deleteTarget);
+                                  setDeleteTarget(null);
+                                  refresh();
+                                }}
+                              >
+                                Delete
+                              </Button>
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
 
+            </table>
+          </div>
+
+          {/* PAGINATION */}
           <PreviewPaginationFooter
             start={start}
             end={end}
@@ -520,6 +530,7 @@ export default function AttendanceHistoryPage() {
             setPage={setPage}
             label="records"
           />
+
         </CardContent>
       </Card>
       </ThemeProvider>
