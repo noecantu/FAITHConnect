@@ -62,7 +62,7 @@ export default function Hero() {
         <Button
           asChild
           variant="ghost"
-          className="w-full px-8 py-6 text-lg bg-white/20 hover:bg-white/30 rounded-xl shadow-lg shadow-grey-600/20"
+          className="w-full px-8 py-6 text-lg bg-gray-700 hover:bg-gray-600 text-white rounded-xl shadow-lg shadow-grey-600/20"
         >
           <Link href="/login">Log In</Link>
         </Button>
