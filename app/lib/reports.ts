@@ -35,6 +35,10 @@ function formatField(value: FieldValue): string {
   return String(value);
 }
 
+function capitalize(word: string) {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
 // Field label map (for dynamic fields)
 const fieldLabelMap: Record<string, string> = {
   email: "Email",
@@ -127,9 +131,13 @@ export async function generateMembersPDF(
     `${m.firstName} ${m.lastName}`,
     ...selectedFields.map(f => {
       if (f === "checkInCode") return m.checkInCode ?? "—";
-      if (f === "qrCode") return ""; // placeholder, image drawn later
+      if (f === "qrCode") return "";
       if (f === "phoneNumber") {
         return formatPhone(m.phoneNumber);
+      }
+      if (["birthday", "baptismDate", "anniversary"].includes(f)) {
+        const value = m[f as keyof Member];
+        return value ? format(new Date(value as any), "MM/dd/yyyy") : "—";
       }
       return formatField(m[f as keyof Member]);
     })
@@ -218,22 +226,20 @@ export function generateMembersExcel(
       };
 
       selectedFields.forEach(f => {
-        const label = fieldLabelMap[f];
+        const label = fieldLabelMap[f] ?? capitalize(f);
         const value = m[f as keyof Member];
 
-        row[label] = value != null ? String(value) : "";
+        row[label] = value != null ? formatField(value as any) : "";
       });
 
       return row;
     })
   );
-
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Members");
   XLSX.writeFile(workbook, `${datePrefix} Member Directory Report.xlsx`);
 }
 
-// Contribution Reports (UNCHANGED except footer alignment)
 export function generateContributionsPDF(
   rows: Record<string, any>[],     // <-- updated type
   selectedFields: string[],
