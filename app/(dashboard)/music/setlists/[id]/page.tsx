@@ -162,7 +162,7 @@ export default function SetListDetailPage() {
                     key={song.songId}
                     className="relative p-4 cursor-pointer 
                       bg-black/80 border-white/20 backdrop-blur-xl 
-                      hover:bg-white/5 transition"
+                      hover:bg-black/50 transition"
                     onClick={() =>
                       router.push(`/music/songs/${song.songId}/view`)
                     }

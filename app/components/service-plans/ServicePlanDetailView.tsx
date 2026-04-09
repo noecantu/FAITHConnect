@@ -84,7 +84,10 @@ export function ServicePlanDetailView({
                       {section.songIds.map((songId) => {
                         const song = songs.find((s) => s.id === songId);
                         return (
-                          <Card key={songId} className="p-3 bg-muted/40">
+                          <Card key={songId}
+                            className="relative p-4 cursor-pointer 
+                          bg-black/80 border-white/20 backdrop-blur-xl 
+                          hover:bg-black/50 transition">
                             <p className="font-medium">
                               {song ? song.title : 'Unknown Song'}
                             </p>
