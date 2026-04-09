@@ -1,3 +1,4 @@
+//app/components/layout/NavMenu.tsx
 "use client";
 
 import Link from "next/link";
@@ -101,14 +102,14 @@ export function NavMenu() {
   ];
 
   const churchAdminMenu = [
-    { href: "/admin/church/${churchId}", label: "Dashboard", icon: Home, exact: true },
+    { href: `/admin/church/${churchId}`, label: "Dashboard", icon: Home, exact: true },
     { href: "/attendance", label: "Attendance", icon: CalendarCheck, permission: canSeeAttendance, isSubmenu: true },
     { href: "/calendar", label: "Calendar", icon: Calendar },
     { href: "/contributions", label: "Contributions", icon: DollarSign, permission: canSeeContributions },
-    { href: "/church/${churchId}/members", label: "Members", icon: Users },
+    { href: `/church/${churchId}/members`, label: "Members", icon: Users },
     { href: "/music", label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
     { href: "/service-plan", label: "Service Plans", icon: CalendarHeart, permission: canAccessServicePlan },
-    { href: "/admin/church/${churchId}/settings", label: "Settings", icon: Settings },
+    { href: `/admin/church/${churchId}/settings`, label: "Settings", icon: Settings },
     { href: "/reports", label: "Reports", icon: FileText, permission: canSeeReports },
   ];
 
