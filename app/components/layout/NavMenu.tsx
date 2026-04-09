@@ -114,12 +114,12 @@ export function NavMenu() {
   ];
 
   const userMenu = [
-    { href: "/church/${churchId}/user", label: "Dashboard", icon: Home, exact: true },
+    { href: `/church/${churchId}/user`, label: "Dashboard", icon: Home, exact: true },
     { href: "/calendar", label: "Calendar", icon: Calendar },
     { href: "/contributions", label: "Contributions", icon: DollarSign, permission: canSeeContributions },
     { href: "/music", label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
     { href: "/reports", label: "Reports", icon: FileText, permission: canSeeReports },
-    { href: "/church/${churchId}/user/settings", label: "Settings", icon: Settings },
+    { href: `/church/${churchId}/user/settings`, label: "Settings", icon: Settings },
   ];
 
   const activeMenu = isRootAdmin ? rootAdminMenu : isChurchAdmin ? churchAdminMenu : userMenu;
