@@ -1,10 +1,11 @@
+//app/(dashboard)/admin/settings/integrityActions.ts
 "use server";
 
 import { adminDb } from "@/app/lib/firebase/admin";
 import { SystemUser } from "@/app/lib/types";
 
 export async function scanForStrayUsers() {
-  const usersSnap = await adminDb.collection("users").get();
+  const usersSnap = await adminDb.collection("users").select("roles", "churchId").get();
   const churchesSnap = await adminDb.collection("churches").get();
 
   const churchIds = new Set(churchesSnap.docs.map(d => d.id));
@@ -44,7 +45,7 @@ export async function scanForOrphanedMembers() {
 
 export async function scanForChurchesWithoutAdmins() {
   const churchesSnap = await adminDb.collection("churches").get();
-  const usersSnap = await adminDb.collection("users").get();
+  const usersSnap = await adminDb.collection("users").select("roles", "churchId").get();
 
   const users = usersSnap.docs.map(d => {
     return { id: d.id, ...(d.data() as any) } as SystemUser;
@@ -80,7 +81,7 @@ export async function scanForInvalidRoles() {
     "RootAdmin"
   ];
 
-  const usersSnap = await adminDb.collection("users").get();
+  const usersSnap = await adminDb.collection("users").select("roles").get();
 
   const invalid = usersSnap.docs
     .filter(u => {

@@ -1,3 +1,4 @@
+//app/(dashboard)/admin/settings/SettingsTabs.tsx
 "use client";
 
 import { useState } from "react";

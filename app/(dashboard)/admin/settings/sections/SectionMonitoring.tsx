@@ -1,3 +1,4 @@
+//app/(dashboard)/admin/settings/sections/SectionMonitoring.tsx
 "use client";
 
 import { useState } from "react";

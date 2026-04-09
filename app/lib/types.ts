@@ -1,4 +1,4 @@
-
+//app/lib/types.ts
 import { Timestamp } from 'firebase/firestore';
 import type { Role } from '@/app/lib/auth/permissions/roles';
 
@@ -295,12 +295,12 @@ export interface SystemSettings {
   maxFailedLoginAttempts: number;
   lockoutDurationMinutes: number;
   updatedAt?: Date | { seconds: number } | null;
-  lastIntegrityScan?: {
-    strayUsers?: string;
-    orphanedMembers?: string;
-    churchesWithoutAdmins?: string;
-    invalidRoles?: string;
-  };
+  lastIntegrityScan: {
+    strayUsers: "",
+    orphanedMembers: "",
+    churchesWithoutAdmins: "",
+    invalidRoles: ""
+  },
   debugMode: boolean;
   logAllRequests: boolean;
   showDevToolsInUI: boolean;

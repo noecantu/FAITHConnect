@@ -1,6 +1,5 @@
+//app/(dashboard)/admin/settings/devToolsActions.ts
 "use server";
-
-// import { adminDb } from "@/app/lib/firebase/admin";
 
 export async function clearSystemCache() {
   // Placeholder: hook into whatever cache layer you use

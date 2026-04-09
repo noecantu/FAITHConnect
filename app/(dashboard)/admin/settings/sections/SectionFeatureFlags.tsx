@@ -1,3 +1,4 @@
+//app/(dashboard)/admin/settings/sections/SectionIdentity.tsx
 "use client";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";

@@ -1,3 +1,4 @@
+//app/(dashboard)/admin/settings/actions.ts
 "use server";
 
 import { adminDb } from "@/app/lib/firebase/admin";
@@ -43,6 +44,12 @@ const DEFAULT_SETTINGS: SystemSettings = {
   debugMode: false,
   logAllRequests: false,
   showDevToolsInUI: false,
+  lastIntegrityScan: {
+    strayUsers: "",
+    orphanedMembers: "",
+    churchesWithoutAdmins: "",
+    invalidRoles: ""
+  },
   updatedAt: null
 };
 
@@ -50,13 +57,16 @@ export async function loadSystemSettings(): Promise<SystemSettings> {
   const snap = await adminDb.doc("system/settings").get();
   const data = snap.data() || {};
 
-  // Merge defaults with stored values
   return {
     ...DEFAULT_SETTINGS,
     ...data,
     branding: {
       ...DEFAULT_SETTINGS.branding,
       ...(data.branding || {})
+    },
+    emailTemplates: {
+      ...DEFAULT_SETTINGS.emailTemplates,
+      ...(data.emailTemplates || {})
     }
   };
 }

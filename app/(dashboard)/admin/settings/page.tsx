@@ -1,3 +1,4 @@
+//app/(dashboard)/admin/settings/page.tsx
 import { loadSystemSettings } from "./actions";
 import SettingsTabs from "./SettingsTabs";
 
