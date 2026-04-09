@@ -5,7 +5,7 @@ import { adminDb } from "@/app/lib/firebase/admin";
 import { getStorage } from "firebase-admin/storage";
 
 export async function getStorageUsage() {
-  const bucket = getStorage().bucket();
+  const bucket = getStorage().bucket(process.env.FIREBASE_STORAGE_BUCKET);
   const [files] = await bucket.getFiles();
 
   let totalBytes = 0;

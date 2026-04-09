@@ -4,7 +4,13 @@
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
-import { getStorageUsage, getDatabaseStats, getEmailProviderHealth, getStripeSyncStatus } from "../monitoringActions";
+
+import {
+  getStorageUsage,
+  getDatabaseStats,
+  getEmailProviderHealth,
+  getStripeSyncStatus,
+} from "../monitoringActions";
 
 interface MonitoringCardProps {
   title: string;
@@ -24,20 +30,22 @@ function MonitoringCard({ title, action, formatter }: MonitoringCardProps) {
   }
 
   return (
-    <div className="border p-4 rounded-md space-y-2">
-      <div className="flex justify-between items-center">
-        <h3 className="font-medium">{title}</h3>
-        <Button onClick={run} disabled={loading}>
+    <Card className="p-4">
+      <CardHeader className="flex flex-row items-center justify-between p-0 mb-3">
+        <CardTitle className="text-base font-medium">{title}</CardTitle>
+        <Button onClick={run} disabled={loading} size="sm">
           {loading ? "Loading…" : "Refresh"}
         </Button>
-      </div>
+      </CardHeader>
 
       {result && (
-        <pre className="bg-black/20 p-3 rounded text-xs overflow-auto max-h-64">
-          {formatter(result)}
-        </pre>
+        <CardContent className="p-0">
+          <pre className="bg-black/20 p-3 rounded text-xs overflow-auto max-h-64">
+            {formatter(result)}
+          </pre>
+        </CardContent>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -47,14 +55,12 @@ export default function SectionMonitoring() {
       <CardHeader>
         <CardTitle>System Logs & Monitoring</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
 
+      <CardContent className="space-y-6">
         <MonitoringCard
           title="Storage Usage"
           action={getStorageUsage}
-          formatter={(data) =>
-            `${(data.totalBytes / 1024 / 1024).toFixed(2)} MB`
-          }
+          formatter={(data) => `${(data.totalBytes / 1024 / 1024).toFixed(2)} MB`}
         />
 
         <MonitoringCard
@@ -74,7 +80,6 @@ export default function SectionMonitoring() {
           action={getStripeSyncStatus}
           formatter={(data) => `Last Sync: ${data.lastSync}`}
         />
-
       </CardContent>
     </Card>
   );

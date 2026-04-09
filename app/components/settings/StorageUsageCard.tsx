@@ -1,3 +1,4 @@
+//app/components/settings/StorageUsageCard.tsx
 'use client';
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/app/components/ui/card';
@@ -7,9 +8,9 @@ import { Loader2, RefreshCw } from 'lucide-react';
 interface Props {
   storageUsed: number | null;
   hasLoaded: boolean;
-  quotaBytes?: number; // optional, default provided below
-  onRefresh?: () => void; // optional refresh callback
-  refreshing?: boolean; // parent controls spinner
+  quotaBytes?: number;
+  onRefresh?: () => void;
+  refreshing?: boolean;
 }
 
 export default function StorageUsageCard({
