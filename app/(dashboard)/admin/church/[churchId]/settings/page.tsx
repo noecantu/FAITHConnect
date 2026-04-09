@@ -1,6 +1,6 @@
+//app/(dashboard)/admin/church/[churchId]/settings/page.tsx
 'use client';
 
-//app/(protected)/admin/church/[churchId]/settings
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/app/components/page-header';
 import { useChurchId } from '@/app/hooks/useChurchId';
@@ -18,7 +18,6 @@ import UserFormCard from '../../../../../components/settings/UserFormCard';
 import DeleteUserDialog from '../../../../../components/settings/DeleteUserDialog';
 import ChurchLogoCard from '../../../../../components/settings/ChurchLogoCard';
 import ChurchProfileCard from '../../../../../components/settings/ChurchProfileCard';
-import DashboardLayout from '@/app/(dashboard)/layout';
 import { DashboardPage } from '@/app/(dashboard)/layout/DashboardPage';
 
 export default function ChurchSettingsPage() {

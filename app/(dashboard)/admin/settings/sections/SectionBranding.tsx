@@ -1,4 +1,4 @@
-//app/(dashboard)/admin/settings/sections/SectionIdentity.tsx
+//app/(dashboard)/admin/settings/sections/SectionBranding.tsx
 "use client";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
@@ -11,7 +11,7 @@ export default function SectionBranding({
   updateSettings,
 }: {
   settings: SystemSettings;
-  updateSettings: (s: SystemSettings) => void;
+  updateSettings: (s: Partial<SystemSettings>) => void;
 }) {
   return (
     <Card>
@@ -26,7 +26,6 @@ export default function SectionBranding({
             value={settings.branding.primaryColor}
             onChange={(e) =>
               updateSettings({
-                ...settings,
                 branding: {
                   ...settings.branding,
                   primaryColor: e.target.value

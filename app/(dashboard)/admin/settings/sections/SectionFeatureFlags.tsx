@@ -11,7 +11,7 @@ export default function SectionFeatureFlags({
   updateSettings
 }: {
   settings: SystemSettings;
-  updateSettings: (s: SystemSettings) => void;
+  updateSettings: (s: Partial<SystemSettings>) => void;
 }) {
   return (
     <Card>

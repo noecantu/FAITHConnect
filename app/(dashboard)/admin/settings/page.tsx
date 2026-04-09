@@ -1,14 +1,21 @@
-//app/(dashboard)/admin/settings/page.tsx
-import { loadSystemSettings } from "./actions";
-import SettingsTabs from "./SettingsTabs";
-import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
+// app/(dashboard)/admin/settings/page.tsx
+import { DashboardPage } from '@/app/(dashboard)/layout/DashboardPage';
+import { PageHeader } from '@/app/components/page-header';
+import { loadSystemSettings } from './actions';
+import SettingsClient from './SettingsClient';
 
-export default async function AdminSystemSettingsPage() {
-  const settings = await loadSystemSettings();
+export default async function RootAdminSettingsPage() {
+  const initialSettings = await loadSystemSettings();
 
   return (
     <DashboardPage>
-      <SettingsTabs initialSettings={settings} />
+      <PageHeader
+        title="System Settings"
+        subtitle="Manage global configuration for the FAITH Connect platform."
+        className="mb-4"
+      />
+
+      <SettingsClient initialSettings={initialSettings} />
     </DashboardPage>
   );
 }
