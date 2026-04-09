@@ -93,32 +93,32 @@ export function NavMenu() {
   // --- MENU CONFIGS ---
   const rootAdminMenu = [
     { href: "/admin", label: "Dashboard", icon: Home, exact: true },
+    { href: "/admin/logs", label: "Activity Logs", icon: FileText },
     { href: "/admin/churches", label: "Churches", icon: Users },
+    { href: "/admin/settings/health", label: "Platform Health", icon: CalendarHeart },
     { href: "/admin/users", label: "Users", icon: Users },
     { href: "/admin/settings", label: "System Settings", icon: Settings, exact: true },
-    { href: "/admin/logs", label: "Activity Logs", icon: FileText },
-    { href: "/admin/settings/health", label: "Platform Health", icon: CalendarHeart },
   ];
 
   const churchAdminMenu = [
-    { href: `/admin/church/${churchId}`, label: "Dashboard", icon: Home, exact: true },
+    { href: "/admin/church/${churchId}", label: "Dashboard", icon: Home, exact: true },
     { href: "/attendance", label: "Attendance", icon: CalendarCheck, permission: canSeeAttendance, isSubmenu: true },
     { href: "/calendar", label: "Calendar", icon: Calendar },
     { href: "/contributions", label: "Contributions", icon: DollarSign, permission: canSeeContributions },
-    { href: `/church/${churchId}/members`, label: "Members", icon: Users },
+    { href: "/church/${churchId}/members", label: "Members", icon: Users },
     { href: "/music", label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
     { href: "/service-plan", label: "Service Plans", icon: CalendarHeart, permission: canAccessServicePlan },
-    { href: `/admin/church/${churchId}/settings`, label: "Settings", icon: Settings },
+    { href: "/admin/church/${churchId}/settings", label: "Settings", icon: Settings },
     { href: "/reports", label: "Reports", icon: FileText, permission: canSeeReports },
   ];
 
   const userMenu = [
-    { href: `/church/${churchId}/user`, label: "Dashboard", icon: Home, exact: true },
+    { href: "/church/${churchId}/user", label: "Dashboard", icon: Home, exact: true },
     { href: "/calendar", label: "Calendar", icon: Calendar },
     { href: "/contributions", label: "Contributions", icon: DollarSign, permission: canSeeContributions },
     { href: "/music", label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
     { href: "/reports", label: "Reports", icon: FileText, permission: canSeeReports },
-    { href: `/church/${churchId}/user/settings`, label: "Settings", icon: Settings },
+    { href: "/church/${churchId}/user/settings", label: "Settings", icon: Settings },
   ];
 
   const activeMenu = isRootAdmin ? rootAdminMenu : isChurchAdmin ? churchAdminMenu : userMenu;
