@@ -1,3 +1,4 @@
+//app/(dashboard)/admin/churches/[churchId]/MasterChurchDetailsClient.tsx
 "use client";
 
 import { useState } from "react";
@@ -108,19 +109,25 @@ export default function MasterChurchDetailsClient({
             {admins.length === 0 ? (
               <p className="text-muted-foreground">No admins assigned.</p>
             ) : (
-              admins.map((admin) => (
-                <div key={admin.id} className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold">
-                    {(admin.displayName || admin.email)
-                      .split(" ")
-                      .map((w: string) => w[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase()}
+              admins.map((admin) => {
+                const name = admin.displayName || admin.email || "";
+                const initials = name
+                  .split(" ")
+                  .filter(Boolean)
+                  .map((w) => w[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase();
+
+                return (
+                  <div key={admin.id} className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold">
+                      {initials || "?"}
+                    </div>
+                    <span>{name || "Unknown User"}</span>
                   </div>
-                  <span>{admin.displayName || admin.email}</span>
-                </div>
-              ))
+                );
+              })
             )}
           </CardContent>
         </Card>
