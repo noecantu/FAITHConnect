@@ -72,7 +72,7 @@ export function NavMenu() {
   // Hide NavMenu during Self Check-In
   if (pathname.match(/\/[^/]+\/attendance\/self-checkin/)) return null;
 
-  // --- PERMISSION MODEL ---
+  // --- PERMISSIONS ---
   const isRootAdmin = can(typedRoles, "system.manage");
   const isChurchAdmin = can(typedRoles, "church.manage") && churchId;
 
@@ -85,25 +85,24 @@ export function NavMenu() {
     can(typedRoles, "contributions.read") ||
     can(typedRoles, "attendance.read");
 
+  // --- ACTIVE MATCHING (clean + future-proof) ---
+  function isActive(href: string, exact?: boolean) {
+    return exact ? pathname === href : pathname.startsWith(href);
+  }
+
   // --- MENU CONFIGS ---
   const rootAdminMenu = [
-    { href: "/admin", label: "Dashboard", icon: Home },
+    { href: "/admin", label: "Dashboard", icon: Home, exact: true },
     { href: "/admin/churches", label: "Churches", icon: Users },
     { href: "/admin/users", label: "Users", icon: Users },
-    { href: "/admin/settings", label: "System Settings", icon: Settings },
+    { href: "/admin/settings", label: "System Settings", icon: Settings, exact: true },
     { href: "/admin/logs", label: "Activity Logs", icon: FileText },
     { href: "/admin/settings/health", label: "Platform Health", icon: CalendarHeart },
   ];
 
   const churchAdminMenu = [
-    { href: `/admin/church/${churchId}`, label: "Dashboard", icon: Home },
-    {
-      href: "/attendance",
-      label: "Attendance",
-      icon: CalendarCheck,
-      permission: canSeeAttendance,
-      isSubmenu: true,
-    },
+    { href: `/admin/church/${churchId}`, label: "Dashboard", icon: Home, exact: true },
+    { href: "/attendance", label: "Attendance", icon: CalendarCheck, permission: canSeeAttendance, isSubmenu: true },
     { href: "/calendar", label: "Calendar", icon: Calendar },
     { href: "/contributions", label: "Contributions", icon: DollarSign, permission: canSeeContributions },
     { href: `/church/${churchId}/members`, label: "Members", icon: Users },
@@ -119,43 +118,35 @@ export function NavMenu() {
     { href: "/contributions", label: "Contributions", icon: DollarSign, permission: canSeeContributions },
     { href: "/music", label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
     { href: "/reports", label: "Reports", icon: FileText, permission: canSeeReports },
-    { href: `/church/${churchId}/user/settings`, label: "Settings", icon: Settings }
+    { href: `/church/${churchId}/user/settings`, label: "Settings", icon: Settings },
   ];
 
-  const activeMenu = isRootAdmin
-    ? rootAdminMenu
-    : isChurchAdmin
-    ? churchAdminMenu
-    : userMenu;
+  const activeMenu = isRootAdmin ? rootAdminMenu : isChurchAdmin ? churchAdminMenu : userMenu;
 
   // --- RENDERER ---
   function renderMenuItems(items: MenuItem[]) {
     return items
       .filter((item) => item.permission !== false)
       .map((item) => {
+        // MUSIC SUBMENU
         if (item.isSubmenu && item.href === "/music") {
           return (
             <DropdownMenuSub key="music">
-              <DropdownMenuSubTrigger
-                className={pathname.startsWith("/music") ? "bg-accent" : ""}
-              >
+              <DropdownMenuSubTrigger className={isActive("/music") ? "bg-accent" : ""}>
                 <item.icon className="mr-2 h-4 w-4" />
                 <span>Music</span>
               </DropdownMenuSubTrigger>
 
               <DropdownMenuSubContent>
                 <Link href="/music/setlists">
-                  <DropdownMenuItem
-                    className={pathname.startsWith("/music/setlists") ? "bg-accent" : ""}
-                  >
+                  <DropdownMenuItem className={isActive("/music/setlists") ? "bg-accent" : ""}>
                     <ListMusic className="mr-2 h-4 w-4" />
                     <span>Set Lists</span>
                   </DropdownMenuItem>
                 </Link>
+
                 <Link href="/music/songs">
-                  <DropdownMenuItem
-                    className={pathname.startsWith("/music/songs") ? "bg-accent" : ""}
-                  >
+                  <DropdownMenuItem className={isActive("/music/songs") ? "bg-accent" : ""}>
                     <Music className="mr-2 h-4 w-4" />
                     <span>Songs</span>
                   </DropdownMenuItem>
@@ -164,31 +155,26 @@ export function NavMenu() {
             </DropdownMenuSub>
           );
         }
-        // Attendance submenu
+
+        // ATTENDANCE SUBMENU
         if (item.isSubmenu && item.href === "/attendance") {
           return (
             <DropdownMenuSub key="attendance">
-              <DropdownMenuSubTrigger
-                className={pathname.startsWith("/attendance") ? "bg-accent" : ""}
-              >
+              <DropdownMenuSubTrigger className={isActive("/attendance") ? "bg-accent" : ""}>
                 <item.icon className="mr-2 h-4 w-4" />
                 <span>Attendance</span>
               </DropdownMenuSubTrigger>
 
               <DropdownMenuSubContent>
                 <Link href="/attendance">
-                  <DropdownMenuItem
-                    className={pathname === "/attendance" ? "bg-accent" : ""}
-                  >
+                  <DropdownMenuItem className={isActive("/attendance", true) ? "bg-accent" : ""}>
                     <CalendarCheck className="mr-2 h-4 w-4" />
                     <span>Take Attendance</span>
                   </DropdownMenuItem>
                 </Link>
 
                 <Link href="/attendance/history">
-                  <DropdownMenuItem
-                    className={pathname.startsWith("/attendance/history") ? "bg-accent" : ""}
-                  >
+                  <DropdownMenuItem className={isActive("/attendance/history") ? "bg-accent" : ""}>
                     <FileText className="mr-2 h-4 w-4" />
                     <span>Attendance History</span>
                   </DropdownMenuItem>
@@ -198,15 +184,10 @@ export function NavMenu() {
           );
         }
 
+        // NORMAL ITEMS
         return (
           <Link href={item.href} key={item.href}>
-            <DropdownMenuItem
-              className={
-                item.exact
-                  ? (pathname === item.href ? "bg-accent" : "")
-                  : (pathname === item.href || pathname.startsWith(item.href + "/") ? "bg-accent" : "")
-              }
-            >
+            <DropdownMenuItem className={isActive(item.href, item.exact) ? "bg-accent" : ""}>
               <item.icon className="mr-2 h-4 w-4" />
               <span>{item.label}</span>
             </DropdownMenuItem>
@@ -215,7 +196,7 @@ export function NavMenu() {
       });
   }
 
-  // --- LOGOUT HANDLER ---
+  // --- LOGOUT ---
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -229,8 +210,7 @@ export function NavMenu() {
       });
 
       window.location.href = "/login";
-    } catch (error) {
-      console.error("Logout error:", error);
+    } catch {
       toast({
         title: "Logout Failed",
         description: "Could not log you out. Please try again.",
@@ -240,7 +220,7 @@ export function NavMenu() {
 
   return (
     <>
-      <DropdownMenu modal={true}>
+      <DropdownMenu modal>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
             <Menu />
@@ -264,9 +244,7 @@ export function NavMenu() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
-            <AlertDialogDescription>
-              You will be returned to the login screen.
-            </AlertDialogDescription>
+            <AlertDialogDescription>You will be returned to the login screen.</AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter className="gap-2">

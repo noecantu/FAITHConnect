@@ -32,10 +32,10 @@ function DevToolButton({ label, action }: DevToolButtonProps) {
 
 export default function SectionDeveloperTools({
   settings,
-  setSettings
+  updateSettings
 }: {
   settings: SystemSettings;
-  setSettings: (s: SystemSettings) => void;
+  updateSettings: (s: SystemSettings) => void;
 }) {
   return (
     <Card>
@@ -48,7 +48,7 @@ export default function SectionDeveloperTools({
           <Checkbox
             checked={settings.debugMode}
             onCheckedChange={(checked) =>
-              setSettings({ ...settings, debugMode: Boolean(checked) })
+              updateSettings({ ...settings, debugMode: Boolean(checked) })
             }
           />
           <Label>Enable Debug Mode</Label>
@@ -58,7 +58,7 @@ export default function SectionDeveloperTools({
           <Checkbox
             checked={settings.logAllRequests}
             onCheckedChange={(checked) =>
-              setSettings({ ...settings, logAllRequests: Boolean(checked) })
+              updateSettings({ ...settings, logAllRequests: Boolean(checked) })
             }
           />
           <Label>Log All Requests</Label>
@@ -68,7 +68,7 @@ export default function SectionDeveloperTools({
           <Checkbox
             checked={settings.showDevToolsInUI}
             onCheckedChange={(checked) =>
-              setSettings({ ...settings, showDevToolsInUI: Boolean(checked) })
+              updateSettings({ ...settings, showDevToolsInUI: Boolean(checked) })
             }
           />
           <Label>Show Developer Tools in Dashboard UI</Label>

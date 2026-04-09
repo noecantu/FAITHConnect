@@ -8,16 +8,17 @@ import type { SystemSettings } from "@/app/lib/types";
 
 export default function SectionIdentity({
   settings,
-  setSettings
+  updateSettings
 }: {
   settings: SystemSettings;
-  setSettings: (s: SystemSettings) => void;
+  updateSettings: (s: Partial<SystemSettings>) => void;
 }) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Platform Identity</CardTitle>
       </CardHeader>
+
       <CardContent className="space-y-4">
 
         <div className="space-y-1">
@@ -25,7 +26,7 @@ export default function SectionIdentity({
           <Input
             value={settings.platformName}
             onChange={(e) =>
-              setSettings({ ...settings, platformName: e.target.value })
+              updateSettings({ platformName: e.target.value })
             }
           />
         </div>
@@ -35,7 +36,7 @@ export default function SectionIdentity({
           <Input
             value={settings.supportEmail}
             onChange={(e) =>
-              setSettings({ ...settings, supportEmail: e.target.value })
+              updateSettings({ supportEmail: e.target.value })
             }
           />
         </div>
@@ -45,7 +46,7 @@ export default function SectionIdentity({
           <Input
             value={settings.defaultTimezone}
             onChange={(e) =>
-              setSettings({ ...settings, defaultTimezone: e.target.value })
+              updateSettings({ defaultTimezone: e.target.value })
             }
           />
         </div>
@@ -55,7 +56,7 @@ export default function SectionIdentity({
           <Input
             value={settings.defaultLocale}
             onChange={(e) =>
-              setSettings({ ...settings, defaultLocale: e.target.value })
+              updateSettings({ defaultLocale: e.target.value })
             }
           />
         </div>

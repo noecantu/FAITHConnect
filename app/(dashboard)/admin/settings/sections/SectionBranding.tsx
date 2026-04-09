@@ -8,10 +8,10 @@ import type { SystemSettings } from "@/app/lib/types";
 
 export default function SectionBranding({
   settings,
-  setSettings
+  updateSettings,
 }: {
   settings: SystemSettings;
-  setSettings: (s: SystemSettings) => void;
+  updateSettings: (s: SystemSettings) => void;
 }) {
   return (
     <Card>
@@ -25,7 +25,7 @@ export default function SectionBranding({
           <Input
             value={settings.branding.primaryColor}
             onChange={(e) =>
-              setSettings({
+              updateSettings({
                 ...settings,
                 branding: {
                   ...settings.branding,
@@ -41,7 +41,7 @@ export default function SectionBranding({
           <Input
             value={settings.branding.logoUrl}
             onChange={(e) =>
-              setSettings({
+              updateSettings({
                 ...settings,
                 branding: {
                   ...settings.branding,
@@ -57,7 +57,7 @@ export default function SectionBranding({
           <Input
             value={settings.branding.loginBackgroundUrl}
             onChange={(e) =>
-              setSettings({
+              updateSettings({
                 ...settings,
                 branding: {
                   ...settings.branding,

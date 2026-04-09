@@ -9,10 +9,10 @@ import type { SystemSettings } from "@/app/lib/types";
 
 export default function SectionSecurity({
   settings,
-  setSettings
+  updateSettings
 }: {
   settings: SystemSettings;
-  setSettings: (s: SystemSettings) => void;
+  updateSettings: (s: SystemSettings) => void;
 }) {
   return (
     <Card>
@@ -25,7 +25,7 @@ export default function SectionSecurity({
           <Checkbox
             checked={settings.require2FAForAdmins}
             onCheckedChange={(checked) =>
-              setSettings({ ...settings, require2FAForAdmins: Boolean(checked) })
+              updateSettings({ ...settings, require2FAForAdmins: Boolean(checked) })
             }
           />
           <Label>Require 2FA for Admin Users</Label>
@@ -37,7 +37,7 @@ export default function SectionSecurity({
             type="number"
             value={settings.logRetentionDays}
             onChange={(e) =>
-              setSettings({
+              updateSettings({
                 ...settings,
                 logRetentionDays: Number(e.target.value || 0)
               })
@@ -51,7 +51,7 @@ export default function SectionSecurity({
             type="number"
             value={settings.autoDeleteInactiveUsersAfterDays}
             onChange={(e) =>
-              setSettings({
+              updateSettings({
                 ...settings,
                 autoDeleteInactiveUsersAfterDays: Number(e.target.value || 0)
               })
@@ -65,7 +65,7 @@ export default function SectionSecurity({
             type="number"
             value={settings.maxFailedLoginAttempts}
             onChange={(e) =>
-              setSettings({
+              updateSettings({
                 ...settings,
                 maxFailedLoginAttempts: Number(e.target.value || 0)
               })
@@ -79,7 +79,7 @@ export default function SectionSecurity({
             type="number"
             value={settings.lockoutDurationMinutes}
             onChange={(e) =>
-              setSettings({
+              updateSettings({
                 ...settings,
                 lockoutDurationMinutes: Number(e.target.value || 0)
               })

@@ -8,10 +8,10 @@ import type { SystemSettings } from "@/app/lib/types";
 
 export default function SectionFeatureFlags({
   settings,
-  setSettings
+  updateSettings
 }: {
   settings: SystemSettings;
-  setSettings: (s: SystemSettings) => void;
+  updateSettings: (s: SystemSettings) => void;
 }) {
   return (
     <Card>
@@ -25,7 +25,7 @@ export default function SectionFeatureFlags({
             <Checkbox
               checked={Boolean(value)}
               onCheckedChange={(checked) =>
-                setSettings({
+                updateSettings({
                   ...settings,
                   featureFlags: {
                     ...settings.featureFlags,

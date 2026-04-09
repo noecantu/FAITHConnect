@@ -9,10 +9,10 @@ import type { SystemSettings } from "@/app/lib/types";
 
 export default function SectionMaintenance({
   settings,
-  setSettings
+  updateSettings
 }: {
   settings: SystemSettings;
-  setSettings: (s: SystemSettings) => void;
+  updateSettings: (s: SystemSettings) => void;
 }) {
   return (
     <Card>
@@ -25,7 +25,7 @@ export default function SectionMaintenance({
           <Checkbox
             checked={settings.maintenanceMode}
             onCheckedChange={(checked) =>
-              setSettings({ ...settings, maintenanceMode: Boolean(checked) })
+              updateSettings({ ...settings, maintenanceMode: Boolean(checked) })
             }
           />
           <Label>Enable Maintenance Mode</Label>
@@ -36,7 +36,7 @@ export default function SectionMaintenance({
           <Input
             value={settings.maintenanceMessage}
             onChange={(e) =>
-              setSettings({ ...settings, maintenanceMessage: e.target.value })
+              updateSettings({ ...settings, maintenanceMessage: e.target.value })
             }
             placeholder="The system is undergoing maintenance..."
           />
@@ -46,7 +46,7 @@ export default function SectionMaintenance({
           <Checkbox
             checked={settings.allowRegistrations}
             onCheckedChange={(checked) =>
-              setSettings({ ...settings, allowRegistrations: Boolean(checked) })
+              updateSettings({ ...settings, allowRegistrations: Boolean(checked) })
             }
           />
           <Label>Allow New User Registrations</Label>
@@ -56,7 +56,7 @@ export default function SectionMaintenance({
           <Checkbox
             checked={settings.allowChurchCreation}
             onCheckedChange={(checked) =>
-              setSettings({ ...settings, allowChurchCreation: Boolean(checked) })
+              updateSettings({ ...settings, allowChurchCreation: Boolean(checked) })
             }
           />
           <Label>Allow New Church Creation</Label>
@@ -66,7 +66,7 @@ export default function SectionMaintenance({
           <Checkbox
             checked={settings.disableEmailSending}
             onCheckedChange={(checked) =>
-              setSettings({ ...settings, disableEmailSending: Boolean(checked) })
+              updateSettings({ ...settings, disableEmailSending: Boolean(checked) })
             }
           />
           <Label>Disable Outbound Email</Label>
