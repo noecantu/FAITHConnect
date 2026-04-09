@@ -259,14 +259,58 @@ export interface SongInput {
 
 export interface SystemSettings {
   platformName: string;
+  emailProvider: "sendgrid" | "mailgun" | "ses";
+  emailFromAddress: string;
+  emailReplyToAddress: string;
+  emailTemplates: {
+    welcomeSubject: string;
+    welcomeBody: string;
+    passwordResetSubject: string;
+    passwordResetBody: string;
+  };
   supportEmail: string;
   defaultTimezone: string;
   defaultLocale: string;
-  featureFlags: Record<string, boolean>;
-  maintenanceMode?: boolean;
-  allowRegistrations?: boolean;
-  logRetentionDays?: number;
+  branding: {
+    primaryColor: string;
+    logoUrl: string;
+    loginBackgroundUrl: string;
+  };
+  maintenanceMode: boolean;
+  maintenanceMessage: string;
+  allowRegistrations: boolean;
+  allowChurchCreation: boolean;
+  disableEmailSending: boolean;
+  featureFlags: {
+    attendanceV2: boolean;
+    musicPlannerV2: boolean;
+    givingAnalytics: boolean;
+    checkInKioskMode: boolean;
+    multiCampusSupport: boolean;
+    aiServicePlanning: boolean;
+  };
+  logRetentionDays: number;
+  autoDeleteInactiveUsersAfterDays: number;
+  require2FAForAdmins: boolean;
+  maxFailedLoginAttempts: number;
+  lockoutDurationMinutes: number;
   updatedAt?: Date | { seconds: number } | null;
+  lastIntegrityScan?: {
+    strayUsers?: string;
+    orphanedMembers?: string;
+    churchesWithoutAdmins?: string;
+    invalidRoles?: string;
+  };
+  debugMode: boolean;
+  logAllRequests: boolean;
+  showDevToolsInUI: boolean;
+}
+
+export interface SystemUser {
+  id: string;
+  churchId?: string;
+  roles?: string[];
+  [key: string]: any;
 }
 
 export interface User {
