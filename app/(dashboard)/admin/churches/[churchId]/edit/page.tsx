@@ -15,7 +15,6 @@ import { useToast } from "@/app/hooks/use-toast";
 
 import TimezoneSelect from "@/app/components/settings/TimezoneSelect";
 import { Church } from "@/app/lib/types";
-import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
 
 export default function EditChurchPage() {
   const params = useParams();
@@ -113,7 +112,7 @@ export default function EditChurchPage() {
   }
 
   return (
-    <DashboardPage>
+    <>
       <PageHeader
         title={`Edit: ${church.name}`}
         subtitle="Modify system-level church details"
@@ -166,6 +165,6 @@ export default function EditChurchPage() {
 
         </CardContent>
       </Card>
-    </DashboardPage>
+    </>
   );
 }

@@ -51,7 +51,7 @@ export default function MasterChurchDetailsClient({
     .toUpperCase();
 
   return (
-    <DashboardPage>
+    <>
 
       <PageHeader
         title={localChurch.name}
@@ -225,6 +225,6 @@ export default function MasterChurchDetailsClient({
         </AlertDialogContent>
       </AlertDialog>
 
-    </DashboardPage>
+    </>
   );
 }

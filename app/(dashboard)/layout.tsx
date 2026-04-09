@@ -3,14 +3,19 @@
 
 import Header from '../components/layout/Header';
 import { AppFooter } from '../components/layout/AppFooter';
+import { DashboardPage } from './layout/DashboardPage';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+}
+
+export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <>
       <Header />
-      <main className="flex-1 w-full">
-        {children}
-      </main>
+        <DashboardPage>
+          {children}
+        </DashboardPage>
       <AppFooter />
     </>
   );

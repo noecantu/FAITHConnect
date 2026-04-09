@@ -25,7 +25,6 @@ import { useToast } from '@/app/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu';
 import { Fab } from '@/app/components/ui/fab';
 import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dialog';
-import { DashboardPage } from '@/app/(dashboard)/layout/DashboardPage';
 
 export default function SongDetailPage() {
   const { id } = useParams();
@@ -128,7 +127,7 @@ export default function SongDetailPage() {
   );  
 
   return (
-    <DashboardPage>
+    <>
       <PageHeader title={song.title} />
   
       {/* SECTION: Basic Info */}
@@ -346,6 +345,6 @@ export default function SongDetailPage() {
         </DropdownMenu>
       )}
 
-    </DashboardPage>
+    </>
   );
 }  

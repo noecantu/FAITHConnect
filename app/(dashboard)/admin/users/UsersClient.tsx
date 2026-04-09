@@ -18,7 +18,6 @@ import { Button } from "@/app/components/ui/button";
 
 import { SystemRole } from "@/app/lib/system-roles";
 import { SYSTEM_ROLE_MAP } from "@/app/lib/system-role-map";
-import { DashboardPage } from "../../layout/DashboardPage";
 
 // -----------------------------
 // Types
@@ -76,7 +75,7 @@ export default function UsersClient({ users }: UsersClientProps) {
   }, [systemUsers, search, selectedRole]);
 
   return (
-    <DashboardPage>
+    <>
       <PageHeader
         title="System Users"
         subtitle="Manage users with system-level access to FAITH Connect."
@@ -174,6 +173,6 @@ export default function UsersClient({ users }: UsersClientProps) {
           )}
         </CardContent>
       </Card>
-    </DashboardPage>
+    </>
   );
 }

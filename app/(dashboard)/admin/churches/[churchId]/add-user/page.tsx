@@ -95,7 +95,7 @@ export default function AddUserPage() {
   }
 
   return (
-    <DashboardPage>
+    <>
       <PageHeader
         title="Add Church User"
         subtitle="Create a new user for this church"
@@ -179,6 +179,6 @@ export default function AddUserPage() {
 
         </CardContent>
       </Card>
-    </DashboardPage>
+    </>
   );
 }

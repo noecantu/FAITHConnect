@@ -36,7 +36,6 @@ import { TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 
 import { useAttendanceHistorySettings } from '@/app/hooks/useAttendanceHistorySettings';
 import { useAuth } from '@/app/hooks/useAuth';
-import { DashboardPage } from '../../layout/DashboardPage';
 import { Separator } from '@/app/components/ui/separator';
 
 // --------------------------------------------------
@@ -236,19 +235,19 @@ export default function AttendanceHistoryPage() {
   // ------------------------------
   if (loading) {
     return (
-      <DashboardPage>
+      <>
         <PageHeader title="Attendance History" />
         <p className="text-muted-foreground">Loading attendance history…</p>
-      </DashboardPage>
+      </>
     );
   }
 
   if (!canView) {
     return (
-      <DashboardPage>
+      <>
         <PageHeader title="Attendance History" />
         <p className="text-muted-foreground">You do not have permission to view attendance.</p>
-      </DashboardPage>
+      </>
     );
   }
 
@@ -263,7 +262,7 @@ export default function AttendanceHistoryPage() {
   // Render
   // --------------------------------------------------
   return (
-    <DashboardPage>
+    <>
       <ThemeProvider theme={darkTheme}>
         <PageHeader
           title="Attendance History"
@@ -534,6 +533,6 @@ export default function AttendanceHistoryPage() {
         </CardContent>
       </Card>
       </ThemeProvider>
-    </DashboardPage>
+    </>
   );
 }

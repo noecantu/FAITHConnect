@@ -12,7 +12,6 @@ import { ChangePasswordCard } from "@/app/components/settings/ChangePasswordCard
 import { Fab } from "@/app/components/ui/fab";
 import { Save, Loader2, Check } from "lucide-react";
 import { ProfilePhotoCard } from "@/app/components/settings/ProfilePhotoCard";
-import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
 
 export default function UserSettingsPage() {
   //
@@ -130,7 +129,7 @@ export default function UserSettingsPage() {
 
   if (loading) {
     return (
-      <DashboardPage>
+      <>
         <PageHeader
           title="Settings"
           subtitle="Manage your personal account and preferences."
@@ -138,7 +137,7 @@ export default function UserSettingsPage() {
         <div className="h-32 bg-slate-900/40 rounded-xl animate-pulse" />
         <div className="h-32 bg-slate-900/40 rounded-xl animate-pulse" />
         <div className="h-32 bg-slate-900/40 rounded-xl animate-pulse" />
-      </DashboardPage>
+      </>
     );
   }
 
@@ -146,7 +145,7 @@ export default function UserSettingsPage() {
   // 4. FINAL RENDER
   //
   return (
-    <DashboardPage>
+    <>
       <PageHeader
         title="Settings"
         subtitle="Manage your personal account and preferences."
@@ -186,6 +185,6 @@ export default function UserSettingsPage() {
         )}
         {!isSaving && !showCheck && <Save className="h-6 w-6" />}
       </Fab>
-    </DashboardPage>
+    </>
   );
 }

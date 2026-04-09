@@ -9,7 +9,6 @@ import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { getSongById, updateSong } from '@/app/lib/songs';
 import type { Song, SongInput } from '@/app/lib/types';
 import { Fab } from '@/app/components/ui/fab';
-import { DashboardPage } from '@/app/(dashboard)/layout/DashboardPage';
 
 export default function EditSongPage() {
   const { id } = useParams();
@@ -85,7 +84,7 @@ export default function EditSongPage() {
   };
 
   return (
-    <DashboardPage>
+    <>
       <PageHeader title="Edit Song">
       </PageHeader>
 
@@ -105,6 +104,6 @@ export default function EditSongPage() {
         }}
       />
 
-    </DashboardPage>
+    </>
   );
 }

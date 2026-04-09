@@ -2,7 +2,6 @@
 'use client';
 
 import { useState } from 'react';
-import { DashboardPage } from '@/app/(dashboard)/layout/DashboardPage';
 import { PageHeader } from '@/app/components/page-header';
 import { Fab } from '@/app/components/ui/fab';
 
@@ -37,10 +36,10 @@ export default function RootAdminSettingsPage({ initialSettings }: { initialSett
 
   if (!initialSettings) {
     return (
-      <DashboardPage>
+      <>
         <PageHeader title="System Settings" subtitle="Loading…" />
         <div className="p-6 text-neutral-400">Loading settings…</div>
-      </DashboardPage>
+      </>
     );
   }
   return (

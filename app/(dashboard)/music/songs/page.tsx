@@ -18,7 +18,6 @@ import { db } from '@/app/lib/firebase/client';
 import { useAuth } from '@/app/hooks/useAuth';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { SearchBar } from '@/app/components/ui/search-bar';
-import { DashboardPage } from '../../layout/DashboardPage';
 
 export default function SongsPage() {
   const { churchId } = useChurchId();
@@ -54,19 +53,19 @@ export default function SongsPage() {
 
   if (!churchId || loading) {
     return (
-      <DashboardPage>
+      <>
         <PageHeader title="Song List" />
         <p className="text-muted-foreground">Loading songs…</p>
-      </DashboardPage>
+      </>
     );
   }
 
   if (!canView) {
     return (
-      <DashboardPage>
+      <>
         <PageHeader title="Songs" />
         <p className="text-muted-foreground">You do not have permission to view songs.</p>
-      </DashboardPage>
+      </>
     );
   }
 
@@ -122,7 +121,7 @@ export default function SongsPage() {
   }`;
 
   return (
-    <DashboardPage>
+    <>
       <PageHeader title="Songs" subtitle={subtitleText}/>
       {/* Sticky Search + Sort Bar */}
       <div className="sticky top-0 z-10">
@@ -262,6 +261,6 @@ export default function SongsPage() {
           ))}
       </div>
 
-    </DashboardPage>
+    </>
   );
 }

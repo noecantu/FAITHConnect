@@ -147,7 +147,7 @@ export default function ChurchSettingsPage() {
   // RENDER
   // -----------------------------
   return (
-    <DashboardPage>
+    <>
       <PageHeader
         title="Settings"
         subtitle="Manage settings for your organization."
@@ -218,6 +218,6 @@ export default function ChurchSettingsPage() {
           isDeleting={isDeleting}
         />
       )}
-    </DashboardPage>
+    </>
   );
 }

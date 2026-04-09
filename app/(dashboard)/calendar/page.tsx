@@ -23,7 +23,6 @@ import { useRouter } from "next/navigation";
 import { dateKey } from "@/app/lib/calendar/utils";
 import { canUserSeeEvent } from "@/app/lib/canUserSeeEvent";
 import { cn } from "@/app/lib/utils";
-import { DashboardPage } from "../layout/DashboardPage";
 
 type CalendarItem =
   | (Event & { type: "event" })
@@ -98,11 +97,11 @@ export default function CalendarPage() {
   const { view, setView } = useUserCalendarSettings(user?.id ?? null);
   const viewControls = { view, setView };
 
-  if (loadingUser) return <DashboardPage>Loading...</DashboardPage>;
-  if (!user) return <DashboardPage>No user found.</DashboardPage>;
+  if (loadingUser) return <>Loading...</>;
+  if (!user) return <>No user found.</>;
 
   return (
-    <DashboardPage>
+    <>
       <PageHeader
         title="Calendar of Events"
         subtitle="Select a date to view or add events."
@@ -176,6 +175,6 @@ export default function CalendarPage() {
       {canManage && (
         <Fab type="add" onClick={() => router.push("/calendar/new")} />
       )}
-    </DashboardPage>
+    </>
   );
 }

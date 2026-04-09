@@ -22,7 +22,6 @@ import { useRouter } from 'next/navigation';
 import { usePreviewPagination } from '@/app/hooks/usePreviewPagination';
 import { PreviewPaginationFooter } from '@/app/components/layout/PreviewPaginationFooter';
 import { SearchBar } from '@/app/components/ui/search-bar';
-import { DashboardPage } from '../layout/DashboardPage';
 
 // TYPES
 type SortType = "date-desc" | "date-asc" | "title-asc";
@@ -101,48 +100,48 @@ export default function ServicePlanPage() {
   // LOADING + PERMISSIONS
   if (churchLoading || plansLoading || rolesLoading) {
     return (
-      <DashboardPage>
+      <>
         <PageHeader title="Service Plans" />
         <p className="text-muted-foreground">Loading service plans…</p>
-      </DashboardPage>
+      </>
     );
   }
 
   if (!churchId) {
     return (
-      <DashboardPage>
+      <>
         <PageHeader title="Service Plans" />
         <p className="text-muted-foreground">Unable to determine church context.</p>
-      </DashboardPage>
+      </>
     );
   }
 
   if (!canView) {
     return (
-      <DashboardPage>
+      <>
         <PageHeader title="Service Plans" />
         <p className="text-muted-foreground">You do not have permission to view service plans.</p>
-      </DashboardPage>
+      </>
     );
   }
 
   if (error) {
     return (
-      <DashboardPage>
+      <>
         <PageHeader title="Service Plans" />
         <p className="text-red-500">Failed to load service plans.</p>
         <Button variant="outline" onClick={reload} className="mt-4">
           Try Again
         </Button>
-      </DashboardPage>
+      </>
     );
   }
 
   // RENDER
   return (
-    <DashboardPage>
+    <>
       <PageHeader
-        title={`Service Plans`}
+        title="Service Plans"
         subtitle={`Total: ${plans.length}`}
       />
 
@@ -261,6 +260,6 @@ export default function ServicePlanPage() {
       {canManage && (
         <Fab type="add" onClick={() => router.push("/service-plan/new")} />
       )}
-    </DashboardPage>
+    </>
   );
 }

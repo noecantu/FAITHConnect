@@ -12,7 +12,7 @@ export function PageHeader({ title, subtitle, children, className }: PageHeaderP
   return (
     <div
       className={cn(
-        "relative z-10 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between mb-0",
+        "relative z-10 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between",
         className
       )}
     >

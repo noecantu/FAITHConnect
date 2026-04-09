@@ -7,7 +7,6 @@ import { db } from "@/app/lib/firebase/client";
 import { useChurchId } from "@/app/hooks/useChurchId";
 import MemberForm from "@/app/components/members/MemberForm";
 import type { Member } from "@/app/lib/types";
-import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
 
 export default function EditMemberPage() {
   const router = useRouter();
@@ -79,7 +78,7 @@ export default function EditMemberPage() {
   }
 
   return (
-    <DashboardPage>
+    <>
       <h1 className="text-2xl font-bold">
         Edit {member.firstName} {member.lastName}
       </h1>
@@ -91,6 +90,6 @@ export default function EditMemberPage() {
           router.push(`/church/${churchId}/members`);
         }}
       />
-    </DashboardPage>
+    </>
   );
 }

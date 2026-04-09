@@ -17,7 +17,6 @@ import {
   SelectContent,
   SelectItem,
 } from "@/app/components/ui/select";
-import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
 
 const ACCOUNT_TYPES = [
   { value: "RootAdmin", label: "Root Administrator" },
@@ -102,7 +101,7 @@ export default function CreateSystemUserClient() {
   }
 
   return (
-    <DashboardPage>
+    <>
       <PageHeader
         title="Create System-Level User"
         subtitle="Add a new system administrator or support account."
@@ -183,6 +182,6 @@ export default function CreateSystemUserClient() {
           </Button>
         </CardContent>
       </Card>
-    </DashboardPage>
+    </>
   );
 }

@@ -155,7 +155,7 @@ export default function GlobalChurchListPage() {
   // RENDER
   // -----------------------------
   return (
-    <DashboardPage>
+    <>
       <PageHeader
         title="All Churches"
         subtitle="Manage every church in the FAITH Connect system."
@@ -266,6 +266,6 @@ export default function GlobalChurchListPage() {
           Next
         </Button>
       </div>
-    </DashboardPage>
+    </>
   );
 }

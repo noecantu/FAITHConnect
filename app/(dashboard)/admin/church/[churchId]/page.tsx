@@ -229,41 +229,41 @@ export default function ChurchAdminDashboard() {
 
   if (userLoading) {
     return (
-      <DashboardPage>
+      <>
         Loading…
-      </DashboardPage>
+      </>
     );
   }
 
   if (!user) {
     return (
-      <DashboardPage>
+      <>
         You do not have access to this church.
-      </DashboardPage>
+      </>
     );
   }
 
   if (loading) {
     return (
-      <DashboardPage>
+      <>
         Loading Church Dashboard…
-      </DashboardPage>
+      </>
     );
   }
 
   if (!church) {
     return (
-      <DashboardPage>
+      <>
         Loading Church Dashboard…
-      </DashboardPage>
+      </>
     );
   }
 
   if (church.status === "disabled") {
     return (
-      <DashboardPage>
+      <>
         This church is currently disabled.
-      </DashboardPage>
+      </>
     );
   }
 
@@ -271,7 +271,7 @@ export default function ChurchAdminDashboard() {
   // NORMAL RENDER
   // ---------------------------
   return (
-    <DashboardPage>
+    <>
       <main className="flex-1 flex flex-col space-y-6">
         {/* Page Header */}
         <PageHeader
@@ -356,7 +356,7 @@ export default function ChurchAdminDashboard() {
           </CardContent>
         </Card>
       </main>
-    </DashboardPage>
+    </>
   );
 }
 

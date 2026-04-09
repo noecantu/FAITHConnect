@@ -37,8 +37,7 @@ export default function AdminHomeClient({
   };
 
   return (
-    <DashboardPage>
-
+    <>
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-foreground">
@@ -198,6 +197,6 @@ export default function AdminHomeClient({
 
         </div>
       </section>
-    </DashboardPage>
+    </>
   );
 }

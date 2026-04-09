@@ -17,7 +17,6 @@ import { FileText, Loader2, Sheet } from "lucide-react";
 
 // NEW
 import { useUserRoles } from "@/app/hooks/useUserRoles";
-import { DashboardPage } from '../layout/DashboardPage';
 
 export default function ReportsPage() {
   const { members } = useMembers();
@@ -149,7 +148,7 @@ export default function ReportsPage() {
     (reportType === "attendance" && canReadAttendance);
 
   return (
-    <DashboardPage>
+    <>
       <PageHeader
         title="Reports"
         subtitle="Select a report type below."
@@ -251,6 +250,6 @@ export default function ReportsPage() {
           )}
         </div>
       </div>
-    </DashboardPage>
+    </>
   );
 }
