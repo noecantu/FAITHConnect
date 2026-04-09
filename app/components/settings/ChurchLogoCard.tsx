@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/app/hooks/use-toast';
 
 import { db, storage } from '@/app/lib/firebase/client';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { ref, deleteObject } from 'firebase/storage';
+
+import ImageDropzone from "@/app/components/settings/ImageDropzone";
 
 interface Props {
   churchId: string;
@@ -20,13 +22,12 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [originalLogoUrl, setOriginalLogoUrl] = useState<string | null>(null);
 
-  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [removing, setRemoving] = useState(false);
+  const [showConfirmRemove, setShowConfirmRemove] = useState(false);
 
   const hasChanges = logoUrl !== originalLogoUrl;
-  const [showConfirmRemove, setShowConfirmRemove] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
   function getInitials(name: string | null | undefined) {
     if (!name) return "??";
     return name
@@ -52,45 +53,6 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
     load();
   }, [churchId]);
 
-  // Upload handler
-  const handleUpload = async (file: File) => {
-    if (!churchId) return;
-
-    setUploading(true);
-
-    try {
-      if (!churchId) throw new Error("Missing churchId");
-      if (!file) throw new Error("No file selected");
-
-      // Always include a filename + extension to avoid CORS + metadata issues
-      const ext = file.name.split(".").pop() || "png";
-      const storageRef = ref(storage, `churches/${churchId}/logo/logo.${ext}`);
-
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
-
-      setLogoUrl(url);
-
-      toast({
-        title: "Logo uploaded",
-        description: "Preview updated.",
-      });
-    } catch (err: unknown) {
-      let message = "Something went wrong.";
-
-      if (err instanceof Error) {
-        message = err.message;
-      }
-
-      toast({
-        title: "Upload failed",
-        description: message,
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
   // Save handler
   const handleSave = async () => {
     if (!churchId || !hasChanges) return;
@@ -110,15 +72,9 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
         description: "Church logo updated.",
       });
     } catch (err: unknown) {
-      let message = "Something went wrong.";
-
-      if (err instanceof Error) {
-        message = err.message;
-      }
-
       toast({
         title: "Error",
-        description: message,
+        description: err instanceof Error ? err.message : "Something went wrong.",
       });
     } finally {
       setSaving(false);
@@ -132,11 +88,9 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
     setRemoving(true);
 
     try {
-      // Extract the exact storage path from the download URL
       const decodedPath = decodeURIComponent(
         logoUrl.split("/o/")[1].split("?")[0]
       );
-      // decodedPath = "churches/first-test-church/logo/logo.jpg"
 
       const storageRef = ref(storage, decodedPath);
       await deleteObject(storageRef);
@@ -153,15 +107,9 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
         description: "The church logo has been deleted.",
       });
     } catch (err: unknown) {
-      let message = "Something went wrong.";
-
-      if (err instanceof Error) {
-        message = err.message;
-      }
-
       toast({
         title: "Error",
-        description: message,
+        description: err instanceof Error ? err.message : "Something went wrong.",
       });
     } finally {
       setRemoving(false);
@@ -170,7 +118,6 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
 
   return (
     <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
-      {/* Header (title + description only) */}
       <CardHeader>
         <CardTitle>Church Logo</CardTitle>
         <CardDescription>Upload and manage your church’s logo.</CardDescription>
@@ -178,53 +125,39 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
 
       <CardContent className="space-y-4">
 
-        {/* Clickable Preview */}
-        <div
-          className="cursor-pointer group w-fit"
-          onClick={() => fileInputRef.current?.click()}
-        >
+        {/* Preview */}
+        <div className="flex justify-center">
           {logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={logoUrl}
               alt="Church Logo"
-              className="
-                h-40 w-40 rounded-md object-cover border border-border bg-white
-                ring-2 ring-primary/20 shadow-md
-                transition-all group-hover:ring-primary/40 group-hover:shadow-lg
-              "
+              className="h-40 w-40 rounded-md object-cover border border-border bg-white shadow-md"
             />
           ) : (
-            <div
-              className="
-                h-40 w-40 rounded-md bg-muted flex items-center justify-center
-                text-xl font-semibold text-muted-foreground border border-border
-                transition-all group-hover:bg-muted/70
-              "
-            >
+            <div className="h-40 w-40 rounded-md bg-muted flex items-center justify-center text-xl font-semibold text-muted-foreground border border-border">
               {getInitials(churchName)}
             </div>
           )}
         </div>
 
-        {/* Hidden file input */}
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileInputRef}
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleUpload(file);
+        {/* Drag-and-drop uploader */}
+        <ImageDropzone
+          label="Upload Church Logo"
+          path={`churches/${churchId}/logo/logo.png`}
+          onUploaded={(url) => {
+            setLogoUrl(url);
+            toast({
+              title: "Logo uploaded",
+              description: "Preview updated.",
+            });
           }}
         />
 
-        {/* Upload + Save + Remove */}
+        {/* Save + Remove */}
         <div className="flex flex-col sm:flex-row gap-2">
-
           <Button
             onClick={handleSave}
-            disabled={!hasChanges || saving || uploading}
+            disabled={!hasChanges || saving}
             className="w-full sm:w-auto"
           >
             {saving ? "Saving..." : "Save Changes"}

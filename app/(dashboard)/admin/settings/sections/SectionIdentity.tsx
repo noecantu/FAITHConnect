@@ -24,7 +24,6 @@ type IdentityFields = {
 
 export default function SectionIdentity({
   settings,
-  updateSettings,
 }: {
   settings: SystemSettings;
   updateSettings: (s: Partial<SystemSettings>) => void;

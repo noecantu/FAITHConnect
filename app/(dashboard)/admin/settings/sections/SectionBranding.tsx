@@ -1,9 +1,9 @@
-//app/(dashboard)/admin/settings/sections/SectionBranding.tsx
 "use client";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
+import ImageDropzone from "@/app/components/settings/ImageDropzone";
 import type { SystemSettings } from "@/app/lib/types";
 
 export default function SectionBranding({
@@ -13,55 +13,79 @@ export default function SectionBranding({
   settings: SystemSettings;
   updateSettings: (s: Partial<SystemSettings>) => void;
 }) {
+  const branding = settings.branding;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Branding</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
 
+      <CardContent className="space-y-6">
+
+        {/* Primary Color */}
         <div className="space-y-1">
           <Label>Primary Color (Hex)</Label>
           <Input
-            value={settings.branding.primaryColor}
+            value={branding.primaryColor}
             onChange={(e) =>
               updateSettings({
                 branding: {
-                  ...settings.branding,
-                  primaryColor: e.target.value
-                }
+                  ...branding,
+                  primaryColor: e.target.value,
+                },
               })
             }
           />
         </div>
 
-        <div className="space-y-1">
-          <Label>Logo URL</Label>
-          <Input
-            value={settings.branding.logoUrl}
-            onChange={(e) =>
+        {/* Logo Upload */}
+        <div className="space-y-2">
+          <Label>Logo</Label>
+
+          {branding.logoUrl && (
+            <img
+              src={branding.logoUrl}
+              alt="Logo"
+              className="h-16 object-contain rounded border"
+            />
+          )}
+
+          <ImageDropzone
+            label="Upload Logo"
+            path="branding/logo.png"
+            onUploaded={(url) =>
               updateSettings({
-                ...settings,
                 branding: {
-                  ...settings.branding,
-                  logoUrl: e.target.value
-                }
+                  ...branding,
+                  logoUrl: url,
+                },
               })
             }
           />
         </div>
 
-        <div className="space-y-1">
-          <Label>Login Background Image URL</Label>
-          <Input
-            value={settings.branding.loginBackgroundUrl}
-            onChange={(e) =>
+        {/* Background Upload */}
+        <div className="space-y-2">
+          <Label>Login Background Image</Label>
+
+          {branding.loginBackgroundUrl && (
+            <img
+              src={branding.loginBackgroundUrl}
+              alt="Background"
+              className="h-32 w-full object-cover rounded border"
+            />
+          )}
+
+          <ImageDropzone
+            label="Upload Background Image"
+            path="branding/login-background.jpg"
+            onUploaded={(url) =>
               updateSettings({
-                ...settings,
                 branding: {
-                  ...settings.branding,
-                  loginBackgroundUrl: e.target.value
-                }
+                  ...branding,
+                  loginBackgroundUrl: url,
+                },
               })
             }
           />

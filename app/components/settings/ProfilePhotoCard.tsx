@@ -4,10 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { doc, updateDoc } from "firebase/firestore";
 import { db, storage } from "@/app/lib/firebase/client";
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { ref, deleteObject } from "firebase/storage";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
+import ImageDropzone from "@/app/components/settings/ImageDropzone";
 import type { User } from "@/app/lib/types";
 
 export function ProfilePhotoCard({
@@ -20,7 +20,7 @@ export function ProfilePhotoCard({
   registerSave?: (fn: () => Promise<void>) => void;
 }) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(user.profilePhotoUrl ?? null);
-  const [file, setFile] = useState<File | null>(null);
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [removeRequested, setRemoveRequested] = useState(false);
 
   const initials =
@@ -30,10 +30,10 @@ export function ProfilePhotoCard({
       "U").toUpperCase();
 
   // Dirty tracking
-  const dirty = Boolean(file) || removeRequested;
+  const dirty = Boolean(uploadedUrl) || removeRequested;
 
   useEffect(() => {
-    if (onDirtyChange) onDirtyChange(dirty);
+    onDirtyChange?.(dirty);
   }, [dirty, onDirtyChange]);
 
   const handleSave = useCallback(async () => {
@@ -44,29 +44,23 @@ export function ProfilePhotoCard({
       const fileRef = ref(storage, `users/${user.id}/profile.jpg`);
       await deleteObject(fileRef).catch(() => {});
       await updateDoc(userRef, { profilePhotoUrl: null });
+
       setPreviewUrl(null);
+      setUploadedUrl(null);
       setRemoveRequested(false);
       return;
     }
 
-    // Upload new photo
-    if (file) {
-      const fileRef = ref(storage, `users/${user.id}/profile.jpg`);
-      const bytes = await file.arrayBuffer();
-      await uploadBytes(fileRef, new Uint8Array(bytes), {
-        contentType: file.type,
-      });
-
-      const url = await getDownloadURL(fileRef);
-      await updateDoc(userRef, { profilePhotoUrl: url });
-
-      setPreviewUrl(url);
-      setFile(null);
+    // Save uploaded photo
+    if (uploadedUrl) {
+      await updateDoc(userRef, { profilePhotoUrl: uploadedUrl });
+      setPreviewUrl(uploadedUrl);
+      setUploadedUrl(null);
     }
-  }, [file, removeRequested, user.id, user.profilePhotoUrl]);
+  }, [uploadedUrl, removeRequested, user.id, user.profilePhotoUrl]);
 
   useEffect(() => {
-    if (registerSave) registerSave(handleSave);
+    registerSave?.(handleSave);
   }, [registerSave, handleSave]);
 
   return (
@@ -76,6 +70,8 @@ export function ProfilePhotoCard({
       </CardHeader>
 
       <CardContent className="space-y-4">
+
+        {/* Preview */}
         <div className="flex items-center gap-4">
           <div className="h-32 w-32 shrink-0 rounded-lg overflow-hidden bg-slate-800 flex items-center justify-center text-xl font-semibold">
             {previewUrl ? (
@@ -91,17 +87,16 @@ export function ProfilePhotoCard({
             )}
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const f = e.target.files?.[0] ?? null;
-                setFile(f);
-                if (f) {
-                  setPreviewUrl(URL.createObjectURL(f));
-                  setRemoveRequested(false);
-                }
+          <div className="flex flex-col gap-2 w-full">
+
+            {/* Drag-and-drop uploader */}
+            <ImageDropzone
+              label="Upload Profile Photo"
+              path={`users/${user.id}/profile.jpg`}
+              onUploaded={(url) => {
+                setUploadedUrl(url);
+                setPreviewUrl(url);
+                setRemoveRequested(false);
               }}
             />
 
@@ -110,7 +105,7 @@ export function ProfilePhotoCard({
                 variant="destructive"
                 onClick={() => {
                   setPreviewUrl(null);
-                  setFile(null);
+                  setUploadedUrl(null);
                   setRemoveRequested(true);
                 }}
               >
@@ -119,6 +114,7 @@ export function ProfilePhotoCard({
             )}
           </div>
         </div>
+
       </CardContent>
     </Card>
   );
