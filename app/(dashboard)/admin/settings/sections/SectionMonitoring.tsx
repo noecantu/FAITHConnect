@@ -7,7 +7,7 @@ import { Button } from "@/app/components/ui/button";
 
 import {
   getStorageUsage,
-  getDatabaseStats,
+  // getDatabaseStats,
   getEmailProviderHealth,
   getStripeSyncStatus,
 } from "../monitoringActions";
@@ -63,11 +63,11 @@ export default function SectionMonitoring() {
           formatter={(data) => `${(data.totalBytes / 1024 / 1024).toFixed(2)} MB`}
         />
 
-        <MonitoringCard
+        {/* <MonitoringCard
           title="Database Document Counts"
           action={getDatabaseStats}
           formatter={(data) => JSON.stringify(data, null, 2)}
-        />
+        /> */}
 
         <MonitoringCard
           title="Email Provider Health"

@@ -18,7 +18,6 @@ import UserFormCard from '../../../../../components/settings/UserFormCard';
 import DeleteUserDialog from '../../../../../components/settings/DeleteUserDialog';
 import ChurchLogoCard from '../../../../../components/settings/ChurchLogoCard';
 import ChurchProfileCard from '../../../../../components/settings/ChurchProfileCard';
-import { DashboardPage } from '@/app/(dashboard)/layout/DashboardPage';
 
 export default function ChurchSettingsPage() {
   const { churchId } = useChurchId();

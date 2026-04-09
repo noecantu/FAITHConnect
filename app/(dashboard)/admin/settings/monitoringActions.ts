@@ -1,7 +1,6 @@
 //app/(dashboard)/admin/settings/monitoringActions.ts
 "use server";
 
-import { adminDb } from "@/app/lib/firebase/admin";
 import { getStorage } from "firebase-admin/storage";
 
 export async function getStorageUsage() {
@@ -18,18 +17,18 @@ export async function getStorageUsage() {
   return { totalBytes };
 }
 
-export async function getDatabaseStats() {
-  const collections = await adminDb.listCollections();
+// export async function getDatabaseStats() {
+//   const collections = await adminDb.listCollections();
 
-  const stats: Record<string, number> = {};
+//   const stats: Record<string, number> = {};
 
-  for (const col of collections) {
-    const snap = await col.get();
-    stats[col.id] = snap.size;
-  }
+//   for (const col of collections) {
+//     const snap = await col.get();
+//     stats[col.id] = snap.size;
+//   }
 
-  return stats;
-}
+//   return stats;
+// }
 
 export async function getEmailProviderHealth() {
   // Placeholder — replace with real provider check later
