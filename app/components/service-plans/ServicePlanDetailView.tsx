@@ -38,8 +38,16 @@ export function ServicePlanDetailView({
 }: ServicePlanDetailViewProps) {
   return (
     <div className="space-y-6">
-      <PageHeader title={plan.title} subtitle={formattedDate} />
+      <div className="flex items-center justify-between">
+        <PageHeader title={plan.title} subtitle={formattedDate} />
 
+        <button
+          onClick={() => router.push('/service-plan')}
+          className="text-sm text-muted-foreground hover:text-white flex items-center gap-2"
+        >
+          ← Back
+        </button>
+      </div>
       <div className="space-y-6">
         {plan.sections.map((section) => {
           const member = members.find((m) => m.id === section.personId);

@@ -51,7 +51,6 @@ export default function ServicePlanDetailPage() {
 
   return (
     <>
-      <PageHeader title="Service Plan" />
       <ServicePlanDetailView
         plan={plan}
         members={members}

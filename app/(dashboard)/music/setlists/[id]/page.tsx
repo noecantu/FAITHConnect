@@ -90,8 +90,16 @@ export default function SetListDetailPage() {
 
   return (
     <>
-      <PageHeader title={setList.title} subtitle={formattedDate} />
+      <div className="flex items-center justify-between">
+        <PageHeader title={setList.title} subtitle={formattedDate} />
 
+        <button
+          onClick={() => router.push('/music/setlists')}
+          className="text-sm text-muted-foreground hover:text-white flex items-center gap-2"
+        >
+          ← Back
+        </button>
+      </div>
       {/* Overview */}
       {(setList.serviceType ||
         setList.serviceNotes?.theme ||
