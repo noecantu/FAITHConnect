@@ -1,3 +1,4 @@
+//app/lib/extractUserGroups.ts
 import { normalizeGroupName, MinistryGroup } from "./ministryGroups";
 import { getAllGroupsForRoles, isAdmin, Role } from "./roleGroups";
 
@@ -6,13 +7,6 @@ export interface UserLike {
   group?: string | null; // legacy fallback
 }
 
-/**
- * Returns the full list of ministry groups a user belongs to.
- * This includes:
- * - Groups implied by their roles (MusicManager → Music)
- * - Their assigned group (legacy GroupManager fallback)
- * - All groups (if Admin)
- */
 export function extractUserGroups(user: UserLike): MinistryGroup[] {
   const { roles } = user;
 
