@@ -1,4 +1,4 @@
-// app/admin/users/create/CreateSystemUserClient.tsx
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -21,6 +21,7 @@ import {
 const ACCOUNT_TYPES = [
   { value: "RootAdmin", label: "Root Administrator" },
   { value: "SystemAdmin", label: "System Administrator" },
+  { value: "RegionalAdmin", label: "Regional Administrator" },
   { value: "Support", label: "Support Staff" },
   { value: "Auditor", label: "Auditor (Read-Only)" },
 ];
@@ -35,6 +36,7 @@ export default function CreateSystemUserClient() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [accountType, setAccountType] = useState("");
+  const [regionName, setRegionName] = useState(""); // NEW
   const [loading, setLoading] = useState(false);
 
   async function handleCreateUser() {
@@ -45,6 +47,15 @@ export default function CreateSystemUserClient() {
         toast({
           title: "Missing Account Type",
           description: "Please select an account type for this system user.",
+        });
+        return;
+      }
+
+      // Regional Admin requires a region name
+      if (accountType === "RegionalAdmin" && !regionName.trim()) {
+        toast({
+          title: "Region Required",
+          description: "Please enter a region name for this Regional Admin.",
         });
         return;
       }
@@ -72,6 +83,8 @@ export default function CreateSystemUserClient() {
           password,
           actorUid,
           actorName,
+          roles: [accountType],
+          regionName: accountType === "RegionalAdmin" ? regionName : null, // NEW
         }),
       });
 
@@ -85,17 +98,17 @@ export default function CreateSystemUserClient() {
 
         router.push("/admin/users");
       }
-      } catch (err: unknown) {
-        console.error("Failed to create system user:", err);
+    } catch (err: unknown) {
+      console.error("Failed to create system user:", err);
 
-        const message =
-          err instanceof Error ? err.message : "Could not create system user.";
+      const message =
+        err instanceof Error ? err.message : "Could not create system user.";
 
-        toast({
-          title: "Error",
-          description: message,
-        });
-      } finally {
+      toast({
+        title: "Error",
+        description: message,
+      });
+    } finally {
       setLoading(false);
     }
   }
@@ -171,6 +184,18 @@ export default function CreateSystemUserClient() {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Region Name (only for Regional Admin) */}
+          {accountType === "RegionalAdmin" && (
+            <div className="space-y-2">
+              <Label>Region Name</Label>
+              <Input
+                placeholder="e.g., West Texas District"
+                value={regionName}
+                onChange={(e) => setRegionName(e.target.value)}
+              />
+            </div>
+          )}
 
           {/* Save Button */}
           <Button

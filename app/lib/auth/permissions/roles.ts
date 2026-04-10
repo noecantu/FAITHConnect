@@ -1,6 +1,9 @@
 export const ROLE_MAP = {
   RootAdmin: "Root Administrator",
+  SystemAdmin: "System Administrator",
   RegionalAdmin: "Regional Administrator",
+  Support: "Support Staff",
+  Auditor: "Auditor (Read-Only)", 
   Admin: "Administrator",
   AttendanceManager: "Attendance Manager",
   Caretaker: "Caretaker",

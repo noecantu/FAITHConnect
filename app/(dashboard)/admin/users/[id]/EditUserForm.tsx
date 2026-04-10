@@ -1,6 +1,7 @@
+//app/(dashboard)/admin/users/[id]/EditUserForm.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useToast } from "@/app/hooks/use-toast";
@@ -22,7 +23,7 @@ import { SYSTEM_ROLE_MAP } from "@/app/lib/system-role-map";
 import type { User } from "@/app/lib/types";
 import RoleSelector from "@/app/components/settings/RoleSelector";
 
-// ✅ Replaces invalid server-action import
+// Firestore admin API
 async function updateUser(input: any) {
   const res = await fetch("/api/users/update", {
     method: "POST",
@@ -70,7 +71,26 @@ export default function EditUserForm({
     !isSystemUser ? user.churchId ?? "" : ""
   );
 
+  // ⭐ NEW: Region name for Regional Admin
+  const [regionName, setRegionName] = useState("");
+
   const [loading, setLoading] = useState(false);
+
+  // ⭐ Load region name if user is already a Regional Admin
+  useEffect(() => {
+    async function loadRegion() {
+      if (systemRole !== "RegionalAdmin" || !user.regionId) return;
+
+      const res = await fetch(`/api/regions/get?id=${user.regionId}`);
+      const data = await res.json();
+
+      if (data?.region?.name) {
+        setRegionName(data.region.name);
+      }
+    }
+
+    loadRegion();
+  }, [systemRole, user.regionId]);
 
   function toggleRole(role: Role, checked: boolean) {
     if (checked) setRoles((prev) => [...prev, role]);
@@ -91,6 +111,24 @@ export default function EditUserForm({
     const actorUid = currentUser.id;
     const actorName = `${currentUser.firstName} ${currentUser.lastName}`.trim();
 
+    let regionPayload = null;
+
+    // ⭐ If Regional Admin, region name is required
+    if (systemRole === "RegionalAdmin") {
+      if (!regionName.trim()) {
+        toast({
+          title: "Region Required",
+          description: "Please enter a region name for this Regional Admin.",
+        });
+        setLoading(false);
+        return;
+      }
+
+      regionPayload = {
+        regionName,
+      };
+    }
+
     await updateUser({
       userId,
       firstName,
@@ -100,6 +138,7 @@ export default function EditUserForm({
       churchId: isSystemUser ? null : churchId,
       actorUid,
       actorName,
+      ...regionPayload, // ⭐ send regionName if needed
     });
 
     toast({
@@ -143,24 +182,38 @@ export default function EditUserForm({
 
       {/* SYSTEM USER UI */}
       {isSystemUser && (
-        <div className="space-y-2">
-          <Label>System Role</Label>
-          <Select
-            value={systemRole}
-            onValueChange={(val) => setSystemRole(val as SystemRole)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a system role" />
-            </SelectTrigger>
-            <SelectContent>
-              {SYSTEM_ROLES.map((role) => (
-                <SelectItem key={role} value={role}>
-                  {SYSTEM_ROLE_MAP[role]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <>
+          <div className="space-y-2">
+            <Label>System Role</Label>
+            <Select
+              value={systemRole}
+              onValueChange={(val) => setSystemRole(val as SystemRole)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a system role" />
+              </SelectTrigger>
+              <SelectContent>
+                {SYSTEM_ROLES.map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {SYSTEM_ROLE_MAP[role]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* ⭐ Region Name (only for Regional Admin) */}
+          {systemRole === "RegionalAdmin" && (
+            <div className="space-y-2">
+              <Label>Region Name</Label>
+              <Input
+                placeholder="e.g., West Texas District"
+                value={regionName}
+                onChange={(e) => setRegionName(e.target.value)}
+              />
+            </div>
+          )}
+        </>
       )}
 
       {/* CHURCH USER UI */}

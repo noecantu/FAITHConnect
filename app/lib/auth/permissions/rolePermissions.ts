@@ -1,5 +1,5 @@
-import type { Permission } from "./permissions";
-import type { Role } from "./roles";
+import { Permission } from "./permissions";
+import { Role } from "./roles";
 
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   RootAdmin: [
@@ -33,6 +33,68 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "women.manage",
     "youth.read",
     "youth.manage"
+  ],
+
+  SystemAdmin: [
+    "auth.login",
+    "system.manage",
+    "churches.manage",
+    "admins.manage",
+
+    "members.read",
+    "attendance.read",
+    "contributions.read",
+    "events.read",
+    "servicePlans.read"
+  ],
+
+  RegionalAdmin: [
+    "auth.login",
+
+    // Regional-level management
+    "churches.manage",
+    "members.read",
+    "members.manage",
+    "attendance.read",
+    "attendance.manage",
+    "contributions.read",
+    "contributions.manage",
+    "events.read",
+    "events.manage",
+    "servicePlans.read",
+    "servicePlans.manage",
+
+    // Ministry groups
+    "music.read",
+    "music.manage",
+    "usher.read",
+    "usher.manage",
+    "caretaker.read",
+    "caretaker.manage",
+    "men.read",
+    "men.manage",
+    "women.read",
+    "women.manage",
+    "youth.read",
+    "youth.manage"
+  ],
+
+  Support: [
+    "auth.login",
+    "members.read",
+    "attendance.read",
+    "contributions.read",
+    "events.read",
+    "servicePlans.read"
+  ],
+
+  Auditor: [
+    "auth.login",
+    "members.read",
+    "attendance.read",
+    "contributions.read",
+    "events.read",
+    "servicePlans.read"
   ],
 
   Admin: [

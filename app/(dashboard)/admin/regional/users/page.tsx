@@ -1,0 +1,93 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '@/app/lib/firebase/client';
+import { usePermissions } from '@/app/hooks/usePermissions';
+import Link from 'next/link';
+
+export default function RegionalUsersPage() {
+  const { isRootAdmin, isRegionalAdmin, regionId } = usePermissions();
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Block unauthorized access
+  if (!isRegionalAdmin && !isRootAdmin) {
+    return (
+      <div className="p-6">
+        <h1 className="text-xl font-semibold">Unauthorized</h1>
+        <p>You do not have permission to view this page.</p>
+      </div>
+    );
+  }
+
+  useEffect(() => {
+    if (!regionId) return;
+
+    const q = query(
+      collection(db, 'users'),
+      where('regionId', '==', regionId)
+    );
+
+    const unsub = onSnapshot(q, (snap) => {
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setUsers(list);
+      setLoading(false);
+    });
+
+    return () => unsub();
+  }, [regionId]);
+
+  return (
+    <div className="p-6 space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Regional Users</h1>
+        <p className="text-muted-foreground">
+          Users belonging to churches in your region.
+        </p>
+      </div>
+
+      {loading && (
+        <div className="text-muted-foreground">Loading users…</div>
+      )}
+
+      {!loading && users.length === 0 && (
+        <div className="text-muted-foreground">
+          No users found in your region.
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {users.map((user) => (
+          <div
+            key={user.id}
+            className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl"
+          >
+            <h2 className="text-lg font-semibold">
+              {user.firstName} {user.lastName}
+            </h2>
+
+            <p className="text-sm text-muted-foreground">{user.email}</p>
+
+            <p className="text-sm text-muted-foreground mt-1">
+              Roles: {Array.isArray(user.roles) ? user.roles.join(', ') : 'None'}
+            </p>
+
+            <div className="flex justify-end mt-4">
+              <Link
+                href={`/admin/users/${user.id}`}
+                className="
+                  px-3 py-1.5 rounded-md border
+                  bg-muted/20 hover:bg-muted transition
+                  text-sm
+                "
+              >
+                View
+              </Link>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
