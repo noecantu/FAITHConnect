@@ -35,7 +35,7 @@ export default function SongViewOnly({ songId }: { songId: string }) {
               onClick={() => router.push(`/music/setlists/${setlistId}`)}
               className="text-sm text-muted-foreground hover:text-white flex items-center gap-2"
             >
-              ← Back to Setlist
+              ← Back
             </button>
           )}
         </div>
