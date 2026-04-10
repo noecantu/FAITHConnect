@@ -25,42 +25,44 @@ export function PreviewPaginationFooter({
       <p className="text-xs text-muted-foreground">
         Page {page + 1} of {totalPages}
       </p>
-      <div className="space-x-2">
+      <div className="flex gap-2">
         <button
           className="
-            px-2 py-1 border rounded text-xs 
-            hover:bg-muted transition 
+            px-2 py-1 border rounded text-xs
+            hover:bg-muted transition
             disabled:opacity-50 disabled:hover:bg-transparent
           "
           onClick={() => setPage((p) => Math.max(0, p - 1))}
           disabled={page === 0}
         >
-          Previous
+          &lt;
         </button>
 
         <button
           className="
-            px-2 py-1 border rounded text-xs 
-            hover:bg-muted transition 
+            px-2 py-1 border rounded text-xs
+            hover:bg-muted transition
             disabled:opacity-50 disabled:hover:bg-transparent
           "
           onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
           disabled={page >= totalPages - 1}
         >
-          Next
+          &gt;
         </button>
+
         <button
           className="
-            px-2 py-1 border rounded text-xs 
-            hover:bg-muted transition 
+            px-2 py-1 border rounded text-xs
+            hover:bg-muted transition
             disabled:opacity-50 disabled:hover:bg-transparent
           "
           onClick={() => setPage(() => totalPages - 1)}
           disabled={page >= totalPages - 1}
         >
-          Last
+          &gt;&gt;
         </button>
       </div>
+
     </div>
   );
 }
