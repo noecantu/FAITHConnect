@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardContent,
 } from "@/app/components/ui/card";
-import { DashboardPage } from "../layout/DashboardPage";
 
 export default function AdminHomeClient({
   churchCount,

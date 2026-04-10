@@ -75,6 +75,7 @@ export function NavMenu() {
 
   // --- PERMISSIONS ---
   const isRootAdmin = can(typedRoles, "system.manage");
+  const isRegionalAdmin = typedRoles.includes("RegionalAdmin");
   const isChurchAdmin = can(typedRoles, "church.manage") && churchId;
 
   const canSeeContributions = can(typedRoles, "contributions.read");
@@ -101,6 +102,11 @@ export function NavMenu() {
     { href: "/admin/settings", label: "System Settings", icon: Settings, exact: true },
   ];
 
+  const regionalAdminMenu = [
+    { href: "/admin/regional/churches", label: "Regional Churches", icon: Users },
+    { href: "/admin/regional/users", label: "Regional Users", icon: Users },
+  ];
+
   const churchAdminMenu = [
     { href: `/admin/church/${churchId}`, label: "Dashboard", icon: Home, exact: true },
     { href: "/attendance", label: "Attendance", icon: CalendarCheck, permission: canSeeAttendance, isSubmenu: true },
@@ -122,7 +128,13 @@ export function NavMenu() {
     { href: `/church/${churchId}/user/settings`, label: "Settings", icon: Settings },
   ];
 
-  const activeMenu = isRootAdmin ? rootAdminMenu : isChurchAdmin ? churchAdminMenu : userMenu;
+  const activeMenu = isRootAdmin
+    ? rootAdminMenu
+    : isRegionalAdmin
+    ? regionalAdminMenu
+    : isChurchAdmin
+    ? churchAdminMenu
+    : userMenu;
 
   // --- RENDERER ---
   function renderMenuItems(items: MenuItem[]) {

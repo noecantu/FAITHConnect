@@ -317,6 +317,7 @@ export interface User {
   id: string;
   email: string;
   churchId?: string | null;
+  regionId?: string | null;
   roles: Role[];
   firstName?: string | null;
   lastName?: string | null;
@@ -351,4 +352,5 @@ export type UserProfile = {
   profilePhotoUrl?: string;
   roles: Role[];
   churchId: string | null;
+  regionId?: string | null;
 };

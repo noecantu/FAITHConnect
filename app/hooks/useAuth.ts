@@ -69,6 +69,7 @@ export function useAuth(): { user: User | null; loading: boolean } {
             email: data.email ?? firebaseUser.email ?? "",
             roles: (data.roles ?? []) as Role[],
             churchId: data.churchId ?? null,
+            regionId: data.regionId ?? null,
             firstName: data.firstName ?? null,
             lastName: data.lastName ?? null,
             settings: {
