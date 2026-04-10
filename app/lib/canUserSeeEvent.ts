@@ -1,3 +1,4 @@
+//app/lib/canUserSeeEvent.ts
 import { extractUserGroups, type UserLike } from "./extractUserGroups";
 import { isAdmin, isFinance } from "./roleGroups";
 import { normalizeGroupName, type MinistryGroup } from "./ministryGroups";
@@ -12,6 +13,17 @@ export function canUserSeeEvent(
   event: EventLike
 ): boolean {
   const roles = user.roles;
+
+  // ⭐ System-level roles see everything
+  if (
+    roles.includes("RootAdmin") ||
+    roles.includes("SystemAdmin") ||
+    roles.includes("RegionalAdmin") ||
+    roles.includes("Support") ||
+    roles.includes("Auditor")
+  ) {
+    return true;
+  }
 
   // ⭐ Event Managers see everything
   if (roles.includes("EventManager")) return true;
@@ -46,7 +58,7 @@ export function canUserSeeEvent(
 
   // ⭐ Finance sees ONLY public events — but we check this LAST
   if (isFinance(roles)) {
-    return false; // private event + no group match
+    return false;
   }
 
   return false;

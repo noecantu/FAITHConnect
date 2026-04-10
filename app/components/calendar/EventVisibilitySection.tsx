@@ -1,3 +1,4 @@
+//app/components/calendar/EventVisibilitySection.tsx
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { MultiSelect } from "../ui/multi-select";
 import { EVENT_GROUP_OPTIONS } from "@/app/lib/eventGroups";
