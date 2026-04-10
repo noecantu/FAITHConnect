@@ -19,8 +19,6 @@ export function PreviewPaginationFooter({
 }: Props) {
   return (
     <div className="flex items-center justify-between gap-2 pt-2">
-      
-      {/* Hidden on very small screens */}
       <p className="hidden sm:block text-xs text-muted-foreground">
         Showing {start + 1}–{Math.min(end, total)} of {total} {label}
       </p>
@@ -66,7 +64,6 @@ export function PreviewPaginationFooter({
           &gt;&gt;
         </button>
       </div>
-
     </div>
   );
 }
