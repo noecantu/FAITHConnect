@@ -30,17 +30,17 @@ export function AttendanceCard({
   return (
     <Card
       className={cn(
-        "relative group p-2 flex flex-col items-center text-center gap-2 cursor-pointer rounded-md transition-colors",
-
+        "relative group p-2 flex flex-col items-center text-center gap-2 cursor-pointer rounded-md transition-all duration-200",
+        
         // Visitor logic
         isVisitor
           ? present
-            ? "bg-blue-700/80 border border-blue-500/20"
-            : "bg-red-700/80 border border-red-500/20"
+            ? "bg-gradient-to-b from-blue-400/60 to-blue-700/70 shadow-[0_4px_12px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-md"
+            : "bg-gradient-to-b from-red-400/60 to-red-700/70 shadow-[0_4px_12px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-md"
           : // Member logic
             present
-            ? "bg-green-700/80 border border-green-500/20"
-            : "bg-red-700/80 border border-red-500/20",
+            ? "bg-gradient-to-b from-green-400/60 to-green-700/70 shadow-[0_4px_12px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-md"
+            : "bg-gradient-to-b from-red-400/60 to-red-700/70 shadow-[0_4px_12px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-md",
 
         !editable && "cursor-default opacity-80"
       )}

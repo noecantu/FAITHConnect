@@ -269,7 +269,7 @@ export default function AttendancePageContent() {
               variant="default"
               disabled={!canEdit || qrLoading}
               className="w-full flex flex-col items-center justify-center text-center 
-                bg-yellow-700/80 hover:bg-yellow-900/80 active:bg-yellow-950/80
+                bg-gradient-to-b from-yellow-400/70 to-yellow-600/70
                 gap-1 transition-colors"
             >
               <span className="text-sm text-white/80">
@@ -284,7 +284,9 @@ export default function AttendancePageContent() {
                   variant="default"
                   disabled={!canEdit}
                   className="w-full flex flex-col items-center justify-center text-center 
-                    bg-cyan-700/80 hover:bg-cyan-900/80 active:bg-cyan-950/80
+                    bg-gradient-to-b from-cyan-400/70 to-cyan-600/70
+                    hover:from-cyan-400/90 hover:to-cyan-600/90
+                    active:scale-[0.97]
                     gap-1 transition-colors"
                 >
                   <span className="text-sm text-white/80">Add Visitor</span>
@@ -338,7 +340,7 @@ export default function AttendancePageContent() {
               variant="default"
               disabled={!canEdit}
               className="w-full flex flex-col items-center justify-center text-center 
-                bg-green-700/80 hover:bg-green-900/80 active:bg-green-950/80
+                bg-gradient-to-b from-green-400/70 to-green-700/70
                 gap-1 transition-colors"
             >
               <span className="text-sm text-white/80">Mark All Present</span>
@@ -350,7 +352,9 @@ export default function AttendancePageContent() {
               variant="default"
               disabled={!canEdit}
               className="w-full flex flex-col items-center justify-center text-center
-                bg-red-700/80 hover:bg-red-900/80 active:bg-red-950/80
+                bg-gradient-to-b from-red-400/70 to-red-700/70
+                hover:from-red-400/90 hover:to-red-700/90
+                active:scale-[0.97]
                 gap-1 transition-colors"
             >
               <span className="text-sm text-white/80">Mark All Absent</span>
