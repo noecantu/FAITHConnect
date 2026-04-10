@@ -1,3 +1,4 @@
+//app/(dashboard)/admin/actions.updateUserAction.ts
 "use server";
 
 import { adminDb } from "@/app/lib/firebase/admin";
@@ -13,6 +14,8 @@ export interface UpdateUserInput {
   email?: string;
   roles?: Role[] | SystemRole[];
   churchId?: string | null;
+  regionName?: string | null;
+  regionId?: string | null;
   actorUid: string;
   actorName?: string | null;
 }
@@ -112,6 +115,43 @@ export async function updateUserAction(input: UpdateUserInput) {
         throw new Error("You cannot remove the last Admin from this church.");
       }
     }
+  }
+
+  // ---------------------------------------
+  // ⭐ Regional Admin region assignment
+  // ---------------------------------------
+  if (newRoles && isSystemRoleUpdate && newRoles.includes("RegionalAdmin")) {
+    const regionName = (input as any).regionName;
+
+    if (!regionName || !regionName.trim()) {
+      throw new Error("Region name required for Regional Admin.");
+    }
+
+    // Look up region by name
+    const regionSnap = await adminDb
+      .collection("regions")
+      .where("name", "==", regionName)
+      .limit(1)
+      .get();
+
+    let regionId: string;
+
+    if (!regionSnap.empty) {
+      regionId = regionSnap.docs[0].id;
+    } else {
+      const newRegion = await adminDb.collection("regions").add({
+        name: regionName,
+        createdAt: Date.now(),
+      });
+      regionId = newRegion.id;
+    }
+
+    updates.regionId = regionId;
+  }
+
+  // If switching away from RegionalAdmin → clear regionId
+  if (newRoles && isSystemRoleUpdate && !newRoles.includes("RegionalAdmin")) {
+    updates.regionId = null;
   }
 
   // ---------------------------------------

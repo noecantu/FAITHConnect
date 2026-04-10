@@ -1,3 +1,4 @@
+//app/api/users/update/route.ts
 import { NextResponse } from "next/server";
 import { updateUserAction } from "@/app/(dashboard)/admin/actions/updateUserAction";
 

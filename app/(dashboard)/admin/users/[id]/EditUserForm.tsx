@@ -138,7 +138,7 @@ export default function EditUserForm({
       churchId: isSystemUser ? null : churchId,
       actorUid,
       actorName,
-      ...regionPayload, // ⭐ send regionName if needed
+      ...regionPayload,
     });
 
     toast({
