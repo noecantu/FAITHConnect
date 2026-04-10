@@ -2,6 +2,9 @@ import { Permission } from "./permissions";
 import { Role } from "./roles";
 
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
+  // ─────────────────────────────────────────────
+  // SYSTEM-LEVEL ROLES
+  // ─────────────────────────────────────────────
   RootAdmin: [
     "auth.login",
     "system.manage",
@@ -97,6 +100,9 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "servicePlans.read"
   ],
 
+  // ─────────────────────────────────────────────
+  // CHURCH-LEVEL ROLES
+  // ─────────────────────────────────────────────
   Admin: [
     "auth.login",
     "church.manage",
@@ -132,10 +138,16 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   MemberManager: ["auth.login", "members.read", "members.manage", "roles.assign"],
   ServiceManager: ["auth.login", "servicePlans.read", "servicePlans.manage"],
 
+  // ─────────────────────────────────────────────
+  // PASTORAL / LEADERSHIP
+  // ─────────────────────────────────────────────
   Pastor: ["auth.login", "members.read", "events.read", "attendance.read", "servicePlans.read"],
   Minister: ["auth.login", "members.read", "events.read", "servicePlans.read"],
   Deacon: ["auth.login", "members.read", "events.read"],
 
+  // ─────────────────────────────────────────────
+  // MINISTRY GROUPS
+  // ─────────────────────────────────────────────
   MusicManager: ["auth.login", "music.read", "music.manage"],
   MusicMember: ["auth.login", "music.read"],
 

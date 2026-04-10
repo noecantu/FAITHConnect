@@ -3,6 +3,7 @@
 export type SystemRole =
   | "RootAdmin"
   | "SystemAdmin"
+  | "RegionalAdmin"
   | "Support"
   | "Auditor";
 
@@ -10,6 +11,7 @@ export type SystemRole =
 export const SYSTEM_ROLES: SystemRole[] = [
   "RootAdmin",
   "SystemAdmin",
+  "RegionalAdmin",
   "Support",
   "Auditor",
 ];
