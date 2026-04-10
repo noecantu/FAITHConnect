@@ -36,7 +36,6 @@ import {
 } from "@/app/components/ui/select";
 
 import type { Church } from "@/app/lib/types";
-import { DashboardPage } from "../../layout/DashboardPage";
 
 export default function GlobalChurchListPage() {
   const PAGE_SIZE = 10;

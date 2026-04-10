@@ -6,11 +6,11 @@ import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { useToast } from '@/app/hooks/use-toast';
-
 import { db } from '@/app/lib/firebase/client';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, updateDoc } from 'firebase/firestore';
 import TimezoneSelect from '@/app/components/settings/TimezoneSelect';
 import { usePhoneInput } from '@/app/hooks/usePhoneInput';
+import { Check } from "lucide-react";
 
 interface Props {
   churchId: string;
@@ -36,6 +36,11 @@ export default function ChurchProfileCard({ churchId }: Props) {
 
   const [saving, setSaving] = useState(false);
 
+  // Regional Settings
+  const [regions, setRegions] = useState<any[]>([]);
+  const [regionId, setRegionId] = useState("");
+  const [originalRegionId, setOriginalRegionId] = useState("");
+
   // Load church profile
   useEffect(() => {
     if (!churchId) return;
@@ -45,6 +50,15 @@ export default function ChurchProfileCard({ churchId }: Props) {
       if (!snap.exists()) return;
 
       const data = snap.data();
+
+      // Load regions
+      const regionSnap = await getDocs(collection(db, "regions"));
+      const regionList = regionSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setRegions(regionList);
+
+      // Set region from church data
+      setRegionId(data.regionId ?? "");
+      setOriginalRegionId(data.regionId ?? "");
 
       // Identity
       setName(data.name ?? '');
@@ -69,7 +83,8 @@ export default function ChurchProfileCard({ churchId }: Props) {
   const hasChanges =
     timezone !== originalTimezone ||
     address !== originalAddress ||
-    phone.digits !== originalPhone;
+    phone.digits !== originalPhone ||
+    regionId !== originalRegionId;
 
   // Save handler
   const handleSave = async () => {
@@ -82,6 +97,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
         timezone,
         address,
         phone: phone.digits,
+        regionId: regionId || null,
         updatedAt: new Date(),
       });
 
@@ -89,6 +105,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
       setOriginalTimezone(timezone);
       setOriginalAddress(address);
       setOriginalPhone(phone.digits);
+      setOriginalRegionId(regionId);
 
       toast({
         title: "Saved",
@@ -111,55 +128,81 @@ export default function ChurchProfileCard({ churchId }: Props) {
   };
   
   return (
-    <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
-      <CardHeader>
-        <CardTitle>{name || "Church Profile"}</CardTitle>
-        <CardDescription>Manage your church’s identity and details.</CardDescription>
+    <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl flex flex-col h-full">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>{name || "Church Profile"}</CardTitle>
+          <CardDescription>Manage your church’s identity and details.</CardDescription>
+        </div>
+
+        {/* Save Icon */}
+        <button
+          onClick={handleSave}
+          disabled={!hasChanges || saving}
+          className={`
+            p-2 rounded-md border
+            bg-muted/20 transition
+            focus:outline-none focus:ring-2 focus:ring-primary
+            ${!hasChanges || saving 
+              ? "opacity-40 cursor-not-allowed" 
+              : "hover:bg-muted"}
+          `}
+        >
+          {saving ? (
+            <div className="h-5 w-5 animate-spin border-2 border-white/30 border-t-white rounded-full" />
+          ) : (
+            <Check className="h-5 w-5 text-white" />
+          )}
+        </button>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-col space-y-4 flex-1">
 
         {/* Address + Phone (side-by-side) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          
-          {/* Address */}
-          <div className="grid gap-1">
-            <Label>Address</Label>
-            <Input
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-            />
-          </div>
-
-          {/* Phone */}
-          <div className="grid gap-1">
-            <Label>Phone Number</Label>
-            <Input
-              value={phone.display}
-              onChange={(e) => phone.handleChange(e.target.value)}
-              placeholder="(555) 123‑4567"
-            />
-          </div>
-
+            {/* Address */}
+            <div className="grid gap-1">
+              <Label>Address</Label>
+              <Input
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
+            </div>
+            {/* Phone */}
+            <div className="grid gap-1">
+              <Label>Phone Number</Label>
+              <Input
+                value={phone.display}
+                onChange={(e) => phone.handleChange(e.target.value)}
+                placeholder="(555) 123‑4567"
+              />
+            </div>
         </div>
 
         {/* Timezone + Save Button (side-by-side) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
-
           {/* Timezone */}
           <div className="grid gap-1">
             <TimezoneSelect value={timezone} onChange={setTimezone} />
           </div>
 
-          {/* Save Button */}
-          <Button
-            onClick={handleSave}
-            disabled={!hasChanges || saving}
-            className="w-full sm:w-auto"
-          >
-            {saving ? "Saving..." : "Save Changes"}
-          </Button>
-
+          {/* Region Selector */}
+          <div className="grid gap-1">
+            <Label>Region</Label>
+            <select
+              className="bg-black/40 border border-white/20 rounded p-2"
+              value={regionId}
+              onChange={(e) => setRegionId(e.target.value)}
+            >
+              <option value="">Select a Region</option>
+              {regions.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                  {r.regionAdminId ? ` — ${r.regionAdminId}` : ""}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
       </CardContent>

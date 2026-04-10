@@ -4,11 +4,10 @@ import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/app/hooks/use-toast';
-
 import { db, storage } from '@/app/lib/firebase/client';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { ref, deleteObject } from 'firebase/storage';
-
+import { Check, X } from "lucide-react";
 import ImageDropzone from "@/app/components/settings/ImageDropzone";
 
 interface Props {
@@ -118,9 +117,55 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
 
   return (
     <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
-      <CardHeader>
-        <CardTitle>Church Logo</CardTitle>
-        <CardDescription>Upload and manage your church’s logo.</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Church Logo</CardTitle>
+          <CardDescription>Upload and manage your church’s logo.</CardDescription>
+        </div>
+
+        <div className="flex items-center gap-2">
+
+          {/* Remove Logo (X) */}
+          <button
+            onClick={() => setShowConfirmRemove(true)}
+            disabled={!logoUrl || removing}
+            className={`
+              p-2 rounded-md border
+              bg-muted/20 transition
+              focus:outline-none focus:ring-2 focus:ring-primary
+              ${!logoUrl || removing 
+                ? "opacity-40 cursor-not-allowed" 
+                : "hover:bg-muted"}
+            `}
+          >
+            {removing ? (
+              <div className="h-5 w-5 animate-spin border-2 border-white/30 border-t-white rounded-full" />
+            ) : (
+              <X className="h-5 w-5 text-white" />
+            )}
+          </button>
+
+          {/* Save Logo (Checkmark) */}
+          <button
+            onClick={handleSave}
+            disabled={!hasChanges || saving}
+            className={`
+              p-2 rounded-md border
+              bg-muted/20 transition
+              focus:outline-none focus:ring-2 focus:ring-primary
+              ${!hasChanges || saving
+                ? "opacity-40 cursor-not-allowed"
+                : "hover:bg-muted"}
+            `}
+          >
+            {saving ? (
+              <div className="h-5 w-5 animate-spin border-2 border-white/30 border-t-white rounded-full" />
+            ) : (
+              <Check className="h-5 w-5 text-white" />
+            )}
+          </button>
+
+        </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -153,25 +198,23 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
           }}
         />
 
-        {/* Save + Remove */}
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button
-            onClick={handleSave}
-            disabled={!hasChanges || saving}
-            className="w-full sm:w-auto"
-          >
-            {saving ? "Saving..." : "Save Changes"}
-          </Button>
-
+        {/* Save + Remove (bottom-right) */}
+        {/* <div className="flex justify-end gap-2 mt-4">
           <Button
             variant="destructive"
             onClick={() => setShowConfirmRemove(true)}
             disabled={!logoUrl || removing}
-            className="w-full sm:w-auto"
           >
             Remove Logo
           </Button>
-        </div>
+
+          <Button
+            onClick={handleSave}
+            disabled={!hasChanges || saving}
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </Button>
+        </div> */}
 
         {/* Confirm Remove */}
         {showConfirmRemove && (
