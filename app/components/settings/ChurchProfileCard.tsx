@@ -129,11 +129,13 @@ export default function ChurchProfileCard({ churchId }: Props) {
   
   return (
     <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
-      <CardHeader>
+      <CardHeader className="pb-4">
         <div className="flex items-start justify-between w-full">
           <div>
             <CardTitle>{name || "Church Profile"}</CardTitle>
-            <CardDescription>Manage your church’s identity and details.</CardDescription>
+            <CardDescription>
+              Manage your church’s identity and details.
+            </CardDescription>
           </div>
 
           {/* Save Icon */}
@@ -158,40 +160,42 @@ export default function ChurchProfileCard({ churchId }: Props) {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
-        {/* Address + Phone (side-by-side) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Address */}
-            <div className="grid gap-1">
-              <Label>Address</Label>
-              <Input
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-              />
-            </div>
-            {/* Phone */}
-            <div className="grid gap-1">
-              <Label>Phone Number</Label>
-              <Input
-                value={phone.display}
-                onChange={(e) => phone.handleChange(e.target.value)}
-                placeholder="(555) 123‑4567"
-              />
-            </div>
+      <CardContent className="space-y-6">
+        {/* Address + Phone */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid gap-2">
+            <Label>Address</Label>
+            <Input
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Phone Number</Label>
+            <Input
+              value={phone.display}
+              onChange={(e) => phone.handleChange(e.target.value)}
+              placeholder="(555) 123‑4567"
+            />
+          </div>
         </div>
 
-        {/* Timezone + Save Button (side-by-side) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Timezone */}
-          <div className="grid gap-1">
+        {/* Timezone + Region */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid gap-2">
+            <Label>Timezone</Label>
             <TimezoneSelect value={timezone} onChange={setTimezone} />
           </div>
 
-          {/* Region Selector */}
           <div className="grid gap-1">
             <Label>Region</Label>
             <select
-              className="bg-black/40 border border-white/20 rounded p-2"
+              className="
+                w-full rounded-md border border-input bg-background
+                px-3 py-2 text-sm h-10
+                focus:outline-none focus:ring-2 focus:ring-primary
+              "
               value={regionId}
               onChange={(e) => setRegionId(e.target.value)}
             >

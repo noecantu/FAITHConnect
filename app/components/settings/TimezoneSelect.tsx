@@ -1,8 +1,6 @@
 //app/components/settings/TimezoneSelect.tsx
 "use client";
 
-import { Label } from "@/app/components/ui/label";
-
 interface Props {
   value: string;
   onChange: (value: string) => void;
@@ -10,9 +8,7 @@ interface Props {
 
 export default function TimezoneSelect({ value, onChange }: Props) {
   return (
-    <div className="space-y-2">
-      <Label>Timezone</Label>
-
+    <div>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}

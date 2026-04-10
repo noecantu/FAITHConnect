@@ -1,28 +1,21 @@
-import { MinistryGroup } from "./ministryGroups";
-
-//app/lib/roleGroups.ts
-export const ROLES = [
-  // System-level
+export const SYSTEM_ROLES = [
   "RootAdmin",
   "SystemAdmin",
   "RegionalAdmin",
   "Support",
   "Auditor",
+] as const;
 
-  // Church-level
+export const CHURCH_ROLES = [
   "Admin",
   "Finance",
   "EventManager",
   "AttendanceManager",
   "MemberManager",
   "ServiceManager",
-
-  // Pastoral / leadership
   "Pastor",
   "Minister",
   "Deacon",
-
-  // Ministry groups (members + managers)
   "MusicManager",
   "MusicMember",
   "UsherManager",
@@ -35,17 +28,13 @@ export const ROLES = [
   "WomensGroup",
   "YouthGroupManager",
   "YouthGroup",
-
-  // Generic fallback
   "GroupManager",
-
-  // Basic member
   "Member",
 ] as const;
 
-export type Role = (typeof ROLES)[number];
-
-// --- Role helpers used across the app ---
+export type SystemRole = (typeof SYSTEM_ROLES)[number];
+export type ChurchRole = (typeof CHURCH_ROLES)[number];
+export type Role = SystemRole | ChurchRole;
 
 export function isAdmin(roles: Role[]) {
   return roles.includes("Admin");
@@ -53,21 +42,4 @@ export function isAdmin(roles: Role[]) {
 
 export function isFinance(roles: Role[]) {
   return roles.includes("Finance");
-}
-
-export function getAllGroupsForRoles(roles: Role[]): MinistryGroup[] {
-  const groups = new Set<MinistryGroup>();
-
-  for (const role of roles) {
-    const lower = role.toLowerCase();
-
-    if (lower.startsWith("music")) groups.add("Music");
-    if (lower.startsWith("usher")) groups.add("Usher");
-    if (lower.startsWith("caretaker")) groups.add("Caretaker");
-    if (lower.startsWith("mensgroup")) groups.add("Men");
-    if (lower.startsWith("womensgroup")) groups.add("Women");
-    if (lower.startsWith("youthgroup")) groups.add("Youth");
-  }
-
-  return [...groups];
 }

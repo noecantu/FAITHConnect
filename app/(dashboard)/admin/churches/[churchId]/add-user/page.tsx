@@ -16,7 +16,6 @@ import { useToast } from "@/app/hooks/use-toast";
 
 // Reuse your existing role definitions
 import { ROLE_MAP, ALL_ROLES } from '@/app/lib/auth/permissions/roles';
-import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
 
 export default function AddUserPage() {
   const params = useParams();
@@ -26,7 +25,18 @@ export default function AddUserPage() {
     ? churchIdRaw[0]
     : churchIdRaw;
 
-  // ❗ Hooks must come BEFORE any return
+  const SYSTEM_ROLES = [
+    "RootAdmin",
+    "SystemAdmin",
+    "RegionalAdmin",
+    "Support",
+    "Auditor",
+  ];
+
+  const churchRolesOnly = ALL_ROLES.filter(
+    (role) => !SYSTEM_ROLES.includes(role)
+  );
+
   const router = useRouter();
   const { toast } = useToast();
 
@@ -154,7 +164,7 @@ export default function AddUserPage() {
           <div className="space-y-4">
             <h4 className="text-md font-bold">Roles & Permissions</h4>
             <div className="space-y-2">
-                {ALL_ROLES.map((role) => (
+                {churchRolesOnly.map((role) => (
                 <div key={role} className="flex items-center space-x-2">
                     <Checkbox
                     checked={selectedRoles.includes(role)}

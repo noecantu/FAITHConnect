@@ -51,11 +51,11 @@ service cloud.firestore {
     // Group Member roles
     function isGroupMember(churchId) {
       return hasChurchRole(churchId, [
-        "Music",
+        "MusicMember",
         "Usher",
         "MensGroup",
         "WomensGroup",
-        "Youth"
+        "YouthGroup"
       ]);
     }
 

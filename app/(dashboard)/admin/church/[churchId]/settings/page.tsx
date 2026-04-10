@@ -1,4 +1,3 @@
-//app/(dashboard)/admin/church/[churchId]/settings/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -19,6 +18,21 @@ import DeleteUserDialog from '../../../../../components/settings/DeleteUserDialo
 import ChurchLogoCard from '../../../../../components/settings/ChurchLogoCard';
 import ChurchProfileCard from '../../../../../components/settings/ChurchProfileCard';
 
+// -----------------------------
+// SYSTEM ROLE CHECK
+// -----------------------------
+const SYSTEM_ROLES = [
+  "RootAdmin",
+  "SystemAdmin",
+  "RegionalAdmin",
+  "Support",
+  "Auditor",
+] as const;
+
+function isSystemUser(roles: string[]) {
+  return roles?.some((r) => SYSTEM_ROLES.includes(r as any));
+}
+
 export default function ChurchSettingsPage() {
   const { churchId } = useChurchId();
   const { user } = useAuth();
@@ -29,7 +43,7 @@ export default function ChurchSettingsPage() {
   // -----------------------------
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // -----------------------------
   // STORAGE USAGE
   // -----------------------------
@@ -71,7 +85,7 @@ export default function ChurchSettingsPage() {
   } = useUserManagement();
 
   // -----------------------------
-  // LOAD USERS
+  // LOAD USERS (RESTORED WORKING VERSION)
   // -----------------------------
   useEffect(() => {
     if (!churchId || !user?.id) {
@@ -131,6 +145,32 @@ export default function ChurchSettingsPage() {
   const sortedUsers = getSortedUsers(users);
 
   // -----------------------------
+  // PERMISSION CHECK (AFTER HOOKS)
+  // -----------------------------
+  if (!user) {
+    return (
+      <div className="p-6">
+        <h1 className="text-xl font-bold text-red-600">
+          You must be logged in to access this page.
+        </h1>
+      </div>
+    );
+  }
+
+  if (isSystemUser(user.roles ?? [])) {
+    return (
+      <div className="p-6">
+        <h1 className="text-xl font-bold text-red-600">
+          You do not have permission to access church settings.
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          System-level accounts cannot manage church-level settings.
+        </p>
+      </div>
+    );
+  }
+
+  // -----------------------------
   // LOADING STATE
   // -----------------------------
   if (loading) {
@@ -172,7 +212,7 @@ export default function ChurchSettingsPage() {
               churchId={churchId!}
             />
           </div>
-            
+
           <StorageUsageCard
             storageUsed={storageUsed}
             hasLoaded={hasLoadedUsage}
