@@ -18,13 +18,17 @@ export function PreviewPaginationFooter({
   label = "records",
 }: Props) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2">
-      <p className="hidden xs:block text-xs text-muted-foreground">
+    <div className="flex items-center justify-between gap-2 pt-2">
+      
+      {/* Hidden on very small screens */}
+      <p className="hidden sm:block text-xs text-muted-foreground">
         Showing {start + 1}–{Math.min(end, total)} of {total} {label}
       </p>
+
       <p className="text-xs text-muted-foreground">
         Page {page + 1} of {totalPages}
       </p>
+
       <div className="flex gap-2">
         <button
           className="
