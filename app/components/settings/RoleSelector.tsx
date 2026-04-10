@@ -3,14 +3,14 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Checkbox } from '@/app/components/ui/checkbox';
 import { Label } from '@/app/components/ui/label';
-import { ALL_ROLES, ROLE_MAP, Role } from '@/app/lib/auth/permissions/roles';
+import { ALL_ROLES, SYSTEM_ROLES, CHURCH_ROLES, ROLE_MAP, Role } from '@/app/lib/auth/permissions/roles';
 
 interface Props {
   selectedRoles: Role[];
   onChange: (role: Role, checked: boolean) => void;
-  currentUserId: string;   // actor
-  targetUserId: string;    // user being edited
-  currentUserRoles: Role[]; // needed to detect RootAdmin
+  currentUserId: string;
+  targetUserId: string;
+  currentUserRoles: Role[];
 }
 
 export default function RoleSelector({
@@ -21,10 +21,30 @@ export default function RoleSelector({
   currentUserRoles,
 }: Props) {
 
-  const VISIBLE_ROLES = ALL_ROLES.filter((r) => r !== "RootAdmin");
-
-  const isSelf = currentUserId === targetUserId;
   const isRootAdmin = currentUserRoles.includes("RootAdmin");
+  const isSelf = currentUserId === targetUserId;
+
+  // -----------------------------
+  // DETERMINE WHICH ROLES ARE VISIBLE
+  // -----------------------------
+  const VISIBLE_ROLES: Role[] = isRootAdmin
+    ? [...ALL_ROLES]
+    : [...CHURCH_ROLES];
+
+  // -----------------------------
+  // DETERMINE WHICH ROLES ARE DISABLED
+  // -----------------------------
+  function isDisabled(role: Role) {
+    if (isRootAdmin) return false; // RootAdmin can toggle anything
+
+    // Church Admin cannot assign system roles
+    if (SYSTEM_ROLES.includes(role as any)) return true;
+
+    // Church Admin cannot remove their own Admin role
+    if (isSelf && role === "Admin") return true;
+
+    return false;
+  }
 
   return (
     <Card>
@@ -34,30 +54,18 @@ export default function RoleSelector({
 
       <CardContent>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {VISIBLE_ROLES.map((role) => {
-            const isAdminRole = role === "Admin";
-
-            // Disable Admin checkbox if:
-            // - user is editing themselves
-            // - AND they are not RootAdmin
-            const disableAdminToggle =
-              isSelf && isAdminRole && !isRootAdmin;
-
-            return (
-              <div key={role} className="flex items-center space-x-2">
-                <Checkbox
-                  checked={selectedRoles.includes(role)}
-                  disabled={disableAdminToggle}
-                  onCheckedChange={(checked) => onChange(role, !!checked)}
-                />
-                <Label
-                  className={disableAdminToggle ? "text-muted-foreground" : ""}
-                >
-                  {ROLE_MAP[role]}
-                </Label>
-              </div>
-            );
-          })}
+          {VISIBLE_ROLES.map((role) => (
+            <div key={role} className="flex items-center space-x-2">
+              <Checkbox
+                checked={selectedRoles.includes(role)}
+                disabled={isDisabled(role)}
+                onCheckedChange={(checked) => onChange(role, !!checked)}
+              />
+              <Label className={isDisabled(role) ? "text-muted-foreground" : ""}>
+                {ROLE_MAP[role]}
+              </Label>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>

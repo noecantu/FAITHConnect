@@ -1,32 +1,107 @@
-export const ROLE_MAP = {
-  RootAdmin: "Root Administrator",
-  SystemAdmin: "System Administrator",
-  RegionalAdmin: "Regional Administrator",
-  Support: "Support Staff",
-  Auditor: "Auditor (Read-Only)", 
-  Admin: "Administrator",
-  AttendanceManager: "Attendance Manager",
-  Caretaker: "Caretaker",
-  CaretakerManager: "Caretaker Manager",
-  Deacon: "Deacon",
+// -----------------------------
+// SYSTEM ROLES
+// -----------------------------
+export const SYSTEM_ROLES = [
+  "RootAdmin",
+  "SystemAdmin",
+  "RegionalAdmin",
+  "Support",
+  "Auditor",
+] as const;
+
+// -----------------------------
+// CHURCH ROLES
+// -----------------------------
+export const CHURCH_ROLES = [
+  "Admin",
+  "Finance",
+  "EventManager",
+  "AttendanceManager",
+  "MemberManager",
+  "ServiceManager",
+  "Pastor",
+  "Minister",
+  "Deacon",
+  "MusicManager",
+  "MusicMember",
+  "UsherManager",
+  "Usher",
+  "CaretakerManager",
+  "Caretaker",
+  "MensGroupManager",
+  "MensGroup",
+  "WomensGroupManager",
+  "WomensGroup",
+  "YouthGroupManager",
+  "YouthGroup",
+  "GroupManager",
+  "Member",
+] as const;
+
+// -----------------------------
+// ROLE TYPES
+// -----------------------------
+export type SystemRole = (typeof SYSTEM_ROLES)[number];
+export type ChurchRole = (typeof CHURCH_ROLES)[number];
+export type Role = SystemRole | ChurchRole;
+
+// -----------------------------
+// ALL ROLES (for UI lists)
+// -----------------------------
+export const ALL_ROLES: Role[] = [
+  ...(SYSTEM_ROLES as unknown as Role[]),
+  ...(CHURCH_ROLES as unknown as Role[]),
+];
+
+// -----------------------------
+// ROLE LABEL MAP
+// -----------------------------
+export const ROLE_MAP: Record<Role, string> = {
+  RootAdmin: "Root Admin",
+  SystemAdmin: "System Admin",
+  RegionalAdmin: "Regional Admin",
+  Support: "Support",
+  Auditor: "Auditor",
+
+  Admin: "Church Admin",
+  Finance: "Finance",
   EventManager: "Event Manager",
-  Finance: "Finance Manager",
+  AttendanceManager: "Attendance Manager",
   MemberManager: "Member Manager",
-  MensGroup: "Men's Group",
-  MensGroupManager: "Men's Group Manager",
+  ServiceManager: "Service Manager",
+  Pastor: "Pastor",
   Minister: "Minister",
+  Deacon: "Deacon",
+
   MusicManager: "Music Manager",
   MusicMember: "Music Member",
-  Pastor: "Pastor",
-  ServiceManager: "Service Manager",
-  Usher: "Usher",
+
   UsherManager: "Usher Manager",
-  WomensGroup: "Women's Group",
+  Usher: "Usher",
+
+  CaretakerManager: "Caretaker Manager",
+  Caretaker: "Caretaker",
+
+  MensGroupManager: "Men's Group Manager",
+  MensGroup: "Men's Group",
+
   WomensGroupManager: "Women's Group Manager",
+  WomensGroup: "Women's Group",
+
+  YouthGroupManager: "Youth Group Manager",
   YouthGroup: "Youth Group",
-  YouthGroupManager: "Youth Group Manager"
-} as const;
 
-export type Role = keyof typeof ROLE_MAP;
+  GroupManager: "Group Manager",
+  Member: "Member",
+};
 
-export const ALL_ROLES: Role[] = Object.keys(ROLE_MAP) as Role[];
+// -----------------------------
+// SIMPLE HELPERS
+// -----------------------------
+export function isAdmin(roles: Role[]) {
+  return roles.includes("Admin");
+}
+
+export function isFinance(roles: Role[]) {
+  return roles.includes("Finance");
+}
