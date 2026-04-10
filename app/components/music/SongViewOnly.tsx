@@ -6,13 +6,16 @@ import FullscreenModal from "./FullscreenModal";
 import type { Song } from "@/app/lib/types";
 import { useChurchId } from "@/app/hooks/useChurchId";
 import { getSectionColor } from "@/app/lib/sectionColors";
-import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function SongViewOnly({ songId }: { songId: string }) {
   const { churchId } = useChurchId();
   const [song, setSong] = useState<Song | null>(null);
   const [showLyrics, setShowLyrics] = useState(false);
   const [showChords, setShowChords] = useState(false);
+  const router = useRouter();
+  const params = useSearchParams();
+  const setlistId = params.get("setlist");
 
   useEffect(() => {
     if (!churchId) return;
@@ -24,8 +27,18 @@ export default function SongViewOnly({ songId }: { songId: string }) {
   return (
       <div className="space-y-6">
 
-        {/* Page Title */}
-        <h1 className="text-3xl font-semibold">{song.title}</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-semibold">{song.title}</h1>
+
+          {setlistId && (
+            <button
+              onClick={() => router.push(`/music/setlists/${setlistId}`)}
+              className="text-sm text-muted-foreground hover:text-white flex items-center gap-2"
+            >
+              ← Back to Setlist
+            </button>
+          )}
+        </div>
 
         {/* Song Metadata */}
         <div className="text-gray-500 flex items-center gap-4">

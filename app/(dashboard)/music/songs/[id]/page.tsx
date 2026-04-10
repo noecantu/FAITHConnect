@@ -129,7 +129,6 @@ export default function SongDetailPage() {
   return (
     <>
       <PageHeader title={song.title} />
-  
       {/* SECTION: Basic Info */}
       <Card className="p-6 space-y-6">
         <div>

@@ -164,7 +164,7 @@ export default function SetListDetailPage() {
                       bg-black/80 border-white/20 backdrop-blur-xl 
                       hover:bg-black/50 transition"
                     onClick={() =>
-                      router.push(`/music/songs/${song.songId}/view`)
+                      router.push(`/music/songs/${song.songId}/view?setlist=${setList.id}`)
                     }
                   >
                     <div className="flex items-center justify-between">
