@@ -26,28 +26,30 @@ export default function StorageUsageCard({
 
   return (
     <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Database Storage</CardTitle>
-          <CardDescription>
-            Organization Storage Usage
-          </CardDescription>
-        </div>
+      <CardHeader>
+        <div className="flex items-start justify-between w-full">
+          <div>
+            <CardTitle>Database Storage</CardTitle>
+            <CardDescription>
+              Organization Storage Usage
+            </CardDescription>
+          </div>
 
-        {onRefresh && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRefresh}
-            disabled={refreshing}
-          >
-            {refreshing ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4" />
-            )}
-          </Button>
-        )}
+          {onRefresh && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRefresh}
+              disabled={refreshing}
+            >
+              {refreshing ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-5 w-5" />
+              )}
+            </Button>
+          )}
+        </div>
       </CardHeader>
 
       <CardContent className="space-y-4">

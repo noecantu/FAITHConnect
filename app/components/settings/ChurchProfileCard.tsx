@@ -128,36 +128,37 @@ export default function ChurchProfileCard({ churchId }: Props) {
   };
   
   return (
-    <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl flex flex-col h-full">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>{name || "Church Profile"}</CardTitle>
-          <CardDescription>Manage your church’s identity and details.</CardDescription>
-        </div>
+    <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
+      <CardHeader>
+        <div className="flex items-start justify-between w-full">
+          <div>
+            <CardTitle>{name || "Church Profile"}</CardTitle>
+            <CardDescription>Manage your church’s identity and details.</CardDescription>
+          </div>
 
-        {/* Save Icon */}
-        <button
-          onClick={handleSave}
-          disabled={!hasChanges || saving}
-          className={`
-            p-2 rounded-md border
-            bg-muted/20 transition
-            focus:outline-none focus:ring-2 focus:ring-primary
-            ${!hasChanges || saving 
-              ? "opacity-40 cursor-not-allowed" 
-              : "hover:bg-muted"}
-          `}
-        >
-          {saving ? (
-            <div className="h-5 w-5 animate-spin border-2 border-white/30 border-t-white rounded-full" />
-          ) : (
-            <Check className="h-5 w-5 text-white" />
-          )}
-        </button>
+          {/* Save Icon */}
+          <button
+            onClick={handleSave}
+            disabled={!hasChanges || saving}
+            className={`
+              p-2 rounded-md border
+              bg-muted/20 transition
+              focus:outline-none focus:ring-2 focus:ring-primary
+              ${!hasChanges || saving 
+                ? "opacity-40 cursor-not-allowed" 
+                : "hover:bg-muted"}
+            `}
+          >
+            {saving ? (
+              <div className="h-5 w-5 animate-spin border-2 border-white/30 border-t-white rounded-full" />
+            ) : (
+              <Check className="h-5 w-5 text-white" />
+            )}
+          </button>
+        </div>
       </CardHeader>
 
-      <CardContent className="flex flex-col space-y-4 flex-1">
-
+      <CardContent className="space-y-4">
         {/* Address + Phone (side-by-side) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Address */}
@@ -180,7 +181,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
         </div>
 
         {/* Timezone + Save Button (side-by-side) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Timezone */}
           <div className="grid gap-1">
             <TimezoneSelect value={timezone} onChange={setTimezone} />
@@ -204,7 +205,6 @@ export default function ChurchProfileCard({ churchId }: Props) {
             </select>
           </div>
         </div>
-
       </CardContent>
     </Card>
   );

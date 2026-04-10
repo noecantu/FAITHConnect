@@ -117,54 +117,55 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
 
   return (
     <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Church Logo</CardTitle>
-          <CardDescription>Upload and manage your church’s logo.</CardDescription>
-        </div>
+      <CardHeader>
+        <div className="flex items-start justify-between w-full">
+          <div>
+            <CardTitle>Church Logo</CardTitle>
+            <CardDescription>Upload and manage your church’s logo.</CardDescription>
+          </div>
 
-        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
 
-          {/* Remove Logo (X) */}
-          <button
-            onClick={() => setShowConfirmRemove(true)}
-            disabled={!logoUrl || removing}
-            className={`
-              p-2 rounded-md border
-              bg-muted/20 transition
-              focus:outline-none focus:ring-2 focus:ring-primary
-              ${!logoUrl || removing 
-                ? "opacity-40 cursor-not-allowed" 
-                : "hover:bg-muted"}
-            `}
-          >
-            {removing ? (
-              <div className="h-5 w-5 animate-spin border-2 border-white/30 border-t-white rounded-full" />
-            ) : (
-              <X className="h-5 w-5 text-white" />
-            )}
-          </button>
+            {/* Remove Logo (X) */}
+            <button
+              onClick={() => setShowConfirmRemove(true)}
+              disabled={!logoUrl || removing}
+              className={`
+                p-2 rounded-md border
+                bg-muted/20 transition
+                focus:outline-none focus:ring-2 focus:ring-primary
+                ${!logoUrl || removing 
+                  ? "opacity-40 cursor-not-allowed" 
+                  : "hover:bg-muted"}
+              `}
+            >
+              {removing ? (
+                <div className="h-5 w-5 animate-spin border-2 border-white/30 border-t-white rounded-full" />
+              ) : (
+                <X className="h-5 w-5 text-white" />
+              )}
+            </button>
 
-          {/* Save Logo (Checkmark) */}
-          <button
-            onClick={handleSave}
-            disabled={!hasChanges || saving}
-            className={`
-              p-2 rounded-md border
-              bg-muted/20 transition
-              focus:outline-none focus:ring-2 focus:ring-primary
-              ${!hasChanges || saving
-                ? "opacity-40 cursor-not-allowed"
-                : "hover:bg-muted"}
-            `}
-          >
-            {saving ? (
-              <div className="h-5 w-5 animate-spin border-2 border-white/30 border-t-white rounded-full" />
-            ) : (
-              <Check className="h-5 w-5 text-white" />
-            )}
-          </button>
-
+            {/* Save Logo (Checkmark) */}
+            <button
+              onClick={handleSave}
+              disabled={!hasChanges || saving}
+              className={`
+                p-2 rounded-md border
+                bg-muted/20 transition
+                focus:outline-none focus:ring-2 focus:ring-primary
+                ${!hasChanges || saving
+                  ? "opacity-40 cursor-not-allowed"
+                  : "hover:bg-muted"}
+              `}
+            >
+              {saving ? (
+                <div className="h-5 w-5 animate-spin border-2 border-white/30 border-t-white rounded-full" />
+              ) : (
+                <Check className="h-5 w-5 text-white" />
+              )}
+            </button>
+          </div>
         </div>
       </CardHeader>
 
