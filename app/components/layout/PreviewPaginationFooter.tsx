@@ -19,7 +19,7 @@ export function PreviewPaginationFooter({
 }: Props) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2">
-      <p className="text-xs text-muted-foreground">
+      <p className="hidden xs:block text-xs text-muted-foreground">
         Showing {start + 1}–{Math.min(end, total)} of {total} {label}
       </p>
       <p className="text-xs text-muted-foreground">
