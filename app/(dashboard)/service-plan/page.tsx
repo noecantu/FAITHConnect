@@ -204,7 +204,7 @@ export default function ServicePlanPage() {
       </div>
 
       {/* ⭐ Card wrapper for list */}
-      <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
+      <Card>
         <CardHeader>
           <CardTitle>All Service Plans</CardTitle>
         </CardHeader>
