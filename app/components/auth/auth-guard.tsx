@@ -5,7 +5,7 @@ import { useChurchId } from "@/app/hooks/useChurchId";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { SYSTEM_ROLES, SystemRole } from "@/app/lib/system-roles";
+import { SystemRole, SYSTEM_ROLES } from "@/app/lib/auth/roles";
 
 const PUBLIC_ROUTES = ["/login"];
 const ONBOARDING_ROUTES = ["/select-church", "/onboarding/create-church"];
@@ -47,12 +47,34 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // 3. System users (RootAdmin)
+    // 3. System users (RootAdmin, SystemAdmin, RegionalAdmin, Support, Auditor)
     if (user && isSystemUser) {
-      if (pathname === "/") {
+      if (pathname.startsWith("/")) {
         hasRedirected.current = true;
         setRedirecting(true);
-        router.replace("/admin");
+
+        const role = user.roles?.find((r) =>
+          SYSTEM_ROLES.includes(r as SystemRole)
+        ) as SystemRole;
+
+        switch (role) {
+          case "RootAdmin":
+          case "SystemAdmin":
+            router.replace("/admin");
+            break;
+
+          case "RegionalAdmin":
+            router.replace("/regional-admin");
+            break;
+
+          case "Support":
+          case "Auditor":
+            router.replace("/support");
+            break;
+
+          default:
+            router.replace("/");
+        }
       }
       return;
     }

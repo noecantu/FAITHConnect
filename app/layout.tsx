@@ -24,12 +24,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className={cn(
           inter.variable,
-          // 👇 The magic: full-height flex column
           "min-h-screen flex flex-col bg-gradient-to-br from-black via-slate-900 to-black text-white font-sans antialiased"
         )}
       >
         <SettingsProvider>
-          {/* 👇 This wrapper grows to fill the screen */}
           <div className="flex-1 flex flex-col">
             {children}
           </div>

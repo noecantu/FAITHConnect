@@ -1,3 +1,4 @@
+//app/(dashboard)/admin/users/create/CreateSystemUserClient.tsx
 "use client";
 
 import { useState } from "react";
@@ -97,7 +98,13 @@ export default function CreateSystemUserClient() {
         });
 
         router.push("/admin/users");
+      } else {
+        toast({
+          title: "Error Creating User",
+          description: result.error || "An unexpected error occurred.",
+        });
       }
+
     } catch (err: unknown) {
       console.error("Failed to create system user:", err);
 

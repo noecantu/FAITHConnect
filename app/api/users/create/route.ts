@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { adminDb } from "@/app/lib/firebase/admin";
-import { Timestamp } from "firebase-admin/firestore";
+import admin from "firebase-admin";
 
 export async function POST(req: Request) {
   try {
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
     // 3. Mark token as used
     await tokenRef.update({
       used: true,
-      usedAt: Timestamp.now(),
+      usedAt: admin.firestore.FieldValue.serverTimestamp(),
       usedBy: uid,
     });
 

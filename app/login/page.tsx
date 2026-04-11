@@ -79,6 +79,13 @@ export default function LoginPage() {
         return;
       }
 
+      // Regional Admin (system-level)
+      if (roles.includes("RegionalAdmin")) {
+        router.replace("/admin/regional");
+        return;
+      }
+
+      // Church Admin
       if (can(roles, "church.manage")) {
         router.replace(
           profile.churchId
@@ -88,6 +95,37 @@ export default function LoginPage() {
         return;
       }
 
+      // Finance Manager
+      if (can(roles, "contributions.read")) {
+        router.replace("/contributions");
+        return;
+      }
+
+      // Event Manager
+      if (can(roles, "events.read")) {
+        router.replace("/calendar");
+        return;
+      }
+
+      // Attendance Manager
+      if (can(roles, "attendance.read")) {
+        router.replace("/attendance");
+        return;
+      }
+
+      // Music roles
+      if (can(roles, "music.read")) {
+        router.replace("/music");
+        return;
+      }
+
+      // Service Plan roles
+      if (can(roles, "servicePlans.read")) {
+        router.replace("/service-plan");
+        return;
+      }
+
+      // Default fallback
       router.replace("/");
     } catch (error) {
       console.error("Login error:", error);

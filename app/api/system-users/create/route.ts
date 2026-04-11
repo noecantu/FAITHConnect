@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
 import { logSystemEvent } from "@/app/lib/system/logging";
-import { serverTimestamp } from "firebase/firestore";
+import admin from "firebase-admin";
 
 export async function POST(req: Request) {
   try {
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
       await regionRef.set({
         name: regionName,
-        createdAt: serverTimestamp(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
         createdBy: actorUid,
         createdByName: actorName,
       });
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
       roles: roles || [],
       regionId: regionId,
       churchId: null,
-      createdAt: serverTimestamp(),
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
     // 4. Log system event
@@ -71,11 +71,17 @@ export async function POST(req: Request) {
       userId: userRecord.uid,
       regionId,
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("API error:", err);
+
+    const firebaseMessage =
+      err?.errorInfo?.message ||
+      err?.message ||
+      "Failed to create system user.";
+
     return NextResponse.json(
-      { success: false, error: "Failed to create system user" },
-      { status: 500 }
+      { success: false, error: firebaseMessage },
+      { status: 400 }
     );
   }
 }

@@ -76,7 +76,7 @@ export function NavMenu() {
   // --- PERMISSIONS ---
   const isRootAdmin = can(typedRoles, "system.manage");
   const isRegionalAdmin = typedRoles.includes("RegionalAdmin");
-  const isChurchAdmin = can(typedRoles, "church.manage") && churchId;
+  const isChurchAdmin = can(typedRoles, "church.manage") && !!churchId;
 
   const canSeeContributions = can(typedRoles, "contributions.read");
   const canAccessMusic = can(typedRoles, "music.read");
