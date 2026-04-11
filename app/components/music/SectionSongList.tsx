@@ -68,7 +68,7 @@ export function SectionSongList({
     <div className="space-y-4">
 
       {/* Search */}
-      <div className="relative">
+      {/* <div className="relative">
         <Input
           placeholder="Search songs to add..."
           value={search}
@@ -100,7 +100,7 @@ export function SectionSongList({
             ))}
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* Song list */}
       <div className="space-y-3">

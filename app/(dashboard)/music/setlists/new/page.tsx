@@ -78,7 +78,8 @@ export default function NewSetListPage() {
     <>
       <PageHeader title="Create New Set List" />
 
-      <Card className="p-6 space-y-4">
+      <Card className="p-6 space-y-4 relative bg-black/80 border-white/20 backdrop-blur-xl">
+
         <SetListForm
           mode="create"
           initial={undefined}
