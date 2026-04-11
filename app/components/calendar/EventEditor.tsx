@@ -13,10 +13,10 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { Button } from "@/app/components/ui/button";
 import { MultiSelect } from "@/app/components/ui/multi-select";
 
-import { EVENT_GROUP_OPTIONS } from "@/app/lib/groupLabels";
-import { extractUserGroups } from "@/app/lib/extractUserGroups";
-import { isAdmin, Role } from "@/app/lib/roleGroups";
+import type { Role } from "@/app/lib/auth/roles";
+import { EVENT_GROUP_OPTIONS } from "@/app/lib/groupOptions";
 import type { UserProfile } from "@/app/lib/types";
+import { can } from "@/app/lib/auth/permissions";
 
 interface EventEditorProps {
   mode: "create" | "edit";
@@ -82,9 +82,17 @@ export default function EventEditor({
     load();
   }, []);
 
+  function extractUserGroups(user: UserProfile): string[] {
+    return user.roles
+      .filter((r) => r.endsWith("Group") || r.endsWith("GroupManager"))
+      .map((r) =>
+        r.replace("Manager", "").replace("Group", "").toLowerCase()
+      );
+  }
+
   // --- ROLE + GROUP LOGIC ---
   const roles = user?.roles ?? [];
-  const admin = isAdmin(roles);
+  const admin = can(roles, "events.manage");
 
   const userGroups = user ? extractUserGroups(user) : [];
   const isManager = user && !admin && userGroups.length === 1;

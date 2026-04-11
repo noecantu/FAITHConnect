@@ -17,9 +17,7 @@ import {
   SelectItem,
 } from "@/app/components/ui/select";
 
-import { ALL_ROLES, Role } from "@/app/lib/auth/roles";
-import { SystemRole, SYSTEM_ROLES } from "@/app/lib/system-roles";
-import { SYSTEM_ROLE_MAP } from "@/app/lib/system-role-map";
+import { ALL_ROLES, SYSTEM_ROLES, ROLE_LABELS, type Role, SystemRole } from "@/app/lib/auth/roles";
 import type { User } from "@/app/lib/types";
 import RoleSelector from "@/app/components/settings/RoleSelector";
 
@@ -195,7 +193,7 @@ export default function EditUserForm({
               <SelectContent>
                 {SYSTEM_ROLES.map((role) => (
                   <SelectItem key={role} value={role}>
-                    {SYSTEM_ROLE_MAP[role]}
+                    {ROLE_LABELS[role]}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -15,7 +15,7 @@ import { Checkbox } from "@/app/components/ui/checkbox";
 import { useToast } from "@/app/hooks/use-toast";
 
 // Reuse your existing role definitions
-import { ROLE_MAP, ALL_ROLES } from '@/app/lib/auth/permissions/roles';
+import { ROLE_LABELS, ALL_ROLES, SYSTEM_ROLE_LIST } from "@/app/lib/auth/roles";
 
 export default function AddUserPage() {
   const params = useParams();
@@ -25,16 +25,8 @@ export default function AddUserPage() {
     ? churchIdRaw[0]
     : churchIdRaw;
 
-  const SYSTEM_ROLES = [
-    "RootAdmin",
-    "SystemAdmin",
-    "RegionalAdmin",
-    "Support",
-    "Auditor",
-  ];
-
   const churchRolesOnly = ALL_ROLES.filter(
-    (role) => !SYSTEM_ROLES.includes(role)
+    (role) => !SYSTEM_ROLE_LIST.includes(role)
   );
 
   const router = useRouter();
@@ -172,7 +164,7 @@ export default function AddUserPage() {
                         handleRoleChange(role, !!checked)
                     }
                     />
-                    <Label>{ROLE_MAP[role]}</Label>
+                    <Label>{ROLE_LABELS[role]}</Label>
                 </div>
                 ))}
             </div>

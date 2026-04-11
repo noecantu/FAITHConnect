@@ -1,7 +1,7 @@
 //app/components/calendar/EventVisibilitySection.tsx
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { MultiSelect } from "../ui/multi-select";
-import { EVENT_GROUP_OPTIONS } from "@/app/lib/groupLabels";
+import { EVENT_GROUP_OPTIONS } from "@/app/lib/groupOptions";
 import type { UseFormReturn } from "react-hook-form";
 import type { EventFormValues } from "@/app/components/calendar/EventFormDialog";
 

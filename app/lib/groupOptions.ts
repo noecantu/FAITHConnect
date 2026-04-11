@@ -1,4 +1,4 @@
-export const GROUP_LABELS = [
+export const EVENT_GROUP_OPTIONS = [
   { label: "Caretaker", value: "caretaker" },
   { label: "Event Team", value: "events" },
   { label: "Men's Group", value: "men" },

@@ -12,7 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app
 import { CalendarCheck, CalendarHeart, Calendar } from "lucide-react";
 import { useUpcomingEvents } from "@/app/hooks/useUpcomingEvents";
 import { useUpcomingServices } from "@/app/hooks/useUpcomingServices";
-import { isAdmin, Role } from "@/app/lib/roleGroups";
+import type { Role } from "@/app/lib/auth/roles";
+import { can } from "@/app/lib/auth/permissions";
 import { PageHeader } from "@/app/components/page-header";
 
 export default function UserDashboardPage({
@@ -47,7 +48,7 @@ export default function UserDashboardPage({
   const { events, loading: loadingEvents } = useUpcomingEvents(churchId, user);
   const { services, loading: loadingServices } = useUpcomingServices(churchId);
 
-  const isAdminUser = user ? isAdmin(user.roles) : false;
+  const isAdminUser = user ? can(user.roles, "church.manage") : false;
 
   if (loadingUser || loadingChurch || loadingEvents || loadingServices) {
     return <div className="p-6">Loading...</div>;
