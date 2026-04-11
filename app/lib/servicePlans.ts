@@ -89,7 +89,15 @@ export async function getServicePlanById(
     createdBy: data.createdBy,
     createdAt: data.createdAt,
     updatedAt: data.updatedAt,
+
+    // Required fields from ServicePlanFirestore
+    isPublic: data.isPublic ?? false,
+    groups: data.groups ?? [],
+
+    // Derived field required by ServicePlan
+    visibility: data.isPublic ? "public" : "private",
   };
+
 }
 
 // -----------------------------------------------------
@@ -108,8 +116,11 @@ export async function createServicePlan(
 ): Promise<ServicePlan> {
   const now = Date.now();
 
-  const payload = {
+  // Must include all Firestore fields
+  const payload: ServicePlanFirestore = {
     ...data,
+    isPublic: false,     // default or choose your logic
+    groups: [],          // default or choose your logic
     createdAt: now,
     updatedAt: now,
   };
@@ -119,8 +130,11 @@ export async function createServicePlan(
   return {
     id: ref.id,
     ...payload,
+
     date: toDate(payload.dateString),
     dateTime: toDateTime(payload.dateString, payload.timeString),
+
+    visibility: payload.isPublic ? "public" : "private",
   };
 }
 
@@ -172,7 +186,8 @@ export async function duplicateServicePlan(
     notes: s.notes,
   }));
 
-  const payload = {
+  // Must satisfy ServicePlanFirestore
+  const payload: ServicePlanFirestore = {
     title: `${plan.title} (Copy)`,
     dateString: plan.dateString,
     timeString: plan.timeString,
@@ -181,6 +196,10 @@ export async function duplicateServicePlan(
     createdBy: plan.createdBy,
     createdAt: now,
     updatedAt: now,
+
+    // Required Firestore fields
+    isPublic: plan.isPublic,
+    groups: [...plan.groups],
   };
 
   const ref = await addDoc(servicePlansCollection(churchId), payload);
@@ -188,7 +207,11 @@ export async function duplicateServicePlan(
   return {
     id: ref.id,
     ...payload,
+
     date: new Date(`${payload.dateString}T00:00:00`),
     dateTime: new Date(`${payload.dateString}T${payload.timeString}:00`),
+
+    // Required by ServicePlan
+    visibility: payload.isPublic ? "public" : "private",
   };
 }

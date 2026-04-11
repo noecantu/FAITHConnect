@@ -24,7 +24,6 @@ import {
 } from "@/app/components/ui/alert-dialog";
 import type { Church } from "@/app/lib/types";
 import { AlertDialogAction, AlertDialogCancel } from "@radix-ui/react-alert-dialog";
-import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
 
 export default function MasterChurchDetailsClient({
   church,

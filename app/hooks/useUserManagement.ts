@@ -12,7 +12,7 @@ import {
 } from 'firebase/firestore';
 
 import { useToast } from '@/app/hooks/use-toast';
-import { Role } from '@/app/lib/auth/permissions/roles';
+import { Role } from '@/app/lib/auth/roles';
 import { User, Mode } from '@/app/lib/types';
 import { can } from "@/app/lib/auth/permissions";
 import { usePermissions } from "@/app/hooks/usePermissions";

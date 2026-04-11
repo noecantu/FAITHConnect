@@ -16,7 +16,7 @@ import { CalendarControls } from "@/app/components/calendar/CalendarControls";
 import { CalendarViewSwitcher } from "@/app/components/calendar/CalendarViewSwitcher";
 
 import { can } from "@/app/lib/auth/permissions";
-import type { Role } from "@/app/lib/auth/permissions"
+import type { Role } from "@/app/lib/auth/roles"
 import type { UserProfile, Event, ServicePlan } from "@/app/lib/types";
 import { useUserCalendarSettings } from "@/app/hooks/useUserCalendarSettings";
 import { useRouter } from "next/navigation";

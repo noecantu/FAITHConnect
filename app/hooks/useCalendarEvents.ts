@@ -5,7 +5,7 @@ import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
 import type { Event, UserProfile } from "@/app/lib/types";
 import { canUserSeeEvent } from "@/app/lib/canUserSeeEvent";
-import { Role } from "../lib/auth/permissions/roles";
+import { Role } from "../lib/auth/roles";
 
 function normalizeDate(raw: any): Date {
   if (!raw) return new Date();

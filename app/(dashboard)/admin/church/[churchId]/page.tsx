@@ -35,7 +35,6 @@ import {
 import Link from "next/link";
 import type { Church } from "@/app/lib/types";
 import { useAuth } from "@/app/hooks/useAuth";
-import { DashboardPage } from "@/app/(dashboard)/layout/DashboardPage";
 
 export default function ChurchAdminDashboard() {
   const { churchId } = useParams();

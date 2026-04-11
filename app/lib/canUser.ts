@@ -1,6 +1,5 @@
-import { ROLE_PERMISSIONS } from "./roleGroups";
-import type { Role } from "./roleGroups";
-import type { Permission } from "./permissions";
+import { Permission, ROLE_PERMISSIONS } from "@/app/lib/auth/permissions";
+import type { Role } from "@/app/lib/auth/roles";
 
 export function canUser(roles: Role[], permission: Permission): boolean {
   for (const role of roles) {
