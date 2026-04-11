@@ -8,7 +8,7 @@ import { PageHeader } from '@/app/components/page-header';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useSongs } from '@/app/hooks/useSongs';
 import type { Song } from '@/app/lib/types';
-import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import { useRouter } from "next/navigation";
 import { Fab } from '@/app/components/ui/fab';
 import { FileText, Music } from "lucide-react";
@@ -22,7 +22,7 @@ import { SearchBar } from '@/app/components/ui/search-bar';
 export default function SongsPage() {
   const { churchId } = useChurchId();
   const { songs, loading } = useSongs(churchId);
-  const { canManageMusic, canReadMusic } = useUserRoles();
+  const { canManageMusic, canReadMusic } = usePermissions();
   const canManage = canManageMusic;
   const canView = canReadMusic;
   const { user } = useAuth();

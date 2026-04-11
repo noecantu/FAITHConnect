@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { PageHeader } from '@/app/components/page-header';
 import { SongForm } from '@/app/components/music/SongForm';
 import { useChurchId } from '@/app/hooks/useChurchId';
-import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import { getSongById, updateSong } from '@/app/lib/songs';
 import type { Song, SongInput } from '@/app/lib/types';
 import { Fab } from '@/app/components/ui/fab';
@@ -16,7 +16,7 @@ export default function EditSongPage() {
   const { churchId } = useChurchId();
 
   // UPDATED ROLES
-  const { canManageMusic } = useUserRoles();
+  const { canManageMusic } = usePermissions();
   const canEdit = canManageMusic;
 
   const [song, setSong] = useState<Song | null>(null);

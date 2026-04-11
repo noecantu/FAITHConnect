@@ -6,7 +6,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
 import { useAuth } from "./useAuth";
 import type { User } from "@/app/lib/types";
-import type { Role } from "@/app/lib/auth/permissions/roles";
+import type { Role } from "@/app/lib/auth/roles";
 import { can } from "@/app/lib/auth/permissions";
 
 export function useCurrentUser() {

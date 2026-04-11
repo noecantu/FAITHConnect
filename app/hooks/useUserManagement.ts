@@ -14,15 +14,15 @@ import {
 import { useToast } from '@/app/hooks/use-toast';
 import { Role } from '@/app/lib/auth/permissions/roles';
 import { User, Mode } from '@/app/lib/types';
-import { can } from "@/app/lib/auth/permissions/can";
-import { useUserRoles } from "@/app/hooks/useUserRoles";
+import { can } from "@/app/lib/auth/permissions";
+import { usePermissions } from "@/app/hooks/usePermissions";
 import { useChurchId } from "@/app/hooks/useChurchId";
 
 export function useUserManagement() {
   const { toast } = useToast();
   const functions = getFunctions(undefined, 'us-central1');
 
-  const { roles: actorRoles } = useUserRoles();
+  const { roles: actorRoles } = usePermissions();
   const { churchId } = useChurchId();
 
   const canAssignRoles = can(actorRoles, "roles.assign");

@@ -8,7 +8,7 @@ import { Fab } from '@/app/components/ui/fab';
 import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
 
 import { useChurchId } from '@/app/hooks/useChurchId';
-import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import { useSettings } from '@/app/hooks/use-settings';
 import { useAuth } from '@/app/hooks/useAuth';
 
@@ -25,7 +25,7 @@ export default function MembersPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
 
-  const { canManageMembers } = useUserRoles();
+  const { canManageMembers } = usePermissions();
   const canEdit = canManageMembers;
 
   const { cardView } = useSettings();

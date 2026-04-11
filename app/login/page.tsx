@@ -15,8 +15,8 @@ import {
 } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
 import { useToast } from "@/app/hooks/use-toast";
-import { can } from "@/app/lib/auth/permissions/can";
-import type { Role } from "@/app/lib/auth/permissions/roles";
+import { can } from "@/app/lib/auth/permissions";
+import type { Role } from "@/app/lib/auth/roles";
 import {
   browserLocalPersistence,
   browserSessionPersistence,
@@ -84,15 +84,6 @@ export default function LoginPage() {
           profile.churchId
             ? `/admin/church/${profile.churchId}`
             : "/onboarding/create-church"
-        );
-        return;
-      }
-
-      if (can(roles, "auth.login")) {
-        router.replace(
-          profile.churchId
-            ? `/church/${profile.churchId}/user`
-            : "/"
         );
         return;
       }

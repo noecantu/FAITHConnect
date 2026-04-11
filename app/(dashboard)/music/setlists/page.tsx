@@ -13,7 +13,7 @@ import {
 } from '@/app/components/ui/select';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useSetLists } from '@/app/hooks/useSetLists';
-import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import { useRouter } from "next/navigation";
 import { Fab } from '@/app/components/ui/fab';
 import { usePreviewPagination } from '@/app/hooks/usePreviewPagination';
@@ -28,7 +28,7 @@ export default function SetListsPage() {
   const { churchId } = useChurchId();
   const { lists, loading } = useSetLists(churchId);
 
-  const { canManageMusic, canReadMusic, loading: rolesLoading } = useUserRoles();
+  const { canManageMusic, canReadMusic, loading: rolesLoading } = usePermissions();
 
   const canManage = canManageMusic;
   const canView = canReadMusic;

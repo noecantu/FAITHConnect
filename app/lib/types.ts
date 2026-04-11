@@ -1,6 +1,6 @@
 //app/lib/types.ts
 import { Timestamp } from 'firebase/firestore';
-import type { Role } from '@/app/lib/auth/permissions/roles';
+import type { Role } from '@/app/lib/auth/roles';
 
 export type Address = {
   street?: string;

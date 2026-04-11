@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { usePreviewPagination } from "@/app/hooks/usePreviewPagination";
 import { PreviewPaginationFooter } from "@/app/components/layout/PreviewPaginationFooter";
 import { useCurrentUser } from "@/app/hooks/useCurrentUser";
-import { can } from "@/app/lib/auth/permissions/can";
+import { can } from "@/app/lib/auth/permissions";
 import { getGroupColor } from "@/app/lib/groupColors";
 
 type CalendarItem =

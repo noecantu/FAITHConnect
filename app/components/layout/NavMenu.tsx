@@ -43,11 +43,11 @@ import {
 
 import { Button } from "../ui/button";
 import { useToast } from "@/app/hooks/use-toast";
-import { useUserRoles } from "@/app/hooks/useUserRoles";
+import { usePermissions } from "@/app/hooks/usePermissions";
 import { useChurchId } from "@/app/hooks/useChurchId";
 import { AlertDialogAction, AlertDialogCancel } from "@radix-ui/react-alert-dialog";
-import { can } from "@/app/lib/auth/permissions/can";
-import type { Role } from "@/app/lib/auth/permissions/roles";
+import { can } from "@/app/lib/auth/permissions";
+import type { Role } from "@/app/lib/auth/roles";
 
 type MenuItem = {
   href: string;
@@ -63,7 +63,7 @@ export function NavMenu() {
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false);
   const { toast } = useToast();
   const { churchId } = useChurchId();
-  const { roles = [] } = useUserRoles();
+  const { roles = [] } = usePermissions();
 
   const typedRoles = roles as Role[];
 

@@ -3,7 +3,13 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Checkbox } from '@/app/components/ui/checkbox';
 import { Label } from '@/app/components/ui/label';
-import { ALL_ROLES, SYSTEM_ROLES, CHURCH_ROLES, ROLE_MAP, Role } from '@/app/lib/auth/permissions/roles';
+import {
+  SYSTEM_ROLES,
+  CHURCH_ROLES,
+  ALL_ROLES,
+  ROLE_LABELS,
+  type Role,
+} from "@/app/lib/auth/roles";
 
 interface Props {
   selectedRoles: Role[];
@@ -62,7 +68,7 @@ export default function RoleSelector({
                 onCheckedChange={(checked) => onChange(role, !!checked)}
               />
               <Label className={isDisabled(role) ? "text-muted-foreground" : ""}>
-                {ROLE_MAP[role]}
+                {ROLE_LABELS[role]}
               </Label>
             </div>
           ))}

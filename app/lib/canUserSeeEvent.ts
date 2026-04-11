@@ -1,7 +1,12 @@
-//app/lib/canUserSeeEvent.ts
-import { extractUserGroups, type UserLike } from "./extractUserGroups";
-import { isAdmin, isFinance } from "./roleGroups";
-import { normalizeGroupName, type MinistryGroup } from "./ministryGroups";
+// app/lib/canUserSeeEvent.ts
+
+import { getGroupsForRoles, normalizeGroupName, type MinistryGroup } from "@/app/lib/auth/groups";
+import { can } from "@/app/lib/auth/permissions";
+import type { Role } from "@/app/lib/auth/roles";
+
+export interface UserLike {
+  roles: Role[];
+}
 
 export interface EventLike {
   visibility: "public" | "private";
@@ -29,13 +34,13 @@ export function canUserSeeEvent(
   if (roles.includes("EventManager")) return true;
 
   // ⭐ Admins see everything
-  if (isAdmin(roles)) return true;
+  if (can(roles, "church.manage")) return true;
 
   // ⭐ Public events are visible to everyone
   if (event.visibility === "public") return true;
 
   // ⭐ Private events require group intersection
-  const userGroups = extractUserGroups(user);
+  const userGroups = getGroupsForRoles(roles);
 
   const eventGroups = (event.groups || [])
     .map(g => normalizeGroupName(g))
@@ -57,7 +62,7 @@ export function canUserSeeEvent(
   }
 
   // ⭐ Finance sees ONLY public events — but we check this LAST
-  if (isFinance(roles)) {
+  if (roles.includes("Finance")) {
     return false;
   }
 

@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { PageHeader } from '@/app/components/page-header';
 import { Card } from '@/app/components/ui/card';
 import { useChurchId } from '@/app/hooks/useChurchId';
-import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import { useSongs } from '@/app/hooks/useSongs';
 import { getSetListById, updateSetList } from '@/app/lib/setlists';
 import { SetList } from '@/app/lib/types';
@@ -17,7 +17,7 @@ export default function EditSetListPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
   const { songs: allSongs } = useSongs(churchId);
-  const { canManageMusic } = useUserRoles();
+  const { canManageMusic } = usePermissions();
   const canEdit = canManageMusic;
 
   const [setList, setSetList] = useState<SetList | null>(null);

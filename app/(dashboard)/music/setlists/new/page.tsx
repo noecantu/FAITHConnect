@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/app/components/page-header';
 import { useChurchId } from '@/app/hooks/useChurchId';
-import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import { useSongs } from '@/app/hooks/useSongs';
 import { createSetList } from '@/app/lib/setlists';
 import { Fab } from '@/app/components/ui/fab';
@@ -16,7 +16,7 @@ export default function NewSetListPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
   const { songs: allSongs } = useSongs(churchId);
-  const { canManageMusic } = useUserRoles();
+  const { canManageMusic } = usePermissions();
   const canCreate = canManageMusic;
 
   const [saving, setSaving] = useState(false);

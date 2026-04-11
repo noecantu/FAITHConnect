@@ -8,7 +8,7 @@ import { db } from "@/app/lib/firebase/client";
 import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 import { useChurchId } from "@/app/hooks/useChurchId";
 import EventEditor from "@/app/components/calendar/EventEditor";
-import { can } from "@/app/lib/auth/permissions/can";
+import { can } from "@/app/lib/auth/permissions";
 
 import {
   Dialog,

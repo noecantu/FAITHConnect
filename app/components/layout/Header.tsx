@@ -4,13 +4,13 @@
 import Link from 'next/link';
 import { NavMenu } from './NavMenu';
 
-import { useUserRoles } from "@/app/hooks/useUserRoles";
+import { usePermissions } from "@/app/hooks/usePermissions";
 import { useChurchId } from "@/app/hooks/useChurchId";
-import { can } from "@/app/lib/auth/permissions/can";
-import type { Role } from "@/app/lib/auth/permissions/roles";
+import { can } from "@/app/lib/auth/permissions";
+import type { Role } from "@/app/lib/auth/roles";
 
 export default function Header() {
-  const { roles = [] } = useUserRoles();
+  const { roles = [] } = usePermissions();
   const { churchId } = useChurchId();
 
   const typedRoles = roles as Role[];

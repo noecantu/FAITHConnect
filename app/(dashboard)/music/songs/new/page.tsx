@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/app/components/page-header';
 import { SongForm } from '@/app/components/music/SongForm';
 import { useChurchId } from '@/app/hooks/useChurchId';
-import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import { createSong } from '@/app/lib/songs';
 import type { SongInput } from '@/app/lib/types';
 import { Fab } from '@/app/components/ui/fab';
@@ -13,7 +13,7 @@ import { Fab } from '@/app/components/ui/fab';
 export default function NewSongPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
-  const { canManageMusic } = useUserRoles();
+  const { canManageMusic } = usePermissions();
   const canEdit = canManageMusic;
   const [saving, setSaving] = useState(false);
 

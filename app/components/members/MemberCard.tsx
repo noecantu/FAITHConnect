@@ -25,7 +25,7 @@ import { Separator } from '@/app/components/ui/separator';
 import type { Member } from '@/app/lib/types';
 import { cn } from '@/app/lib/utils';
 import { formatPhone } from '@/app/lib/formatters';
-import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useRouter } from 'next/navigation';
 
@@ -116,7 +116,7 @@ export default function MemberCard({
 }) {
   const router = useRouter();
   const { churchId } = useChurchId();
-  const { canManageMembers } = useUserRoles();
+  const { canManageMembers } = usePermissions();
 
   const canEdit = canManageMembers;
 

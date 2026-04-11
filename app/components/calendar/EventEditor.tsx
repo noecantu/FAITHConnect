@@ -13,7 +13,7 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { Button } from "@/app/components/ui/button";
 import { MultiSelect } from "@/app/components/ui/multi-select";
 
-import { EVENT_GROUP_OPTIONS } from "@/app/lib/eventGroups";
+import { EVENT_GROUP_OPTIONS } from "@/app/lib/groupLabels";
 import { extractUserGroups } from "@/app/lib/extractUserGroups";
 import { isAdmin, Role } from "@/app/lib/roleGroups";
 import type { UserProfile } from "@/app/lib/types";

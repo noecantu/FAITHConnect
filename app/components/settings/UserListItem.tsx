@@ -1,6 +1,6 @@
 'use client';
 
-import { ROLE_MAP } from '@/app/lib/auth/permissions/roles';
+import { ROLE_LABELS } from "@/app/lib/auth/roles";
 import type { User } from '@/app/lib/types';
 
 interface Props {
@@ -27,7 +27,7 @@ export default function UserListItem({ user, onClick }: Props) {
 
       <p className="text-xs text-muted-foreground">
         {user.roles.length
-          ? user.roles.map((r) => ROLE_MAP[r]).join(', ')
+          ? user.roles.map((r) => ROLE_LABELS[r]).join(', ')
           : 'No roles assigned'}
       </p>
     </button>

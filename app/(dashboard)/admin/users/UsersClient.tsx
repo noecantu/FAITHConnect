@@ -16,8 +16,12 @@ import {
 } from "@/app/components/ui/select";
 import { Button } from "@/app/components/ui/button";
 
-import { SystemRole } from "@/app/lib/system-roles";
-import { SYSTEM_ROLE_MAP } from "@/app/lib/system-role-map";
+import {
+  SYSTEM_ROLES,
+  SYSTEM_ROLE_LIST,
+  ROLE_LABELS,
+  type Role,
+} from "@/app/lib/auth/roles";
 
 // -----------------------------
 // Types
@@ -27,7 +31,7 @@ export type UserRecord = {
   email: string;
   firstName?: string | null;
   lastName?: string | null;
-  roles: SystemRole[]; // ← system-level roles only
+  roles: Role[];
   churchId?: string | null;
   createdAt?: string | number | Date | null;
 };
@@ -35,14 +39,6 @@ export type UserRecord = {
 type UsersClientProps = {
   users: UserRecord[];
 };
-
-// System-level roles
-const SYSTEM_ROLES: SystemRole[] = [
-  "RootAdmin",
-  "SystemAdmin",
-  "Support",
-  "Auditor",
-];
 
 // -----------------------------
 // Component
@@ -55,7 +51,7 @@ export default function UsersClient({ users }: UsersClientProps) {
 
   // Only system-level users
   const systemUsers = useMemo(
-    () => users.filter((u) => u.roles.some((r) => SYSTEM_ROLES.includes(r))),
+    () => users.filter((u) => u.roles.some((r) => SYSTEM_ROLE_LIST.includes(r))),
     [users]
   );
 
@@ -67,7 +63,7 @@ export default function UsersClient({ users }: UsersClientProps) {
       const term = search.toLowerCase().trim();
 
       if (term && !fullName.includes(term) && !email.includes(term)) return false;
-      if (selectedRole !== "all" && !u.roles.includes(selectedRole as SystemRole))
+      if (selectedRole !== "all" && !u.roles.includes(selectedRole as Role))
         return false;
 
       return true;
@@ -115,7 +111,7 @@ export default function UsersClient({ users }: UsersClientProps) {
                     <SelectItem value="all">All roles</SelectItem>
                     {SYSTEM_ROLES.map((role) => (
                       <SelectItem key={role} value={role}>
-                        {SYSTEM_ROLE_MAP[role]}
+                        {ROLE_LABELS[role]}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -158,7 +154,7 @@ export default function UsersClient({ users }: UsersClientProps) {
                       </td>
                       <td className="py-2 px-2">{u.email}</td>
                       <td className="py-2 px-2">
-                        {u.roles.map((r) => SYSTEM_ROLE_MAP[r]).join(", ")}
+                        {u.roles.map((r) => ROLE_LABELS[r]).join(", ")}
                       </td>
                       <td className="py-2 px-2">
                         {u.createdAt

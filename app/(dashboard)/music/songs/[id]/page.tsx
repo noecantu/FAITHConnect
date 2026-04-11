@@ -6,7 +6,7 @@ import { PageHeader } from '@/app/components/page-header';
 import { Card } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { useChurchId } from '@/app/hooks/useChurchId';
-import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import { getSongById, deleteSong, createSong } from '@/app/lib/songs';
 import { useRecentSetLists } from '@/app/hooks/useRecentSetLists';
 import type { Song, SetList } from '@/app/lib/types';
@@ -30,7 +30,7 @@ export default function SongDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const { churchId } = useChurchId();
-  const { canManageMusic } = useUserRoles();
+  const { canManageMusic } = usePermissions();
   const canEdit = canManageMusic;
 
   const [song, setSong] = useState<Song | null>(null);

@@ -3,9 +3,9 @@
 
 import { adminDb } from "@/app/lib/firebase/admin";
 import { logSystemEvent } from "@/app/lib/system/logging";
-import { ALL_ROLES, Role } from "@/app/lib/auth/permissions/roles";
+import { ALL_ROLES, Role } from "@/app/lib/auth/roles";
 import { SystemRole, SYSTEM_ROLES } from "@/app/lib/system-roles";
-import { can } from "@/app/lib/auth/permissions/can";
+import { can } from "@/app/lib/auth/permissions";
 
 export interface UpdateUserInput {
   userId: string;

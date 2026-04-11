@@ -17,7 +17,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { listenToContributions } from '@/app/lib/contributions';
 import { listenToMembers } from '@/app/lib/members';
-import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import type { Contribution, Member } from '@/app/lib/types';
 import { useEffect, useMemo, useState } from 'react';
 import { Fab } from '@/app/components/ui/fab';
@@ -48,7 +48,7 @@ export default function ContributionsPage() {
   const [selected, setSelected] = useState<Contribution | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const { canManageContributions, canReadContributions } = useUserRoles();
+  const { canManageContributions, canReadContributions } = usePermissions();
   const canEdit = canManageContributions;
   const canView = canReadContributions;
 

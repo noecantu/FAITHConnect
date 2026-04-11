@@ -8,7 +8,7 @@ import { X } from 'lucide-react';
 
 import RoleSelector from './RoleSelector';
 import type { Mode } from '@/app/lib/types';
-import type { Role } from '@/app/lib/auth/permissions/roles';
+import type { Role } from '@/app/lib/auth/roles';
 
 interface Props {
   mode: Mode;

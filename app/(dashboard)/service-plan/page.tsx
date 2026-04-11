@@ -17,7 +17,7 @@ import { Fab } from '@/app/components/ui/fab';
 
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useServicePlans } from '@/app/hooks/useServicePlans';
-import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import { useRouter } from 'next/navigation';
 import { usePreviewPagination } from '@/app/hooks/usePreviewPagination';
 import { PreviewPaginationFooter } from '@/app/components/layout/PreviewPaginationFooter';
@@ -31,7 +31,7 @@ export default function ServicePlanPage() {
   const { churchId, loading: churchLoading } = useChurchId();
   const { plans, loading: plansLoading, error, reload } = useServicePlans(churchId);
 
-  const { canManageServicePlans, canReadServicePlans, loading: rolesLoading } = useUserRoles();
+  const { canManageServicePlans, canReadServicePlans, loading: rolesLoading } = usePermissions();
 
   const canManage = canManageServicePlans;
   const canView = canReadServicePlans;

@@ -16,7 +16,7 @@ import { Button } from "@/app/components/ui/button";
 import { FileText, Loader2, Sheet } from "lucide-react";
 
 // NEW
-import { useUserRoles } from "@/app/hooks/useUserRoles";
+import { usePermissions } from "@/app/hooks/usePermissions";
 
 export default function ReportsPage() {
   const { members } = useMembers();
@@ -30,7 +30,7 @@ export default function ReportsPage() {
     canReadMembers,
     canReadContributions,
     canReadAttendance,
-  } = useUserRoles();
+  } = usePermissions();
 
   // Local State
   const [reportType, setReportType] =

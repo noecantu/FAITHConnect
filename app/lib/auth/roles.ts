@@ -1,6 +1,4 @@
-// -----------------------------
-// SYSTEM ROLES
-// -----------------------------
+// SYSTEM ROLES — literal tuple
 export const SYSTEM_ROLES = [
   "RootAdmin",
   "SystemAdmin",
@@ -9,9 +7,7 @@ export const SYSTEM_ROLES = [
   "Auditor",
 ] as const;
 
-// -----------------------------
-// CHURCH ROLES
-// -----------------------------
+// CHURCH ROLES — literal tuple
 export const CHURCH_ROLES = [
   "Admin",
   "Finance",
@@ -22,48 +18,53 @@ export const CHURCH_ROLES = [
   "Pastor",
   "Minister",
   "Deacon",
+
   "MusicManager",
   "MusicMember",
+
   "UsherManager",
   "Usher",
+
   "CaretakerManager",
   "Caretaker",
+
   "MensGroupManager",
   "MensGroup",
+
   "WomensGroupManager",
   "WomensGroup",
+
   "YouthGroupManager",
   "YouthGroup",
+
   "GroupManager",
   "Member",
 ] as const;
 
-// -----------------------------
-// ROLE TYPES
-// -----------------------------
-export type SystemRole = (typeof SYSTEM_ROLES)[number];
-export type ChurchRole = (typeof CHURCH_ROLES)[number];
-export type Role = SystemRole | ChurchRole;
+// Combined tuple
+export const ROLES = [...SYSTEM_ROLES, ...CHURCH_ROLES] as const;
 
-// -----------------------------
-// ALL ROLES (for UI lists)
-// -----------------------------
-export const ALL_ROLES: Role[] = [
-  ...(SYSTEM_ROLES as unknown as Role[]),
-  ...(CHURCH_ROLES as unknown as Role[]),
-];
+// Role type
+export type Role = (typeof ROLES)[number];
 
-// -----------------------------
-// ROLE LABEL MAP
-// -----------------------------
-export const ROLE_MAP: Record<Role, string> = {
-  RootAdmin: "Root Admin",
-  SystemAdmin: "System Admin",
-  RegionalAdmin: "Regional Admin",
-  Support: "Support",
+// SystemRole type
+export type SystemRole = typeof SYSTEM_ROLES[number];
+
+// ALL_ROLES (must come AFTER Role exists)
+export const ALL_ROLES: Role[] = [...ROLES];
+
+// SYSTEM_ROLE_LIST (must come AFTER Role exists)
+export const SYSTEM_ROLE_LIST: Role[] = [...SYSTEM_ROLES];
+
+// Labels
+export const ROLE_LABELS: Record<Role, string> = {
+  RootAdmin: "Root Administrator",
+  SystemAdmin: "System Administrator",
+  RegionalAdmin: "Regional Administrator",
+  Support: "Support Staff",
   Auditor: "Auditor",
 
-  Admin: "Church Admin",
+  Admin: "Church Administrator",
   Finance: "Finance",
   EventManager: "Event Manager",
   AttendanceManager: "Attendance Manager",
@@ -94,14 +95,3 @@ export const ROLE_MAP: Record<Role, string> = {
   GroupManager: "Group Manager",
   Member: "Member",
 };
-
-// -----------------------------
-// SIMPLE HELPERS
-// -----------------------------
-export function isAdmin(roles: Role[]) {
-  return roles.includes("Admin");
-}
-
-export function isFinance(roles: Role[]) {
-  return roles.includes("Finance");
-}

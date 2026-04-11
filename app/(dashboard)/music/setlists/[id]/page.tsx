@@ -7,7 +7,7 @@ import { Card } from '@/app/components/ui/card';
 import { deleteSetList, getSetListById } from '@/app/lib/setlists';
 import { SetList } from '@/app/lib/types';
 import { useChurchId } from '@/app/hooks/useChurchId';
-import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import { format } from 'date-fns';
 import { Fab } from '@/app/components/ui/fab';
 import { useRouter } from 'next/navigation';
@@ -27,7 +27,7 @@ export default function SetListDetailPage() {
   const { id } = useParams();
   const { churchId } = useChurchId();
   const router = useRouter();
-  const { canReadMusic, canManageMusic } = useUserRoles();
+  const { canReadMusic, canManageMusic } = usePermissions();
 
   const canView = canReadMusic;
   const canEdit = canManageMusic;

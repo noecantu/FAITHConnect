@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useChurchId } from '@/app/hooks/useChurchId';
-import { useUserRoles } from '@/app/hooks/useUserRoles';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import { useMembers } from '@/app/hooks/useMembers';
 import { useSongs } from '@/app/hooks/useSongs';
 import { getServicePlanById } from '@/app/lib/servicePlans';
@@ -20,7 +20,7 @@ export function useServicePlanDetail() {
     canReadServicePlans,
     canManageServicePlans,
     loading: rolesLoading
-  } = useUserRoles();
+  } = usePermissions();
 
   const [plan, setPlan] = useState<ServicePlan | null>(null);
   const [loading, setLoading] = useState(true);

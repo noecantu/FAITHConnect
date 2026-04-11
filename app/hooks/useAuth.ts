@@ -6,7 +6,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "@/app/lib/firebase/client";
 import { usePathname } from "next/navigation";
 import type { User } from "@/app/lib/types";
-import type { Role } from "@/app/lib/auth/permissions/roles";
+import type { Role } from "@/app/lib/auth/roles";
 
 export function useAuth(): { user: User | null; loading: boolean } {
   const pathname = usePathname();

@@ -3,7 +3,7 @@ import { adminDb } from "@/app/lib/firebase/admin";
 import AdminHomeClient from "./AdminHomeClient";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/app/lib/auth/server/getCurrentUser";
-import { can } from "@/app/lib/auth/permissions/can";
+import { can } from "@/app/lib/auth/permissions";
 
 export default async function AdminHomePage() {
   // 1. Get the logged-in user
