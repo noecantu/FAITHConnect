@@ -51,7 +51,13 @@ export async function POST(req: Request) {
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    // 4. Log system event
+    // 4. Set custom claims for Firestore rules
+    await adminAuth.setCustomUserClaims(userRecord.uid, {
+      roles,
+      regionId,
+    });
+
+    // 5. Log system event
     await logSystemEvent({
       type: "SYSTEM_USER_CREATED",
       actorUid,

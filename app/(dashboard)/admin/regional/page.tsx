@@ -1,3 +1,4 @@
+//app/(dashboard)/admin/regional/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -46,14 +47,14 @@ export default function RegionalDashboardPage() {
     return () => unsub();
   }, [regionId]);
 
-    if (!isRegionalAdmin && !isRootAdmin) {
-      return (
-        <div className="p-6">
-          <h1 className="text-xl font-semibold">Unauthorized</h1>
-          <p>You do not have permission to view this page.</p>
-        </div>
-      );
-    }
+  if (!isRegionalAdmin && !isRootAdmin) {
+    return (
+      <div className="p-6">
+        <h1 className="text-xl font-semibold">Unauthorized</h1>
+        <p>You do not have permission to view this page.</p>
+      </div>
+    );
+  }
 
   // --- LOADING STATE ---
   if (loading) {

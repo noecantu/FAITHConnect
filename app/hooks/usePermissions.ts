@@ -7,12 +7,39 @@ import { can } from "@/app/lib/auth/permissions";
 import type { Role } from "@/app/lib/auth/roles";
 
 export function usePermissions() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const roles = (user?.roles ?? []) as Role[];
 
+  // --- ROLE HELPERS ---
+  const hasRole = (role: Role) => roles.includes(role);
+
+  const isRootAdmin = hasRole("RootAdmin");
+  const isSystemAdmin = hasRole("SystemAdmin");
+  const isRegionalAdmin = hasRole("RegionalAdmin");
+  const isSupport = hasRole("Support");
+  const isAuditor = hasRole("Auditor");
+
+  // --- IDENTIFIERS ---
+  const regionId = user?.regionId ?? null;
+  const churchId = user?.churchId ?? null;
+
   return {
+    loading,
+    user,
     roles,
 
+    // Role flags
+    isRootAdmin,
+    isSystemAdmin,
+    isRegionalAdmin,
+    isSupport,
+    isAuditor,
+
+    // Identifiers
+    regionId,
+    churchId,
+
+    // Permission flags
     canManageChurch: can(roles, "church.manage"),
 
     canManageMembers: can(roles, "members.manage"),
