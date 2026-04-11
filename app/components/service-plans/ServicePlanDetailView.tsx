@@ -71,7 +71,7 @@ export function ServicePlanDetailView({
 
               <div className="space-y-4">
                 {hasPerson && (
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <p className="text-sm font-medium text-foreground">Person</p>
                     <p className="text-muted-foreground">
                       {member
@@ -107,7 +107,7 @@ export function ServicePlanDetailView({
                 )}
 
                 {hasNotes && (
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <p className="text-sm font-medium text-foreground">Notes</p>
                     <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
                       {section.notes}

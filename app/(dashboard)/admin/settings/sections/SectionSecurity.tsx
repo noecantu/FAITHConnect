@@ -31,7 +31,7 @@ export default function SectionSecurity({
           <Label>Require 2FA for Admin Users</Label>
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label>Log Retention (days)</Label>
           <Input
             type="number"
@@ -45,7 +45,7 @@ export default function SectionSecurity({
           />
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label>Auto-delete Inactive Users After (days)</Label>
           <Input
             type="number"
@@ -59,7 +59,7 @@ export default function SectionSecurity({
           />
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label>Max Failed Login Attempts</Label>
           <Input
             type="number"
@@ -73,7 +73,7 @@ export default function SectionSecurity({
           />
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label>Lockout Duration (minutes)</Label>
           <Input
             type="number"

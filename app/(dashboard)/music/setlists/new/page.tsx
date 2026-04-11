@@ -47,7 +47,7 @@ export default function NewSetListPage() {
     dateString: string;
     timeString: string;
     sections: SetListSection[];
-    serviceType: string | null;   // ✅ corrected type
+    serviceType: string | null;
     serviceNotes: {
       theme: string | null;
       scripture: string | null;
@@ -62,7 +62,7 @@ export default function NewSetListPage() {
       timeString: data.timeString,
       sections: data.sections,
       createdBy: "system",
-      serviceType: data.serviceType,   // string | null — matches form
+      serviceType: data.serviceType,
       serviceNotes: {
         theme: data.serviceNotes.theme,
         scripture: data.serviceNotes.scripture,

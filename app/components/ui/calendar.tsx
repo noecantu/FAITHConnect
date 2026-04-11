@@ -32,7 +32,7 @@ function Calendar({
         /* THIS is how icons are styled in your version */
         nav_icon: "h-4 w-4",
 
-        table: "w-full border-collapse space-y-1",
+        table: "w-full border-collapse space-y-2",
         head_row: "flex",
         head_cell:
           "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",

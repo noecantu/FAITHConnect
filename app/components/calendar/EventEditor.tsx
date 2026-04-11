@@ -159,7 +159,7 @@ export default function EventEditor({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
             {/* Date */}
-            <div className="flex flex-col space-y-1">
+            <div className="flex flex-col space-y-2">
               <label className="text-sm font-medium">Date</label>
               <Input
                 type="date"
@@ -170,7 +170,7 @@ export default function EventEditor({
             </div>
 
             {/* Time */}
-            <div className="flex flex-col space-y-1">
+            <div className="flex flex-col space-y-2">
               <label className="text-sm font-medium">Time</label>
               <Input
                 type="time"

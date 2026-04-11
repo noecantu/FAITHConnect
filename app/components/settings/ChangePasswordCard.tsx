@@ -56,7 +56,7 @@ export function ChangePasswordCard({ onDirtyChange, registerSave }: ChangePasswo
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <div className="space-y-1">
+        <div className="space-y-2">
           <label className="text-sm font-medium">Current Password</label>
           <Input
             type="password"
@@ -66,7 +66,7 @@ export function ChangePasswordCard({ onDirtyChange, registerSave }: ChangePasswo
           />
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-2">
           <label className="text-sm font-medium">New Password</label>
           <Input
             type="password"
@@ -76,7 +76,7 @@ export function ChangePasswordCard({ onDirtyChange, registerSave }: ChangePasswo
           />
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-2">
           <label className="text-sm font-medium">Confirm New Password</label>
           <Input
             type="password"

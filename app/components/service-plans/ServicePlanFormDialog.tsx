@@ -156,7 +156,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-grow overflow-y-auto px-6 py-2">
+        <div className="flex-grow overflow-y-auto px-6 py-2 pr-2">
           <Form {...form}>
             <form
               id="service-plan-form"
@@ -179,7 +179,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                   {/* Date */}
-                  <div className="flex flex-col space-y-1">
+                  <div className="flex flex-col space-y-2">
                     <label className="text-sm font-medium">Date</label>
                     <Input
                       type="date"
@@ -194,7 +194,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                   </div>
 
                   {/* Time */}
-                  <div className="flex flex-col space-y-1">
+                  <div className="flex flex-col space-y-2">
                     <label className="text-sm font-medium">Time</label>
                     <Input
                       type="time"

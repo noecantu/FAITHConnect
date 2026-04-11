@@ -153,7 +153,7 @@ export function GridCalendar({
 
                 {/* Desktop event chips */}
                 {count > 0 && (
-                  <div className="hidden md:flex flex-col items-start w-full mt-1 space-y-1">
+                  <div className="hidden md:flex flex-col items-start w-full mt-1 space-y-2">
                     {dayEvents.slice(0, 2).map((event) => {
                       const groups = "groups" in event ? event.groups : [];
                       const color = getGroupColor(groups);

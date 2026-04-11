@@ -90,7 +90,7 @@ export default function UserDashboardPage({
                   )}
                 </Avatar>
 
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <h2 className="text-xl font-semibold tracking-tight">
                     {church.name}
                   </h2>

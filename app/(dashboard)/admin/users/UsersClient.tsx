@@ -87,7 +87,7 @@ export default function UsersClient({ users }: UsersClientProps) {
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="flex flex-col md:flex-row gap-4 md:items-end">
               {/* Search */}
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <Label>Search</Label>
                 <Input
                   placeholder="Search by name or email"
@@ -98,7 +98,7 @@ export default function UsersClient({ users }: UsersClientProps) {
               </div>
 
               {/* Role Filter */}
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <Label>Role</Label>
                 <Select
                   value={selectedRole}

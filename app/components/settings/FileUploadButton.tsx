@@ -32,7 +32,7 @@ export default function FileUploadButton({ label, path, onUploaded }: Props) {
   };
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       <Button asChild disabled={uploading}>
         <label className="cursor-pointer">
           {uploading ? "Uploading..." : label}

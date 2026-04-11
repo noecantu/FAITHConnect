@@ -60,54 +60,43 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady }: SetListFor
   }, [title, dateString, timeString, sections, serviceType, theme, scripture, notes]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+
       {/* Date & Time */}
-      <div className="space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="flex flex-col space-y-2">
+          <Label>Date</Label>
+          <Input
+            type="date"
+            value={dateString}
+            onChange={(e) => setDateString(e.target.value)}
+          />
+        </div>
 
-          {/* Date */}
-          <div className="flex flex-col space-y-1">
-            <Label>Date</Label>
-            <Input
-              type="date"
-              value={dateString}
-              onChange={(e) => {
-                const value = e.target.value
-                setDateString(value)
-              }}
-              className="w-full"
-            />
-          </div>
-
-          {/* Time */}
-          <div className="flex flex-col space-y-1">
-            <Label>Time</Label>
-            <Input
-              type="time"
-              value={timeString}
-              onChange={(e) => {
-                const value = e.target.value
-                setTimeString(value)
-              }}
-              className="w-full"
-            />
-          </div>
-
+        <div className="flex flex-col space-y-2">
+          <Label>Time</Label>
+          <Input
+            type="time"
+            value={timeString}
+            onChange={(e) => setTimeString(e.target.value)}
+          />
         </div>
       </div>
 
       {/* Title */}
-      <div>
+      <div className="space-y-2">
         <Label>Title</Label>
-        <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+        <Input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
       </div>
-      
-      {/* NEW: Service Details */}
-      <div className="space-y-4 rounded-md border p-4 bg-white/5">
-        <h2 className="text-lg font-semibold">Service Details</h2>
 
-        {/* Service Type */}
-        <div>
+      {/* Service Details */}
+      <div className="space-y-4 rounded-md border border-border p-4 bg-muted/30">
+        <h2 className="text-lg font-semibold text-foreground">Service Details</h2>
+
+        <div className="space-y-2">
           <Label>Service Type</Label>
           <Input
             value={serviceType}
@@ -116,8 +105,7 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady }: SetListFor
           />
         </div>
 
-        {/* Theme */}
-        <div>
+        <div className="space-y-2">
           <Label>Theme</Label>
           <Input
             value={theme}
@@ -126,8 +114,7 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady }: SetListFor
           />
         </div>
 
-        {/* Scripture */}
-        <div>
+        <div className="space-y-2">
           <Label>Scripture</Label>
           <Input
             value={scripture}
@@ -148,7 +135,7 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady }: SetListFor
       </div>
 
       {/* Notes */}
-      <div>
+      <div className="space-y-2">
         <Label>Notes</Label>
         <Textarea
           value={notes}
@@ -157,7 +144,6 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady }: SetListFor
         />
       </div>
 
-      {/* Hidden submit button for parent form */}
       <button type="submit" onClick={handleSubmit} className="hidden" />
     </div>
   );

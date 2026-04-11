@@ -31,7 +31,7 @@ export default function SectionMaintenance({
           <Label>Enable Maintenance Mode</Label>
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label>Maintenance Message</Label>
           <Input
             value={settings.maintenanceMessage}

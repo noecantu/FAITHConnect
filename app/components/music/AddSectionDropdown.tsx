@@ -61,7 +61,7 @@ export default function AddSectionDropdown({
         <Button variant="default">+ Add Section</Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-56 p-2 space-y-1">
+      <PopoverContent className="w-56 p-2 space-y-2">
 
         {sectionNames.map((sn) => {
           const isNew = sn.id === justAddedId;

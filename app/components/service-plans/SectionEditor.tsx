@@ -48,14 +48,18 @@ export function SectionEditor({
   const { control, watch, setValue } = useFormContext();
 
   const title = watch(`sections.${index}.title`);
+  const sectionColor = getSectionColor(title);
 
   return (
     <div
-      className="border rounded-md p-4 space-y-4"
-      style={{ backgroundColor: getSectionColor(title) }}
+      className="rounded-md border border-border p-5 space-y-5 bg-card relative"
+      style={{
+        // Soft color tint instead of full background
+        boxShadow: `0 0 0 3px ${sectionColor}33`,
+      }}
     >
       {/* Header Row */}
-      <div className="flex justify-between items-center mb-2">
+      <div className="flex justify-between items-center">
         <span className="text-sm font-medium text-muted-foreground">
           Section {index + 1}
         </span>
@@ -67,6 +71,7 @@ export function SectionEditor({
             size="icon"
             disabled={isFirst}
             onClick={moveUp}
+            className="h-7 w-7"
           >
             <ChevronUp className="h-4 w-4" />
           </Button>
@@ -77,6 +82,7 @@ export function SectionEditor({
             size="icon"
             disabled={isLast}
             onClick={moveDown}
+            className="h-7 w-7"
           >
             <ChevronDown className="h-4 w-4" />
           </Button>
@@ -86,13 +92,14 @@ export function SectionEditor({
             variant="outline"
             size="icon"
             onClick={remove}
+            className="h-7 w-7"
           >
             <Trash2 className="h-4 w-4 text-red-500" />
           </Button>
         </div>
       </div>
 
-      {/* Section Title (Dropdown) */}
+      {/* Section Title */}
       <FormField
         control={control}
         name={`sections.${index}.title`}
@@ -102,9 +109,7 @@ export function SectionEditor({
 
             <Select
               value={field.value}
-              onValueChange={(value) => {
-                setValue(`sections.${index}.title`, value);
-              }}
+              onValueChange={(value) => setValue(`sections.${index}.title`, value)}
             >
               <FormControl>
                 <SelectTrigger>
@@ -173,7 +178,7 @@ export function SectionEditor({
           <FormItem>
             <FormLabel>Songs</FormLabel>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Button
                 type="button"
                 variant="outline"
@@ -184,7 +189,10 @@ export function SectionEditor({
               </Button>
 
               {(field.value ?? []).map((songId: string, songIndex: number) => (
-                <div key={songIndex} className="flex items-center gap-2">
+                <div
+                  key={songIndex}
+                  className="flex items-center gap-2 bg-muted/30 p-2 rounded-md"
+                >
                   <Select
                     value={songId}
                     onValueChange={(val) => {
@@ -237,7 +245,11 @@ export function SectionEditor({
           <FormItem>
             <FormLabel>Notes</FormLabel>
             <FormControl>
-              <Textarea placeholder="Optional notes…" {...field} />
+              <Textarea
+                placeholder="Optional notes…"
+                {...field}
+                className="min-h-[80px]"
+              />
             </FormControl>
             <FormMessage />
           </FormItem>

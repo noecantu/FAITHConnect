@@ -88,7 +88,7 @@ export default function SongSelectionDialog({
           </Select>
         </div>
 
-        <div className="mt-3 max-h-80 overflow-y-auto space-y-1">
+        <div className="mt-3 max-h-80 overflow-y-auto space-y-2">
           {filtered.map((song) => (
             <button
               key={song.id}

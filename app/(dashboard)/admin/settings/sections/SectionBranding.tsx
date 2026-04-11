@@ -24,7 +24,7 @@ export default function SectionBranding({
       <CardContent className="space-y-6">
 
         {/* Primary Color */}
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label>Primary Color (Hex)</Label>
           <Input
             value={branding.primaryColor}

@@ -117,7 +117,7 @@ export default function SectionIdentity({
 
       <CardContent className="space-y-4">
 
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label>Platform Name</Label>
           <Input
             value={platformName}
@@ -125,7 +125,7 @@ export default function SectionIdentity({
           />
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label>Support Email</Label>
           <Input
             value={supportEmail}

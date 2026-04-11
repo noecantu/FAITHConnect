@@ -177,7 +177,7 @@ export default function MemberCard({
         </CardHeader>
 
         <CardContent>
-          <div className="space-y-1 text-sm text-muted-foreground">
+          <div className="space-y-2 text-sm text-muted-foreground">
             <a
               href={`mailto:${member.email}`}
               className="hover:underline"
@@ -311,7 +311,7 @@ export default function MemberCard({
       </CardHeader>
 
       <CardContent>
-        <div className="space-y-1 text-sm text-muted-foreground">
+        <div className="space-y-2 text-sm text-muted-foreground">
           <a
             href={`mailto:${member.email}`}
             className="hover:underline"

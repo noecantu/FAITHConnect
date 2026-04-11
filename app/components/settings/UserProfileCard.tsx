@@ -64,7 +64,7 @@ export default function UserProfileCard({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label>First Name</Label>
           <Input
             value={firstName}
@@ -72,7 +72,7 @@ export default function UserProfileCard({
           />
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label>Last Name</Label>
           <Input
             value={lastName}
@@ -80,7 +80,7 @@ export default function UserProfileCard({
           />
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label>Email</Label>
           <Input
             type="email"

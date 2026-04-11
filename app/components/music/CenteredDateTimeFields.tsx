@@ -35,7 +35,7 @@ export function CenteredDateTimeFields({
   return (
     <div className="space-y-4">
       {/* Date */}
-      <div className="space-y-1">
+      <div className="space-y-2">
         <Label>Date</Label>
 
         <Dialog open={open} onOpenChange={setOpen}>
@@ -68,7 +68,7 @@ export function CenteredDateTimeFields({
       </div>
 
       {/* Time */}
-      <div className="space-y-1">
+      <div className="space-y-2">
         <Label>Time</Label>
         <Input
           type="time"

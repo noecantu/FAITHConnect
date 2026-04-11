@@ -23,7 +23,6 @@ export function SectionSongList({
   const [search, setSearch] = useState('');
   const [showList, setShowList] = useState(false);
 
-  // Normalize incoming songs to ensure stable IDs
   const normalized = ensureSongEntryIds(songs);
 
   const filtered = allSongs.filter((s) =>
@@ -68,8 +67,8 @@ export function SectionSongList({
   return (
     <div className="space-y-4">
 
-      {/* Search + Add */}
-      <div className="space-y-2">
+      {/* Search */}
+      <div className="relative">
         <Input
           placeholder="Search songs to add..."
           value={search}
@@ -80,7 +79,7 @@ export function SectionSongList({
         />
 
         {showList && search.length > 0 && (
-          <div className="border rounded-md max-h-60 overflow-y-auto bg-background shadow">
+          <div className="absolute z-20 mt-1 w-full rounded-md border border-border bg-popover shadow-lg max-h-60 overflow-y-auto">
             {filtered.length === 0 && (
               <div className="p-3 text-sm text-muted-foreground">
                 No songs found
@@ -90,7 +89,7 @@ export function SectionSongList({
             {filtered.map((song) => (
               <button
                 key={song.id}
-                className="w-full text-left p-3 hover:bg-muted/40 transition-colors"
+                className="w-full text-left p-3 hover:bg-muted/50 transition-colors"
                 onClick={() => addSong(song)}
               >
                 <div className="font-medium">{song.title}</div>
@@ -124,7 +123,7 @@ export function SectionSongList({
 }
 
 /* ---------------------------------------------
-   Song Item (Up/Down arrows, no DnD)
+   Song Item
 ---------------------------------------------- */
 
 function SongItem({
@@ -146,7 +145,7 @@ function SongItem({
   onMoveDown: () => void;
 }) {
   return (
-    <Card className="p-3 flex items-start gap-3">
+    <Card className="p-4 flex items-start gap-4 border border-border bg-card">
 
       {/* Move Up/Down */}
       <div className="flex flex-col gap-1 pt-1">
@@ -156,6 +155,7 @@ function SongItem({
           size="icon"
           disabled={isFirst}
           onClick={onMoveUp}
+          className="h-7 w-7"
         >
           <ChevronUp className="h-4 w-4" />
         </Button>
@@ -166,6 +166,7 @@ function SongItem({
           size="icon"
           disabled={isLast}
           onClick={onMoveDown}
+          className="h-7 w-7"
         >
           <ChevronDown className="h-4 w-4" />
         </Button>
@@ -173,18 +174,15 @@ function SongItem({
 
       {/* Song content */}
       <div className="flex-1 space-y-2">
-        {/* Title */}
-        <p className="font-medium">{entry.title}</p>
+        <p className="font-medium text-foreground">{entry.title}</p>
 
-        {/* Metadata Row */}
         <div className="text-xs text-muted-foreground flex gap-4">
           <span>Key: {entry.key ?? '—'}</span>
           <span>BPM: {entry.bpm ?? '—'}</span>
           <span>Time: {entry.timeSignature ?? '—'}</span>
         </div>
 
-        {/* Notes */}
-        <div>
+        <div className="space-y-1">
           <label className="text-xs text-muted-foreground">Notes</label>
           <Input
             value={entry.notes ?? ''}
@@ -195,8 +193,13 @@ function SongItem({
       </div>
 
       {/* Remove */}
-      <Button variant="outline" size="icon" onClick={onRemove}>
-        <X />
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={onRemove}
+        className="h-8 w-8"
+      >
+        <X className="h-4 w-4" />
       </Button>
     </Card>
   );
