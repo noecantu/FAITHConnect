@@ -17,7 +17,7 @@ export type Permission =
   | "attendance.manage"
   | "roles.assign"
   | "system.manage"
-  | "regional.manage";
+  | "region.manage";
 
 import type { Role } from "./roles";
 
@@ -42,7 +42,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
 
   RegionalAdmin: [
     "roles.assign",
-    "regional.manage",
+    "region.manage",
   ],
 
   Support: [
