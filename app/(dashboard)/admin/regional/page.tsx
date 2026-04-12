@@ -1,8 +1,7 @@
-//app/(dashboard)/admin/regional/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import Link from 'next/link';
@@ -12,6 +11,8 @@ export default function RegionalDashboardPage() {
 
   const [churchCount, setChurchCount] = useState(0);
   const [userCount, setUserCount] = useState(0);
+  const [regionName, setRegionName] = useState('');
+  const [regionalAdminName, setRegionalAdminName] = useState('');
   const [loading, setLoading] = useState(true);
 
   // Load churches in region
@@ -47,6 +48,21 @@ export default function RegionalDashboardPage() {
     return () => unsub();
   }, [regionId]);
 
+  // Load region details (name + admin)
+  useEffect(() => {
+    if (!regionId) return;
+
+    const unsub = onSnapshot(doc(db, 'regions', regionId), (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        setRegionName(data.name || 'Unknown Region');
+        setRegionalAdminName(data.regionalAdminName || 'Unknown Admin');
+      }
+    });
+
+    return () => unsub();
+  }, [regionId]);
+
   if (!isRegionalAdmin && !isRootAdmin) {
     return (
       <div className="p-6">
@@ -56,7 +72,7 @@ export default function RegionalDashboardPage() {
     );
   }
 
-  // --- LOADING STATE ---
+  // Loading state
   if (loading) {
     return (
       <div className="p-6 space-y-6">
@@ -64,7 +80,6 @@ export default function RegionalDashboardPage() {
         <p className="text-muted-foreground">Loading regional data…</p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Skeleton Cards */}
           {[1, 2, 3].map((i) => (
             <div
               key={i}
@@ -79,10 +94,9 @@ export default function RegionalDashboardPage() {
     );
   }
 
-  // --- MAIN CONTENT ---
+  // Main content
   return (
     <div className="p-6 space-y-8">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold">Regional Dashboard</h1>
         <p className="text-muted-foreground">
@@ -114,13 +128,23 @@ export default function RegionalDashboardPage() {
           </Link>
         </div>
 
+        {/* Updated Region Card */}
         <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
           <h2 className="text-lg font-semibold">Region</h2>
-          <p className="text-3xl font-bold mt-2">{regionId}</p>
+
+          <p className="text-xl font-bold mt-2">{regionName}</p>
+
+          <p className="text-sm text-muted-foreground mt-1">
+            Admin: {regionalAdminName}
+          </p>
+
+          <p className="text-xs text-muted-foreground mt-1 opacity-60">
+            ID: {regionId}
+          </p>
         </div>
       </div>
 
-      {/* Quick Links */}
+      {/* Quick Actions */}
       <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
         <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
 

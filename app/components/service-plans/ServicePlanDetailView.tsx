@@ -1,3 +1,4 @@
+//app/components/service-plans/ServicePlanDetailView.tsx
 'use client';
 
 import { PageHeader } from '@/app/components/page-header';

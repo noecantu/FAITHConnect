@@ -37,7 +37,7 @@ export default function CreateSystemUserClient() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [accountType, setAccountType] = useState("");
-  const [regionName, setRegionName] = useState(""); // NEW
+  const [regionName, setRegionName] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleCreateUser() {

@@ -20,6 +20,8 @@ import {
 import { ALL_ROLES, SYSTEM_ROLES, ROLE_LABELS, type Role, SystemRole } from "@/app/lib/auth/roles";
 import type { User } from "@/app/lib/types";
 import RoleSelector from "@/app/components/settings/RoleSelector";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/app/lib/firebase/client";
 
 // Firestore admin API
 async function updateUser(input: any) {
@@ -77,18 +79,29 @@ export default function EditUserForm({
   // ⭐ Load region name if user is already a Regional Admin
   useEffect(() => {
     async function loadRegion() {
-      if (systemRole !== "RegionalAdmin" || !user.regionId) return;
+      if (systemRole !== "RegionalAdmin") return;
 
-      const res = await fetch(`/api/regions/get?id=${user.regionId}`);
-      const data = await res.json();
+      const rid = user?.regionId;
 
-      if (data?.region?.name) {
-        setRegionName(data.region.name);
+      // Prevent invalid Firestore doc IDs
+      if (typeof rid !== "string" || rid.trim().length < 10) {
+        return;
+      }
+
+      try {
+        const snap = await getDoc(doc(db, "regions", rid));
+
+        if (snap.exists()) {
+          const data = snap.data();
+          setRegionName(data.name || "");
+        }
+      } catch (err) {
+        console.error("Failed to load region:", err);
       }
     }
 
     loadRegion();
-  }, [systemRole, user.regionId]);
+  }, [systemRole, user?.regionId]);
 
   function toggleRole(role: Role, checked: boolean) {
     if (checked) setRoles((prev) => [...prev, role]);
@@ -219,16 +232,18 @@ export default function EditUserForm({
         <>
           <div className="space-y-2">
             <Label>Church</Label>
-            <Select value={churchId} onValueChange={setChurchId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a church" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={user.churchId ?? ""}>
-                  {user.churchId ?? "(No church)"}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+              <Select value={churchId || "none"} onValueChange={setChurchId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a church" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="none">(No church)</SelectItem>
+                  {user.churchId && (
+                    <SelectItem value={user.churchId}>{user.churchId}</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
           </div>
 
           <RoleSelector

@@ -202,7 +202,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
               {regions.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.name}
-                  {r.regionAdminId ? ` — ${r.regionAdminId}` : ""}
+                  {r.regionAdminName ? ` — Managed by ${r.regionAdminName}` : ""}
                 </option>
               ))}
             </select>

@@ -1,4 +1,3 @@
-//app/admin/actions/createSystemUserAction.ts
 "use server";
 
 import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
@@ -38,6 +37,9 @@ export async function createSystemUserAction(input: CreateSystemUserInput) {
     displayName: `${firstName} ${lastName}`.trim(),
     email,
     churchId: null,
+    roles: [],          // <-- REQUIRED
+    regionId: null,     // <-- REQUIRED for Regional Admin workflow
+    regionName: null,   // <-- Optional but helpful
     createdAt: serverTimestamp(),
   });
 
@@ -49,8 +51,7 @@ export async function createSystemUserAction(input: CreateSystemUserInput) {
     targetId: userRecord.uid,
     targetType: "SYSTEM_USER",
     message: `Created system-level user: ${email}`,
-    metadata: {
-    },
+    metadata: {},
   });
 
   return { success: true, userId: userRecord.uid };

@@ -17,6 +17,8 @@ import { User, Mode } from '@/app/lib/types';
 import { can } from "@/app/lib/auth/permissions";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { useChurchId } from "@/app/hooks/useChurchId";
+import { useAuth } from "@/app/hooks/useAuth";
+import { updateUserAction } from "@/app/(dashboard)/admin/actions/updateUserAction";
 
 export function useUserManagement() {
   const { toast } = useToast();
@@ -24,6 +26,7 @@ export function useUserManagement() {
 
   const { roles: actorRoles } = usePermissions();
   const { churchId } = useChurchId();
+  const { user: authUser } = useAuth();
 
   const canAssignRoles = can(actorRoles, "roles.assign");
   const canManageChurch = can(actorRoles, "church.manage");
@@ -38,6 +41,7 @@ export function useUserManagement() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([]);
+  const [regionName, setRegionName] = useState('');
 
   // -----------------------------
   // MODE + LOADING FLAGS
@@ -56,6 +60,7 @@ export function useUserManagement() {
     setEmail('');
     setPassword('');
     setSelectedRoles([]);
+    setRegionName('');
     setSelectedUser(null);
   };
 
@@ -150,7 +155,7 @@ export function useUserManagement() {
   };
 
   // -----------------------------
-  // SAVE USER
+  // SAVE USER (now uses updateUserAction)
   // -----------------------------
   const handleSaveUser = async () => {
     if (!selectedUser) return;
@@ -160,16 +165,25 @@ export function useUserManagement() {
       return;
     }
 
+    if (!authUser?.id) {
+      toast({ title: "Error", description: "Current user not available." });
+      return;
+    }
+
     setIsSaving(true);
 
     try {
-      const rolesToAssign = canAssignRoles ? selectedRoles : selectedUser.roles;
+      const rolesToAssign = canAssignRoles ? selectedRoles : (selectedUser.roles ?? []);
 
-      await updateDoc(doc(db, "users", selectedUser.id), {
+      await updateUserAction({
+        userId: selectedUser.id,
         firstName,
         lastName,
         email,
         roles: rolesToAssign,
+        regionName: rolesToAssign.includes("RegionalAdmin") ? regionName || null : null,
+        actorUid: authUser.id,
+        actorName: `${authUser.firstName ?? ""} ${authUser.lastName ?? ""}`.trim(),
       });
 
       toast({ title: "Success", description: "User updated." });
@@ -237,6 +251,7 @@ export function useUserManagement() {
     setLastName(user.lastName ?? '');
     setEmail(user.email);
     setSelectedRoles(user.roles ?? []);
+    setRegionName('');
     setMode('edit');
   };
 
@@ -268,11 +283,13 @@ export function useUserManagement() {
     email,
     password,
     selectedRoles,
+    regionName,
 
     setFirstName,
     setLastName,
     setEmail,
     setPassword,
+    setRegionName,
 
     isCreating,
     isSaving,

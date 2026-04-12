@@ -1,10 +1,8 @@
-//app/(dashboard)/admin/actions.updateUserAction.ts
 "use server";
 
 import { adminDb } from "@/app/lib/firebase/admin";
 import { logSystemEvent } from "@/app/lib/system/logging";
-import { ALL_ROLES, Role } from "@/app/lib/auth/roles";
-import { SystemRole, SYSTEM_ROLES } from "@/app/lib/auth/roles";
+import { Role, SystemRole, ALL_ROLES, SYSTEM_ROLE_LIST } from "@/app/lib/auth/roles";
 import { can } from "@/app/lib/auth/permissions";
 
 export interface UpdateUserInput {
@@ -51,11 +49,11 @@ export async function updateUserAction(input: UpdateUserInput) {
 
   if (newRoles) {
     isSystemRoleUpdate = newRoles.every((r) =>
-      SYSTEM_ROLES.includes(r as SystemRole)
+      SYSTEM_ROLE_LIST.includes(r as Role)
     );
 
     isChurchRoleUpdate = newRoles.every((r) =>
-      ALL_ROLES.includes(r as Role)
+      ALL_ROLES.includes(r as Role) && !SYSTEM_ROLE_LIST.includes(r as Role)
     );
 
     if (!isSystemRoleUpdate && !isChurchRoleUpdate) {
@@ -94,12 +92,10 @@ export async function updateUserAction(input: UpdateUserInput) {
     const removingAdmin =
       targetIsAdmin && !churchRoles.includes("Admin");
 
-    // Prevent self-demotion
     if (isSelf && removingAdmin && !isRootAdmin) {
       throw new Error("You cannot remove your own Admin role.");
     }
 
-    // Prevent removing the last Admin in the church
     if (removingAdmin && !isRootAdmin) {
       const adminsSnap = await adminDb
         .collection("users")
@@ -117,17 +113,16 @@ export async function updateUserAction(input: UpdateUserInput) {
     }
   }
 
-  // ---------------------------------------
-  // ⭐ Regional Admin region assignment
-  // ---------------------------------------
-  if (newRoles && isSystemRoleUpdate && newRoles.includes("RegionalAdmin")) {
-    const regionName = (input as any).regionName;
+  // ⭐ Regional Admin region assignment (FIXED CONDITION)
+  const hasRegionalAdmin = newRoles?.includes("RegionalAdmin");
 
-    if (!regionName || !regionName.trim()) {
+  if (newRoles && hasRegionalAdmin) {
+    const regionName = input.regionName?.trim();
+
+    if (!regionName) {
       throw new Error("Region name required for Regional Admin.");
     }
 
-    // Look up region by name
     const regionSnap = await adminDb
       .collection("regions")
       .where("name", "==", regionName)
@@ -137,20 +132,33 @@ export async function updateUserAction(input: UpdateUserInput) {
     let regionId: string;
 
     if (!regionSnap.empty) {
-      regionId = regionSnap.docs[0].id;
+      const regionDoc = regionSnap.docs[0];
+      regionId = regionDoc.id;
+
+      await adminDb.collection("regions").doc(regionId).update({
+        regionAdminId: userId,
+        regionAdminName: `${before.firstName ?? ""} ${before.lastName ?? ""}`.trim(),
+        churchIds: regionDoc.data().churchIds ?? [],
+      });
     } else {
       const newRegion = await adminDb.collection("regions").add({
         name: regionName,
+        regionAdminId: userId,
+        regionAdminName: `${before.firstName ?? ""} ${before.lastName ?? ""}`.trim(),
+        churchIds: [],
+        createdBy: actorUid,
+        createdByName: actorName ?? null,
         createdAt: Date.now(),
       });
+
       regionId = newRegion.id;
     }
 
     updates.regionId = regionId;
   }
 
-  // If switching away from RegionalAdmin → clear regionId
-  if (newRoles && isSystemRoleUpdate && !newRoles.includes("RegionalAdmin")) {
+  // Clear regionId if no longer RegionalAdmin
+  if (newRoles && !newRoles.includes("RegionalAdmin")) {
     updates.regionId = null;
   }
 

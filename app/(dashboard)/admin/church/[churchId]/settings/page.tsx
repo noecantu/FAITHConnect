@@ -18,9 +18,6 @@ import DeleteUserDialog from '../../../../../components/settings/DeleteUserDialo
 import ChurchLogoCard from '../../../../../components/settings/ChurchLogoCard';
 import ChurchProfileCard from '../../../../../components/settings/ChurchProfileCard';
 
-// -----------------------------
-// SYSTEM ROLE CHECK
-// -----------------------------
 const SYSTEM_ROLES = [
   "RootAdmin",
   "SystemAdmin",
@@ -38,22 +35,13 @@ export default function ChurchSettingsPage() {
   const { user } = useAuth();
   const [churchName] = useState('');
 
-  // -----------------------------
-  // USERS LIST
-  // -----------------------------
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // -----------------------------
-  // STORAGE USAGE
-  // -----------------------------
   const [storageUsed, setStorageUsed] = useState<number | null>(null);
   const [hasLoadedUsage, setHasLoadedUsage] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // -----------------------------
-  // USER MANAGEMENT HOOK
-  // -----------------------------
   const {
     mode,
     selectedUser,
@@ -62,11 +50,13 @@ export default function ChurchSettingsPage() {
     email,
     password,
     selectedRoles,
+    regionName,
 
     setFirstName,
     setLastName,
     setEmail,
     setPassword,
+    setRegionName,
 
     isCreating,
     isSaving,
@@ -84,9 +74,6 @@ export default function ChurchSettingsPage() {
     getSortedUsers,
   } = useUserManagement();
 
-  // -----------------------------
-  // LOAD USERS (RESTORED WORKING VERSION)
-  // -----------------------------
   useEffect(() => {
     if (!churchId || !user?.id) {
       setUsers([]);
@@ -117,9 +104,6 @@ export default function ChurchSettingsPage() {
     return () => unsub();
   }, [churchId, user?.id]);
 
-  // -----------------------------
-  // LOAD STORAGE USAGE
-  // -----------------------------
   const fetchUsage = async () => {
     try {
       setRefreshing(true);
@@ -139,14 +123,8 @@ export default function ChurchSettingsPage() {
     fetchUsage();
   }, []);
 
-  // -----------------------------
-  // SORT USERS
-  // -----------------------------
   const sortedUsers = getSortedUsers(users);
 
-  // -----------------------------
-  // PERMISSION CHECK (AFTER HOOKS)
-  // -----------------------------
   if (!user) {
     return (
       <div className="p-6">
@@ -170,9 +148,6 @@ export default function ChurchSettingsPage() {
     );
   }
 
-  // -----------------------------
-  // LOADING STATE
-  // -----------------------------
   if (loading) {
     return (
       <div className="p-6 space-y-4">
@@ -182,9 +157,6 @@ export default function ChurchSettingsPage() {
     );
   }
 
-  // -----------------------------
-  // RENDER
-  // -----------------------------
   return (
     <>
       <PageHeader
@@ -193,7 +165,6 @@ export default function ChurchSettingsPage() {
         className="mb-2"
       />
 
-      {/* LIST MODE */}
       {mode === 'list' && (
         <>
           <UserListCard
@@ -222,7 +193,6 @@ export default function ChurchSettingsPage() {
         </>
       )}
 
-      {/* CREATE / EDIT FORM */}
       {(mode === 'create' || mode === 'edit') && (
         <UserFormCard
           mode={mode}
@@ -231,10 +201,12 @@ export default function ChurchSettingsPage() {
           email={email}
           password={password}
           selectedRoles={selectedRoles}
+          regionName={regionName}
           setFirstName={setFirstName}
           setLastName={setLastName}
           setEmail={setEmail}
           setPassword={setPassword}
+          setRegionName={setRegionName}
           onRoleChange={handleRoleChange}
           onCreate={handleCreateUser}
           onSave={handleSaveUser}
@@ -248,7 +220,6 @@ export default function ChurchSettingsPage() {
         />
       )}
 
-      {/* DELETE CONFIRMATION */}
       {mode === 'confirm-delete' && selectedUser && (
         <DeleteUserDialog
           user={selectedUser}

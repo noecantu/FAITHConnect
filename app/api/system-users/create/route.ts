@@ -1,4 +1,3 @@
-//app/api/system-users/create/route.ts
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
 import { logSystemEvent } from "@/app/lib/system/logging";
@@ -26,16 +25,17 @@ export async function POST(req: Request) {
 
     let regionId = null;
 
-    // 2. If Regional Admin, create a region document
+    // 2. If Regional Admin, create region document using the new user's UID
     if (roles?.includes("RegionalAdmin") && regionName) {
-      const regionRef = adminDb.collection("regions").doc(); // auto ID
-      regionId = regionRef.id;
+      regionId = userRecord.uid;
 
-      await regionRef.set({
+      await adminDb.collection("regions").doc(regionId).set({
         name: regionName,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        regionalAdminUid: userRecord.uid,
+        regionalAdminName: `${firstName} ${lastName}`.trim(),
         createdBy: actorUid,
         createdByName: actorName,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
     }
 
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    // 4. Set custom claims for Firestore rules
+    // 4. Set custom claims
     await adminAuth.setCustomUserClaims(userRecord.uid, {
       roles,
       regionId,
@@ -77,6 +77,7 @@ export async function POST(req: Request) {
       userId: userRecord.uid,
       regionId,
     });
+
   } catch (err: any) {
     console.error("API error:", err);
 
@@ -91,4 +92,3 @@ export async function POST(req: Request) {
     );
   }
 }
-

@@ -146,7 +146,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
   return (
     <Dialog open={isOpen} onOpenChange={onClose} modal={false}>
       <DialogContent
-        className="w-[95vw] max-w-3xl max-h-[85dvh] flex flex-col p-0"
+        className="w-[95vw] max-w-3xl max-h-[85dvh] flex flex-col p-2"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader className="shrink-0 px-6 pt-6">
@@ -302,7 +302,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
           </Form>
         </div>
 
-        <DialogFooter className="shrink-0 border-t px-6 pb-6 pt-4 flex justify-end gap-2">
+        <DialogFooter className="shrink-0 border-t px-6 pb-6 pt-8 flex justify-end gap-2">
           <Button variant="outline" type="button" onClick={onClose}>
             Cancel
           </Button>

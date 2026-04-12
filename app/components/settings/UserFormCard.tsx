@@ -17,11 +17,13 @@ interface Props {
   email: string;
   password: string;
   selectedRoles: Role[];
+  regionName: string;
 
   setFirstName: (v: string) => void;
   setLastName: (v: string) => void;
   setEmail: (v: string) => void;
   setPassword: (v: string) => void;
+  setRegionName: (v: string) => void;
 
   onRoleChange: (role: Role, checked: boolean) => void;
 
@@ -45,11 +47,13 @@ export default function UserFormCard({
   email,
   password,
   selectedRoles,
+  regionName,
 
   setFirstName,
   setLastName,
   setEmail,
   setPassword,
+  setRegionName,
 
   onRoleChange,
   onCreate,
@@ -64,8 +68,10 @@ export default function UserFormCard({
   currentUserRoles,
   targetUserId,
 }: Props) {
+  const isRegionalAdmin = selectedRoles.includes("RegionalAdmin");
+
   return (
-    <Card className="p-6 space-y-4 bg-black/80 border-white/20 backdrop-blur-xl">
+    <Card className="p-6 space-y-4 bg-black/80 border-white/20 backdrop-blur-xl relative">
       <button
         onClick={onClose}
         className="
@@ -105,6 +111,17 @@ export default function UserFormCard({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Min. 6 characters"
+            />
+          </div>
+        )}
+
+        {isRegionalAdmin && (
+          <div className="grid gap-1">
+            <Label>Region Name</Label>
+            <Input
+              value={regionName}
+              onChange={(e) => setRegionName(e.target.value)}
+              placeholder="e.g. North Panhandle Zone"
             />
           </div>
         )}
