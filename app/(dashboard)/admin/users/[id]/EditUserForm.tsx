@@ -17,7 +17,7 @@ import {
   SelectItem,
 } from "@/app/components/ui/select";
 
-import { ALL_ROLES, SYSTEM_ROLES, ROLE_LABELS, type Role, SystemRole } from "@/app/lib/auth/roles";
+import { SYSTEM_ROLES, ROLE_LABELS, type Role, SystemRole } from "@/app/lib/auth/roles";
 import type { User } from "@/app/lib/types";
 import RoleSelector from "@/app/components/settings/RoleSelector";
 import { doc, getDoc } from "firebase/firestore";
@@ -49,10 +49,6 @@ export default function EditUserForm({
 
   const isSystemUser = userRoles.some((r) =>
     SYSTEM_ROLES.includes(r as SystemRole)
-  );
-
-  const isChurchUser = userRoles.some((r) =>
-    ALL_ROLES.includes(r as Role) && !SYSTEM_ROLES.includes(r as SystemRole)
   );
 
   const [firstName, setFirstName] = useState(user.firstName ?? "");
