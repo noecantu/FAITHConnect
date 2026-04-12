@@ -47,12 +47,12 @@ export default function EditUserForm({
 
   const userRoles = user.roles ?? [];
 
-  const isSystemUser = userRoles.every((r) =>
+  const isSystemUser = userRoles.some((r) =>
     SYSTEM_ROLES.includes(r as SystemRole)
   );
 
-  const isChurchUser = userRoles.every((r) =>
-    ALL_ROLES.includes(r as Role)
+  const isChurchUser = userRoles.some((r) =>
+    ALL_ROLES.includes(r as Role) && !SYSTEM_ROLES.includes(r as SystemRole)
   );
 
   const [firstName, setFirstName] = useState(user.firstName ?? "");
@@ -60,11 +60,11 @@ export default function EditUserForm({
   const [email, setEmail] = useState(user.email ?? "");
 
   const [systemRole, setSystemRole] = useState<SystemRole>(
-    isSystemUser ? (user.roles[0] as SystemRole) : SYSTEM_ROLES[0]
+    userRoles.find((r) => SYSTEM_ROLES.includes(r as SystemRole)) as SystemRole
   );
 
   const [roles, setRoles] = useState<Role[]>(
-    !isSystemUser ? (user.roles as Role[]) ?? [] : []
+    userRoles.filter((r) => !SYSTEM_ROLES.includes(r as SystemRole)) as Role[]
   );
 
   const [churchId, setChurchId] = useState(
@@ -228,7 +228,7 @@ export default function EditUserForm({
       )}
 
       {/* CHURCH USER UI */}
-      {isChurchUser && (
+      {!isSystemUser && (
         <>
           <div className="space-y-2">
             <Label>Church</Label>
