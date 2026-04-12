@@ -1,3 +1,4 @@
+//app/(dashboard)/admin/regional/church/[churchId]/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -138,17 +139,16 @@ export default function RegionalChurchDetailPage() {
                 </p>
                 <p className="text-sm text-muted-foreground">{user.email}</p>
               </div>
-
-              <Link
-                href={`/admin/users/${user.id}`}
-                className="
-                  px-3 py-1.5 rounded-md border
-                  bg-muted/20 hover:bg-muted transition
-                  text-sm
-                "
-              >
-                View
-              </Link>
+                <Link
+                  href={`/admin/regional/users/${user.id}`}
+                  className="
+                    px-3 py-1.5 rounded-md border
+                    bg-muted/20 hover:bg-muted transition
+                    text-sm
+                  "
+                >
+                  View
+                </Link>
             </div>
           ))}
         </div>

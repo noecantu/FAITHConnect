@@ -1,3 +1,4 @@
+//app/(dashboard)/admin/regional/churches/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -74,7 +75,7 @@ export default function RegionalChurchesPage() {
 
             <div className="flex justify-end mt-4">
               <Link
-                href={`/regional/church/${church.id}`}
+                href={`/admin/regional/church/${church.id}`}
                 className="
                   px-3 py-1.5 rounded-md border
                   bg-muted/20 hover:bg-muted transition

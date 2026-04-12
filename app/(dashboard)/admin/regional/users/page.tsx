@@ -1,3 +1,4 @@
+//app/(dashboard)/admin/regional/users/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,16 +11,6 @@ export default function RegionalUsersPage() {
   const { isRootAdmin, isRegionalAdmin, regionId } = usePermissions();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Block unauthorized access
-  if (!isRegionalAdmin && !isRootAdmin) {
-    return (
-      <div className="p-6">
-        <h1 className="text-xl font-semibold">Unauthorized</h1>
-        <p>You do not have permission to view this page.</p>
-      </div>
-    );
-  }
 
   useEffect(() => {
     if (!regionId) return;
@@ -37,6 +28,16 @@ export default function RegionalUsersPage() {
 
     return () => unsub();
   }, [regionId]);
+
+    // Block unauthorized access
+    if (!isRegionalAdmin && !isRootAdmin) {
+      return (
+        <div className="p-6">
+          <h1 className="text-xl font-semibold">Unauthorized</h1>
+          <p>You do not have permission to view this page.</p>
+        </div>
+      );
+    }
 
   return (
     <div className="p-6 space-y-6">
@@ -75,7 +76,7 @@ export default function RegionalUsersPage() {
 
             <div className="flex justify-end mt-4">
               <Link
-                href={`/admin/users/${user.id}`}
+                href={`/admin/regional/users/${user.id}`}
                 className="
                   px-3 py-1.5 rounded-md border
                   bg-muted/20 hover:bg-muted transition
