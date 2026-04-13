@@ -26,11 +26,13 @@ export default function MembersPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
 
-  const { canManageMembers } = usePermissions();
-  const canEdit = canManageMembers;
+  const { canManageMembers, isAuditor, isRegionalAdmin } = usePermissions();
 
-  const { isRegionalAdmin, isRootAdmin } = usePermissions();
-  const isReadOnly = isRegionalAdmin && !isRootAdmin;
+  // Regional Admins AND Auditors are read-only
+  const isReadOnly = isAuditor || isRegionalAdmin;
+
+  // Only true for Church Admin + Root Admin
+  const canEdit = !isReadOnly && canManageMembers;
 
   const { cardView } = useSettings();
   const { user } = useAuth();

@@ -35,6 +35,12 @@ export default function CalendarPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
+  const isRegionalAdmin = can(roles, "regional.manage");
+  const isRootAdmin = can(roles, "system.manage");
+
+  // Regional Admins are read-only
+  const isReadOnly = isRegionalAdmin && !isRootAdmin;
+
   useEffect(() => {
     async function load() {
       const res = await fetch("/api/users/me");

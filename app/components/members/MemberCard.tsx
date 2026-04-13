@@ -120,7 +120,8 @@ export default function MemberCard({
   const { churchId } = useChurchId();
 
   const { canManageMembers } = usePermissions();
-  const canEdit = canManageMembers;
+  const { isAuditor } = usePermissions();
+  const canEdit = !isAuditor && canManageMembers;
 
   //
   // EDITOR VERSION — card is clickable and navigates to edit page
@@ -132,11 +133,7 @@ export default function MemberCard({
           "relative flex flex-col overflow-hidden bg-black/80 border-white/20 backdrop-blur-xl",
           !readOnly && "cursor-pointer"
         )}
-        onClick={
-          readOnly
-            ? undefined
-            : () => router.push(`/church/${churchId}/members/${member.id}`)
-        }
+        onClick={() => router.push(`/church/${churchId}/members/${member.id}/edit`)}
       >
         {/* PHOTO SECTION */}
         {showPhoto && (

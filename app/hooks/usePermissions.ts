@@ -14,6 +14,7 @@ export function usePermissions() {
   const isSystemAdmin = hasRole("SystemAdmin");
   const isRegionalAdmin = hasRole("RegionalAdmin");
   const isSupport = hasRole("Support");
+  const isAuditor = hasRole("Auditor");
 
   // Identifiers
   const regionId = user?.regionId ?? null;
@@ -22,9 +23,6 @@ export function usePermissions() {
   // Per-church auditor
   const rolesByChurch = user?.rolesByChurch ?? {};
   const managedChurchIds = user?.managedChurchIds ?? [];
-
-  const isChurchAuditor = (cid: string) =>
-    rolesByChurch?.[cid]?.includes("ChurchAuditor") ?? false;
 
   return {
     loading,
@@ -36,6 +34,7 @@ export function usePermissions() {
     isSystemAdmin,
     isRegionalAdmin,
     isSupport,
+    isAuditor,
 
     // Identifiers
     regionId,
@@ -44,7 +43,6 @@ export function usePermissions() {
     // Per-church auditor
     rolesByChurch,
     managedChurchIds,
-    isChurchAuditor,
 
     // Permissions
     canManageChurch: can(roles, "church.manage"),
