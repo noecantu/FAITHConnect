@@ -35,12 +35,7 @@ export default function CalendarPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
-  const isRegionalAdmin = can(roles, "regional.manage");
-  const isRootAdmin = can(roles, "system.manage");
-
-  // Regional Admins are read-only
-  const isReadOnly = isRegionalAdmin && !isRootAdmin;
-
+  // Load user profile FIRST — before any conditional return
   useEffect(() => {
     async function load() {
       const res = await fetch("/api/users/me");
@@ -58,15 +53,26 @@ export default function CalendarPage() {
     load();
   }, []);
 
+  // ❗ DO NOT RETURN YET — we must run all hooks first
+
+  // -----------------------------------------
+  // SAFE HOOKS — these must run every render
+  // -----------------------------------------
+
   const roles = user?.roles ?? [];
-  const isAdmin =
-    can(roles, "church.manage") || can(roles, "system.manage");
+
+  const isAuditor = roles.includes("Auditor");
+  const isRegionalAdmin = roles.includes("RegionalAdmin");
+
+  const isReadOnly = isAuditor || isRegionalAdmin;
 
   const canManage =
-    can(roles, "events.manage") || isAdmin;
+    !isReadOnly &&
+    (can(roles, "events.manage") ||
+      can(roles, "church.manage") ||
+      can(roles, "system.manage"));
 
   const { events } = useCalendarEvents(churchId, user);
-
   const { services } = useUpcomingServices(churchId);
 
   const merged: CalendarItem[] = useMemo(() => {
@@ -87,7 +93,6 @@ export default function CalendarPage() {
 
   const visible = useMemo(() => {
     if (!user) return [];
-
     return merged.filter((item) =>
       canUserSeeEvent(user, {
         visibility: item.visibility,
@@ -97,11 +102,14 @@ export default function CalendarPage() {
   }, [merged, user]);
 
   const month = useCalendarMonth();
-
   const filters = useCalendarFilters<CalendarItem>(visible);
 
   const { view, setView } = useUserCalendarSettings(user?.id ?? null);
   const viewControls = { view, setView };
+
+  // -----------------------------------------
+  // NOW we can safely return
+  // -----------------------------------------
 
   if (loadingUser) return <>Loading...</>;
   if (!user) return <>No user found.</>;
