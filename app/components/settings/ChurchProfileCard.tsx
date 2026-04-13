@@ -1,3 +1,4 @@
+//app/components/settings/ChurchProfileCard.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -10,6 +11,7 @@ import { collection, doc, getDoc, getDocs, updateDoc } from 'firebase/firestore'
 import TimezoneSelect from '@/app/components/settings/TimezoneSelect';
 import { usePhoneInput } from '@/app/hooks/usePhoneInput';
 import { Check } from "lucide-react";
+import Link from 'next/link';
 
 interface Props {
   churchId: string;
@@ -187,25 +189,23 @@ export default function ChurchProfileCard({ churchId }: Props) {
             <TimezoneSelect value={timezone} onChange={setTimezone} />
           </div>
 
+          {/* REGION SELECTOR (Dialog) */}
           <div className="grid gap-1">
             <Label>Region</Label>
-            <select
+            <Link
+              href={`/admin/church/${churchId}/select-region`}
               className="
-                w-full rounded-md border border-input bg-background
-                px-3 py-2 text-sm h-10
-                focus:outline-none focus:ring-2 focus:ring-primary
+                w-full px-3 py-2 rounded-md border border-white/20
+                bg-black/40 hover:bg-black/60 transition text-sm
+                flex items-center justify-between
               "
-              value={regionId}
-              onChange={(e) => setRegionId(e.target.value)}
             >
-              <option value="">Select a Region</option>
-              {regions.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                  {r.regionAdminName ? ` — Managed by ${r.regionAdminName}` : ""}
-                </option>
-              ))}
-            </select>
+              {regionId
+                ? regions.find((r) => r.id === regionId)?.name
+                : "Select a Region"}
+
+              <span className="text-primary text-xs">Change →</span>
+            </Link>
           </div>
         </div>
       </CardContent>

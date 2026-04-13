@@ -1,3 +1,4 @@
+//app/(dashboard)/admin/regions/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,6 +16,7 @@ export default function RegionsPage() {
   const [regions, setRegions] = useState<any[]>([]);
   const [name, setName] = useState("");
   const [regionAdminId, setRegionAdminId] = useState("");
+  const [state, setState] = useState("");
 
   // Load regions
   useEffect(() => {
@@ -32,6 +34,7 @@ export default function RegionsPage() {
 
     await addDoc(collection(db, "regions"), {
       name: name.trim(),
+      state: state.trim() || null,
       regionAdminId: regionAdminId || null,
       active: true,
       createdAt: serverTimestamp(),
@@ -41,7 +44,7 @@ export default function RegionsPage() {
 
     setName("");
     setRegionAdminId("");
-
+    setState("");
     // Reload list
     const snap = await getDocs(collection(db, "regions"));
     setRegions(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
@@ -68,6 +71,15 @@ export default function RegionsPage() {
             />
           </div>
 
+          <div className="grid gap-2">
+            <Label>State</Label>
+            <Input
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              placeholder="e.g., Texas"
+            />
+          </div>
+
           <Button onClick={handleCreate}>Create Region</Button>
         </CardContent>
       </Card>
@@ -82,6 +94,9 @@ export default function RegionsPage() {
               <div className="font-semibold">{r.name}</div>
               <div className="text-sm text-white/60">
                 Admin: {r.regionAdminId || "None"}
+              </div>
+              <div className="text-sm text-white/60">
+                State: {r.state || "None"}
               </div>
             </div>
           ))}

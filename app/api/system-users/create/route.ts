@@ -1,3 +1,4 @@
+//app/api/system-users/create/route.ts
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
 import { logSystemEvent } from "@/app/lib/system/logging";
@@ -14,6 +15,7 @@ export async function POST(req: Request) {
       actorName,
       roles,
       regionName,
+      state,
     } = await req.json();
 
     // 1. Create Auth user
@@ -31,8 +33,9 @@ export async function POST(req: Request) {
 
       await adminDb.collection("regions").doc(regionId).set({
         name: regionName,
-        regionalAdminUid: userRecord.uid,
-        regionalAdminName: `${firstName} ${lastName}`.trim(),
+        state: state,
+        regionAdminUid: userRecord.uid,
+        regionAdminName: `${firstName} ${lastName}`.trim(),
         createdBy: actorUid,
         createdByName: actorName,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -47,6 +50,8 @@ export async function POST(req: Request) {
       email,
       roles: roles || [],
       regionId: regionId,
+      regionName: regionName || null,
+      state: state || null,
       churchId: null,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });

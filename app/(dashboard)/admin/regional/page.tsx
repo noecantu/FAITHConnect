@@ -12,7 +12,7 @@ export default function RegionalDashboardPage() {
   const [churchCount, setChurchCount] = useState(0);
   const [userCount, setUserCount] = useState(0);
   const [regionName, setRegionName] = useState('');
-  const [regionalAdminName, setRegionalAdminName] = useState('');
+  const [regionAdminName, setregionAdminName] = useState('');
   const [loading, setLoading] = useState(true);
 
   // Load churches in region
@@ -56,7 +56,7 @@ export default function RegionalDashboardPage() {
       if (snap.exists()) {
         const data = snap.data();
         setRegionName(data.name || 'Unknown Region');
-        setRegionalAdminName(data.regionalAdminName || 'Unknown Admin');
+        setregionAdminName(data.regionAdminName || 'Unknown Admin');
       }
     });
 
@@ -135,7 +135,7 @@ export default function RegionalDashboardPage() {
           <p className="text-xl font-bold mt-2">{regionName}</p>
 
           <p className="text-sm text-muted-foreground mt-1">
-            Admin: {regionalAdminName}
+            Admin: {regionAdminName}
           </p>
 
           <p className="text-xs text-muted-foreground mt-1 opacity-60">

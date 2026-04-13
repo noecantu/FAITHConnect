@@ -19,6 +19,19 @@ import {
   SelectItem,
 } from "@/app/components/ui/select";
 
+const US_STATES = [
+  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
+  "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho",
+  "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana",
+  "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
+  "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada",
+  "New Hampshire", "New Jersey", "New Mexico", "New York",
+  "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon",
+  "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
+  "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington",
+  "West Virginia", "Wisconsin", "Wyoming"
+];
+
 const ACCOUNT_TYPES = [
   { value: "RootAdmin", label: "Root Administrator" },
   { value: "SystemAdmin", label: "System Administrator" },
@@ -39,6 +52,7 @@ export default function CreateSystemUserClient() {
   const [accountType, setAccountType] = useState("");
   const [regionName, setRegionName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [state, setState] = useState("");
 
   async function handleCreateUser() {
     try {
@@ -85,7 +99,8 @@ export default function CreateSystemUserClient() {
           actorUid,
           actorName,
           roles: [accountType],
-          regionName: accountType === "RegionalAdmin" ? regionName : null, // NEW
+          regionName: accountType === "RegionalAdmin" ? regionName : null,
+          state: accountType === "RegionalAdmin" ? state : null,
         }),
       });
 
@@ -194,14 +209,32 @@ export default function CreateSystemUserClient() {
 
           {/* Region Name (only for Regional Admin) */}
           {accountType === "RegionalAdmin" && (
-            <div className="space-y-2">
-              <Label>Region Name</Label>
-              <Input
-                placeholder="e.g., West Texas District"
-                value={regionName}
-                onChange={(e) => setRegionName(e.target.value)}
-              />
-            </div>
+            <>
+              <div className="space-y-2">
+                <Label>Region Name</Label>
+                <Input
+                  placeholder="e.g., South Central District"
+                  value={regionName}
+                  onChange={(e) => setRegionName(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>State</Label>
+                <Select value={state} onValueChange={setState}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a state" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {US_STATES.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
           )}
 
           {/* Save Button */}

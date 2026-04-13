@@ -11,12 +11,12 @@ import { db } from '@/app/lib/firebase/client';
 import type { User } from '@/app/lib/types';
 import { useUserManagement } from '@/app/hooks/useUserManagement';
 
-import UserListCard from '../../../../../components/settings/UserListCard';
-import StorageUsageCard from '../../../../../components/settings/StorageUsageCard';
-import UserFormCard from '../../../../../components/settings/UserFormCard';
-import DeleteUserDialog from '../../../../../components/settings/DeleteUserDialog';
-import ChurchLogoCard from '../../../../../components/settings/ChurchLogoCard';
-import ChurchProfileCard from '../../../../../components/settings/ChurchProfileCard';
+import UserListCard from '@/app/components/settings/UserListCard';
+import StorageUsageCard from '@/app/components/settings/StorageUsageCard';
+import UserFormCard from '@/app/components/settings/UserFormCard';
+import DeleteUserDialog from '@/app/components/settings/DeleteUserDialog';
+import ChurchLogoCard from '@/app/components/settings/ChurchLogoCard';
+import ChurchProfileCard from '@/app/components/settings/ChurchProfileCard';
 
 const SYSTEM_ROLES = [
   "RootAdmin",
