@@ -30,6 +30,7 @@ import {
   FileText,
   Music,
   UserPlus,
+  DollarSign,
 } from "lucide-react";
 
 import Link from "next/link";
@@ -347,6 +348,7 @@ export default function ChurchAdminDashboard() {
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <QuickAction href="/attendance" icon={CalendarCheck} label="Attendance" />
+            <QuickAction href="/contributions" icon={DollarSign} label="Contributions" />
             <QuickAction href="/calendar" icon={Calendar} label="Events" />
             <QuickAction href={`/church/${churchId}/members`} icon={UserPlus} label="Members" />
             <QuickAction href="/reports" icon={FileText} label="Reports" />

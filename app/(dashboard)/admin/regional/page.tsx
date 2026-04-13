@@ -1,4 +1,3 @@
-//app/(dashboard)/admin/regional/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -8,10 +7,10 @@ import { usePermissions } from '@/app/hooks/usePermissions';
 import Link from 'next/link';
 
 export default function RegionalDashboardPage() {
-  const { isRootAdmin, isRegionalAdmin, regionId } = usePermissions();
+  const { isRegionalAdmin, regionId } = usePermissions();
 
   const [churches, setChurches] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
+  const [churchAdmins, setChurchAdmins] = useState<any[]>([]);
   const [regionName, setRegionName] = useState('');
   const [regionAdminName, setRegionAdminName] = useState('');
   const [loading, setLoading] = useState(true);
@@ -28,6 +27,7 @@ export default function RegionalDashboardPage() {
     const unsub = onSnapshot(q, (snap) => {
       const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       setChurches(list);
+      setLoading(false);
     });
 
     return () => unsub();
@@ -37,61 +37,55 @@ export default function RegionalDashboardPage() {
   useEffect(() => {
     if (!regionId) return;
 
-    const unsub = onSnapshot(
-      collection(db, 'regions'),
-      (snap) => {
-        const regionDoc = snap.docs.find((d) => d.id === regionId);
-        if (regionDoc) {
-          const data = regionDoc.data();
-          setRegionName(data.name || 'Unknown Region');
-          setRegionAdminName(data.regionAdminName || 'Unknown Admin');
-        }
+    const unsub = onSnapshot(collection(db, 'regions'), (snap) => {
+      const regionDoc = snap.docs.find((d) => d.id === regionId);
+      if (regionDoc) {
+        const data = regionDoc.data();
+        setRegionName(data.name || 'Unknown Region');
+        setRegionAdminName(data.regionAdminName || 'Unknown Admin');
       }
-    );
+    });
 
     return () => unsub();
   }, [regionId]);
 
-  // Load users in region (via church IDs)
+  // Load church admins in region
   useEffect(() => {
     if (churches.length === 0) {
-      setUsers([]);
-      setLoading(false);
+      setChurchAdmins([]);
       return;
     }
 
-    // Firestore "in" queries support max 10 items
-    const churchIdBatches: string[][] = [];
+    const batches: string[][] = [];
     for (let i = 0; i < churches.length; i += 10) {
-      churchIdBatches.push(churches.slice(i, i + 10).map((c) => c.id));
+      batches.push(churches.slice(i, i + 10).map((c) => c.id));
     }
 
     const unsubs: (() => void)[] = [];
 
-    churchIdBatches.forEach((batch) => {
+    batches.forEach((batch) => {
       const q = query(
-        collection(db, 'users'),
-        where('churchId', 'in', batch)
+        collection(db, "users"),
+        where("churchId", "in", batch),
+        where("role", "==", "church-admin")
       );
 
       const unsub = onSnapshot(q, (snap) => {
         const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        setUsers((prev) => {
+        setChurchAdmins((prev) => {
           const merged = [...prev, ...list];
-          const unique = Array.from(new Map(merged.map((u) => [u.id, u])).values());
-          return unique;
+          return Array.from(new Map(merged.map((u) => [u.id, u])).values());
         });
       });
 
       unsubs.push(unsub);
     });
 
-    setLoading(false);
-
     return () => unsubs.forEach((fn) => fn());
   }, [churches]);
 
-  if (!isRegionalAdmin && !isRootAdmin) {
+  // Permission check
+  if (!isRegionalAdmin) {
     return (
       <div className="p-6">
         <h1 className="text-xl font-semibold">Unauthorized</h1>
@@ -110,14 +104,17 @@ export default function RegionalDashboardPage() {
 
   return (
     <div className="p-6 space-y-8">
+      {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold">Regional Dashboard</h1>
         <p className="text-muted-foreground">
-          Overview of churches and users in your region.
+          Overview of churches in your region.
         </p>
       </div>
+
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
         {/* Region Card */}
         <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
           <h2 className="text-lg font-semibold">Region</h2>
@@ -132,26 +129,19 @@ export default function RegionalDashboardPage() {
             ID: {regionId}
           </p>
         </div>
+
+        {/* Active Churches */}
         <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
-          <h2 className="text-lg font-semibold">Churches</h2>
-          <p className="text-3xl font-bold mt-2">{churches.length}</p>
-          <Link
-            href="/admin/regional/churches"
-            className="text-sm text-primary hover:underline mt-2 inline-block"
-          >
-            View Churches →
-          </Link>
+          <h2 className="text-lg font-semibold">Active Churches</h2>
+          <p className="text-3xl font-bold mt-2">
+            {churches.filter((c) => c.status !== 'disabled').length}
+          </p>
         </div>
 
+        {/* Church Admin Count */}
         <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
-          <h2 className="text-lg font-semibold">Users</h2>
-          <p className="text-3xl font-bold mt-2">{users.length}</p>
-          <Link
-            href="/admin/regional/users"
-            className="text-sm text-primary hover:underline mt-2 inline-block"
-          >
-            View Users →
-          </Link>
+          <h2 className="text-lg font-semibold">Church Admins</h2>
+          <p className="text-3xl font-bold mt-2">{churchAdmins.length}</p>
         </div>
       </div>
 
@@ -164,14 +154,7 @@ export default function RegionalDashboardPage() {
             href="/admin/regional/churches"
             className="px-4 py-2 rounded-md border bg-muted/20 hover:bg-muted transition"
           >
-            Manage Regional Churches
-          </Link>
-
-          <Link
-            href="/admin/regional/users"
-            className="px-4 py-2 rounded-md border bg-muted/20 hover:bg-muted transition"
-          >
-            Manage Regional Users
+            View Regional Churches
           </Link>
         </div>
       </div>

@@ -1,20 +1,20 @@
-//app/(dashboard)/admin/regional/churches/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/app/components/page-header';
-import { useAuth } from '@/app/hooks/useAuth';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
 import Link from 'next/link';
 
 export default function RegionalChurchesPage() {
-  const { user } = useAuth();
+  const { isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
+
   const [churches, setChurches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Redirect if not regional admin
-  if (user && !user.roles.includes('RegionalAdmin')) {
+  // Permission check
+  if (!permLoading && !isRegionalAdmin) {
     return (
       <div className="p-6">
         <h1 className="text-xl font-semibold">Unauthorized</h1>
@@ -23,12 +23,13 @@ export default function RegionalChurchesPage() {
     );
   }
 
+  // Load churches in region
   useEffect(() => {
-    if (!user?.regionId) return;
+    if (!regionId) return;
 
     const q = query(
       collection(db, 'churches'),
-      where('regionId', '==', user.regionId)
+      where('regionId', '==', regionId)
     );
 
     const unsub = onSnapshot(q, (snap) => {
@@ -38,7 +39,7 @@ export default function RegionalChurchesPage() {
     });
 
     return () => unsub();
-  }, [user?.regionId]);
+  }, [regionId]);
 
   return (
     <div className="p-6 space-y-6">
