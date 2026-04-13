@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 export default function RegionalDashboardPage() {
   const { isRootAdmin, isRegionalAdmin, regionId } = usePermissions();
-
+  const [pendingCount, setPendingCount] = useState(0);
   const [churchCount, setChurchCount] = useState(0);
   const [userCount, setUserCount] = useState(0);
   const [regionName, setRegionName] = useState('');
@@ -58,6 +58,22 @@ export default function RegionalDashboardPage() {
         setRegionName(data.name || 'Unknown Region');
         setregionAdminName(data.regionAdminName || 'Unknown Admin');
       }
+    });
+
+    return () => unsub();
+  }, [regionId]);
+
+  useEffect(() => {
+    if (!regionId) return;
+
+    const q = query(
+      collection(db, "churches"),
+      where("regionId", "==", regionId),
+      where("regionStatus", "==", "pending")
+    );
+
+    const unsub = onSnapshot(q, (snap) => {
+      setPendingCount(snap.size);
     });
 
     return () => unsub();
@@ -164,6 +180,19 @@ export default function RegionalDashboardPage() {
           </Link>
         </div>
       </div>
+      {pendingCount > 0 && (
+        <div className="p-4 rounded-lg border border-yellow-500/40 bg-yellow-500/10">
+          <p className="text-yellow-300 font-semibold">
+            {pendingCount} church{pendingCount > 1 ? "es" : ""} awaiting approval
+          </p>
+          <Link
+            href="/admin/regional/churches/pending"
+            className="text-sm text-primary hover:underline"
+          >
+            Review Now →
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
