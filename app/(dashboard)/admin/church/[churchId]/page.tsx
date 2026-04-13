@@ -36,11 +36,13 @@ import {
 import Link from "next/link";
 import type { Church } from "@/app/lib/types";
 import { useAuth } from "@/app/hooks/useAuth";
+import { usePermissions } from "@/app/hooks/usePermissions";
 
 export default function ChurchAdminDashboard() {
   const { churchId } = useParams();
   const { user, loading: userLoading } = useAuth();
-
+  const { isRegionalAdmin, isRootAdmin } = usePermissions();
+  const isReadOnly = isRegionalAdmin && !isRootAdmin;
   const [church, setChurch] = useState<Church | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -275,8 +277,12 @@ export default function ChurchAdminDashboard() {
       <main className="flex-1 flex flex-col space-y-6">
         {/* Page Header */}
         <PageHeader
-          title="Church Admin Dashboard"
-          subtitle="Manage your church’s members, events, and ministries."
+          title="Church Dashboard"
+          subtitle={
+            isReadOnly
+              ? "Viewing church data in read-only mode."
+              : "Manage your church’s members, events, and ministries."
+          }
         />
 
         {/* Identity Header */}

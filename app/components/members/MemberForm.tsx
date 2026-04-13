@@ -1,3 +1,4 @@
+//app/components/members/MemberForm.tsx
 "use client";
 
 import { useState } from "react";
@@ -56,6 +57,7 @@ function MemberFabMenu({
   churchId,
   form,
   isLoading,
+  readOnly = false,
   onSubmit,
 }: {
   isEditing: boolean;
@@ -63,8 +65,10 @@ function MemberFabMenu({
   churchId: string;
   form: any;
   isLoading: boolean;
+  readOnly?: boolean;
   onSubmit: () => void;
 }) {
+  if (readOnly) return null;
   const router = useRouter();
   const [showCheckInCode, setShowCheckInCode] = useState(false);
 
@@ -183,10 +187,12 @@ export default function MemberForm({
   churchId,
   member,
   onSuccess,
+  readOnly = false,
 }: {
   churchId: string;
   member?: Member;
   onSuccess?: (id: string) => void;
+  readOnly?: boolean;
 }) {
   const isEditing = !!member;
 
@@ -281,50 +287,52 @@ export default function MemberForm({
 
   return (
     <Form {...form}>
-      <form
-        id="member-form"
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6"
-      >
-        <MemberInfoSection form={form} />
-        <StatusSection form={form} />
+      <fieldset disabled={readOnly} className="space-y-6">
+        <form
+          id="member-form"
+          onSubmit={readOnly ? (e) => e.preventDefault() : form.handleSubmit(onSubmit)}
+          className="space-y-6"
+        >
+          <MemberInfoSection form={form} />
+          <StatusSection form={form} />
 
-        <RelationshipsSection
+          <RelationshipsSection
+            form={form}
+            currentMemberId={member?.id ?? ""}
+            allMembers={relationships.allMembers}
+            availableMembers={relationships.availableMembers}
+            relationshipOptions={relationships.relationshipOptions}
+            fields={relationships.fields}
+            append={relationships.append}
+            remove={relationships.remove}
+          />
+
+          <PhotoSection
+            form={form}
+            previewUrl={photo.previewUrl}
+            fileInputRef={photo.fileInputRef}
+            setIsTakingPhoto={photo.setIsTakingPhoto}
+            handleRemovePhoto={photo.handleRemovePhoto}
+          />
+
+          {isEditing && (
+            <CheckInCodeSection member={member} churchId={churchId} />
+          )}
+        </form>
+
+        {/* ⭐ FAB MENU OUTSIDE THE FORM ⭐ */}
+        <MemberFabMenu
+          isEditing={isEditing}
+          member={member}
+          churchId={churchId}
           form={form}
-          currentMemberId={member?.id ?? ""}
-          allMembers={relationships.allMembers}
-          availableMembers={relationships.availableMembers}
-          relationshipOptions={relationships.relationshipOptions}
-          fields={relationships.fields}
-          append={relationships.append}
-          remove={relationships.remove}
+          isLoading={isLoading}
+          onSubmit={() => {
+            const formEl = document.getElementById("member-form") as HTMLFormElement;
+            formEl?.requestSubmit();
+          }}
         />
-
-        <PhotoSection
-          form={form}
-          previewUrl={photo.previewUrl}
-          fileInputRef={photo.fileInputRef}
-          setIsTakingPhoto={photo.setIsTakingPhoto}
-          handleRemovePhoto={photo.handleRemovePhoto}
-        />
-
-        {isEditing && (
-          <CheckInCodeSection member={member} churchId={churchId} />
-        )}
-      </form>
-
-      {/* ⭐ FAB MENU OUTSIDE THE FORM ⭐ */}
-      <MemberFabMenu
-        isEditing={isEditing}
-        member={member}
-        churchId={churchId}
-        form={form}
-        isLoading={isLoading}
-        onSubmit={() => {
-          const formEl = document.getElementById("member-form") as HTMLFormElement;
-          formEl?.requestSubmit();
-        }}
-      />
+      </fieldset>
     </Form>
   );
 }

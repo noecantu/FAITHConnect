@@ -107,29 +107,35 @@ export default function MemberCard({
   member,
   allMembers = [],
   showPhoto = true,
+  readOnly = false,
   searchAction,
 }: {
   member: Member;
   allMembers?: Member[];
   showPhoto?: boolean;
+  readOnly?: boolean;
   searchAction?: (name: string) => void;
 }) {
   const router = useRouter();
   const { churchId } = useChurchId();
-  const { canManageMembers } = usePermissions();
 
+  const { canManageMembers } = usePermissions();
   const canEdit = canManageMembers;
 
   //
   // EDITOR VERSION — card is clickable and navigates to edit page
   //
-  if (canEdit) {
+  if (canEdit && !readOnly) {
     return (
       <Card
-        className="relative flex flex-col overflow-hidden cursor-pointer 
-                  bg-black/80 border-white/20 backdrop-blur-xl"
-        onClick={() =>
-          router.push(`/church/${churchId}/members/${member.id}/edit`)
+        className={cn(
+          "relative flex flex-col overflow-hidden bg-black/80 border-white/20 backdrop-blur-xl",
+          !readOnly && "cursor-pointer"
+        )}
+        onClick={
+          readOnly
+            ? undefined
+            : () => router.push(`/church/${churchId}/members/${member.id}`)
         }
       >
         {/* PHOTO SECTION */}
@@ -260,10 +266,14 @@ export default function MemberCard({
   //
   return (
     <Card
-      className="relative flex flex-col overflow-hidden cursor-pointer 
-                bg-black/80 border-white/20 backdrop-blur-xl"
-      onClick={() =>
-        router.push(`/church/${churchId}/members/${member.id}`)
+      className={cn(
+        "relative flex flex-col overflow-hidden bg-black/80 border-white/20 backdrop-blur-xl",
+        !readOnly && "cursor-pointer"
+      )}
+      onClick={
+        readOnly
+          ? undefined
+          : () => router.push(`/church/${churchId}/members/${member.id}`)
       }
     >
       {/* PHOTO SECTION */}

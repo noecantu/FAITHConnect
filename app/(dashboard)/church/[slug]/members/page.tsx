@@ -1,3 +1,4 @@
+//app/(dashboard)/church/[slug]/members/page.tsx
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -15,7 +16,7 @@ import { useAuth } from '@/app/hooks/useAuth';
 import { listenToMembers } from '@/app/lib/members';
 import type { Member } from '@/app/lib/types';
 
-import MemberCard from '../../../../components/members/MemberCard';
+import MemberCard from '@/app/components/members/MemberCard';
 
 import { updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
@@ -27,6 +28,9 @@ export default function MembersPage() {
 
   const { canManageMembers } = usePermissions();
   const canEdit = canManageMembers;
+
+  const { isRegionalAdmin, isRootAdmin } = usePermissions();
+  const isReadOnly = isRegionalAdmin && !isRootAdmin;
 
   const { cardView } = useSettings();
   const { user } = useAuth();
@@ -82,31 +86,33 @@ export default function MembersPage() {
       <PageHeader title="Members" subtitle={statusSummary}>
         <div className="flex flex-wrap justify-end items-center gap-4 w-full">
 
-          {/* View Selector */}
-          <RadioGroup
-            value={cardView}
-            onValueChange={async (value) => {
-              const v = value as 'show' | 'hide';
+          {/* Hide Show/Hide Photo for Regional Admins */}
+          {!isReadOnly && (
+            <RadioGroup
+              value={cardView}
+              onValueChange={async (value) => {
+                const v = value as 'show' | 'hide';
 
-              if (!user?.id) return;
+                if (!user?.uid) return;
 
-              await updateDoc(doc(db, 'users', user.id), {
-                'settings.cardView': v,
-                updatedAt: serverTimestamp(),
-              });
-            }}
-            className="flex items-center gap-4"
-          >
-            <div className="flex items-center gap-1">
-              <RadioGroupItem value="show" id="show-photo" />
-              <label htmlFor="show-photo" className="text-sm">Show Photo</label>
-            </div>
+                await updateDoc(doc(db, 'users', user.uid), {
+                  'settings.cardView': v,
+                  updatedAt: serverTimestamp(),
+                });
+              }}
+              className="flex items-center gap-4"
+            >
+              <div className="flex items-center gap-1">
+                <RadioGroupItem value="show" id="show-photo" />
+                <label htmlFor="show-photo" className="text-sm">Show Photo</label>
+              </div>
 
-            <div className="flex items-center gap-1">
-              <RadioGroupItem value="hide" id="hide-photo" />
-              <label htmlFor="hide-photo" className="text-sm">Hide Photo</label>
-            </div>
-          </RadioGroup>
+              <div className="flex items-center gap-1">
+                <RadioGroupItem value="hide" id="hide-photo" />
+                <label htmlFor="hide-photo" className="text-sm">Hide Photo</label>
+              </div>
+            </RadioGroup>
+          )}
 
         </div>
       </PageHeader>
@@ -121,12 +127,13 @@ export default function MembersPage() {
       {/* MEMBERS GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
         {sortedMembers.map((member) => (
-          <MemberCard
-            key={member.id}
-            member={member}
-            allMembers={members}
-            showPhoto={cardView === 'show'}
-          />
+        <MemberCard
+          key={member.id}
+          member={member}
+          allMembers={members}
+          showPhoto={cardView === 'show'}
+          readOnly={isReadOnly}
+        />
         ))}
       </div>
 
