@@ -5,13 +5,13 @@ import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
 import { useAuth } from "./useAuth";
-import type { User } from "@/app/lib/types";
+import type { AppUser } from "@/app/lib/types";
 import type { Role } from "@/app/lib/auth/roles";
 import { can } from "@/app/lib/auth/permissions";
 
 export function useCurrentUser() {
   const { user: authUser, loading: authLoading } = useAuth();
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,15 +24,15 @@ export function useCurrentUser() {
         return;
       }
 
-      const ref = doc(db, "users", authUser.id);
+      const ref = doc(db, "users", authUser.uid);
       const snap = await getDoc(ref);
 
       if (snap.exists()) {
         const data = snap.data();
 
-        const normalizedUser: User = {
+        const normalizedUser: AppUser = {
           ...data,
-          id: authUser.id,
+          uid: authUser.uid,
           roles: (data.roles ?? []) as Role[],
           churchId: data.churchId ?? null,
           email: data.email ?? authUser.email ?? "",
@@ -47,7 +47,7 @@ export function useCurrentUser() {
     }
 
     loadUser();
-  }, [authLoading, authUser?.id]);
+  }, [authLoading, authUser?.uid]);
 
   // Permission helpers
   const roles = currentUser?.roles ?? [];

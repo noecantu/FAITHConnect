@@ -6,14 +6,14 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
-import type { User } from "@/app/lib/types";
+import type { AppUser } from "@/app/lib/types";
 
 export async function duplicateSetList(
   churchId: string,
   setListId: string,
   router: any,
   toast: any,
-  currentUser: User | null
+  currentUser: AppUser | null
 ) {
   try {
     const originalRef = doc(db, "churches", churchId, "setlists", setListId);
@@ -36,7 +36,7 @@ export async function duplicateSetList(
       timeString: original.timeString ?? null,
       serviceType: original.serviceType ?? null,
       serviceNotes: original.serviceNotes ?? "",
-      createdBy: currentUser?.id ?? "system",
+      createdBy: currentUser?.uid ?? "system",
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
 

@@ -102,7 +102,7 @@ export default function CreateSystemUserClient() {
         return;
       }
 
-      const actorUid = currentUser.id;
+      const actorUid = currentUser.uid;
       const actorName =
         `${currentUser.firstName ?? ""} ${currentUser.lastName ?? ""}`.trim() ||
         "System Admin";

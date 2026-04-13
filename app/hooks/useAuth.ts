@@ -5,10 +5,10 @@ import { onAuthStateChanged } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "@/app/lib/firebase/client";
 import { usePathname } from "next/navigation";
-import type { User } from "@/app/lib/types";
+import type { AppUser } from "@/app/lib/types";
 import type { Role } from "@/app/lib/auth/roles";
 
-export function useAuth(): { user: User | null; loading: boolean } {
+export function useAuth(): { user: AppUser | null; loading: boolean } {
   const pathname = usePathname();
 
   // Public routes where user is NOT required
@@ -16,7 +16,7 @@ export function useAuth(): { user: User | null; loading: boolean } {
     pathname.startsWith("/signup") ||
     pathname.startsWith("/onboarding/billing");
 
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -62,10 +62,10 @@ export function useAuth(): { user: User | null; loading: boolean } {
             return;
           }
 
-          const data = snap.data() as Partial<User>;
+          const data = snap.data() as Partial<AppUser>;
 
-          const mergedUser: User = {
-            id: firebaseUser.uid,
+          const mergedUser: AppUser = {
+            uid: firebaseUser.uid,
             email: data.email ?? firebaseUser.email ?? "",
             roles: (data.roles ?? []) as Role[],
             churchId: data.churchId ?? null,

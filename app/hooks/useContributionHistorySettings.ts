@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
-import { User } from "@/app/lib/types";
+import { AppUser } from "@/app/lib/types";
 
-export function useContributionHistorySettings(user: User | null | undefined) {
+export function useContributionHistorySettings(user: AppUser | null | undefined) {
   const [breakdown, setBreakdown] = useState<"year" | "month" | "week">("year");
   const [year, setYear] = useState<number | null>(null);
   const [month, setMonth] = useState<number | null>(null);
@@ -11,10 +11,10 @@ export function useContributionHistorySettings(user: User | null | undefined) {
 
   // Load settings on mount
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.uid) return;
 
     const load = async () => {
-      const ref = doc(db, "users", user.id);
+      const ref = doc(db, "users", user.uid);
       const snap = await getDoc(ref);
       const s = snap.data()?.settings?.contributionsHistory;
 
@@ -27,19 +27,19 @@ export function useContributionHistorySettings(user: User | null | undefined) {
     };
 
     load();
-  }, [user?.id]);
+  }, [user?.uid]);
 
   // Persist helper
   const persist = useCallback(
     async (field: string, value: any) => {
-      if (!user?.id) return;
+      if (!user?.uid) return;
 
-      await updateDoc(doc(db, "users", user.id), {
+      await updateDoc(doc(db, "users", user.uid), {
         [`settings.contributionsHistory.${field}`]: value,
         updatedAt: serverTimestamp(),
       });
     },
-    [user?.id]
+    [user?.uid]
   );
 
   // Persisted setters

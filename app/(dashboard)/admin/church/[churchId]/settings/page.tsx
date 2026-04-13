@@ -8,7 +8,7 @@ import { useAuth } from '@/app/hooks/useAuth';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
 
-import type { User } from '@/app/lib/types';
+import type { AppUser } from '@/app/lib/types';
 import { useUserManagement } from '@/app/hooks/useUserManagement';
 
 import UserListCard from '@/app/components/settings/UserListCard';
@@ -35,7 +35,7 @@ export default function ChurchSettingsPage() {
   const { user } = useAuth();
   const [churchName] = useState('');
 
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<AppUser[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [storageUsed, setStorageUsed] = useState<number | null>(null);
@@ -75,7 +75,7 @@ export default function ChurchSettingsPage() {
   } = useUserManagement();
 
   useEffect(() => {
-    if (!churchId || !user?.id) {
+    if (!churchId || !user?.uid) {
       setUsers([]);
       setLoading(false);
       return;
@@ -88,7 +88,7 @@ export default function ChurchSettingsPage() {
       q,
       (snap) => {
         const list = snap.docs.map((d) => ({
-          ...(d.data() as User),
+          ...(d.data() as AppUser),
           id: d.id,
         }));
         setUsers(list);
@@ -102,7 +102,7 @@ export default function ChurchSettingsPage() {
     );
 
     return () => unsub();
-  }, [churchId, user?.id]);
+  }, [churchId, user?.uid]);
 
   const fetchUsage = async () => {
     try {
@@ -214,9 +214,9 @@ export default function ChurchSettingsPage() {
           onClose={goBackToList}
           isCreating={isCreating}
           isSaving={isSaving}
-          currentUserId={user?.id ?? ""}
+          currentUserId={user?.uid ?? ""}
           currentUserRoles={user?.roles ?? []}
-          targetUserId={selectedUser?.id}
+          targetUserId={selectedUser?.uid}
         />
       )}
 

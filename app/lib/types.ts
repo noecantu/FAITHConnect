@@ -306,19 +306,16 @@ export interface SystemSettings {
   showDevToolsInUI: boolean;
 }
 
-export interface SystemUser {
-  id: string;
-  churchId?: string;
-  roles?: string[];
-  [key: string]: any;
-}
-
-export interface User {
-  id: string;
+export interface AppUser {
+  uid: string;
   email: string;
   churchId?: string | null;
   regionId?: string | null;
-  roles: Role[];
+  roles?: Role[];
+  rolesByChurch?: {
+    [churchId: string]: Role[];
+  };
+  managedChurchIds?: string[];
   firstName?: string | null;
   lastName?: string | null;
   profilePhotoUrl?: string;
@@ -326,7 +323,7 @@ export interface User {
     attendanceView: "cards" | "list";
     calendarView?: "calendar" | "list";
     cardView?: "show" | "hide";
-    fiscalYear: string | null | undefined;
+    fiscalYear?: string | null;
     songSort?: "title" | "artist" | "key" | "bpm";
     attendanceHistory?: {
       breakdown?: "year" | "month" | "week";
@@ -341,6 +338,13 @@ export interface User {
       week?: number | null;
     };
   };
+}
+
+export interface SystemUser {
+  id: string;
+  churchId?: string;
+  roles?: string[];
+  [key: string]: any;
 }
 
 export type UserProfile = {

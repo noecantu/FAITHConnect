@@ -8,14 +8,14 @@ import { ref, deleteObject } from "firebase/storage";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import ImageDropzone from "@/app/components/settings/ImageDropzone";
-import type { User } from "@/app/lib/types";
+import type { AppUser } from "@/app/lib/types";
 
 export function ProfilePhotoCard({
   user,
   onDirtyChange,
   registerSave,
 }: {
-  user: User;
+  user: AppUser;
   onDirtyChange?: (dirty: boolean) => void;
   registerSave?: (fn: () => Promise<void>) => void;
 }) {
@@ -37,11 +37,11 @@ export function ProfilePhotoCard({
   }, [dirty, onDirtyChange]);
 
   const handleSave = useCallback(async () => {
-    const userRef = doc(db, "users", user.id);
+    const userRef = doc(db, "users", user.uid);
 
     // Remove photo
     if (removeRequested && user.profilePhotoUrl) {
-      const fileRef = ref(storage, `users/${user.id}/profile.jpg`);
+      const fileRef = ref(storage, `users/${user.uid}/profile.jpg`);
       await deleteObject(fileRef).catch(() => {});
       await updateDoc(userRef, { profilePhotoUrl: null });
 
@@ -57,7 +57,7 @@ export function ProfilePhotoCard({
       setPreviewUrl(uploadedUrl);
       setUploadedUrl(null);
     }
-  }, [uploadedUrl, removeRequested, user.id, user.profilePhotoUrl]);
+  }, [uploadedUrl, removeRequested, user.uid, user.profilePhotoUrl]);
 
   useEffect(() => {
     registerSave?.(handleSave);
@@ -92,7 +92,7 @@ export function ProfilePhotoCard({
             {/* Drag-and-drop uploader */}
             <ImageDropzone
               label="Upload Profile Photo"
-              path={`users/${user.id}/profile.jpg`}
+              path={`users/${user.uid}/profile.jpg`}
               onUploaded={(url) => {
                 setUploadedUrl(url);
                 setPreviewUrl(url);

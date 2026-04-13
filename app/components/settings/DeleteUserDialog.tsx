@@ -1,10 +1,10 @@
 'use client';
 
 import { Button } from '@/app/components/ui/button';
-import type { User } from '@/app/lib/types';
+import type { AppUser } from '@/app/lib/types';
 
 interface Props {
-  user: User;
+  user: AppUser;
   onCancel: () => void;
   onConfirm: () => void;
   isDeleting: boolean;

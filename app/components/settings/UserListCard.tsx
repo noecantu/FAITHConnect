@@ -4,12 +4,12 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/app
 import { UserRoundPlus, ChevronLeft, ChevronRight } from 'lucide-react';
 import UserListItem from './UserListItem';
 import { useState, useMemo } from 'react';
-import type { User } from '@/app/lib/types';
+import type { AppUser } from '@/app/lib/types';
 
 interface Props {
-  users: User[];
+  users: AppUser[];
   onCreate: () => void;
-  onSelectUser: (user: User) => void;
+  onSelectUser: (user: AppUser) => void;
 }
 
 export default function UserListCard({ users, onCreate, onSelectUser }: Props) {
@@ -66,7 +66,7 @@ export default function UserListCard({ users, onCreate, onSelectUser }: Props) {
         {/* GRID */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {pagedUsers.map((u) => (
-            <UserListItem key={u.id} user={u} onClick={() => onSelectUser(u)} />
+            <UserListItem key={u.uid} user={u} onClick={() => onSelectUser(u)} />
           ))}
         </div>
 

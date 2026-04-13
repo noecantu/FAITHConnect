@@ -1,15 +1,16 @@
+//app/(dashboard)/admin/regional/churches/pending/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { Card } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/app/hooks/use-toast';
+import { collection, query, where, onSnapshot, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 export default function PendingChurchesPage() {
-  const { regionId, isRegionalAdmin } = usePermissions();
+  const { regionId, isRegionalAdmin, user } = usePermissions();
   const { toast } = useToast();
 
   const [pending, setPending] = useState<any[]>([]);
@@ -33,17 +34,26 @@ export default function PendingChurchesPage() {
     return () => unsub();
   }, [regionId]);
 
-  async function handleApprove(churchId: string) {
-    await updateDoc(doc(db, 'churches', churchId), {
-      regionStatus: 'approved',
-      updatedAt: new Date(),
-    });
+    async function handleApprove(churchId: string) {
+      if (!user?.id) return;
 
-    toast({
-      title: 'Church Approved',
-      description: 'This church is now officially part of your region.',
-    });
-  }
+      // 1. Update the church document
+      await updateDoc(doc(db, "churches", churchId), {
+        regionStatus: "approved",
+        updatedAt: new Date(),
+      });
+
+      // 2. Grant Regional Admin read‑only access to this church
+      await updateDoc(doc(db, "users", user.id), {
+        [`rolesByChurch.${churchId}`]: ["ChurchAuditor"],
+        managedChurchIds: arrayUnion(churchId),
+      });
+
+      toast({
+        title: 'Church Approved',
+        description: 'This church is now officially part of your region.',
+      });
+    }
 
   async function handleReject(churchId: string) {
     await updateDoc(doc(db, 'churches', churchId), {

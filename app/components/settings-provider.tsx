@@ -36,7 +36,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        const userDocRef = doc(db, 'users', user.id);
+        const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
 
         if (!isActive) return;

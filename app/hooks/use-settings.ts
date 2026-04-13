@@ -4,21 +4,21 @@ import { useEffect, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase/client';
 import { useAuth } from './useAuth';
-import type { User } from '../lib/types';
+import type { AppUser } from '../lib/types';
 export function useSettings() {
-  const { user } = useAuth(); // must contain user.id
-  const [settings, setSettings] = useState<User['settings'] | null>(null);
+  const { user } = useAuth(); // must contain user.uid
+  const [settings, setSettings] = useState<AppUser['settings'] | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.id) {
+    if (!user?.uid) {
       // If user logs out, clear settings immediately
       setSettings(null);
       setLoading(false);
       return;
     }
 
-    const ref = doc(db, 'users', user.id);
+    const ref = doc(db, 'users', user.uid);
 
     const unsubscribe = onSnapshot(ref, (snap) => {
       if (!snap.exists()) {
@@ -27,13 +27,13 @@ export function useSettings() {
         return;
       }
 
-      const data = snap.data() as User;
+      const data = snap.data() as AppUser;
       setSettings(data.settings ?? null);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [user?.id]);
+  }, [user?.uid]);
 
   return {
     settings,

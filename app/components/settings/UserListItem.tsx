@@ -1,14 +1,15 @@
 'use client';
 
 import { ROLE_LABELS } from "@/app/lib/auth/roles";
-import type { User } from '@/app/lib/types';
+import type { AppUser } from '@/app/lib/types';
 
 interface Props {
-  user: User;
+  user: AppUser;
   onClick: () => void;
 }
 
 export default function UserListItem({ user, onClick }: Props) {
+  const roles = user.roles ?? [];
   return (
     <button
       onClick={onClick}
@@ -26,8 +27,8 @@ export default function UserListItem({ user, onClick }: Props) {
       <p className="text-sm text-muted-foreground">{user.email}</p>
 
       <p className="text-xs text-muted-foreground">
-        {user.roles.length
-          ? user.roles.map((r) => ROLE_LABELS[r]).join(', ')
+        {roles.length
+          ? roles.map((r) => ROLE_LABELS[r]).join(', ')
           : 'No roles assigned'}
       </p>
     </button>

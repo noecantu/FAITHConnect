@@ -6,14 +6,14 @@ import { db } from "@/app/lib/firebase/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
 import { Input } from "@/app/components/ui/input";
-import type { User } from "@/app/lib/types";
+import type { AppUser } from "@/app/lib/types";
 
 export default function UserProfileCard({
   user,
   onDirtyChange,
   registerSave,
 }: {
-  user: User;
+  user: AppUser;
   onDirtyChange?: (dirty: boolean) => void;
   registerSave?: (fn: () => Promise<void>) => void;
 }) {
@@ -41,7 +41,7 @@ export default function UserProfileCard({
 
   // Save function for FAB
   async function save() {
-    const ref = doc(db, "users", user.id);
+    const ref = doc(db, "users", user.uid);
 
     await updateDoc(ref, {
       firstName,

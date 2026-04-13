@@ -18,7 +18,7 @@ import {
 } from "@/app/components/ui/select";
 
 import { SYSTEM_ROLES, ROLE_LABELS, type Role, SystemRole } from "@/app/lib/auth/roles";
-import type { User } from "@/app/lib/types";
+import type { AppUser } from "@/app/lib/types";
 import RoleSelector from "@/app/components/settings/RoleSelector";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
@@ -39,7 +39,7 @@ export default function EditUserForm({
   user,
 }: {
   userId: string;
-  user: User;
+  user: AppUser;
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -115,7 +115,7 @@ export default function EditUserForm({
 
     setLoading(true);
 
-    const actorUid = currentUser.id;
+    const actorUid = currentUser.uid;
     const actorName = `${currentUser.firstName} ${currentUser.lastName}`.trim();
 
     let regionPayload = null;
@@ -245,7 +245,7 @@ export default function EditUserForm({
           <RoleSelector
             selectedRoles={roles}
             onChange={toggleRole}
-            currentUserId={currentUser?.id ?? ""}
+            currentUserId={currentUser?.uid ?? ""}
             targetUserId={userId}
             currentUserRoles={currentUser?.roles ?? []}
           />

@@ -1,9 +1,9 @@
 import { cookies } from "next/headers";
 import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
-import type { User } from "@/app/lib/types";
+import type { AppUser } from "@/app/lib/types";
 import type { Role } from "@/app/lib/auth/roles";
 
-export async function getCurrentUser(): Promise<User | null> {
+export async function getCurrentUser(): Promise<AppUser | null> {
   const session = (await cookies()).get("session")?.value;
   if (!session) return null;
 
@@ -16,7 +16,7 @@ export async function getCurrentUser(): Promise<User | null> {
     const data = snap.data()!;
 
     return {
-      id: decoded.uid,
+      uid: decoded.uid,
       email: data.email,
       firstName: data.firstName ?? null,
       lastName: data.lastName ?? null,

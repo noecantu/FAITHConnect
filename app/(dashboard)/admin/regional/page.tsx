@@ -1,18 +1,19 @@
+//app/(dashboard)/admin/regional/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, query, where, onSnapshot, doc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import Link from 'next/link';
 
 export default function RegionalDashboardPage() {
   const { isRootAdmin, isRegionalAdmin, regionId } = usePermissions();
-  const [pendingCount, setPendingCount] = useState(0);
-  const [churchCount, setChurchCount] = useState(0);
-  const [userCount, setUserCount] = useState(0);
+
+  const [churches, setChurches] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [regionName, setRegionName] = useState('');
-  const [regionAdminName, setregionAdminName] = useState('');
+  const [regionAdminName, setRegionAdminName] = useState('');
   const [loading, setLoading] = useState(true);
 
   // Load churches in region
@@ -25,59 +26,70 @@ export default function RegionalDashboardPage() {
     );
 
     const unsub = onSnapshot(q, (snap) => {
-      setChurchCount(snap.size);
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setChurches(list);
     });
 
     return () => unsub();
   }, [regionId]);
 
-  // Load users in region
+  // Load region details
   useEffect(() => {
     if (!regionId) return;
 
-    const q = query(
-      collection(db, 'users'),
-      where('regionId', '==', regionId)
-    );
-
-    const unsub = onSnapshot(q, (snap) => {
-      setUserCount(snap.size);
-      setLoading(false);
-    });
-
-    return () => unsub();
-  }, [regionId]);
-
-  // Load region details (name + admin)
-  useEffect(() => {
-    if (!regionId) return;
-
-    const unsub = onSnapshot(doc(db, 'regions', regionId), (snap) => {
-      if (snap.exists()) {
-        const data = snap.data();
-        setRegionName(data.name || 'Unknown Region');
-        setregionAdminName(data.regionAdminName || 'Unknown Admin');
+    const unsub = onSnapshot(
+      collection(db, 'regions'),
+      (snap) => {
+        const regionDoc = snap.docs.find((d) => d.id === regionId);
+        if (regionDoc) {
+          const data = regionDoc.data();
+          setRegionName(data.name || 'Unknown Region');
+          setRegionAdminName(data.regionAdminName || 'Unknown Admin');
+        }
       }
-    });
-
-    return () => unsub();
-  }, [regionId]);
-
-  useEffect(() => {
-    if (!regionId) return;
-
-    const q = query(
-      collection(db, "churches"),
-      where("regionId", "==", regionId),
-      where("regionStatus", "==", "pending")
     );
 
-    const unsub = onSnapshot(q, (snap) => {
-      setPendingCount(snap.size);
-    });
-
     return () => unsub();
   }, [regionId]);
+
+  // Load users in region (via church IDs)
+  useEffect(() => {
+    if (churches.length === 0) {
+      setUsers([]);
+      setLoading(false);
+      return;
+    }
+
+    // Firestore "in" queries support max 10 items
+    const churchIdBatches: string[][] = [];
+    for (let i = 0; i < churches.length; i += 10) {
+      churchIdBatches.push(churches.slice(i, i + 10).map((c) => c.id));
+    }
+
+    const unsubs: (() => void)[] = [];
+
+    churchIdBatches.forEach((batch) => {
+      const q = query(
+        collection(db, 'users'),
+        where('churchId', 'in', batch)
+      );
+
+      const unsub = onSnapshot(q, (snap) => {
+        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setUsers((prev) => {
+          const merged = [...prev, ...list];
+          const unique = Array.from(new Map(merged.map((u) => [u.id, u])).values());
+          return unique;
+        });
+      });
+
+      unsubs.push(unsub);
+    });
+
+    setLoading(false);
+
+    return () => unsubs.forEach((fn) => fn());
+  }, [churches]);
 
   if (!isRegionalAdmin && !isRootAdmin) {
     return (
@@ -88,29 +100,14 @@ export default function RegionalDashboardPage() {
     );
   }
 
-  // Loading state
   if (loading) {
     return (
-      <div className="p-6 space-y-6">
-        <h1 className="text-2xl font-semibold">Regional Dashboard</h1>
-        <p className="text-muted-foreground">Loading regional data…</p>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl animate-pulse"
-            >
-              <div className="h-5 w-32 bg-white/10 rounded mb-4" />
-              <div className="h-10 w-20 bg-white/10 rounded" />
-            </div>
-          ))}
-        </div>
+      <div className="p-6 text-muted-foreground">
+        Loading regional data…
       </div>
     );
   }
 
-  // Main content
   return (
     <div className="p-6 space-y-8">
       <div>
@@ -119,32 +116,9 @@ export default function RegionalDashboardPage() {
           Overview of churches and users in your region.
         </p>
       </div>
-
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
-          <h2 className="text-lg font-semibold">Churches</h2>
-          <p className="text-3xl font-bold mt-2">{churchCount}</p>
-          <Link
-            href="/admin/regional/churches"
-            className="text-sm text-primary hover:underline mt-2 inline-block"
-          >
-            View Churches →
-          </Link>
-        </div>
-
-        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
-          <h2 className="text-lg font-semibold">Users</h2>
-          <p className="text-3xl font-bold mt-2">{userCount}</p>
-          <Link
-            href="/admin/regional/users"
-            className="text-sm text-primary hover:underline mt-2 inline-block"
-          >
-            View Users →
-          </Link>
-        </div>
-
-        {/* Updated Region Card */}
+        {/* Region Card */}
         <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
           <h2 className="text-lg font-semibold">Region</h2>
 
@@ -157,6 +131,27 @@ export default function RegionalDashboardPage() {
           <p className="text-xs text-muted-foreground mt-1 opacity-60">
             ID: {regionId}
           </p>
+        </div>
+        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
+          <h2 className="text-lg font-semibold">Churches</h2>
+          <p className="text-3xl font-bold mt-2">{churches.length}</p>
+          <Link
+            href="/admin/regional/churches"
+            className="text-sm text-primary hover:underline mt-2 inline-block"
+          >
+            View Churches →
+          </Link>
+        </div>
+
+        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
+          <h2 className="text-lg font-semibold">Users</h2>
+          <p className="text-3xl font-bold mt-2">{users.length}</p>
+          <Link
+            href="/admin/regional/users"
+            className="text-sm text-primary hover:underline mt-2 inline-block"
+          >
+            View Users →
+          </Link>
         </div>
       </div>
 
@@ -180,19 +175,6 @@ export default function RegionalDashboardPage() {
           </Link>
         </div>
       </div>
-      {pendingCount > 0 && (
-        <div className="p-4 rounded-lg border border-yellow-500/40 bg-yellow-500/10">
-          <p className="text-yellow-300 font-semibold">
-            {pendingCount} church{pendingCount > 1 ? "es" : ""} awaiting approval
-          </p>
-          <Link
-            href="/admin/regional/churches/pending"
-            className="text-sm text-primary hover:underline"
-          >
-            Review Now →
-          </Link>
-        </div>
-      )}
     </div>
   );
 }
