@@ -16,16 +16,6 @@ export default function RegionalChurchDetailPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Unauthorized access
-  if (!isRegionalAdmin && !isRootAdmin) {
-    return (
-      <div className="p-6">
-        <h1 className="text-xl font-semibold">Unauthorized</h1>
-        <p>You do not have permission to view this page.</p>
-      </div>
-    );
-  }
-
   // Load church
   useEffect(() => {
     async function loadChurch() {
@@ -80,6 +70,16 @@ export default function RegionalChurchDetailPage() {
       <div className="p-6">
         <h1 className="text-xl font-semibold">Church Not Found</h1>
         <p>This church does not exist or is not in your region.</p>
+      </div>
+    );
+  }
+
+  // Unauthorized access
+  if (!isRegionalAdmin && !isRootAdmin) {
+    return (
+      <div className="p-6">
+        <h1 className="text-xl font-semibold">Unauthorized</h1>
+        <p>You do not have permission to view this page.</p>
       </div>
     );
   }

@@ -1,4 +1,3 @@
-//app/(dashboard)/admin/users/create/CreateSystemUserClient.tsx
 "use client";
 
 import { useState } from "react";
@@ -50,9 +49,13 @@ export default function CreateSystemUserClient() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [accountType, setAccountType] = useState("");
+
+  // Regional Admin fields
   const [regionName, setRegionName] = useState("");
-  const [loading, setLoading] = useState(false);
   const [state, setState] = useState("");
+  const [title, setTitle] = useState("");
+
+  const [loading, setLoading] = useState(false);
 
   async function handleCreateUser() {
     try {
@@ -66,13 +69,29 @@ export default function CreateSystemUserClient() {
         return;
       }
 
-      // Regional Admin requires a region name
-      if (accountType === "RegionalAdmin" && !regionName.trim()) {
-        toast({
-          title: "Region Required",
-          description: "Please enter a region name for this Regional Admin.",
-        });
-        return;
+      // Regional Admin validation
+      if (accountType === "RegionalAdmin") {
+        if (!regionName.trim()) {
+          toast({
+            title: "Region Required",
+            description: "Please enter a region name.",
+          });
+          return;
+        }
+        if (!state.trim()) {
+          toast({
+            title: "State Required",
+            description: "Please select a state.",
+          });
+          return;
+        }
+        if (!title.trim()) {
+          toast({
+            title: "Title Required",
+            description: "Please enter a title for this Regional Admin.",
+          });
+          return;
+        }
       }
 
       if (!currentUser) {
@@ -101,6 +120,7 @@ export default function CreateSystemUserClient() {
           roles: [accountType],
           regionName: accountType === "RegionalAdmin" ? regionName : null,
           state: accountType === "RegionalAdmin" ? state : null,
+          title: accountType === "RegionalAdmin" ? title : null,
         }),
       });
 
@@ -207,9 +227,20 @@ export default function CreateSystemUserClient() {
             </Select>
           </div>
 
-          {/* Region Name (only for Regional Admin) */}
+          {/* Regional Admin Fields */}
           {accountType === "RegionalAdmin" && (
             <>
+              {/* Title */}
+              <div className="space-y-2">
+                <Label>Title</Label>
+                <Input
+                  placeholder="e.g., Bishop, Apostle, President"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
+
+              {/* Region Name */}
               <div className="space-y-2">
                 <Label>Region Name</Label>
                 <Input
@@ -219,6 +250,7 @@ export default function CreateSystemUserClient() {
                 />
               </div>
 
+              {/* State */}
               <div className="space-y-2">
                 <Label>State</Label>
                 <Select value={state} onValueChange={setState}>

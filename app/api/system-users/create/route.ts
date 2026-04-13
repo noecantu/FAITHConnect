@@ -1,4 +1,3 @@
-//app/api/system-users/create/route.ts
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
 import { logSystemEvent } from "@/app/lib/system/logging";
@@ -16,6 +15,7 @@ export async function POST(req: Request) {
       roles,
       regionName,
       state,
+      title, // NEW
     } = await req.json();
 
     // 1. Create Auth user
@@ -33,9 +33,10 @@ export async function POST(req: Request) {
 
       await adminDb.collection("regions").doc(regionId).set({
         name: regionName,
-        state: state,
+        state: state || null,
         regionAdminUid: userRecord.uid,
         regionAdminName: `${firstName} ${lastName}`.trim(),
+        regionAdminTitle: title || null, // NEW
         createdBy: actorUid,
         createdByName: actorName,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -51,6 +52,7 @@ export async function POST(req: Request) {
       roles: roles || [],
       regionId: regionId,
       regionName: regionName || null,
+      regionAdminTitle: title || null, // NEW
       state: state || null,
       churchId: null,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -60,6 +62,7 @@ export async function POST(req: Request) {
     await adminAuth.setCustomUserClaims(userRecord.uid, {
       roles,
       regionId,
+      regionAdminTitle: title || null, // NEW
     });
 
     // 5. Log system event
@@ -74,6 +77,7 @@ export async function POST(req: Request) {
         roles,
         regionId,
         regionName,
+        regionAdminTitle: title || null, // NEW
       },
     });
 

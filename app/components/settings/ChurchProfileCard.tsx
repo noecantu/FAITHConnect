@@ -1,4 +1,3 @@
-//app/components/settings/ChurchProfileCard.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -41,8 +40,8 @@ export default function ChurchProfileCard({ churchId }: Props) {
   const [regions, setRegions] = useState<any[]>([]);
   const [regionId, setRegionId] = useState("");
   const [originalRegionId, setOriginalRegionId] = useState("");
+  const [regionStatus, setRegionStatus] = useState("");
 
-  // Load church profile
   useEffect(() => {
     if (!churchId) return;
 
@@ -60,6 +59,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
       // Set region from church data
       setRegionId(data.regionId ?? "");
       setOriginalRegionId(data.regionId ?? "");
+      setRegionStatus(data.regionStatus ?? "");
 
       // Identity
       setName(data.name ?? '');
@@ -127,7 +127,10 @@ export default function ChurchProfileCard({ churchId }: Props) {
       setSaving(false);
     }
   };
-  
+
+  // Helper: Get region object
+  const selectedRegion = regions.find((r) => r.id === regionId);
+
   return (
     <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
       <CardHeader className="pb-4">
@@ -189,9 +192,10 @@ export default function ChurchProfileCard({ churchId }: Props) {
             <TimezoneSelect value={timezone} onChange={setTimezone} />
           </div>
 
-          {/* REGION SELECTOR (Dialog) */}
+          {/* REGION SELECTOR */}
           <div className="grid gap-1">
             <Label>Region</Label>
+
             <Link
               href={`/admin/church/${churchId}/select-region`}
               className="
@@ -200,12 +204,26 @@ export default function ChurchProfileCard({ churchId }: Props) {
                 flex items-center justify-between
               "
             >
-              {regionId
-                ? regions.find((r) => r.id === regionId)?.name
-                : "Select a Region"}
+              {selectedRegion ? selectedRegion.name : "Select a Region"}
 
               <span className="text-primary text-xs">Change →</span>
             </Link>
+
+            {/* Region Leader */}
+            {selectedRegion?.regionAdminTitle && selectedRegion?.regionAdminName && (
+              <p className="text-xs text-muted-foreground">
+                Leader: {selectedRegion.regionAdminTitle} {selectedRegion.regionAdminName}
+              </p>
+            )}
+
+            {/* Region Status */}
+            {regionId && (
+              <p className="text-xs text-muted-foreground">
+                {regionStatus === "pending" && "Status: Pending Approval"}
+                {regionStatus === "approved" && "Status: Approved"}
+                {regionStatus === "rejected" && "Status: Rejected"}
+              </p>
+            )}
           </div>
         </div>
       </CardContent>

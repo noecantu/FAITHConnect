@@ -1,4 +1,3 @@
-//app/(dashboard)/admin/church/[churchId]/select-region/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -24,7 +23,7 @@ export default function SelectRegionPage() {
     load();
   }, []);
 
-  // Group by state
+  // Group by state (still useful for organization)
   const grouped = regions.reduce((acc: any, region: any) => {
     const state = region.state || 'Unknown';
     if (!acc[state]) acc[state] = [];
@@ -73,15 +72,10 @@ export default function SelectRegionPage() {
               >
                 <p className="text-lg font-semibold">{region.name}</p>
 
-                {region.regionAdminName && (
+                {/* Title + Admin Name */}
+                {region.regionAdminTitle && region.regionAdminName && (
                   <p className="text-sm text-muted-foreground">
-                    Admin: {region.regionAdminName}
-                  </p>
-                )}
-
-                {region.state && (
-                  <p className="text-sm text-muted-foreground">
-                    State: {region.state}
+                    {region.regionAdminTitle}: {region.regionAdminName}
                   </p>
                 )}
               </Card>
