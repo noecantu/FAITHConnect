@@ -1,3 +1,4 @@
+//app/components/settings/ChurchProfileCard.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -41,7 +42,8 @@ export default function ChurchProfileCard({ churchId }: Props) {
   const [regionId, setRegionId] = useState("");
   const [originalRegionId, setOriginalRegionId] = useState("");
   const [regionStatus, setRegionStatus] = useState("");
-
+  const [regionSelectedId, setRegionSelectedId] = useState("");
+  
   useEffect(() => {
     if (!churchId) return;
 
@@ -58,7 +60,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
 
       // Set region from church data
       setRegionId(data.regionId ?? "");
-      setOriginalRegionId(data.regionId ?? "");
+      setRegionSelectedId(data.regionSelectedId ?? "");
       setRegionStatus(data.regionStatus ?? "");
 
       // Identity
@@ -129,7 +131,9 @@ export default function ChurchProfileCard({ churchId }: Props) {
   };
 
   // Helper: Get region object
-  const selectedRegion = regions.find((r) => r.id === regionId);
+  const selectedRegion = regions.find(
+    (r) => r.id === regionId || r.id === regionSelectedId
+  );
 
   return (
     <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
@@ -217,7 +221,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
             )}
 
             {/* Region Status */}
-            {regionId && (
+            {(regionId || regionSelectedId) && (
               <p className="text-xs text-muted-foreground">
                 {regionStatus === "pending" && "Status: Pending Approval"}
                 {regionStatus === "approved" && "Status: Approved"}

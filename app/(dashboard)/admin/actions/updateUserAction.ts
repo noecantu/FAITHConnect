@@ -1,6 +1,7 @@
 "use server";
 
 import { adminDb } from "@/app/lib/firebase/admin";
+import admin from "firebase-admin";
 import { logSystemEvent } from "@/app/lib/system/logging";
 import { Role, SystemRole, ALL_ROLES, SYSTEM_ROLE_LIST } from "@/app/lib/auth/roles";
 import { can } from "@/app/lib/auth/permissions";
@@ -117,6 +118,14 @@ export async function updateUserAction(input: UpdateUserInput) {
   const hasRegionalAdmin = newRoles?.includes("RegionalAdmin");
 
   if (newRoles && hasRegionalAdmin) {
+    const existingClaims = (await admin.auth().getUser(userId)).customClaims || {};
+    const existingRoles = existingClaims.roles || [];
+
+    await admin.auth().setCustomUserClaims(userId, {
+      ...existingClaims,
+      roles: Array.from(new Set([...existingRoles, "RegionalAdmin"]))
+    });
+
     const regionName = input.regionName?.trim();
 
     if (!regionName) {

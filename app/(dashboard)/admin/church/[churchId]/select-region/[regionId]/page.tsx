@@ -1,3 +1,4 @@
+//app/(dashboard)/admin/church/[churchId]/select-region/[regionId]/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -39,8 +40,9 @@ export default function ConfirmRegionPage() {
 
     try {
       await updateDoc(doc(db, 'churches', churchId), {
-        regionId,
+        regionSelectedId: regionId,
         regionStatus: 'pending',
+        regionId: null,
         updatedAt: new Date(),
       });
 

@@ -7,7 +7,7 @@ import { usePermissions } from '@/app/hooks/usePermissions';
 import { Card } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/app/hooks/use-toast';
-import { collection, query, where, onSnapshot, doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 
 export default function PendingChurchesPage() {
   const { regionId, isRegionalAdmin, user } = usePermissions();
@@ -21,7 +21,7 @@ export default function PendingChurchesPage() {
 
     const q = query(
       collection(db, 'churches'),
-      where('regionId', '==', regionId),
+      where('regionSelectedId', '==', regionId),
       where('regionStatus', '==', 'pending')
     );
 
@@ -34,26 +34,45 @@ export default function PendingChurchesPage() {
     return () => unsub();
   }, [regionId]);
 
-    async function handleApprove(churchId: string) {
-      if (!user?.id) return;
+  async function handleApprove(churchId: string) {
+    if (!user?.uid) return;
 
-      // 1. Update the church document
-      await updateDoc(doc(db, "churches", churchId), {
-        regionStatus: "approved",
-        updatedAt: new Date(),
-      });
+    // Load the church to get regionSelectedId
+    const churchRef = doc(db, "churches", churchId);
+    const churchSnap = await getDoc(churchRef);
 
-      // 2. Grant Regional Admin read‑only access to this church
-      await updateDoc(doc(db, "users", user.id), {
-        [`rolesByChurch.${churchId}`]: ["ChurchAuditor"],
-        managedChurchIds: arrayUnion(churchId),
-      });
+    if (!churchSnap.exists()) return;
 
+    const data = churchSnap.data();
+    const selected = data.regionSelectedId;
+
+    if (!selected) {
       toast({
-        title: 'Church Approved',
-        description: 'This church is now officially part of your region.',
+        title: "Error",
+        description: "No regionSelectedId found on church.",
       });
+      return;
     }
+
+    // 1. Update the church document
+    await updateDoc(churchRef, {
+      regionId: selected,
+      regionSelectedId: null,
+      regionStatus: "approved",
+      updatedAt: new Date(),
+    });
+
+    // 2. Grant Regional Admin read‑only access to this church
+    await updateDoc(doc(db, "users", user.uid), {
+      [`rolesByChurch.${churchId}`]: ["ChurchAuditor"],
+      managedChurchIds: arrayUnion(churchId),
+    });
+
+    toast({
+      title: "Church Approved",
+      description: "This church is now officially part of your region.",
+    });
+  }
 
   async function handleReject(churchId: string) {
     await updateDoc(doc(db, 'churches', churchId), {

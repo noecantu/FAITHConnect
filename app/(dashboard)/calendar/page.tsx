@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 import { dateKey } from "@/app/lib/calendar/utils";
 import { canUserSeeEvent } from "@/app/lib/canUserSeeEvent";
 import { cn } from "@/app/lib/utils";
+import { usePermissions } from "@/app/hooks/usePermissions";
 
 type CalendarItem =
   | (Event & { type: "event" })
@@ -53,27 +54,31 @@ export default function CalendarPage() {
     load();
   }, []);
 
-  // ❗ DO NOT RETURN YET — we must run all hooks first
-
-  // -----------------------------------------
   // SAFE HOOKS — these must run every render
-  // -----------------------------------------
+  // Use the SAME permissions system as Members page
+  const {
+    canManageEvents,
+    isAuditor,
+    isRegionalAdmin,
+  } = usePermissions();
 
-  const roles = user?.roles ?? [];
-
-  const isAuditor = roles.includes("Auditor");
-  const isRegionalAdmin = roles.includes("RegionalAdmin");
-
+  // Regional Admins + Auditors = read-only
   const isReadOnly = isAuditor || isRegionalAdmin;
 
-  const canManage =
-    !isReadOnly &&
-    (can(roles, "events.manage") ||
-      can(roles, "church.manage") ||
-      can(roles, "system.manage"));
+  // Only Church Admin + Root Admin can manage events
+  const canManage = !isReadOnly && canManageEvents;
 
-  const { events } = useCalendarEvents(churchId, user);
-  const { services } = useUpcomingServices(churchId);
+  // Regional Admins + Auditors do NOT have a valid churchId on their profile
+  const effectiveChurchId =
+    user?.churchId && user.churchId.trim() !== ""
+      ? user.churchId
+      : churchId;
+
+  // Load events for the effective church
+  const { events } = useCalendarEvents(effectiveChurchId, user);
+
+  // Load service plans for the effective church
+  const { services } = useUpcomingServices(effectiveChurchId);
 
   const merged: CalendarItem[] = useMemo(() => {
     const serviceItems: CalendarItem[] = services.map((sp) => ({
@@ -93,13 +98,20 @@ export default function CalendarPage() {
 
   const visible = useMemo(() => {
     if (!user) return [];
+
+    // Regional Admins + Auditors: see all merged items
+    if (isRegionalAdmin || isAuditor) {
+      return merged;
+    }
+
+    // Everyone else: respect visibility rules
     return merged.filter((item) =>
       canUserSeeEvent(user, {
         visibility: item.visibility,
         groups: item.groups,
       })
     );
-  }, [merged, user]);
+  }, [merged, user, isRegionalAdmin, isAuditor]);
 
   const month = useCalendarMonth();
   const filters = useCalendarFilters<CalendarItem>(visible);
@@ -107,9 +119,7 @@ export default function CalendarPage() {
   const { view, setView } = useUserCalendarSettings(user?.id ?? null);
   const viewControls = { view, setView };
 
-  // -----------------------------------------
   // NOW we can safely return
-  // -----------------------------------------
 
   if (loadingUser) return <>Loading...</>;
   if (!user) return <>No user found.</>;

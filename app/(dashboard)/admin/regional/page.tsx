@@ -1,3 +1,4 @@
+//app(dashboard)/admin/regional/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -14,6 +15,7 @@ export default function RegionalDashboardPage() {
   const [regionName, setRegionName] = useState('');
   const [regionAdminName, setRegionAdminName] = useState('');
   const [loading, setLoading] = useState(true);
+  const [pendingCount, setPendingCount] = useState(0);
 
   // Load churches in region
   useEffect(() => {
@@ -28,6 +30,23 @@ export default function RegionalDashboardPage() {
       const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       setChurches(list);
       setLoading(false);
+    });
+
+    return () => unsub();
+  }, [regionId]);
+
+  // Load pending churches
+  useEffect(() => {
+    if (!regionId) return;
+
+    const q = query(
+      collection(db, "churches"),
+      where("regionSelectedId", "==", regionId),
+      where("regionStatus", "==", "pending")
+    );
+
+    const unsub = onSnapshot(q, (snap) => {
+      setPendingCount(snap.size);
     });
 
     return () => unsub();
@@ -112,6 +131,20 @@ export default function RegionalDashboardPage() {
         </p>
       </div>
 
+      {pendingCount > 0 && (
+        <div className="p-4 rounded-lg border border-yellow-500 bg-yellow-500/10">
+          <h2 className="text-lg font-semibold">Churches Pending Approval</h2>
+          <p className="text-xl font-bold mt-2">{pendingCount}</p>
+
+          <Link
+            href="/admin/regional/churches/pending"
+            className="text-sm underline mt-2 inline-block"
+          >
+            Review Pending Churches
+          </Link>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         
@@ -134,7 +167,7 @@ export default function RegionalDashboardPage() {
         <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
           <h2 className="text-lg font-semibold">Active Churches</h2>
           <p className="text-3xl font-bold mt-2">
-            {churches.filter((c) => c.status !== 'disabled').length}
+            {churches.filter((c) => c.regionStatus === "approved").length}
           </p>
         </div>
 

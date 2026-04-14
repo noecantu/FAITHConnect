@@ -56,14 +56,24 @@ export function useCalendarEvents(
         normalizeEvent(d.data(), d.id)
       );
 
-      const visible = latestEvents.filter((item) => {
-        if (currentUser.roles.includes("EventManager")) return true;
+    const visible = latestEvents.filter((item) => {
+      // Regional Admins + Auditors can see ALL events
+      if (
+        currentUser.roles.includes("RegionalAdmin") ||
+        currentUser.roles.includes("Auditor")
+      ) {
+        return true;
+      }
 
-        return canUserSeeEvent(currentUser, {
-          visibility: item.visibility,
-          groups: item.groups,
-        });
+      // Event Managers can see all events
+      if (currentUser.roles.includes("EventManager")) return true;
+
+      // Everyone else uses visibility rules
+      return canUserSeeEvent(currentUser, {
+        visibility: item.visibility,
+        groups: item.groups,
       });
+    });
 
       visible.sort((a, b) => a.date.getTime() - b.date.getTime());
       setEvents(visible);
