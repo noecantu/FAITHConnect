@@ -15,8 +15,7 @@ import { useCalendarFilters } from "@/app/hooks/useCalendarFilters";
 import { CalendarControls } from "@/app/components/calendar/CalendarControls";
 import { CalendarViewSwitcher } from "@/app/components/calendar/CalendarViewSwitcher";
 
-import { can } from "@/app/lib/auth/permissions";
-import type { Role } from "@/app/lib/auth/roles"
+import type { Role } from "@/app/lib/auth/roles";
 import type { UserProfile, Event, ServicePlan } from "@/app/lib/types";
 import { useUserCalendarSettings } from "@/app/hooks/useUserCalendarSettings";
 import { useRouter } from "next/navigation";
@@ -36,7 +35,6 @@ export default function CalendarPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
-  // Load user profile FIRST — before any conditional return
   useEffect(() => {
     async function load() {
       const res = await fetch("/api/users/me");
@@ -54,30 +52,18 @@ export default function CalendarPage() {
     load();
   }, []);
 
-  // SAFE HOOKS — these must run every render
-  // Use the SAME permissions system as Members page
   const {
     canManageEvents,
     isAuditor,
     isRegionalAdmin,
   } = usePermissions();
 
-  // Regional Admins + Auditors = read-only
   const isReadOnly = isAuditor || isRegionalAdmin;
-
-  // Only Church Admin + Root Admin can manage events
   const canManage = !isReadOnly && canManageEvents;
 
-  // Regional Admins + Auditors do NOT have a valid churchId on their profile
-  const effectiveChurchId =
-    user?.churchId && user.churchId.trim() !== ""
-      ? user.churchId
-      : churchId;
+  const effectiveChurchId = churchId;
 
-  // Load events for the effective church
-  const { events } = useCalendarEvents(effectiveChurchId, user);
-
-  // Load service plans for the effective church
+  const { events } = useCalendarEvents(effectiveChurchId);
   const { services } = useUpcomingServices(effectiveChurchId);
 
   const merged: CalendarItem[] = useMemo(() => {
@@ -87,24 +73,22 @@ export default function CalendarPage() {
       _key: `service-${sp.id}`,
     }));
 
-    const realEvents: CalendarItem[] = events.map((ev) => ({
+    const eventItems: CalendarItem[] = events.map((ev) => ({
       ...ev,
       type: "event",
       _key: `event-${ev.id}`,
     }));
 
-    return [...realEvents, ...serviceItems];
+    return [...eventItems, ...serviceItems];
   }, [events, services]);
 
   const visible = useMemo(() => {
     if (!user) return [];
 
-    // Regional Admins + Auditors: see all merged items
     if (isRegionalAdmin || isAuditor) {
       return merged;
     }
 
-    // Everyone else: respect visibility rules
     return merged.filter((item) =>
       canUserSeeEvent(user, {
         visibility: item.visibility,
@@ -118,8 +102,6 @@ export default function CalendarPage() {
 
   const { view, setView } = useUserCalendarSettings(user?.id ?? null);
   const viewControls = { view, setView };
-
-  // NOW we can safely return
 
   if (loadingUser) return <>Loading...</>;
   if (!user) return <>No user found.</>;
@@ -185,13 +167,11 @@ export default function CalendarPage() {
         onEdit={(event) => {
           if (!canManage) return;
 
-          // ServicePlan
           if ("timeString" in event) {
             router.push(`/service-plan/${event.id}`);
             return;
           }
 
-          // Event
           router.push(`/calendar/${event.id}`);
         }}
       />

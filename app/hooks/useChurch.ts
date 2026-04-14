@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from '@/app/lib/firebase/client';
-import type { Church } from "../lib/types";
+import type { Church } from "@/app/lib/types";
 
 export function useChurch(churchId: string | null) {
   const [church, setChurch] = useState<Church | null>(null);

@@ -1,11 +1,9 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
-import type { Event, UserProfile } from "@/app/lib/types";
-import { canUserSeeEvent } from "@/app/lib/canUserSeeEvent";
-import { Role } from "../lib/auth/roles";
+import type { Event } from "@/app/lib/types";
 
 function normalizeDate(raw: any): Date {
   if (!raw) return new Date();
@@ -32,55 +30,36 @@ function normalizeEvent(raw: any, id: string): Event {
   };
 }
 
-export function useCalendarEvents(
-  churchId: string | null,
-  user: UserProfile | { id: string; roles: string[] } | null
-) {
+export function useCalendarEvents(churchId: string | null) {
   const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  console.log("CALENDAR HOOK churchId =", churchId);
+  
   useEffect(() => {
-    if (!churchId || !user) return;
+    if (!churchId) {
+      setEvents([]);
+      setLoading(false);
+      return;
+    }
 
-    let latestEvents: Event[] = [];
-
-    const currentUser = {
-      ...user,
-      roles: user.roles as Role[],
-    };
+    setLoading(true);
 
     const eventsRef = collection(db, "churches", churchId, "events");
     const eventsQuery = query(eventsRef, orderBy("date", "asc"));
 
     const unsub = onSnapshot(eventsQuery, (snap) => {
-      latestEvents = snap.docs.map((d) =>
+      const loaded = snap.docs.map((d) =>
         normalizeEvent(d.data(), d.id)
       );
 
-    const visible = latestEvents.filter((item) => {
-      // Regional Admins + Auditors can see ALL events
-      if (
-        currentUser.roles.includes("RegionalAdmin") ||
-        currentUser.roles.includes("Auditor")
-      ) {
-        return true;
-      }
-
-      // Event Managers can see all events
-      if (currentUser.roles.includes("EventManager")) return true;
-
-      // Everyone else uses visibility rules
-      return canUserSeeEvent(currentUser, {
-        visibility: item.visibility,
-        groups: item.groups,
-      });
-    });
-
-      visible.sort((a, b) => a.date.getTime() - b.date.getTime());
-      setEvents(visible);
+      loaded.sort((a, b) => a.date.getTime() - b.date.getTime());
+      setEvents(loaded);
+      setLoading(false);
     });
 
     return () => unsub();
-  }, [churchId, user]);
+  }, [churchId]);
 
-  return { events };
+  return { events, loading };
 }

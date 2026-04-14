@@ -1,13 +1,27 @@
-'use client';
+"use client";
 
-import { useParams } from 'next/navigation';
-import { useAuth } from './useAuth';
+import { useParams } from "next/navigation";
+import { useAuth } from "./useAuth";
+import { useEffect, useState } from "react";
 
 export function useChurchId() {
   const params = useParams();
   const { user, loading: authLoading } = useAuth();
+  const [storedChurchId, setStoredChurchId] = useState<string | null>(null);
 
-  // 1. Church Admin route: /church/[slug]
+  // Load selected church from sessionStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem("selectedChurchId");
+      if (saved) setStoredChurchId(saved);
+    }
+  }, []);
+
+  // 1. ANY route with /church/[slug]
+  // Works for:
+  // - /church/[slug]
+  // - /admin/church/[slug]
+  // - /admin/regional/church/[slug]
   if (params?.slug) {
     return {
       churchId: params.slug as string,
@@ -15,15 +29,15 @@ export function useChurchId() {
     };
   }
 
-  // 2. Regional Admin route: /admin/church/[churchId]
-  if (params?.churchId) {
+  // 2. Fallback for Regional Admin on pages like /calendar
+  if (storedChurchId) {
     return {
-      churchId: params.churchId as string,
+      churchId: storedChurchId,
       loading: authLoading,
     };
   }
 
-  // 3. Fallback: Church Admin user record
+  // 3. Church Admin default
   return {
     churchId: user?.churchId ?? null,
     loading: authLoading,

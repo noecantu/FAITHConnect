@@ -1,3 +1,4 @@
+//app/(dashboard)/admin/church/[churchId]/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -352,14 +353,15 @@ export default function ChurchAdminDashboard() {
             <CardTitle>Quick Access</CardTitle>
             <CardDescription>Main Areas</CardDescription>
           </CardHeader>
+
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <QuickAction href="/attendance" icon={CalendarCheck} label="Attendance" />
-            <QuickAction href="/contributions" icon={DollarSign} label="Contributions" />
-            <QuickAction href="/calendar" icon={Calendar} label="Events" />
+            <QuickAction href={`/church/${churchId}/attendance`} icon={CalendarCheck} label="Attendance" />
+            <QuickAction href={`/church/${churchId}/contributions`} icon={DollarSign} label="Contributions" />
+            <QuickAction href={`/church/${churchId}/calendar`} icon={Calendar} label="Events" />
             <QuickAction href={`/church/${churchId}/members`} icon={UserPlus} label="Members" />
-            <QuickAction href="/reports" icon={FileText} label="Reports" />
-            <QuickAction href="/music/setlists" icon={Music} label="Set Lists" />
-            <QuickAction href="/service-plan" icon={CalendarHeart} label="Service Plans" />
+            <QuickAction href={`/church/${churchId}/reports`} icon={FileText} label="Reports" />
+            <QuickAction href={`/church/${churchId}/music/setlists`} icon={Music} label="Set Lists" />
+            <QuickAction href={`/church/${churchId}/service-plans`} icon={CalendarHeart} label="Service Plans" />
           </CardContent>
         </Card>
       </main>

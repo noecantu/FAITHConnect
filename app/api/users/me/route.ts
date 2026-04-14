@@ -1,7 +1,19 @@
+// app/api/users/me/route.ts
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
+import { ROLE_PERMISSIONS } from "@/app/lib/auth/permissions";
+import type { Role } from "@/app/lib/auth/roles";
+
+function resolvePermissions(roles: Role[]) {
+  const perms = new Set<string>();
+  for (const role of roles) {
+    const p = ROLE_PERMISSIONS[role] ?? [];
+    p.forEach((perm) => perms.add(perm));
+  }
+  return Array.from(perms);
+}
 
 export async function GET(req: Request) {
   try {
@@ -15,11 +27,9 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "No session" }, { status: 401 });
     }
 
-    // Verify session cookie
     const decoded = await adminAuth.verifySessionCookie(session, true);
     const uid = decoded.uid;
 
-    // Fetch user profile
     const snap = await adminDb.collection("users").doc(uid).get();
     const user = snap.data();
 
@@ -27,14 +37,25 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const roles = user.roles ?? [];
+    const permissions = resolvePermissions(roles);
+
     return NextResponse.json({
       id: uid,
       email: user.email ?? null,
       firstName: user.firstName ?? null,
       lastName: user.lastName ?? null,
       profilePhotoUrl: user.profilePhotoUrl ?? null,
-      roles: user.roles ?? [],
+
+      // IMPORTANT: return everything the frontend needs
+      roles,
+      permissions,
       churchId: user.churchId ?? null,
+      regionId: user.regionId ?? null,
+      regionName: user.regionName ?? null,
+      managedChurchIds: user.managedChurchIds ?? [],
+      rolesByChurch: user.rolesByChurch ?? {},
+
       onboardingStep: user.onboardingStep ?? "choose-plan",
       onboardingComplete: user.onboardingComplete ?? false,
     });

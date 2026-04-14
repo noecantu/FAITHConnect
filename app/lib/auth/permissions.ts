@@ -1,5 +1,4 @@
 // app/lib/auth/permissions.ts
-// New with redundancy Removal
 
 export type Permission =
   | "church.manage"
@@ -22,11 +21,11 @@ export type Permission =
 import type { Role } from "./roles";
 
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-  // System roles
   RootAdmin: [
     "system.manage",
-    "roles.assign",
+    "region.manage",
     "church.manage",
+    "roles.assign",
     "members.manage",
     "contributions.manage",
     "events.manage",
@@ -37,90 +36,83 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
 
   SystemAdmin: [
     "system.manage",
+    "church.manage",
     "roles.assign",
+    "members.manage",
+    "contributions.manage",
+    "events.manage",
+    "music.manage",
+    "servicePlans.manage",
+    "attendance.manage",
   ],
 
   RegionalAdmin: [
-    "roles.assign",
     "region.manage",
+    "roles.assign",
+    "members.read",
+    "contributions.read",
+    "events.read",
+    "servicePlans.read",
+    "attendance.read",
+    "music.read",
   ],
 
   Support: [
     "members.read",
     "events.read",
-    "servicePlans.read",
+    "attendance.read",
   ],
 
   Auditor: [
     "members.read",
     "contributions.read",
     "events.read",
-    "music.read",
     "servicePlans.read",
     "attendance.read",
+    "music.read",
   ],
 
-  // Church roles
   Admin: [
     "church.manage",
     "roles.assign",
-    "members.read",
     "members.manage",
-    "contributions.read",
     "contributions.manage",
-    "events.read",
     "events.manage",
-    "music.read",
     "music.manage",
-    "servicePlans.read",
     "servicePlans.manage",
-    "attendance.read",
     "attendance.manage",
   ],
 
-  Finance: ["contributions.read", "contributions.manage"],
-  EventManager: ["events.read", "events.manage"],
-  AttendanceManager: ["attendance.read", "attendance.manage"],
-  MemberManager: ["members.read", "members.manage"],
-  ServiceManager: ["servicePlans.read", "servicePlans.manage"],
+  Finance: ["contributions.manage"],
+  EventManager: ["events.manage"],
+  AttendanceManager: ["attendance.manage"],
+  MemberManager: ["members.manage"],
+  ServiceManager: ["servicePlans.manage"],
 
-  Pastor: [
-    "members.read",
-    "events.read",
-    "servicePlans.read",
-  ],
+  Pastor: ["members.read", "events.read", "servicePlans.read"],
+  Minister: ["members.read", "events.read"],
+  Deacon: ["members.read"],
 
-  Minister: [
-    "members.read",
-    "events.read",
-  ],
-
-  Deacon: [
-    "members.read",
-    "events.read",
-  ],
-
-  MusicManager: ["music.read", "music.manage"],
+  MusicManager: ["music.manage"],
   MusicMember: ["music.read"],
 
-  // Group roles — give them read-only access
-  UsherManager: ["events.read"],
-  Usher: ["events.read"],
+  UsherManager: ["attendance.manage"],
+  Usher: ["attendance.read"],
 
-  CaretakerManager: ["events.read"],
-  Caretaker: ["events.read"],
+  CaretakerManager: ["attendance.manage"],
+  Caretaker: ["attendance.read"],
 
-  MensGroupManager: ["events.read"],
-  MensGroup: ["events.read"],
+  MensGroupManager: ["members.manage"],
+  MensGroup: ["members.read"],
 
-  WomensGroupManager: ["events.read"],
-  WomensGroup: ["events.read"],
+  WomensGroupManager: ["members.manage"],
+  WomensGroup: ["members.read"],
 
-  YouthGroupManager: ["events.read"],
-  YouthGroup: ["events.read"],
+  YouthGroupManager: ["members.manage"],
+  YouthGroup: ["members.read"],
 
-  GroupManager: ["events.read"],
-  Member: ["events.read", "servicePlans.read"],
+  GroupManager: ["members.manage"],
+  Member: ["members.read"],
 };
 
 export function can(roles: Role[], permission: Permission): boolean {

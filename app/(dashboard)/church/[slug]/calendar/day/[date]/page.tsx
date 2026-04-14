@@ -11,7 +11,6 @@ import { ListView } from "@/app/components/calendar/ListView";
 import { dateKey } from "@/app/lib/calendar/utils";
 import { parse } from "date-fns";
 import { useRouter } from "next/navigation";
-import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 import type { Event, ServicePlan } from "@/app/lib/types";
 
 type CalendarItem =
@@ -30,9 +29,8 @@ export default function DayEventsPage({
   const day = parse(dayKey, "yyyy-MM-dd", new Date());
 
   const { churchId } = useChurchId();
-  const { user } = useCurrentUser();
 
-  const { events } = useCalendarEvents(churchId, user);
+  const { events } = useCalendarEvents(churchId);
   const { services } = useUpcomingServices(churchId);
 
   const merged: CalendarItem[] = useMemo(() => {
