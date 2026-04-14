@@ -453,7 +453,7 @@ export default function AttendanceHistoryPage() {
                   <tr
                     key={s.dateString}
                     className="border-b hover:bg-accent cursor-pointer"
-                    onClick={() => router.push(`/attendance?date=${s.dateString}`)}
+                    onClick={() => router.push(`/church/${churchId}/attendance?date=${s.dateString}`)}
                   >
                     <td className="py-2 px-2">{s.dateString}</td>
                     <td className="py-2 px-2 text-center">{s.membersPresent}</td>

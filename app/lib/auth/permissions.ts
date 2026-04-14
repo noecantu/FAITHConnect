@@ -116,5 +116,18 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
 };
 
 export function can(roles: Role[], permission: Permission): boolean {
-  return roles.some(r => ROLE_PERMISSIONS[r]?.includes(permission));
+  return roles.some(role => {
+    const perms = ROLE_PERMISSIONS[role] ?? [];
+
+    // direct match
+    if (perms.includes(permission)) return true;
+
+    // manage implies read
+    if (permission.endsWith(".read")) {
+      const manageVersion = permission.replace(".read", ".manage");
+      return perms.includes(manageVersion as Permission);
+    }
+
+    return false;
+  });
 }

@@ -221,10 +221,10 @@ export default function ServicePlanPage() {
                   key={plan.id}
                   role="button"
                   tabIndex={0}
-                  onClick={() => router.push(`/service-plan/${plan.id}`)}
+                  onClick={() => router.push(`/church/${churchId}/service-plan/${plan.id}`)}
                   onKeyDown={(ev) => {
                     if (ev.key === "Enter" || ev.key === " ") {
-                      router.push(`/service-plan/${plan.id}`);
+                      router.push(`/church/${churchId}/service-plan/${plan.id}`);
                     }
                   }}
                   className="border border-white/20 rounded-md p-4 flex items-start justify-between cursor-pointer bg-white/5 hover:bg-white/10 transition-colors"
@@ -258,7 +258,7 @@ export default function ServicePlanPage() {
       </Card>
 
       {canManage && (
-        <Fab type="add" onClick={() => router.push("/service-plan/new")} />
+        <Fab type="add" onClick={() => router.push(`/church/${churchId}/service-plan/new`)} />
       )}
     </>
   );

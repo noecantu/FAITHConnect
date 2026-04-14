@@ -67,10 +67,7 @@ export function NavMenu() {
 
   const typedRoles = roles as Role[];
 
-  // Hide NavMenu during onboarding
   if (pathname.startsWith("/onboarding")) return null;
-
-  // Hide NavMenu during Self Check-In
   if (pathname.match(/\/[^/]+\/attendance\/self-checkin/)) return null;
 
   // --- PERMISSIONS ---
@@ -87,7 +84,6 @@ export function NavMenu() {
     can(typedRoles, "contributions.read") ||
     can(typedRoles, "attendance.read");
 
-  // --- ACTIVE MATCHING (clean + future-proof) ---
   function isActive(href: string, exact?: boolean) {
     return exact ? pathname === href : pathname.startsWith(href);
   }
@@ -107,24 +103,26 @@ export function NavMenu() {
     { href: "/admin/regional/users", label: "Regional Users", icon: Users },
   ];
 
+  // 🔧 UPDATED — all paths corrected
   const churchAdminMenu = [
-    { href: `/admin/church/${churchId}`, label: "Dashboard", icon: Home, exact: true },
-    { href: "/attendance", label: "Attendance", icon: CalendarCheck, permission: canSeeAttendance, isSubmenu: true },
-    { href: "/calendar", label: "Calendar", icon: Calendar },
-    { href: "/contributions", label: "Contributions", icon: DollarSign, permission: canSeeContributions },
+    { href: `/church/${churchId}`, label: "Dashboard", icon: Home, exact: true },
+    { href: `/church/${churchId}/attendance`, label: "Attendance", icon: CalendarCheck, permission: canSeeAttendance, isSubmenu: true },
+    { href: `/church/${churchId}/calendar`, label: "Calendar", icon: Calendar },
+    { href: `/church/${churchId}/contributions`, label: "Contributions", icon: DollarSign, permission: canSeeContributions },
     { href: `/church/${churchId}/members`, label: "Members", icon: Users },
-    { href: "/music", label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
-    { href: "/service-plan", label: "Service Plans", icon: CalendarHeart, permission: canAccessServicePlan },
-    { href: `/admin/church/${churchId}/settings`, label: "Settings", icon: Settings },
-    { href: "/reports", label: "Reports", icon: FileText, permission: canSeeReports },
+    { href: `/church/${churchId}/music`, label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
+    { href: `/church/${churchId}/service-plan`, label: "Service Plans", icon: CalendarHeart, permission: canAccessServicePlan },
+    { href: `/church/${churchId}/user/settings`, label: "Settings", icon: Settings },
+    { href: `/church/${churchId}/reports`, label: "Reports", icon: FileText, permission: canSeeReports },
   ];
 
+  // 🔧 UPDATED — user menu paths corrected
   const userMenu = [
     { href: `/church/${churchId}/user`, label: "Dashboard", icon: Home, exact: true },
-    { href: "/calendar", label: "Calendar", icon: Calendar },
-    { href: "/contributions", label: "Contributions", icon: DollarSign, permission: canSeeContributions },
-    { href: "/music", label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
-    { href: "/reports", label: "Reports", icon: FileText, permission: canSeeReports },
+    { href: `/church/${churchId}/calendar`, label: "Calendar", icon: Calendar },
+    { href: `/church/${churchId}/contributions`, label: "Contributions", icon: DollarSign, permission: canSeeContributions },
+    { href: `/church/${churchId}/music`, label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
+    { href: `/church/${churchId}/reports`, label: "Reports", icon: FileText, permission: canSeeReports },
     { href: `/church/${churchId}/user/settings`, label: "Settings", icon: Settings },
   ];
 
@@ -141,25 +139,25 @@ export function NavMenu() {
     return items
       .filter((item) => item.permission !== false)
       .map((item) => {
-        // MUSIC SUBMENU
-        if (item.isSubmenu && item.href === "/music") {
+        // 🔧 UPDATED — MUSIC SUBMENU
+        if (item.isSubmenu && item.href.endsWith("/music")) {
           return (
             <DropdownMenuSub key="music">
-              <DropdownMenuSubTrigger className={isActive("/music") ? "bg-accent" : ""}>
+              <DropdownMenuSubTrigger className={isActive(`/church/${churchId}/music`) ? "bg-accent" : ""}>
                 <item.icon className="mr-2 h-4 w-4" />
                 <span>Music</span>
               </DropdownMenuSubTrigger>
 
               <DropdownMenuSubContent>
-                <Link href="/music/setlists">
-                  <DropdownMenuItem className={isActive("/music/setlists") ? "bg-accent" : ""}>
+                <Link href={`/church/${churchId}/music/setlists`}>
+                  <DropdownMenuItem className={isActive(`/church/${churchId}/music/setlists`) ? "bg-accent" : ""}>
                     <ListMusic className="mr-2 h-4 w-4" />
                     <span>Set Lists</span>
                   </DropdownMenuItem>
                 </Link>
 
-                <Link href="/music/songs">
-                  <DropdownMenuItem className={isActive("/music/songs") ? "bg-accent" : ""}>
+                <Link href={`/church/${churchId}/music/songs`}>
+                  <DropdownMenuItem className={isActive(`/church/${churchId}/music/songs`) ? "bg-accent" : ""}>
                     <Music className="mr-2 h-4 w-4" />
                     <span>Songs</span>
                   </DropdownMenuItem>
@@ -169,25 +167,25 @@ export function NavMenu() {
           );
         }
 
-        // ATTENDANCE SUBMENU
-        if (item.isSubmenu && item.href === "/attendance") {
+        // 🔧 UPDATED — ATTENDANCE SUBMENU
+        if (item.isSubmenu && item.href.endsWith("/attendance")) {
           return (
             <DropdownMenuSub key="attendance">
-              <DropdownMenuSubTrigger className={isActive("/attendance") ? "bg-accent" : ""}>
+              <DropdownMenuSubTrigger className={isActive(`/church/${churchId}/attendance`) ? "bg-accent" : ""}>
                 <item.icon className="mr-2 h-4 w-4" />
                 <span>Attendance</span>
               </DropdownMenuSubTrigger>
 
               <DropdownMenuSubContent>
-                <Link href="/attendance">
-                  <DropdownMenuItem className={isActive("/attendance", true) ? "bg-accent" : ""}>
+                <Link href={`/church/${churchId}/attendance`}>
+                  <DropdownMenuItem className={isActive(`/church/${churchId}/attendance`, true) ? "bg-accent" : ""}>
                     <CalendarCheck className="mr-2 h-4 w-4" />
                     <span>Take Attendance</span>
                   </DropdownMenuItem>
                 </Link>
 
-                <Link href="/attendance/history">
-                  <DropdownMenuItem className={isActive("/attendance/history") ? "bg-accent" : ""}>
+                <Link href={`/church/${churchId}/attendance/history`}>
+                  <DropdownMenuItem className={isActive(`/church/${churchId}/attendance/history`) ? "bg-accent" : ""}>
                     <FileText className="mr-2 h-4 w-4" />
                     <span>Attendance History</span>
                   </DropdownMenuItem>

@@ -211,7 +211,7 @@ export default function SetListsPage() {
                 key={row.id}
                 role="button"
                 tabIndex={0}
-                onClick={() => router.push(`/music/setlists/${row.id}`)}
+                onClick={() => router.push(`/church/${churchId}/music/setlists/${row.id}`)}
                 onKeyDown={(ev) => {
                   if (ev.key === "Enter" || ev.key === " ") {
                     router.push(`/music/setlists/${row.id}`);
@@ -249,7 +249,7 @@ export default function SetListsPage() {
       {canManage && (
         <Fab
           type="add"
-          onClick={() => router.push("/music/setlists/new")}
+          onClick={() => router.push(`/church/${churchId}/music/setlists/new`)}
         />
       )}
     </>
