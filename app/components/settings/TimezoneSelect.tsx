@@ -1,5 +1,13 @@
-//app/components/settings/TimezoneSelect.tsx
 "use client";
+
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/app/components/ui/select";
+import { SelectGroup, SelectLabel } from "@radix-ui/react-select";
 
 interface Props {
   value: string;
@@ -8,38 +16,38 @@ interface Props {
 
 export default function TimezoneSelect({ value, onChange }: Props) {
   return (
-    <div>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger
         className="
-          w-full rounded-md border border-input bg-background
-          px-3 py-2 text-sm
-          h-10
-          focus:outline-none focus:ring-2 focus:ring-primary
+          w-full h-10 px-3 rounded-md border border-white/20
+          bg-black/40 text-sm text-white
         "
       >
-        <option value="">Select a timezone</option>
+        <SelectValue placeholder="Select a timezone" />
+      </SelectTrigger>
 
-        <optgroup label="United States">
-          <option value="America/New_York">Eastern (ET)</option>
-          <option value="America/Chicago">Central (CT)</option>
-          <option value="America/Denver">Mountain (MT)</option>
-          <option value="America/Los_Angeles">Pacific (PT)</option>
-          <option value="America/Phoenix">Arizona (No DST)</option>
-          <option value="America/Anchorage">Alaska</option>
-          <option value="Pacific/Honolulu">Hawaii</option>
-        </optgroup>
+      <SelectContent className="bg-black/90 text-white border-white/20">
+        <SelectGroup>
+          <SelectLabel>United States</SelectLabel>
+          <SelectItem value="America/New_York">Eastern (ET)</SelectItem>
+          <SelectItem value="America/Chicago">Central (CT)</SelectItem>
+          <SelectItem value="America/Denver">Mountain (MT)</SelectItem>
+          <SelectItem value="America/Los_Angeles">Pacific (PT)</SelectItem>
+          <SelectItem value="America/Phoenix">Arizona (No DST)</SelectItem>
+          <SelectItem value="America/Anchorage">Alaska</SelectItem>
+          <SelectItem value="Pacific/Honolulu">Hawaii</SelectItem>
+        </SelectGroup>
 
-        <optgroup label="International">
-          <option value="Europe/London">London (UK)</option>
-          <option value="Europe/Paris">Paris (France)</option>
-          <option value="Europe/Berlin">Berlin (Germany)</option>
-          <option value="Asia/Tokyo">Tokyo (Japan)</option>
-          <option value="Asia/Singapore">Singapore</option>
-          <option value="Australia/Sydney">Sydney (Australia)</option>
-        </optgroup>
-      </select>
-    </div>
+        <SelectGroup>
+          <SelectLabel>International</SelectLabel>
+          <SelectItem value="Europe/London">London (UK)</SelectItem>
+          <SelectItem value="Europe/Paris">Paris (France)</SelectItem>
+          <SelectItem value="Europe/Berlin">Berlin (Germany)</SelectItem>
+          <SelectItem value="Asia/Tokyo">Tokyo (Japan)</SelectItem>
+          <SelectItem value="Asia/Singapore">Singapore</SelectItem>
+          <SelectItem value="Australia/Sydney">Sydney (Australia)</SelectItem>
+        </SelectGroup>
+      </SelectContent>
+    </Select>
   );
 }

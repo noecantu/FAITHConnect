@@ -41,7 +41,6 @@ export default function ChurchProfileCard({ churchId }: Props) {
   const [regions, setRegions] = useState<any[]>([]);
   const [regionId, setRegionId] = useState("");
   const [originalRegionId, setOriginalRegionId] = useState("");
-  const [regionStatus, setRegionStatus] = useState("");
   const [regionSelectedId, setRegionSelectedId] = useState("");
   
   useEffect(() => {
@@ -61,7 +60,6 @@ export default function ChurchProfileCard({ churchId }: Props) {
       // Set region from church data
       setRegionId(data.regionId ?? "");
       setRegionSelectedId(data.regionSelectedId ?? "");
-      setRegionStatus(data.regionStatus ?? "");
 
       // Identity
       setName(data.name ?? '');
@@ -86,8 +84,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
   const hasChanges =
     timezone !== originalTimezone ||
     address !== originalAddress ||
-    phone.digits !== originalPhone ||
-    regionId !== originalRegionId;
+    phone.digits !== originalPhone;
 
   // Save handler
   const handleSave = async () => {
@@ -136,12 +133,14 @@ export default function ChurchProfileCard({ churchId }: Props) {
   );
 
   return (
-    <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
-      <CardHeader className="pb-4">
+    <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl rounded-xl shadow-lg">
+      <CardHeader className="pb-2 border-b border-white/10">
         <div className="flex items-start justify-between w-full">
           <div>
-            <CardTitle>{name || "Church Profile"}</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-xl font-semibold tracking-tight">
+              {name || "Church Profile"}
+            </CardTitle>
+            <CardDescription className="text-sm opacity-80">
               Manage your church’s identity and details.
             </CardDescription>
           </div>
@@ -151,12 +150,12 @@ export default function ChurchProfileCard({ churchId }: Props) {
             onClick={handleSave}
             disabled={!hasChanges || saving}
             className={`
-              p-2 rounded-md border
-              bg-muted/20 transition
+              p-2 rounded-md border border-white/20
+              bg-white/5 transition
               focus:outline-none focus:ring-2 focus:ring-primary
               ${!hasChanges || saving 
                 ? "opacity-40 cursor-not-allowed" 
-                : "hover:bg-muted"}
+                : "hover:bg-white/10"}
             `}
           >
             {saving ? (
@@ -168,67 +167,71 @@ export default function ChurchProfileCard({ churchId }: Props) {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-8 pt-6">
         {/* Address + Phone */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div className="grid gap-2">
-            <Label>Address</Label>
+            <Label className="text-sm font-medium">Address</Label>
             <Input
               value={address}
               onChange={(e) => setAddress(e.target.value)}
+              className="bg-black/40 border-white/20"
             />
           </div>
 
           <div className="grid gap-2">
-            <Label>Phone Number</Label>
+            <Label className="text-sm font-medium">Phone Number</Label>
             <Input
               value={phone.display}
               onChange={(e) => phone.handleChange(e.target.value)}
               placeholder="(555) 123‑4567"
+              className="bg-black/40 border-white/20"
             />
           </div>
         </div>
 
+        <div className="border-t border-white/10" />
+
         {/* Timezone + Region */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-start">
           <div className="grid gap-2">
-            <Label>Timezone</Label>
-            <TimezoneSelect value={timezone} onChange={setTimezone} />
+            <Label className="text-sm font-medium">Timezone</Label>
+            <TimezoneSelect
+              value={timezone}
+              onChange={setTimezone}
+            />
           </div>
 
           {/* REGION SELECTOR */}
-          <div className="grid gap-1">
-            <Label>Region</Label>
+          <div className="grid gap-2">
 
-            <Link
-              href={`/admin/church/${churchId}/select-region`}
-              className="
-                w-full px-3 py-2 rounded-md border border-white/20
-                bg-black/40 hover:bg-black/60 transition text-sm
-                flex items-center justify-between
-              "
-            >
-              {selectedRegion ? selectedRegion.name : "Select a Region"}
-
-              <span className="text-primary text-xs">Change →</span>
-            </Link>
-
-            {/* Region Leader */}
-            {selectedRegion?.regionAdminTitle && selectedRegion?.regionAdminName && (
-              <p className="text-xs text-muted-foreground">
-                Leader: {selectedRegion.regionAdminTitle} {selectedRegion.regionAdminName}
-              </p>
-            )}
-
-            {/* Region Status */}
-            {(regionId || regionSelectedId) && (
-              <p className="text-xs text-muted-foreground">
-                {regionStatus === "pending" && "Status: Pending Approval"}
-                {regionStatus === "approved" && "Status: Approved"}
-                {regionStatus === "rejected" && "Status: Rejected"}
-              </p>
-            )}
+          {/* Label + Status pill on same row */}
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Region</Label>
           </div>
+
+          {/* Region selector */}
+          <Link
+            href={`/admin/church/${churchId}/select-region`}
+            className="
+              w-full px-3 py-2 rounded-md border border-white/20
+              bg-black/40 hover:bg-black/60 transition text-sm
+              flex items-center justify-between
+            "
+          >
+            <span className="truncate">
+              {selectedRegion ? selectedRegion.name : "Select a Region"}
+            </span>
+            <span className="text-primary text-xs">Change →</span>
+          </Link>
+
+          {/* Leader */}
+          {selectedRegion?.regionAdminTitle && selectedRegion?.regionAdminName && (
+            <p className="text-sm text-green-400/80 text-center">
+              Leader: {selectedRegion.regionAdminTitle} {selectedRegion.regionAdminName}
+            </p>
+          )}
+        </div>
         </div>
       </CardContent>
     </Card>
