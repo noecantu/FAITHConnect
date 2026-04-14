@@ -40,7 +40,6 @@ export default function ChurchProfileCard({ churchId }: Props) {
   // Regional Settings
   const [regions, setRegions] = useState<any[]>([]);
   const [regionId, setRegionId] = useState("");
-  const [originalRegionId, setOriginalRegionId] = useState("");
   const [regionSelectedId, setRegionSelectedId] = useState("");
   
   useEffect(() => {
@@ -105,7 +104,6 @@ export default function ChurchProfileCard({ churchId }: Props) {
       setOriginalTimezone(timezone);
       setOriginalAddress(address);
       setOriginalPhone(phone.digits);
-      setOriginalRegionId(regionId);
 
       toast({
         title: "Saved",
