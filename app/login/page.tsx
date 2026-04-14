@@ -74,12 +74,13 @@ export default function LoginPage() {
       });
 
       // 5. Redirect logic
+      // System Admin
       if (can(roles, "system.manage")) {
         router.replace("/admin");
         return;
       }
 
-      // Regional Admin (system-level)
+      // Regional Admin
       if (roles.includes("RegionalAdmin")) {
         router.replace("/admin/regional");
         return;
@@ -89,43 +90,19 @@ export default function LoginPage() {
       if (can(roles, "church.manage")) {
         router.replace(
           profile.churchId
-            ? `/admin/church/${profile.churchId}`
+            ? `/church/${profile.churchId}`
             : "/onboarding/create-church"
         );
         return;
       }
 
-      // Finance Manager
-      if (can(roles, "contributions.read")) {
-        router.replace("/contributions");
+      // Regular church users
+      if (profile.churchId) {
+        router.replace(`/church/${profile.churchId}/user`);
         return;
       }
 
-      // Event Manager
-      if (can(roles, "events.read")) {
-        router.replace("/calendar");
-        return;
-      }
-
-      // Attendance Manager
-      if (can(roles, "attendance.read")) {
-        router.replace("/attendance");
-        return;
-      }
-
-      // Music roles
-      if (can(roles, "music.read")) {
-        router.replace("/music");
-        return;
-      }
-
-      // Service Plan roles
-      if (can(roles, "servicePlans.read")) {
-        router.replace("/service-plan");
-        return;
-      }
-
-      // Default fallback
+      // Fallback
       router.replace("/");
     } catch (error) {
       console.error("Login error:", error);
