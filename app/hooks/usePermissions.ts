@@ -8,41 +8,21 @@ export function usePermissions() {
   const { user, loading } = useAuth();
   const roles = (user?.roles ?? []) as Role[];
 
-  // Global roles
   const hasRole = (role: Role) => roles.includes(role);
-  const isRootAdmin = hasRole("RootAdmin");
-  const isSystemAdmin = hasRole("SystemAdmin");
-  const isRegionalAdmin = hasRole("RegionalAdmin");
-  const isSupport = hasRole("Support");
-  const isAuditor = hasRole("Auditor");
-
-  // Identifiers
-  const regionId = user?.regionId ?? null;
-  const churchId = user?.churchId ?? null;
-
-  // Per-church auditor
-  const rolesByChurch = user?.rolesByChurch ?? {};
-  const managedChurchIds = user?.managedChurchIds ?? [];
 
   return {
     loading,
     user,
     roles,
 
-    // Global role flags
-    isRootAdmin,
-    isSystemAdmin,
-    isRegionalAdmin,
-    isSupport,
-    isAuditor,
+    isRootAdmin: hasRole("RootAdmin"),
+    isSystemAdmin: hasRole("SystemAdmin"),
+    isRegionalAdmin: hasRole("RegionalAdmin"),
+    isSupport: hasRole("Support"),
+    isAuditor: hasRole("Auditor"),
 
-    // Identifiers
-    regionId,
-    churchId,
-
-    // Per-church auditor
-    rolesByChurch,
-    managedChurchIds,
+    regionId: user?.regionId ?? null,
+    churchId: user?.churchId ?? null,
 
     // Permissions
     canManageChurch: can(roles, "church.manage"),

@@ -2,15 +2,18 @@
 
 import Link from 'next/link';
 import { NavMenu } from './NavMenu';
-
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { useChurchId } from "@/app/hooks/useChurchId";
+import { useAuth } from "@/app/hooks/useAuth";
 import { can } from "@/app/lib/auth/permissions";
 import type { Role } from "@/app/lib/auth/roles";
 
 export default function Header() {
+  const { loading } = useAuth();
   const { roles = [] } = usePermissions();
   const { churchId } = useChurchId();
+
+  if (loading) return null;
 
   const typedRoles = roles as Role[];
 
@@ -35,21 +38,11 @@ export default function Header() {
 
   return (
     <>
-      <header
-        className="fixed top-0 left-0 w-full z-[9999]
-          flex h-16 items-center
-          border-b border-white/20
-          bg-black/80 backdrop-blur-xl
-          px-4 md:px-6"
-      >
+      <header className="fixed top-0 left-0 w-full z-[9999] flex h-16 items-center border-b border-white/20 bg-black/80 backdrop-blur-xl px-4 md:px-6">
         <div className="h-16" />
 
         <Link href={dashboardHref} className="flex items-center gap-2 font-semibold">
-          <img
-            src="/FAITH_CONNECT_FLAME_LOGO.svg"
-            alt="Faith Connect Logo"
-            className="h-24 w-24"
-          />
+          <img src="/FAITH_CONNECT_FLAME_LOGO.svg" alt="Faith Connect Logo" className="h-24 w-24" />
         </Link>
 
         <div className="ml-auto">

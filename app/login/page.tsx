@@ -79,7 +79,7 @@ export default function LoginPage() {
         router.replace("/admin");
         return;
       }
-
+console.log("PROFILE:", profile);
       // Regional Admin
       if (roles.includes("RegionalAdmin")) {
         router.replace("/admin/regional");
@@ -88,17 +88,17 @@ export default function LoginPage() {
 
       // Church Admin
       if (can(roles, "church.manage")) {
-        router.replace(
-          profile.churchId
-            ? `/church/${profile.churchId}`
-            : "/onboarding/create-church"
-        );
+        if (profile.churchId) {
+          router.replace(`/admin/church/${profile.churchId}`);
+        } else {
+          router.replace("/onboarding/create-church");
+        }
         return;
       }
 
       // Regular church users
-      if (profile.churchId) {
-        router.replace(`/church/${profile.churchId}/user`);
+      if (profile.church?.slug) {
+        router.replace(`/church/${profile.church.slug}/user`);
         return;
       }
 
@@ -167,17 +167,6 @@ export default function LoginPage() {
               >
                 Forgot your password?
               </a>
-
-              {/* <div className="flex items-center gap-2">
-                <Switch
-                  id="remember"
-                  checked={remember}
-                  onCheckedChange={setRemember}
-                />
-                <Label htmlFor="remember" className="text-sm">
-                  Remember Me
-                </Label>
-              </div> */}
             </div>
 
             {/* Submit */}
