@@ -27,9 +27,11 @@ export default function ReportsPage() {
 
   // NEW — permissions
   const {
+    loading: permissionsLoading,
     canReadMembers,
     canReadContributions,
     canReadAttendance,
+    canReadReports,
   } = usePermissions();
 
   // Local State
@@ -146,6 +148,27 @@ export default function ReportsPage() {
     (reportType === "members" && canReadMembers) ||
     (reportType === "contributions" && canReadContributions) ||
     (reportType === "attendance" && canReadAttendance);
+
+  // EARLY PERMISSION GATE
+  if (!churchId || permissionsLoading) {
+    return (
+      <>
+        <PageHeader title="Reports" />
+        <p className="text-muted-foreground">Loading reports…</p>
+      </>
+    );
+  }
+
+  if (!canReadReports) {
+    return (
+      <>
+        <PageHeader title="Reports" />
+        <p className="text-muted-foreground">
+          You do not have permission to view reports.
+        </p>
+      </>
+    );
+  }
 
   return (
     <>

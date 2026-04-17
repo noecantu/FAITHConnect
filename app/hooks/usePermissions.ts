@@ -34,6 +34,7 @@ export function usePermissions() {
     canReadEvents: can(roles, "events.read"),
     canManageMusic: can(roles, "music.manage"),
     canReadMusic: can(roles, "music.read"),
+    canReadReports: can(roles, "reports.read"),
     canManageServicePlans: can(roles, "servicePlans.manage"),
     canReadServicePlans: can(roles, "servicePlans.read"),
     canManageAttendance: can(roles, "attendance.manage"),

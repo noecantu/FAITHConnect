@@ -4,13 +4,7 @@ import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { PageHeader } from '@/app/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem
-} from '@/app/components/ui/select';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/app/components/ui/select';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useSetLists } from '@/app/hooks/useSetLists';
 import { usePermissions } from '@/app/hooks/usePermissions';

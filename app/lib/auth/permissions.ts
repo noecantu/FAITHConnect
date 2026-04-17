@@ -16,7 +16,8 @@ export type Permission =
   | "attendance.manage"
   | "roles.assign"
   | "system.manage"
-  | "region.manage";
+  | "region.manage"
+  | "reports.read";
 
 import type { Role } from "./roles";
 
@@ -32,6 +33,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "music.manage",
     "servicePlans.manage",
     "attendance.manage",
+    "reports.read",
   ],
 
   SystemAdmin: [
@@ -44,6 +46,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "music.manage",
     "servicePlans.manage",
     "attendance.manage",
+    "reports.read",
   ],
 
   RegionalAdmin: [
@@ -55,6 +58,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "servicePlans.read",
     "attendance.read",
     "music.read",
+    "reports.read",
   ],
 
   Support: [
@@ -70,6 +74,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "servicePlans.read",
     "attendance.read",
     "music.read",
+    "reports.read",
   ],
 
   Admin: [
@@ -81,9 +86,10 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "music.manage",
     "servicePlans.manage",
     "attendance.manage",
+    "reports.read",
   ],
 
-  Finance: ["contributions.manage"],
+  Finance: ["contributions.manage", "reports.read"],
   EventManager: ["events.manage"],
   AttendanceManager: ["attendance.manage"],
   MemberManager: ["members.manage"],
