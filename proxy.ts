@@ -35,15 +35,6 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // ---------------------------------------
-  // PROTECTED ROUTES
-  // ---------------------------------------
-  const sessionCookie = req.cookies.get("session")?.value;
-
-  if (!sessionCookie) {
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
-
   return NextResponse.next();
 }
 
@@ -52,4 +43,5 @@ export const config = {
     "/((?!_next|.*\\..*).*)",
   ],
 };
+
 

@@ -1,77 +1,52 @@
+//app/hooks/useAuth.ts
 "use client";
 
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/app/lib/firebase/client";
 import type { AppUser } from "@/app/lib/types";
-import type { Role } from "@/app/lib/auth/roles";
 
-export function useAuth(): { user: AppUser | null; loading: boolean } {
+export function useAuth() {
   const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let isActive = true;
-    let unsubscribeUserDoc: (() => void) | null = null;
-
-    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
-      if (!isActive) return;
-
-      // Logged out
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!firebaseUser) {
         setUser(null);
         setLoading(false);
         return;
       }
 
-      // Logged in → listen to Firestore user doc
       const userRef = doc(db, "users", firebaseUser.uid);
+      const snap = await getDoc(userRef);
 
-      unsubscribeUserDoc = onSnapshot(
-        userRef,
-        (snap) => {
-          if (!isActive) return;
+      if (!snap.exists()) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
 
-          if (!snap.exists()) {
-            setUser(null);
-            setLoading(false);
-            return;
-          }
+      const firestoreData = snap.data();
 
-          const data = snap.data() as Partial<AppUser>;
+      const res = await fetch("/api/users/me");
+      const serverData = res.ok ? await res.json() : {};
 
-          const mergedUser: AppUser = {
-            uid: firebaseUser.uid,
-            email: data.email ?? firebaseUser.email ?? "",
-            roles: (data.roles ?? []) as Role[],
-            churchId: data.churchId ?? null,
-            regionId: data.regionId ?? null,
-            firstName: data.firstName ?? null,
-            lastName: data.lastName ?? null,
-            settings: {
-              attendanceView: data.settings?.attendanceView ?? "cards",
-              calendarView: data.settings?.calendarView ?? "calendar",
-              cardView: data.settings?.cardView ?? "show",
-              fiscalYear: data.settings?.fiscalYear ?? undefined,
-            },
-          };
+      const mergedUser = {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email ?? "",
+        ...firestoreData,
+        ...serverData,
+      };
 
-          setUser(mergedUser);
-          setLoading(false);
-        },
-        () => {
-          if (isActive) setLoading(false);
-        }
-      );
+      setUser(mergedUser);
+      setLoading(false);
     });
 
-    return () => {
-      isActive = false;
-      unsubscribeAuth();
-      if (unsubscribeUserDoc) unsubscribeUserDoc();
-    };
-  }, []); // ← IMPORTANT: no pathname dependency
+    return () => unsubscribeAuth();
+  }, []);
 
   return { user, loading };
 }
+

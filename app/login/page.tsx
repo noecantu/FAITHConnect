@@ -1,3 +1,4 @@
+//app/login/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -79,7 +80,7 @@ export default function LoginPage() {
         router.replace("/admin");
         return;
       }
-console.log("PROFILE:", profile);
+
       // Regional Admin
       if (roles.includes("RegionalAdmin")) {
         router.replace("/admin/regional");
@@ -97,13 +98,15 @@ console.log("PROFILE:", profile);
       }
 
       // Regular church users
-      if (profile.church?.slug) {
-        router.replace(`/church/${profile.church.slug}/user`);
+      if (profile.churchId) {
+        // churchId IS the slug
+        router.replace(`/church/${profile.churchId}/user`);
         return;
       }
 
       // Fallback
-      router.replace("/");
+      router.replace("/login");
+
     } catch (error) {
       console.error("Login error:", error);
       toast({
@@ -179,3 +182,4 @@ console.log("PROFILE:", profile);
     </div>
   );
 }
+

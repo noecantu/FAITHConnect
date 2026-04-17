@@ -1,3 +1,4 @@
+//app/components/auth
 "use client";
 
 import { useAuth } from "@/app/hooks/useAuth";
@@ -31,7 +32,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     if (!isSystemUser && churchLoading) return;
     if (hasRedirected.current) return;
 
-    // 1. Not logged in → protected route
+    // 1. Not logged in → trying to access protected route
     if (!user && !isPublic) {
       hasRedirected.current = true;
       setRedirecting(true);
@@ -39,7 +40,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // 2. Logged in → login page
+    // 2. Logged in → visiting login page
     if (user && isPublic) {
       hasRedirected.current = true;
       setRedirecting(true);
@@ -47,34 +48,32 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // 3. System users (RootAdmin, SystemAdmin, RegionalAdmin, Support, Auditor)
-    if (user && isSystemUser) {
-      if (pathname.startsWith("/")) {
-        hasRedirected.current = true;
-        setRedirecting(true);
+    // 3. System users → redirect ONLY when landing on "/" or a public route
+    if (user && isSystemUser && (pathname === "/" || isPublic)) {
+      hasRedirected.current = true;
+      setRedirecting(true);
 
-        const role = user.roles?.find((r) =>
-          SYSTEM_ROLES.includes(r as SystemRole)
-        ) as SystemRole;
+      const role = user.roles?.find((r) =>
+        SYSTEM_ROLES.includes(r as SystemRole)
+      ) as SystemRole;
 
-        switch (role) {
-          case "RootAdmin":
-          case "SystemAdmin":
-            router.replace("/admin");
-            break;
+      switch (role) {
+        case "RootAdmin":
+        case "SystemAdmin":
+          router.replace("/admin");
+          break;
 
-          case "RegionalAdmin":
-            router.replace("/regional-admin");
-            break;
+        case "RegionalAdmin":
+          router.replace("/regional-admin");
+          break;
 
-          case "Support":
-          case "Auditor":
-            router.replace("/support");
-            break;
+        case "Support":
+        case "Auditor":
+          router.replace("/support");
+          break;
 
-          default:
-            router.replace("/");
-        }
+        default:
+          router.replace("/");
       }
       return;
     }
@@ -117,3 +116,4 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   return null;
 }
+
