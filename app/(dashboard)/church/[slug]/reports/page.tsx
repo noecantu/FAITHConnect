@@ -15,17 +15,17 @@ import { ContributionPreviewTable } from "@/app/components/reports/ContributionP
 import { Button } from "@/app/components/ui/button";
 import { FileText, Loader2, Sheet } from "lucide-react";
 
-// NEW
 import { usePermissions } from "@/app/hooks/usePermissions";
 
 export default function ReportsPage() {
+  // -------------------------------------------------------
+  // 1. ALL HOOKS MUST RUN FIRST (fixes hook-order errors)
+  // -------------------------------------------------------
   const { members } = useMembers();
   const { contributions } = useContributions();
   const { churchId } = useChurchId();
-
   const { attendance } = useAttendanceForReports(churchId, members);
 
-  // NEW — permissions
   const {
     loading: permissionsLoading,
     canReadMembers,
@@ -34,9 +34,11 @@ export default function ReportsPage() {
     canReadReports,
   } = usePermissions();
 
-  // Local State
+  // -------------------------------------------------------
+  // 2. LOCAL STATE HOOKS
+  // -------------------------------------------------------
   const [reportType, setReportType] =
-    useState<"members" | "contributions" | "attendance">("attendance");
+    useState<"members" | "contributions" | "attendance">("contributions");
 
   const [timeFrame, setTimeFrame] =
     useState<"week" | "month" | "year">("year");
@@ -52,7 +54,29 @@ export default function ReportsPage() {
   const [isExportingPDF, setIsExportingPDF] = useState(false);
   const [isExportingExcel, setIsExportingExcel] = useState(false);
 
-  // Filtering Logic
+  // -------------------------------------------------------
+  // 3. AUTO-SELECT FIRST ALLOWED REPORT TYPE
+  // -------------------------------------------------------
+  useEffect(() => {
+    if (permissionsLoading) return;
+
+    if (canReadContributions) {
+      setReportType("contributions");
+    } else if (canReadMembers) {
+      setReportType("members");
+    } else if (canReadAttendance) {
+      setReportType("attendance");
+    }
+  }, [
+    permissionsLoading,
+    canReadMembers,
+    canReadContributions,
+    canReadAttendance
+  ]);
+
+  // -------------------------------------------------------
+  // 4. FILTERING LOGIC HOOK
+  // -------------------------------------------------------
   const {
     availableYears,
     availableMonths,
@@ -76,7 +100,9 @@ export default function ReportsPage() {
     selectedWeek,
   });
 
-  // Export Logic
+  // -------------------------------------------------------
+  // 5. EXPORT LOGIC HOOK
+  // -------------------------------------------------------
   const { exportPDF, exportExcel } = useReportExports({
     reportType,
     filteredMembers,
@@ -86,24 +112,9 @@ export default function ReportsPage() {
     members,
   });
 
-  const handleExportPDF = async () => {
-    try {
-      setIsExportingPDF(true);
-      await exportPDF();
-    } finally {
-      setIsExportingPDF(false);
-    }
-  };
-
-  const handleExportExcel = async () => {
-    try {
-      setIsExportingExcel(true);
-      await exportExcel();
-    } finally {
-      setIsExportingExcel(false);
-    }
-  };
-
+  // -------------------------------------------------------
+  // 6. SAFE REPORT TYPE SWITCHING
+  // -------------------------------------------------------
   const safeSetReportType = (
     type: "members" | "contributions" | "attendance"
   ) => {
@@ -113,43 +124,38 @@ export default function ReportsPage() {
     setReportType(type);
   };
 
-  // Auto-select latest year when timeFrame changes
+  // -------------------------------------------------------
+  // 7. AUTO-SELECT YEAR/MONTH/WEEK
+  // -------------------------------------------------------
   useEffect(() => {
-    if (availableYears.length === 0) return;
-    if (!selectedYear) {
+    if (availableYears.length > 0 && !selectedYear) {
       setSelectedYear(availableYears[0]);
     }
   }, [timeFrame, availableYears]);
 
-  // Auto-select latest month when year changes (Month mode)
   useEffect(() => {
-    if (timeFrame !== "month") return;
-    if (!selectedYear) return;
-    if (availableMonths.length === 0) return;
-
-    if (!selectedMonth) {
+    if (timeFrame === "month" && selectedYear && availableMonths.length > 0 && !selectedMonth) {
       setSelectedMonth(availableMonths[availableMonths.length - 1]);
     }
   }, [timeFrame, selectedYear, availableMonths]);
 
-  // Auto-select latest week when year changes (Week mode)
   useEffect(() => {
-    if (timeFrame !== "week") return;
-    if (!selectedYear) return;
-    if (availableWeeks.length === 0) return;
-
-    if (!selectedWeek) {
+    if (timeFrame === "week" && selectedYear && availableWeeks.length > 0 && !selectedWeek) {
       setSelectedWeek(availableWeeks[availableWeeks.length - 1]);
     }
   }, [timeFrame, selectedYear, availableWeeks]);
 
-  // NEW — determine if export buttons should show
+  // -------------------------------------------------------
+  // 8. EXPORT BUTTON VISIBILITY
+  // -------------------------------------------------------
   const canExport =
     (reportType === "members" && canReadMembers) ||
     (reportType === "contributions" && canReadContributions) ||
     (reportType === "attendance" && canReadAttendance);
 
-  // EARLY PERMISSION GATE
+  // -------------------------------------------------------
+  // 9. EARLY PERMISSION GATE (AFTER ALL HOOKS)
+  // -------------------------------------------------------
   if (!churchId || permissionsLoading) {
     return (
       <>
@@ -170,6 +176,9 @@ export default function ReportsPage() {
     );
   }
 
+  // -------------------------------------------------------
+  // 10. RENDER PAGE
+  // -------------------------------------------------------
   return (
     <>
       <PageHeader
@@ -177,44 +186,52 @@ export default function ReportsPage() {
         subtitle="Select a report type below."
       >
         {canExport && (
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={handleExportPDF}
-            size="sm"
-            variant="outline"
-            className="bg-black/80 border border-white/20 backdrop-blur-xl"
-            disabled={isExportingPDF || isExportingExcel}
-          >
-            {isExportingPDF ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                PDF
-              </>
-            ) : (
-              "PDF"
-            )}
-            <FileText className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={async () => {
+                setIsExportingPDF(true);
+                await exportPDF();
+                setIsExportingPDF(false);
+              }}
+              size="sm"
+              variant="outline"
+              className="bg-black/80 border border-white/20 backdrop-blur-xl"
+              disabled={isExportingPDF || isExportingExcel}
+            >
+              {isExportingPDF ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  PDF
+                </>
+              ) : (
+                "PDF"
+              )}
+              <FileText className="h-5 w-5" />
+            </Button>
 
-          <Button
-            onClick={handleExportExcel}
-            size="sm"
-            variant="outline"
-            className="bg-black/80 border border-white/20 backdrop-blur-xl"
-            disabled={isExportingPDF || isExportingExcel}
-          >
-            {isExportingExcel ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Excel
-              </>
-            ) : (
-              "Excel"
-            )}
-            <Sheet className="h-5 w-5" />
-          </Button>
-        </div>
-      )}
+            <Button
+              onClick={async () => {
+                setIsExportingExcel(true);
+                await exportExcel();
+                setIsExportingExcel(false);
+              }}
+              size="sm"
+              variant="outline"
+              className="bg-black/80 border border-white/20 backdrop-blur-xl"
+              disabled={isExportingPDF || isExportingExcel}
+            >
+              {isExportingExcel ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Excel
+                </>
+              ) : (
+                "Excel"
+              )}
+              <Sheet className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
       </PageHeader>
 
       <div className="flex flex-col lg:flex-row gap-6">
@@ -249,14 +266,13 @@ export default function ReportsPage() {
 
         {/* RIGHT PANEL */}
         <div className="space-y-6 w-full min-w-0">
-          {/* ATTENDANCE REPORT */}
           {reportType === "attendance" && canReadAttendance && (
             <AttendancePreviewTable
               attendance={filteredAttendance}
               members={members}
             />
           )}
-          {/* CONTRIBUTIONS REPORT */}
+
           {reportType === "contributions" && canReadContributions && (
             <ContributionPreviewTable
               contributions={filteredContributions}
@@ -264,7 +280,7 @@ export default function ReportsPage() {
               selectedFields={[]}
             />
           )}
-          {/* MEMBER REPORT */}
+
           {reportType === "members" && canReadMembers && (
             <MemberPreviewTable
               members={filteredMembers}

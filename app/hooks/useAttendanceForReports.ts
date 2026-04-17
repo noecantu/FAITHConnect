@@ -46,9 +46,6 @@ export function useAttendanceForReports(churchId: string | null, members: Member
         visitorNameMap[v.id] = v.name;
       });
 
-      console.log("RECORD IDS:", Object.keys(data.records || {}));
-      console.log("VISITOR IDS:", (data.visitors || []).map((v: any) => v.id));
-
       // 1. Flatten members + visitors from records
       if (data.records) {
         Object.entries(data.records).forEach(([id, attended]) => {

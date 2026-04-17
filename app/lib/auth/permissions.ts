@@ -102,23 +102,23 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   MusicManager: ["music.manage"],
   MusicMember: ["music.read"],
 
-  UsherManager: ["attendance.manage"],
-  Usher: ["attendance.read"],
+  UsherManager: [],
+  Usher: [],
 
-  CaretakerManager: ["attendance.manage"],
-  Caretaker: ["attendance.read"],
+  CaretakerManager: [],
+  Caretaker: [],
 
-  MensGroupManager: ["members.manage"],
-  MensGroup: ["members.read"],
+  MensGroupManager: [],
+  MensGroup: [],
 
-  WomensGroupManager: ["members.manage"],
-  WomensGroup: ["members.read"],
+  WomensGroupManager: [],
+  WomensGroup: [],
 
-  YouthGroupManager: ["members.manage"],
-  YouthGroup: ["members.read"],
+  YouthGroupManager: [],
+  YouthGroup: [],
 
-  GroupManager: ["members.manage"],
-  Member: ["members.read"],
+  GroupManager: [],
+  Member: [],
 };
 
 export function can(roles: Role[], permission: Permission): boolean {
