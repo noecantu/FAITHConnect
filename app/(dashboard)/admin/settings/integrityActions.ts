@@ -3,6 +3,7 @@
 
 import { adminDb } from "@/app/lib/firebase/admin";
 import { SystemUser } from "@/app/lib/types";
+import { ALL_ROLES } from "@/app/lib/auth/roles";
 
 /**
  * Recursively converts Firestore data into JSON‑serializable values.
@@ -48,9 +49,12 @@ export async function scanForStrayUsers() {
   const stray = usersSnap.docs
     .filter(u => {
       const data = u.data();
+      const roles = data.roles || [];
 
-      // Skip RootAdmin entirely
-      if (data.roles?.includes("RootAdmin")) {
+      // Skip roles that should NOT have a churchId
+      const exemptRoles = ["RootAdmin", "RegionalAdmin", "DistrictAdmin"];
+
+      if (roles.some((r: string) => exemptRoles.includes(r))) {
         return false;
       }
 
@@ -138,37 +142,18 @@ export async function scanForChurchesWithoutAdmins() {
    SCAN: Users with invalid roles
 --------------------------------------------------------- */
 export async function scanForInvalidRoles() {
-  const VALID_ROLES = [
-    "RootAdmin",
-    "Admin",
-    "AttendanceManager",
-    "Caretaker",
-    "CaretakerManager",
-    "Deacon",
-    "EventManager",
-    "Finance",
-    "MemberManager",
-    "MensGroup",
-    "MensGroupManager",
-    "Minister",
-    "MusicManager",
-    "MusicMember",
-    "Pastor",
-    "ServiceManager",
-    "Usher",
-    "UsherManager",
-    "WomensGroup",
-    "WomensGroupManager",
-    "YouthGroup",
-    "YouthGroupManager"
-  ];
-
-  const usersSnap = await adminDb.collection("users").select("roles").get();
+  const usersSnap = await adminDb
+    .collection("users")
+    .select("roles")
+    .get();
 
   const invalid = usersSnap.docs
     .filter(u => {
-      const roles = u.data().roles || [];
-      return roles.some((r: string) => !VALID_ROLES.includes(r));
+      const data = u.data();
+      const roles: string[] = data.roles || [];
+
+      // Any role not in ALL_ROLES is invalid
+      return roles.some(role => !ALL_ROLES.includes(role as any));
     })
     .map(u => ({
       id: u.id,
@@ -177,3 +162,4 @@ export async function scanForInvalidRoles() {
 
   return invalid;
 }
+

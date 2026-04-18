@@ -103,9 +103,8 @@ export function NavMenu() {
     { href: "/admin/regional/users", label: "Regional Users", icon: Users },
   ];
 
-  // 🔧 UPDATED — all paths corrected
   const churchAdminMenu = [
-    { href: `/church/${churchId}`, label: "Dashboard", icon: Home, exact: true },
+    { href: `/admin/church/${churchId}`, label: "Dashboard", icon: Home, exact: true },
     { href: `/church/${churchId}/attendance`, label: "Attendance", icon: CalendarCheck, permission: canSeeAttendance, isSubmenu: true },
     { href: `/church/${churchId}/calendar`, label: "Calendar", icon: Calendar },
     { href: `/church/${churchId}/contributions`, label: "Contributions", icon: DollarSign, permission: canSeeContributions },
@@ -116,7 +115,6 @@ export function NavMenu() {
     { href: `/church/${churchId}/reports`, label: "Reports", icon: FileText, permission: canSeeReports },
   ];
 
-  // 🔧 UPDATED — user menu paths corrected
   const userMenu = [
     { href: `/church/${churchId}/user`, label: "Dashboard", icon: Home, exact: true },
     { href: `/church/${churchId}/calendar`, label: "Calendar", icon: Calendar },

@@ -13,16 +13,6 @@ export default function RegionalChurchesPage() {
   const [churches, setChurches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Permission check
-  if (!permLoading && !isRegionalAdmin) {
-    return (
-      <div className="p-6">
-        <h1 className="text-xl font-semibold">Unauthorized</h1>
-        <p>You do not have permission to view this page.</p>
-      </div>
-    );
-  }
-
   // Load churches in region
   useEffect(() => {
     if (!regionId) return;
@@ -41,6 +31,15 @@ export default function RegionalChurchesPage() {
     return () => unsub();
   }, [regionId]);
 
+  if (!permLoading && !isRegionalAdmin) {
+    return (
+      <div className="p-6">
+        <h1 className="text-xl font-semibold">Unauthorized</h1>
+        <p>You do not have permission to view this page.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       <PageHeader
@@ -58,27 +57,49 @@ export default function RegionalChurchesPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {churches.map((church) => (
           <div
             key={church.id}
-            className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl"
+            className="
+              p-5 rounded-xl border border-white/10 
+              bg-black/40 backdrop-blur-xl 
+              shadow-lg hover:shadow-xl 
+              transition-all duration-200 
+              hover:-translate-y-1
+              space-y-3
+            "
           >
-            <h2 className="text-lg font-semibold">{church.name}</h2>
+            {/* Logo */}
+            {church.logoUrl && (
+              <div className="flex justify-center">
+                <img
+                  src={church.logoUrl}
+                  alt={`${church.name} logo`}
+                  className="
+                    rounded-md object-cover 
+                    border border-white/20 bg-white 
+                    shadow-md
+                  "
+                />
+              </div>
+            )}
 
-            <p className="text-sm text-muted-foreground mt-1">
+            <h2 className="text-lg font-semibold text-center">{church.name}</h2>
+
+            <p className="text-sm text-muted-foreground text-center">
               {church.address || 'No address'}
             </p>
 
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground text-center">
               {church.phone || 'No phone'}
             </p>
 
-            <div className="flex justify-end mt-4">
+            <div className="flex justify-center pt-2">
               <Link
                 href={`/admin/regional/church/${church.id}`}
                 className="
-                  px-3 py-1.5 rounded-md border
+                  px-4 py-2 rounded-md border
                   bg-muted/20 hover:bg-muted transition
                   text-sm
                 "
