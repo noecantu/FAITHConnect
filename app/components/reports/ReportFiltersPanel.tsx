@@ -33,8 +33,8 @@ interface ReportFiltersPanelProps {
   includeVisitors: boolean;
   setIncludeVisitors: (v: boolean) => void;
 
-  timeFrame: "week" | "month" | "year";
-  setTimeFrame: (v: "week" | "month" | "year") => void;
+  timeFrame: "month" | "year";
+  setTimeFrame: (v: "month" | "year") => void;
 
   selectedYear: string | null;
   setSelectedYear: (v: string | null) => void;
@@ -42,12 +42,8 @@ interface ReportFiltersPanelProps {
   selectedMonth: string | null;
   setSelectedMonth: (v: string | null) => void;
 
-  selectedWeek: number | null;
-  setSelectedWeek: (v: number | null) => void;
-
   availableYears: string[];
   availableMonths: string[];
-  availableWeeks: number[];
 
   canReadMembers: boolean;
   canReadContributions: boolean;
@@ -77,11 +73,8 @@ export function ReportFiltersPanel({
   setSelectedYear,
   selectedMonth,
   setSelectedMonth,
-  selectedWeek,
-  setSelectedWeek,
   availableYears,
   availableMonths,
-  availableWeeks,
   canReadMembers,
   canReadContributions,
   canReadAttendance,
@@ -164,31 +157,29 @@ export function ReportFiltersPanel({
             {/* TIME FRAME */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Time Frame</label>
-              <div className="flex gap-2">
-                {["week", "month", "year"].map((tf) => {
-                  const isActive = timeFrame === tf;
+                <div className="grid grid-cols-2 gap-2 w-full">
+                  {["month", "year"].map((tf) => {
+                    const isActive = timeFrame === tf;
 
-                  return (
-                    <Button
-                      key={tf}
-                      variant={isActive ? "default" : "outline"}
-                      className={
-                        isActive
-                          ? "" // let default variant use your theme's default button style
-                          : "bg-black/80 border border-white/20 backdrop-blur-xl"
-                      }
-                      onClick={() => {
-                        setTimeFrame(tf as any);
-                        setSelectedYear(null);
-                        setSelectedMonth(null);
-                        setSelectedWeek(null);
-                      }}
-                    >
-                      {tf.charAt(0).toUpperCase() + tf.slice(1)}
-                    </Button>
-                  );
-                })}
-              </div>
+                    return (
+                      <Button
+                        key={tf}
+                        variant={isActive ? "default" : "outline"}
+                        className={`
+                          w-full
+                          ${isActive ? "" : "bg-black/80 border border-white/20 backdrop-blur-xl"}
+                        `}
+                        onClick={() => {
+                          setTimeFrame(tf as any);
+                          setSelectedYear(null);
+                          setSelectedMonth(null);
+                        }}
+                      >
+                        {tf.charAt(0).toUpperCase() + tf.slice(1)}
+                      </Button>
+                    );
+                  })}
+                </div>
             </div>
 
             {/* YEAR SELECT */}
@@ -212,7 +203,6 @@ export function ReportFiltersPanel({
                   const y = e.target.value || null;
                   setSelectedYear(y);
                   setSelectedMonth(null);
-                  setSelectedWeek(null);
                 }}
               >
                 <option value="">Select Year</option>
@@ -250,38 +240,6 @@ export function ReportFiltersPanel({
                       {new Date(`${selectedYear}-${m}-01`).toLocaleString("default", {
                         month: "long",
                       })}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* WEEK SELECT */}
-            {timeFrame === "week" && selectedYear && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Week</label>
-                <select
-                  className="
-                    w-full
-                    h-10
-                    rounded-md
-                    border border-white/20
-                    bg-black/80
-                    text-white text-sm
-                    px-3
-                    focus:outline-none
-                    focus:ring-2
-                    focus:ring-white/30
-                  "
-                  value={selectedWeek ?? ""}
-                  onChange={(e) =>
-                    setSelectedWeek(e.target.value ? Number(e.target.value) : null)
-                  }
-                >
-                  <option value="">Select Week</option>
-                  {availableWeeks.map((w) => (
-                    <option key={w} value={w}>
-                      Week {w}
                     </option>
                   ))}
                 </select>

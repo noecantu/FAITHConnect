@@ -22,16 +22,14 @@ export type ReportRouterProps = {
   includeVisitors: boolean;
 
   // Time frame
-  timeFrame: "week" | "month" | "year";
+  timeFrame: "month" | "year";
   selectedYear: string | null;
   selectedMonth: string | null;
-  selectedWeek: number | null;
 };
 
 export type ReportFiltersResult = {
   availableYears: string[];
   availableMonths: string[];
-  availableWeeks: number[];
 
   filteredMembers: Member[];
   filteredContributions: Contribution[];
@@ -52,10 +50,7 @@ export function useReportFilters(props: ReportRouterProps): ReportFiltersResult 
     timeFrame,
     selectedYear,
     selectedMonth,
-    selectedWeek,
   } = props;
-
-  // ❗ All hooks are called unconditionally
 
   const contributionResult = useContributionReport({
     contributions,
@@ -67,7 +62,6 @@ export function useReportFilters(props: ReportRouterProps): ReportFiltersResult 
     timeFrame,
     selectedYear,
     selectedMonth,
-    selectedWeek,
   });
 
   const attendanceResult = useAttendanceReport({
@@ -78,7 +72,6 @@ export function useReportFilters(props: ReportRouterProps): ReportFiltersResult 
     timeFrame,
     selectedYear,
     selectedMonth,
-    selectedWeek,
   });
 
   const memberResult = useMemberReport({
@@ -86,8 +79,6 @@ export function useReportFilters(props: ReportRouterProps): ReportFiltersResult 
     selectedMembers,
     selectedStatus,
   });
-
-  // Normalize to a single shape, switching only on data
 
   const availableYears =
     reportType === "contributions"
@@ -101,13 +92,6 @@ export function useReportFilters(props: ReportRouterProps): ReportFiltersResult 
       ? contributionResult.availableMonths
       : reportType === "attendance"
       ? attendanceResult.availableMonths
-      : [];
-
-  const availableWeeks =
-    reportType === "contributions"
-      ? contributionResult.availableWeeks
-      : reportType === "attendance"
-      ? attendanceResult.availableWeeks
       : [];
 
   const filteredMembers =
@@ -126,7 +110,6 @@ export function useReportFilters(props: ReportRouterProps): ReportFiltersResult 
   return {
     availableYears,
     availableMonths,
-    availableWeeks,
     filteredMembers,
     filteredContributions,
     filteredAttendance,

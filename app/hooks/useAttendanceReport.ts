@@ -7,10 +7,9 @@ export interface UseAttendanceReportProps {
   members: Member[];
   includeVisitors: boolean;
   selectedMembers: string[];
-  timeFrame: "week" | "month" | "year";
+  timeFrame: "month" | "year";
   selectedYear: string | null;
   selectedMonth: string | null;
-  selectedWeek: number | null;
 }
 
 export function useAttendanceReport({
@@ -21,7 +20,6 @@ export function useAttendanceReport({
   timeFrame,
   selectedYear,
   selectedMonth,
-  selectedWeek,
 }: UseAttendanceReportProps) {
   // MEMBER FILTER (robust)
   const memberFiltered = useMemo<AttendanceRecord[]>(() => {
@@ -59,16 +57,6 @@ export function useAttendanceReport({
     });
   }
 
-  if (timeFrame === "week" && selectedYear && selectedWeek) {
-    list = list.filter((a: AttendanceRecord) => {
-      const d = new Date(a.date);
-      return (
-        d.getFullYear().toString() === selectedYear &&
-        getISOWeek(d) === selectedWeek
-      );
-    });
-  }
-
   // VISITORS
   let visitorRows: AttendanceRecord[] = [];
   if (includeVisitors) {
@@ -84,15 +72,6 @@ export function useAttendanceReport({
         if (
           d.getFullYear().toString() !== selectedYear ||
           String(d.getMonth() + 1).padStart(2, "0") !== selectedMonth
-        ) {
-          return false;
-        }
-      }
-
-      if (timeFrame === "week" && selectedYear && selectedWeek) {
-        if (
-          d.getFullYear().toString() !== selectedYear ||
-          getISOWeek(d) !== selectedWeek
         ) {
           return false;
         }

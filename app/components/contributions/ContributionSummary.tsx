@@ -7,7 +7,7 @@ export function getContributionSummaryText(
   timeFrame: "year" | "month" | "week",
   selectedYear: number | null,
   selectedMonth: number | null,
-  selectedWeek: number | null
+  // selectedWeek: number | null
 ) {
   const total = contributions.reduce((t, c) => t + Number(c.amount), 0);
 
@@ -39,15 +39,5 @@ export function getContributionSummaryText(
 
     return `Total Contributions for ${monthName} ${selectedYear}: ${formatted}`;
   }
-
-  // WEEK
-  if (timeFrame === "week") {
-    if (!selectedWeek) {
-      return `Total Contributions for ${selectedYear}: ${formatted}`;
-    }
-
-    return `Total Contributions for Week ${selectedWeek}, ${selectedYear}: ${formatted}`;
-  }
-
   return `Total Contributions: ${formatted}`;
 }

@@ -25,7 +25,7 @@ interface ReportExportPanelProps {
   filteredAttendance: AttendanceRecord[];
 
   selectedFY: string[];
-  reportRange: "week" | "month" | "year";
+  reportRange: "month" | "year";
 
   exportPDF: () => void;
   exportExcel: () => void;

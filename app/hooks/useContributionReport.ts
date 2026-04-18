@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { getISOWeek } from "date-fns";
 import { Contribution, Member } from "../lib/types";
 
 export interface UseContributionReportProps {
@@ -9,10 +8,9 @@ export interface UseContributionReportProps {
   selectedStatus: string[];
   selectedCategories: string[];
   selectedContributionTypes: string[];
-  timeFrame: "week" | "month" | "year";
+  timeFrame: "month" | "year";
   selectedYear: string | null;
   selectedMonth: string | null;
-  selectedWeek: number | null;
 }
 
 export function useContributionReport({
@@ -25,7 +23,6 @@ export function useContributionReport({
   timeFrame,
   selectedYear,
   selectedMonth,
-  selectedWeek,
 }: UseContributionReportProps) {
   // MEMBER FILTER (robust)
   const memberFiltered = useMemo<Contribution[]>(() => {
@@ -59,16 +56,6 @@ export function useContributionReport({
       return (
         d.getFullYear().toString() === selectedYear &&
         String(d.getMonth() + 1).padStart(2, "0") === selectedMonth
-      );
-    });
-  }
-
-  if (timeFrame === "week" && selectedYear && selectedWeek) {
-    list = list.filter((c: Contribution) => {
-      const d = new Date(c.date);
-      return (
-        d.getFullYear().toString() === selectedYear &&
-        getISOWeek(d) === selectedWeek
       );
     });
   }
@@ -116,22 +103,9 @@ export function useContributionReport({
     return [...months].sort();
   }, [memberFiltered, selectedYear]);
 
-  const availableWeeks = useMemo<number[]>(() => {
-    if (!selectedYear) return [];
-    const weeks = new Set<number>();
-    memberFiltered.forEach((c: Contribution) => {
-      const d = new Date(c.date);
-      if (d.getFullYear().toString() === selectedYear) {
-        weeks.add(getISOWeek(d));
-      }
-    });
-    return [...weeks].sort((a, b) => a - b);
-  }, [memberFiltered, selectedYear]);
-
   return {
     filteredContributions: list,
     availableYears,
     availableMonths,
-    availableWeeks,
   };
 }

@@ -41,11 +41,10 @@ export default function ReportsPage() {
     useState<"members" | "contributions" | "attendance">("contributions");
 
   const [timeFrame, setTimeFrame] =
-    useState<"week" | "month" | "year">("year");
+    useState<"month" | "year">("year");
 
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
-  const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
 
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
@@ -80,7 +79,6 @@ export default function ReportsPage() {
   const {
     availableYears,
     availableMonths,
-    availableWeeks,
     filteredMembers,
     filteredContributions,
     filteredAttendance,
@@ -97,7 +95,7 @@ export default function ReportsPage() {
     timeFrame,
     selectedYear,
     selectedMonth,
-    selectedWeek,
+    // selectedWeek,
   });
 
   // -------------------------------------------------------
@@ -138,12 +136,6 @@ export default function ReportsPage() {
       setSelectedMonth(availableMonths[availableMonths.length - 1]);
     }
   }, [timeFrame, selectedYear, availableMonths]);
-
-  useEffect(() => {
-    if (timeFrame === "week" && selectedYear && availableWeeks.length > 0 && !selectedWeek) {
-      setSelectedWeek(availableWeeks[availableWeeks.length - 1]);
-    }
-  }, [timeFrame, selectedYear, availableWeeks]);
 
   // -------------------------------------------------------
   // 8. EXPORT BUTTON VISIBILITY
@@ -254,11 +246,8 @@ export default function ReportsPage() {
           setSelectedYear={setSelectedYear}
           selectedMonth={selectedMonth}
           setSelectedMonth={setSelectedMonth}
-          selectedWeek={selectedWeek}
-          setSelectedWeek={setSelectedWeek}
           availableYears={availableYears}
           availableMonths={availableMonths}
-          availableWeeks={availableWeeks}
           canReadMembers={canReadMembers}
           canReadContributions={canReadContributions}
           canReadAttendance={canReadAttendance}
