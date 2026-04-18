@@ -25,6 +25,7 @@ export interface ServicePlanDetailViewProps {
   onDuplicate: () => void;
   onDelete: () => void;
   router: AppRouterInstance;
+  churchId: string | null;
 }
 
 export function ServicePlanDetailView({
@@ -36,25 +37,25 @@ export function ServicePlanDetailView({
   onDuplicate,
   onDelete,
   router,
+  churchId
 }: ServicePlanDetailViewProps) {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <PageHeader title={plan.title} subtitle={formattedDate} />
-
-        <button
-          onClick={() => router.push('/service-plan')}
-          className="text-sm text-muted-foreground hover:text-white flex items-center gap-2"
-        >
-          ← Back
-        </button>
-      </div>
+    return (
       <div className="space-y-6">
-        {plan.sections.map((section) => {
-          const member = members.find((m) => m.id === section.personId);
-          const hasPerson = !!section.personId;
-          const hasSongs = section.songIds.length > 0;
-          const hasNotes = section.notes.trim().length > 0;
+        <div className="flex items-center justify-between">
+          <PageHeader title={plan.title} subtitle={formattedDate} />
+            <button
+              onClick={() => router.push(`/church/${churchId}/service-plan`)}
+              className="text-sm text-muted-foreground hover:text-white flex items-center gap-2"
+            >
+              ← Back
+            </button>
+        </div>
+        <div className="space-y-6">
+          {plan.sections.map((section) => {
+            const member = members.find((m) => m.id === section.personId);
+            const hasPerson = !!section.personId;
+            const hasSongs = section.songIds.length > 0;
+            const hasNotes = section.notes.trim().length > 0;
 
           return (
             <Card

@@ -60,6 +60,7 @@ export default function ServicePlanDetailPage() {
         onDuplicate={() => setDuplicateOpen(true)}
         onDelete={() => setDeleteOpen(true)}
         router={router}
+        churchId={churchId}
       />
 
       {churchId && (

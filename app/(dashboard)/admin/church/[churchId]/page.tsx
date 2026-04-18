@@ -361,7 +361,7 @@ export default function ChurchAdminDashboard() {
             <QuickAction href={`/church/${churchId}/members`} icon={UserPlus} label="Members" />
             <QuickAction href={`/church/${churchId}/reports`} icon={FileText} label="Reports" />
             <QuickAction href={`/church/${churchId}/music/setlists`} icon={Music} label="Set Lists" />
-            <QuickAction href={`/church/${churchId}/service-plans`} icon={CalendarHeart} label="Service Plans" />
+            <QuickAction href={`/church/${churchId}/service-plan`} icon={CalendarHeart} label="Service Plans" />
           </CardContent>
         </Card>
       </main>

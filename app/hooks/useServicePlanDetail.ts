@@ -13,14 +13,21 @@ export function useServicePlanDetail() {
   const { id } = useParams();
   const { churchId } = useChurchId();
 
-  const { members, loading: membersLoading } = useMembers();
-  const { songs, loading: songsLoading } = useSongs(churchId);
+  const paramsReady = Boolean(churchId && id);
+
+  const { members, loading: membersLoading } =
+    paramsReady ? useMembers() : { members: [], loading: true };
+
+  const { songs, loading: songsLoading } =
+    paramsReady ? useSongs(churchId!) : { songs: [], loading: true };
 
   const {
     canReadServicePlans,
     canManageServicePlans,
     loading: rolesLoading
-  } = usePermissions();
+  } = paramsReady
+    ? usePermissions()
+    : { canReadServicePlans: false, canManageServicePlans: false, loading: true };
 
   const [plan, setPlan] = useState<ServicePlan | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,16 +36,16 @@ export function useServicePlanDetail() {
   const canEdit = canManageServicePlans;
 
   useEffect(() => {
-    if (!churchId || !id) return;
+    if (!paramsReady) return;
 
     const load = async () => {
-      const data = await getServicePlanById(churchId, id as string);
+      const data = await getServicePlanById(churchId!, id as string);
       setPlan(data);
       setLoading(false);
     };
 
     load();
-  }, [churchId, id]);
+  }, [paramsReady, churchId, id]);
 
   return {
     id,
