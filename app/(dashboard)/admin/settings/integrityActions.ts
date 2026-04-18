@@ -3,7 +3,7 @@
 
 import { adminDb } from "@/app/lib/firebase/admin";
 import { SystemUser } from "@/app/lib/types";
-import { ALL_ROLES } from "@/app/lib/auth/roles";
+import { ALL_ROLES, CHURCH_ROLES, SYSTEM_ROLES } from "@/app/lib/auth/roles";
 
 /**
  * Recursively converts Firestore data into JSON‑serializable values.
@@ -49,17 +49,22 @@ export async function scanForStrayUsers() {
   const stray = usersSnap.docs
     .filter(u => {
       const data = u.data();
-      const roles = data.roles || [];
+      const roles: string[] = data.roles || [];
 
-      // Skip roles that should NOT have a churchId
-      const exemptRoles = ["RootAdmin", "RegionalAdmin", "DistrictAdmin"];
-
-      if (roles.some((r: string) => exemptRoles.includes(r))) {
+      // If user has ANY system role → they should NOT have a churchId → skip
+      if (roles.some(r => SYSTEM_ROLES.includes(r as any))) {
         return false;
       }
 
-      // Stray if no churchId or invalid churchId
-      return !data.churchId || !churchIds.has(data.churchId);
+      // If user has church roles → they MUST have a valid churchId
+      const hasChurchRoles = roles.some(r => CHURCH_ROLES.includes(r as any));
+
+      if (hasChurchRoles) {
+        return !data.churchId || !churchIds.has(data.churchId);
+      }
+
+      // If user has no roles at all → they are stray
+      return true;
     })
     .map(u => ({
       id: u.id,
@@ -68,6 +73,7 @@ export async function scanForStrayUsers() {
 
   return stray;
 }
+
 
 /* ---------------------------------------------------------
    SCAN: Members inside churches who have no userId
