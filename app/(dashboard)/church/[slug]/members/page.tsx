@@ -135,6 +135,7 @@ export default function MembersPage() {
           allMembers={members}
           showPhoto={cardView === 'show'}
           readOnly={isReadOnly}
+          searchAction={setSearch}
         />
         ))}
       </div>

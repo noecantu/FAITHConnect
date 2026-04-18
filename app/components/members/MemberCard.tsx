@@ -377,7 +377,7 @@ export default function MemberCard({
                         className="text-blue-600 hover:underline p-0 bg-transparent border-none"
                         onClick={(e) => {
                           e.stopPropagation()
-                          searchAction?.(`${relatedMember.firstName} ${relatedMember.lastName}`)
+                          searchAction?.(relatedMember.id)
                         }}
                       >
                         {relatedMember.firstName} {relatedMember.lastName}
