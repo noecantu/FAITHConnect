@@ -6,14 +6,11 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
-import type { AppUser } from "@/app/lib/types";
 
 export async function duplicateSetList(
   churchId: string,
   setListId: string,
-  router: any,
-  toast: any,
-  currentUser: AppUser | null
+  router: { push: (path: string) => void }
 ) {
   try {
     const originalRef = doc(db, "churches", churchId, "setlists", setListId);
@@ -22,8 +19,6 @@ export async function duplicateSetList(
     if (!originalSnap.exists()) return;
 
     const original = originalSnap.data();
-
-    // NEW: sections are stored directly in the document
     const sections = original.sections ?? [];
 
     const newSetListRef = doc(collection(db, "churches", churchId, "setlists"));
@@ -36,18 +31,14 @@ export async function duplicateSetList(
       timeString: original.timeString ?? null,
       serviceType: original.serviceType ?? null,
       serviceNotes: original.serviceNotes ?? "",
-      createdBy: currentUser?.uid ?? "system",
+      createdBy: "system",
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-
-      // NEW: copy sections array directly
       sections,
     });
 
-    toast({ title: "Set list duplicated" });
-    router.push(`/music/setlists/${newSetListId}`);
+    router.push(`/church/${churchId}/music/setlists/${newSetListId}`);
   } catch (err) {
     console.error("Duplicate error:", err);
-    toast({ title: "Could not duplicate" });
   }
 }

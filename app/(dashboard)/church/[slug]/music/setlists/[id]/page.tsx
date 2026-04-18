@@ -1,4 +1,3 @@
-//app/(dashboard)/music/setlists/[id]/page.tsx
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -19,8 +18,8 @@ import { getSectionColor } from '@/app/lib/sectionColors';
 import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dialog';
 import { Button } from '@/app/components/ui/button';
 import { duplicateSetList } from '@/app/lib/duplicateSetList';
-import { useToast } from '@/app/hooks/use-toast';
-import { useAuth } from '@/app/hooks/useAuth';
+// import { useToast } from '@/app/hooks/use-toast';
+// import { useAuth } from '@/app/hooks/useAuth';
 import { useSongs } from '@/app/hooks/useSongs';
 import { Separator } from '@/app/components/ui/separator';
 
@@ -32,16 +31,14 @@ export default function SetListDetailPage() {
 
   const canView = canReadMusic;
   const canEdit = canManageMusic;
-  const { toast } = useToast();
-  const { user } = useAuth();
+  // const { toast } = useToast();
+  // const { user } = useAuth();
 
   const [setList, setSetList] = useState<SetList | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Load all songs for this church
   const { songs: allSongs } = useSongs(churchId);
 
-  // ✅ Build a lookup map: { songId: Song }
   const songMap = useMemo(() => {
     return Object.fromEntries(allSongs.map((s) => [s.id, s]));
   }, [allSongs]);
@@ -94,14 +91,15 @@ export default function SetListDetailPage() {
       <div className="flex items-center justify-between">
         <PageHeader title={setList.title} subtitle={formattedDate} />
 
+        {/* FIXED BACK BUTTON */}
         <button
-          onClick={() => router.push('/music/setlists')}
+          onClick={() => router.push(`/church/${churchId}/music/setlists`)}
           className="text-sm text-muted-foreground hover:text-white flex items-center gap-2"
         >
           ← Back
         </button>
       </div>
-      {/* Overview */}
+
       {(setList.serviceType ||
         setList.serviceNotes?.theme ||
         setList.serviceNotes?.scripture ||
@@ -139,7 +137,6 @@ export default function SetListDetailPage() {
         </Card>
       )}
 
-      {/* Sections */}
       <div className="space-y-6">
         {setList.sections.map((section) => (
           <Card
@@ -149,7 +146,6 @@ export default function SetListDetailPage() {
               backgroundColor: getSectionColor(section.title),
             }}
           >
-            {/* Section Header */}
             <h2 className="text-lg font-semibold">
               {section.title}{" "}
               <span className="text-muted-foreground text-sm">
@@ -160,10 +156,8 @@ export default function SetListDetailPage() {
 
             <Separator className="my-2 bg-white/30" />
 
-            {/* Songs */}
             <div className="space-y-3">
               {section.songs.map((song) => {
-                // ✅ Lookup the full song object
                 const fullSong = songMap[song.songId];
 
                 return (
@@ -172,12 +166,15 @@ export default function SetListDetailPage() {
                     className="relative p-4 cursor-pointer 
                       bg-black/80 border-white/20 backdrop-blur-xl 
                       hover:bg-black/50 transition"
+
+                    // ⭐ FIXED SONG NAVIGATION
                     onClick={() =>
-                      router.push(`/music/songs/${song.songId}/view?setlist=${setList.id}`)
+                      router.push(
+                        `/church/${churchId}/music/songs/${song.songId}?setlist=${setList.id}`
+                      )
                     }
                   >
                     <div className="flex items-center justify-between">
-                      {/* Left side */}
                       <div>
                         <h3 className="font-medium">{song.title}</h3>
 
@@ -194,19 +191,12 @@ export default function SetListDetailPage() {
                         )}
                       </div>
 
-                      {/* Right side: icons */}
                       <div className="flex items-center gap-2 ml-2">
                         {fullSong?.lyrics && (
-                          <FileText
-                            size={16}
-                            className="text-blue-400/80"
-                          />
+                          <FileText size={16} className="text-blue-400/80" />
                         )}
                         {fullSong?.chords && (
-                          <Music
-                            size={16}
-                            className="text-green-400/80"
-                          />
+                          <Music size={16} className="text-green-400/80" />
                         )}
                       </div>
                     </div>
@@ -224,7 +214,6 @@ export default function SetListDetailPage() {
         ))}
       </div>
 
-      {/* Floating menu */}
       {canEdit && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -240,7 +229,7 @@ export default function SetListDetailPage() {
             <DropdownMenuItem
               className="flex items-center justify-center p-2"
               onClick={() =>
-                router.push(`/music/setlists/${setList.id}/edit`)
+                router.push(`/church/${churchId}/music/setlists/${setList.id}/edit`)
               }
             >
               <Pencil className="h-4 w-4" />
@@ -276,13 +265,7 @@ export default function SetListDetailPage() {
                       variant="default"
                       onClick={() => {
                         if (!churchId) return;
-                        duplicateSetList(
-                          churchId,
-                          setList.id,
-                          router,
-                          toast,
-                          user
-                        );
+                        duplicateSetList(churchId, setList.id, router);
                       }}
                     >
                       Duplicate
@@ -296,7 +279,7 @@ export default function SetListDetailPage() {
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem
-                  className="flex items-center justify-center p-2"
+                  className="flex items-center justify-center p-2 text-red-400"
                   onSelect={(e) => e.preventDefault()}
                 >
                   <Trash className="h-4 w-4" />
@@ -305,25 +288,22 @@ export default function SetListDetailPage() {
 
               <AlertDialogContent className="bg-white/10 backdrop-blur-sm border border-white/20">
                 <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    Delete this set list?
-                  </AlertDialogTitle>
+                  <AlertDialogTitle>Delete this set list?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. This will permanently
-                    remove “{setList.title}”.
+                    This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel asChild>
                     <Button variant="outline">Cancel</Button>
                   </AlertDialogCancel>
-
                   <AlertDialogAction asChild>
                     <Button
                       variant="destructive"
-                      onClick={() =>
-                        deleteSetList(churchId, setList.id, router)
-                      }
+                      onClick={async () => {
+                        if (!churchId) return;
+                        await deleteSetList(churchId, setList.id, router);
+                      }}
                     >
                       Delete
                     </Button>

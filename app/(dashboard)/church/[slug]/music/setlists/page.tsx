@@ -208,7 +208,7 @@ export default function SetListsPage() {
                 onClick={() => router.push(`/church/${churchId}/music/setlists/${row.id}`)}
                 onKeyDown={(ev) => {
                   if (ev.key === "Enter" || ev.key === " ") {
-                    router.push(`/music/setlists/${row.id}`);
+                    router.push(`/church/${churchId}/music/setlists/${row.id}`);
                   }
                 }}
                 className="border border-white/20 rounded-md p-4 flex items-start justify-between cursor-pointer bg-white/5 hover:bg-white/10 transition-colors"
