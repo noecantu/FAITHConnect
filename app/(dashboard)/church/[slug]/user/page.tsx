@@ -15,6 +15,7 @@ import { useUpcomingServices } from "@/app/hooks/useUpcomingServices";
 import type { Role } from "@/app/lib/auth/roles";
 import { can } from "@/app/lib/auth/permissions";
 import { PageHeader } from "@/app/components/page-header";
+import { formatPhone } from "@/app/lib/formatters";
 
 export default function UserDashboardPage({
   params,
@@ -94,10 +95,23 @@ export default function UserDashboardPage({
                   <h2 className="text-xl font-semibold tracking-tight">
                     {church.name}
                   </h2>
+
+                  {(church.leaderTitle || church.leaderName) && (
+                    <p className="text-sm text-muted-foreground">
+                      {church.leaderTitle ? church.leaderTitle + " " : ""}
+                      {church.leaderName ?? ""}
+                    </p>
+                  )}
+
+                  <p className="text-sm text-muted-foreground">
+                    Phone: {formatPhone(church.phone ?? undefined)} | Address: {church.address ?? "N/A"}
+                  </p>
+
                   <p className="text-sm text-muted-foreground">
                     Timezone: {church.timezone}
                   </p>
                 </div>
+
               </CardContent>
             </Card>
 

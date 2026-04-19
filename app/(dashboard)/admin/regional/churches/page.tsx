@@ -6,6 +6,7 @@ import { usePermissions } from '@/app/hooks/usePermissions';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
 import Link from 'next/link';
+import { formatPhone } from '@/app/lib/formatters';
 
 export default function RegionalChurchesPage() {
   const { isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
@@ -57,7 +58,7 @@ export default function RegionalChurchesPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {churches.map((church) => (
           <div
             key={church.id}
@@ -67,35 +68,59 @@ export default function RegionalChurchesPage() {
               shadow-lg hover:shadow-xl 
               transition-all duration-200 
               hover:-translate-y-1
-              space-y-3
             "
           >
-            {/* Logo */}
-            {church.logoUrl && (
-              <div className="flex justify-center">
-                <img
-                  src={church.logoUrl}
-                  alt={`${church.name} logo`}
-                  className="
-                    rounded-md object-cover 
-                    border border-white/20 bg-white 
-                    shadow-md
-                  "
-                />
+            <div className="flex items-center gap-4">
+              {/* Logo */}
+              <div className="flex-shrink-0">
+                {church.logoUrl ? (
+                  <img
+                    src={church.logoUrl}
+                    alt={`${church.name} logo`}
+                    className="
+                      h-32 w-32 rounded-md object-cover 
+                      border border-white/20 bg-white shadow-md
+                    "
+                  />
+                ) : (
+                  <div
+                    className="
+                      h-20 w-20 rounded-md flex items-center justify-center 
+                      bg-white/10 border border-white/20 text-xl font-semibold
+                    "
+                  >
+                    {church.name?.[0]?.toUpperCase() ?? "C"}
+                  </div>
+                )}
               </div>
-            )}
 
-            <h2 className="text-lg font-semibold text-center">{church.name}</h2>
+              {/* Church Info */}
+              <div className="flex flex-col min-w-0 space-y-1">
+                <h2 className="text-lg font-semibold truncate">{church.name}</h2>
 
-            <p className="text-sm text-muted-foreground text-center">
-              {church.address || 'No address'}
-            </p>
+                {(church.leaderTitle || church.leaderName) && (
+                  <p className="text-sm text-muted-foreground truncate">
+                    {church.leaderTitle ? church.leaderTitle + " " : ""}
+                    {church.leaderName ?? ""}
+                  </p>
+                )}
 
-            <p className="text-sm text-muted-foreground text-center">
-              {church.phone || 'No phone'}
-            </p>
+                <p className="text-sm text-muted-foreground truncate">
+                  Phone: {formatPhone(church.phone ?? undefined)}
+                </p>
 
-            <div className="flex justify-center pt-2">
+                <p className="text-sm text-muted-foreground truncate">
+                  Address: {church.address ?? "N/A"}
+                </p>
+
+                <p className="text-xs text-muted-foreground truncate">
+                  Timezone: {church.timezone}
+                </p>
+              </div>
+            </div>
+
+            {/* View Button */}
+            <div className="flex justify-center pt-4">
               <Link
                 href={`/admin/regional/church/${church.id}`}
                 className="
