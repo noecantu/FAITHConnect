@@ -38,6 +38,7 @@ import Link from "next/link";
 import type { Church } from "@/app/lib/types";
 import { useAuth } from "@/app/hooks/useAuth";
 import { usePermissions } from "@/app/hooks/usePermissions";
+import { formatPhone } from "@/app/lib/formatters";
 
 export default function ChurchAdminDashboard() {
   const { churchId } = useParams();
@@ -308,8 +309,15 @@ export default function ChurchAdminDashboard() {
                 <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
                   {church.name}
                 </h1>
+
+                {(church.leaderTitle || church.leaderName) && (
+                  <p className="text-lg font-medium text-muted-foreground">
+                    {church.leaderTitle ? church.leaderTitle + " " : ""}
+                    {church.leaderName ?? ""}
+                  </p>
+                )}
                 <p className="text-sm text-muted-foreground">
-                  Timezone: {church.timezone}
+                  Phone: {formatPhone(church.phone ?? undefined)} | Address: {church.address ?? "N/A"}
                 </p>
               </div>
             </div>

@@ -1,4 +1,3 @@
-//app/components/settings/ChurchProfileCard.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -27,6 +26,10 @@ export default function ChurchProfileCard({ churchId }: Props) {
   const [timezone, setTimezone] = useState('');
   const [address, setAddress] = useState('');
 
+  // NEW: Leader fields
+  const [leaderName, setLeaderName] = useState('');
+  const [leaderTitle, setLeaderTitle] = useState('');
+
   // Phone (via hook)
   const phone = usePhoneInput();
   const [originalPhone, setOriginalPhone] = useState('');
@@ -34,6 +37,8 @@ export default function ChurchProfileCard({ churchId }: Props) {
   // Originals for change detection
   const [originalTimezone, setOriginalTimezone] = useState('');
   const [originalAddress, setOriginalAddress] = useState('');
+  const [originalLeaderName, setOriginalLeaderName] = useState('');
+  const [originalLeaderTitle, setOriginalLeaderTitle] = useState('');
 
   const [saving, setSaving] = useState(false);
 
@@ -41,7 +46,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
   const [regions, setRegions] = useState<any[]>([]);
   const [regionId, setRegionId] = useState("");
   const [regionSelectedId, setRegionSelectedId] = useState("");
-  
+
   useEffect(() => {
     if (!churchId) return;
 
@@ -67,6 +72,10 @@ export default function ChurchProfileCard({ churchId }: Props) {
       setTimezone(data.timezone ?? '');
       setAddress(data.address ?? '');
 
+      // NEW: Leader fields
+      setLeaderName(data.leaderName ?? '');
+      setLeaderTitle(data.leaderTitle ?? '');
+
       // Phone
       phone.setDigits(data.phone ?? '');
       setOriginalPhone(data.phone ?? '');
@@ -74,6 +83,8 @@ export default function ChurchProfileCard({ churchId }: Props) {
       // Originals
       setOriginalTimezone(data.timezone ?? '');
       setOriginalAddress(data.address ?? '');
+      setOriginalLeaderName(data.leaderName ?? '');
+      setOriginalLeaderTitle(data.leaderTitle ?? '');
     };
 
     load();
@@ -83,7 +94,9 @@ export default function ChurchProfileCard({ churchId }: Props) {
   const hasChanges =
     timezone !== originalTimezone ||
     address !== originalAddress ||
-    phone.digits !== originalPhone;
+    phone.digits !== originalPhone ||
+    leaderName !== originalLeaderName ||
+    leaderTitle !== originalLeaderTitle;
 
   // Save handler
   const handleSave = async () => {
@@ -96,6 +109,8 @@ export default function ChurchProfileCard({ churchId }: Props) {
         timezone,
         address,
         phone: phone.digits,
+        leaderName,
+        leaderTitle,
         regionId: regionId || null,
         updatedAt: new Date(),
       });
@@ -104,6 +119,8 @@ export default function ChurchProfileCard({ churchId }: Props) {
       setOriginalTimezone(timezone);
       setOriginalAddress(address);
       setOriginalPhone(phone.digits);
+      setOriginalLeaderName(leaderName);
+      setOriginalLeaderTitle(leaderTitle);
 
       toast({
         title: "Saved",
@@ -166,6 +183,27 @@ export default function ChurchProfileCard({ churchId }: Props) {
       </CardHeader>
 
       <CardContent className="space-y-8 pt-6">
+                {/* NEW: Leader Name + Title */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div className="grid gap-2">
+            <Label className="text-sm font-medium">Church Leader Name</Label>
+            <Input
+              value={leaderName}
+              onChange={(e) => setLeaderName(e.target.value)}
+              className="bg-black/40 border-white/20"
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label className="text-sm font-medium">Church Leader Title</Label>
+            <Input
+              value={leaderTitle}
+              onChange={(e) => setLeaderTitle(e.target.value)}
+              className="bg-black/40 border-white/20"
+            />
+          </div>
+        </div>
+        
         {/* Address + Phone */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div className="grid gap-2">
@@ -202,34 +240,30 @@ export default function ChurchProfileCard({ churchId }: Props) {
 
           {/* REGION SELECTOR */}
           <div className="grid gap-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium">Region</Label>
+            </div>
 
-          {/* Label + Status pill on same row */}
-          <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium">Region</Label>
+            <Link
+              href={`/admin/church/${churchId}/select-region`}
+              className="
+                w-full px-3 py-2 rounded-md border border-white/20
+                bg-black/40 hover:bg-black/60 transition text-sm
+                flex items-center justify-between
+              "
+            >
+              <span className="truncate">
+                {selectedRegion ? selectedRegion.name : "Select a Region"}
+              </span>
+              <span className="text-primary text-xs">Change →</span>
+            </Link>
+
+            {selectedRegion?.regionAdminTitle && selectedRegion?.regionAdminName && (
+              <p className="text-sm text-green-400/80 text-center">
+                Leader: {selectedRegion.regionAdminTitle} {selectedRegion.regionAdminName}
+              </p>
+            )}
           </div>
-
-          {/* Region selector */}
-          <Link
-            href={`/admin/church/${churchId}/select-region`}
-            className="
-              w-full px-3 py-2 rounded-md border border-white/20
-              bg-black/40 hover:bg-black/60 transition text-sm
-              flex items-center justify-between
-            "
-          >
-            <span className="truncate">
-              {selectedRegion ? selectedRegion.name : "Select a Region"}
-            </span>
-            <span className="text-primary text-xs">Change →</span>
-          </Link>
-
-          {/* Leader */}
-          {selectedRegion?.regionAdminTitle && selectedRegion?.regionAdminName && (
-            <p className="text-sm text-green-400/80 text-center">
-              Leader: {selectedRegion.regionAdminTitle} {selectedRegion.regionAdminName}
-            </p>
-          )}
-        </div>
         </div>
       </CardContent>
     </Card>

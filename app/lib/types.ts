@@ -41,6 +41,8 @@ export interface Church {
   disabledAt?: Date | { seconds: number } | null;
   address?: string | null;
   phone?: string | null;
+  leaderName?: string | null;
+  leaderTitle?: string | null;
 }
 
 export type Contribution = {
