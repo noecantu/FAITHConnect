@@ -36,6 +36,7 @@ import {
 } from "@/app/components/ui/select";
 
 import type { Church } from "@/app/lib/types";
+import { formatPhone } from "@/app/lib/formatters";
 
 export default function GlobalChurchListPage() {
   const PAGE_SIZE = 10;
@@ -205,42 +206,88 @@ export default function GlobalChurchListPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filtered.map((church) => (
-            <Card key={church.id} className="hover:shadow-md transition">
-              <CardHeader>
-                <CardTitle className="text-xl">{church.name}</CardTitle>
-              </CardHeader>
+            <Card
+              key={church.id}
+              className="hover:shadow-md transition bg-black/40 border border-white/10 backdrop-blur-xl"
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  {/* Logo */}
+                  <div className="flex-shrink-0">
+                    {church.logoUrl ? (
+                      <img
+                        src={church.logoUrl}
+                        alt={`${church.name} logo`}
+                        className="
+                          h-20 w-20 rounded-md object-cover 
+                          border border-white/20 bg-white shadow-md
+                        "
+                      />
+                    ) : (
+                      <div
+                        className="
+                          h-20 w-20 rounded-md flex items-center justify-center 
+                          bg-white/10 border border-white/20 text-xl font-semibold
+                        "
+                      >
+                        {church.name?.[0]?.toUpperCase() ?? "C"}
+                      </div>
+                    )}
+                  </div>
 
-              <CardContent className="space-y-2 text-sm">
-                <p>
-                  <span className="font-medium">Timezone:</span>{" "}
-                  {church.timezone || "—"}
-                </p>
+                  {/* Church Info */}
+                  <div className="flex flex-col min-w-0 space-y-1">
+                    <h2 className="text-lg font-semibold truncate">{church.name}</h2>
 
-                <p>
-                  <span className="font-medium">Created:</span>{" "}
-                  {church.createdAt
-                    ? (() => {
-                        const value = church.createdAt as Date | { seconds: number } | undefined;
+                    {(church.leaderTitle || church.leaderName) && (
+                      <p className="text-sm text-muted-foreground truncate">
+                        {church.leaderTitle ? church.leaderTitle + " " : ""}
+                        {church.leaderName ?? ""}
+                      </p>
+                    )}
 
-                        // Firestore Timestamp → convert to Date
-                        if (value && "seconds" in value) {
-                          return new Date(value.seconds * 1000).toLocaleDateString();
-                        }
+                    <p className="text-sm text-muted-foreground truncate">
+                      Phone: {formatPhone(church.phone ?? undefined)}
+                    </p>
 
-                        // Already a JS Date
-                        if (value instanceof Date) {
-                          return value.toLocaleDateString();
-                        }
+                    <p className="text-sm text-muted-foreground truncate">
+                      Address: {church.address ?? "N/A"}
+                    </p>
 
-                        return "—";
-                      })()
-                    : "—"}
-                </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      Timezone: {church.timezone}
+                    </p>
 
-                <div className="pt-2">
+                    <p className="text-xs text-muted-foreground truncate">
+                      Created:{" "}
+                      {church.createdAt
+                        ? (() => {
+                            const value = church.createdAt as Date | { seconds: number };
+
+                            if (value && "seconds" in value) {
+                              return new Date(value.seconds * 1000).toLocaleDateString();
+                            }
+
+                            if (value instanceof Date) {
+                              return value.toLocaleDateString();
+                            }
+
+                            return "—";
+                          })()
+                        : "—"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* View Button */}
+                <div className="flex justify-center pt-4">
                   <Link
                     href={`/admin/churches/${church.id}`}
-                    className="text-primary hover:underline font-medium"
+                    className="
+                      px-4 py-2 rounded-md border
+                      bg-muted/20 hover:bg-muted transition
+                      text-sm
+                    "
                   >
                     View Details →
                   </Link>
@@ -250,21 +297,6 @@ export default function GlobalChurchListPage() {
           ))}
         </div>
       )}
-
-      {/* Pagination */}
-      <div className="flex justify-between pt-4">
-        <Button
-          variant="secondary"
-          onClick={loadPrevious}
-          disabled={!firstDoc}
-        >
-          Previous
-        </Button>
-
-        <Button onClick={loadNext} disabled={!lastDoc}>
-          Next
-        </Button>
-      </div>
     </>
   );
 }
