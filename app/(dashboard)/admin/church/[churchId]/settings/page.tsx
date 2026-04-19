@@ -19,11 +19,11 @@ import ChurchLogoCard from '@/app/components/settings/ChurchLogoCard';
 import ChurchProfileCard from '@/app/components/settings/ChurchProfileCard';
 
 const SYSTEM_ROLES = [
-  "RootAdmin",
-  "SystemAdmin",
-  "RegionalAdmin",
-  "Support",
-  "Auditor",
+  'RootAdmin',
+  'SystemAdmin',
+  'RegionalAdmin',
+  'Support',
+  'Auditor',
 ] as const;
 
 function isSystemUser(roles: string[]) {
@@ -32,11 +32,12 @@ function isSystemUser(roles: string[]) {
 
 export default function ChurchSettingsPage() {
   const { churchId } = useChurchId();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+
   const [churchName] = useState('');
 
   const [users, setUsers] = useState<AppUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingUsers, setLoadingUsers] = useState(true);
 
   const [storageUsed, setStorageUsed] = useState<number | null>(null);
   const [hasLoadedUsage, setHasLoadedUsage] = useState(false);
@@ -74,10 +75,12 @@ export default function ChurchSettingsPage() {
     getSortedUsers,
   } = useUserManagement();
 
+  // ---------- USERS LIST SUBSCRIPTION ----------
+
   useEffect(() => {
     if (!churchId || !user?.uid) {
       setUsers([]);
-      setLoading(false);
+      setLoadingUsers(false);
       return;
     }
 
@@ -92,26 +95,29 @@ export default function ChurchSettingsPage() {
           id: d.id,
         }));
         setUsers(list);
-        setLoading(false);
+        setLoadingUsers(false);
       },
       (error) => {
         if (error.code !== 'permission-denied') {
           console.error('listenToUsers error:', error);
         }
+        setLoadingUsers(false);
       }
     );
 
     return () => unsub();
   }, [churchId, user?.uid]);
 
+  // ---------- STORAGE USAGE ----------
+
   const fetchUsage = async () => {
     try {
       setRefreshing(true);
-      const res = await fetch("/api/admin/storage-usage");
+      const res = await fetch('/api/admin/storage-usage');
       const data = await res.json();
       setStorageUsed(data.storageUsed);
     } catch (err) {
-      console.error("Error fetching usage:", err);
+      console.error('Error fetching usage:', err);
       setStorageUsed(null);
     } finally {
       setHasLoadedUsage(true);
@@ -124,6 +130,16 @@ export default function ChurchSettingsPage() {
   }, []);
 
   const sortedUsers = getSortedUsers(users);
+
+  // ---------- AUTH + LOADING GATES (AFTER ALL HOOKS) ----------
+
+  if (authLoading) {
+    return (
+      <div className="p-6">
+        <h1 className="text-xl font-bold">Loading...</h1>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
@@ -148,7 +164,7 @@ export default function ChurchSettingsPage() {
     );
   }
 
-  if (loading) {
+  if (loadingUsers) {
     return (
       <div className="p-6 space-y-4">
         <h1 className="text-2xl font-bold">Accounts</h1>
@@ -156,6 +172,8 @@ export default function ChurchSettingsPage() {
       </div>
     );
   }
+
+  // ---------- MAIN RENDER ----------
 
   return (
     <>
@@ -174,14 +192,9 @@ export default function ChurchSettingsPage() {
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
-            <ChurchLogoCard
-              churchId={churchId!}
-              churchName={churchName}
-            />
+            <ChurchLogoCard churchId={churchId!} churchName={churchName} />
 
-            <ChurchProfileCard
-              churchId={churchId!}
-            />
+            <ChurchProfileCard churchId={churchId!} />
           </div>
 
           <StorageUsageCard
@@ -214,7 +227,7 @@ export default function ChurchSettingsPage() {
           onClose={goBackToList}
           isCreating={isCreating}
           isSaving={isSaving}
-          currentUserId={user?.uid ?? ""}
+          currentUserId={user?.uid ?? ''}
           currentUserRoles={user?.roles ?? []}
           targetUserId={selectedUser?.uid}
         />

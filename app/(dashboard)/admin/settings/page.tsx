@@ -1,4 +1,4 @@
-// app/(dashboard)/admin/settings/page.tsx
+//app/(dashboard)/admin/settings/page.tsx
 import { PageHeader } from '@/app/components/page-header';
 import { loadSystemSettings } from './actions';
 import SettingsClient from './SettingsClient';

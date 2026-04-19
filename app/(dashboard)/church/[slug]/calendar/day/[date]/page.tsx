@@ -1,66 +1,184 @@
-//app/(dashboard)/calendar/day/[date]/page.tsx
+//app/(dashboard)/church/[slug]/calendar/day/[date]/page.tsx
 "use client";
 
-import { use } from "react";
-import { useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { PageHeader } from "@/app/components/page-header";
+import { Fab } from "@/app/components/ui/fab";
+import { Button } from "@/app/components/ui/button";
+import { Calendar, List } from "lucide-react";
+
+import { useChurchId } from "@/app/hooks/useChurchId";
 import { useCalendarEvents } from "@/app/hooks/useCalendarEvents";
 import { useUpcomingServices } from "@/app/hooks/useUpcomingServices";
-import { useChurchId } from "@/app/hooks/useChurchId";
-import { PageHeader } from "@/app/components/page-header";
-import { ListView } from "@/app/components/calendar/ListView";
-import { dateKey } from "@/app/lib/calendar/utils";
-import { parse } from "date-fns";
+import { useCalendarMonth } from "@/app/hooks/useCalendarMonth";
+import { useCalendarFilters } from "@/app/hooks/useCalendarFilters";
+import { CalendarControls } from "@/app/components/calendar/CalendarControls";
+import { CalendarViewSwitcher } from "@/app/components/calendar/CalendarViewSwitcher";
+
+import type { Role } from "@/app/lib/auth/roles";
+import type { UserProfile, Event, ServicePlan } from "@/app/lib/types";
+import { useUserCalendarSettings } from "@/app/hooks/useUserCalendarSettings";
 import { useRouter } from "next/navigation";
-import type { Event, ServicePlan } from "@/app/lib/types";
+import { dateKey } from "@/app/lib/calendar/utils";
+import { canUserSeeEvent } from "@/app/lib/canUserSeeEvent";
+import { cn } from "@/app/lib/utils";
+import { usePermissions } from "@/app/hooks/usePermissions";
 
 type CalendarItem =
   | (Event & { type: "event" })
   | (ServicePlan & { type: "service" });
 
-export default function DayEventsPage({
-  params,
-}: {
-  params: Promise<{ date: string }>;
-}) {
+export default function CalendarPage() {
   const router = useRouter();
-  const { date } = use(params);
-
-  const dayKey = date;
-  const day = parse(dayKey, "yyyy-MM-dd", new Date());
-
   const { churchId } = useChurchId();
 
-  const { events } = useCalendarEvents(churchId);
-  const { services } = useUpcomingServices(churchId);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const res = await fetch("/api/users/me");
+      const raw = await res.json();
+
+      const profile: UserProfile = {
+        ...raw,
+        roles: raw.roles as Role[],
+      };
+
+      setUser(profile);
+      setLoadingUser(false);
+    }
+
+    load();
+  }, []);
+
+  const {
+    canManageEvents,
+    isAuditor,
+    isRegionalAdmin,
+  } = usePermissions();
+
+  const isReadOnly = isAuditor || isRegionalAdmin;
+  const canManage = !isReadOnly && canManageEvents;
+
+  const effectiveChurchId = churchId;
+
+  const { events } = useCalendarEvents(effectiveChurchId);
+  const { services } = useUpcomingServices(effectiveChurchId);
 
   const merged: CalendarItem[] = useMemo(() => {
-    return [
-      ...events.map(e => ({ ...e, type: "event" as const })),
-      ...services.map(s => ({ ...s, type: "service" as const })),
-    ];
+    const serviceItems: CalendarItem[] = services.map((sp) => ({
+      ...sp,
+      type: "service",
+      _key: `service-${sp.id}`,
+    }));
+
+    const eventItems: CalendarItem[] = events.map((ev) => ({
+      ...ev,
+      type: "event",
+      _key: `event-${ev.id}`,
+    }));
+
+    return [...eventItems, ...serviceItems];
   }, [events, services]);
 
-  const filtered = useMemo(() => {
-    return merged.filter((e) => dateKey(e.date) === dayKey);
-  }, [merged, dayKey]);
+  const visible = useMemo(() => {
+    if (!user) return [];
+
+    if (isRegionalAdmin || isAuditor) {
+      return merged;
+    }
+
+    return merged.filter((item) =>
+      canUserSeeEvent(user, {
+        visibility: item.visibility,
+        groups: item.groups,
+      })
+    );
+  }, [merged, user, isRegionalAdmin, isAuditor]);
+
+  const month = useCalendarMonth();
+  const filters = useCalendarFilters<CalendarItem>(visible);
+
+  const { view, setView } = useUserCalendarSettings(user?.id ?? null);
+  const viewControls = { view, setView };
+
+  if (loadingUser) return <>Loading...</>;
+  if (!user) return <>No user found.</>;
 
   return (
     <>
       <PageHeader
-        title={`Events for ${day.toDateString()}`}
-        subtitle="All events scheduled for this day."
+        title="Calendar of Events"
+        subtitle="Select a date to view or add events."
+      >
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setView("calendar")}
+            className={cn(
+              "flex items-center gap-2",
+              "bg-black/80 border border-white/20 backdrop-blur-xl",
+              "hover:bg-white/5 hover:border-white/20 transition",
+              view === "calendar" && "bg-white/10 border-white/20"
+            )}
+          >
+            Calendar
+            <Calendar className="h-5 w-5" />
+          </Button>
+
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setView("list")}
+            className={cn(
+              "flex items-center gap-2",
+              "bg-black/80 border border-white/20 backdrop-blur-xl",
+              "hover:bg-white/5 hover:border-white/20 transition",
+              view === "list" && "bg-white/10 border-white/20"
+            )}
+          >
+            List
+            <List className="h-5 w-5" />
+          </Button>
+        </div>
+      </PageHeader>
+
+      <CalendarControls
+        month={month}
+        view={viewControls}
+        filters={filters}
+        user={user}
+        events={filters.filtered}
       />
 
-      <ListView
-        events={filtered}
-        onEdit={(item) => {
-          if (item.type === "service") {
-            router.push(`/service-plan/${item.id}`);
-          } else {
-            router.push(`/calendar/${item.id}`);
+      <CalendarViewSwitcher
+        view={view}
+        month={month.month}
+        events={filters.filtered}
+        onSelectDate={(date) => {
+          const key = dateKey(date);
+          router.push(`/church/${churchId}/calendar/day/${key}`);
+        }}
+        onPrevMonth={month.prevMonth}
+        onNextMonth={month.nextMonth}
+        canManage={canManage}
+        onEdit={(event) => {
+          if (!canManage) return;
+
+          if ("timeString" in event) {
+            router.push(`/service-plan/${event.id}`);
+            return;
           }
+
+          router.push(`/calendar/${event.id}`);
         }}
       />
+
+      {canManage && (
+        <Fab type="add" onClick={() => router.push("/calendar/new")} />
+      )}
     </>
   );
 }

@@ -111,7 +111,7 @@ export function NavMenu() {
     { href: `/church/${churchId}/members`, label: "Members", icon: Users },
     { href: `/church/${churchId}/music`, label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
     { href: `/church/${churchId}/service-plan`, label: "Service Plans", icon: CalendarHeart, permission: canAccessServicePlan },
-    { href: `/church/${churchId}/user/settings`, label: "Settings", icon: Settings },
+    { href: `/admin/church/${churchId}/settings`, label: "Settings", icon: Settings },
     { href: `/church/${churchId}/reports`, label: "Reports", icon: FileText, permission: canSeeReports },
   ];
 
@@ -137,7 +137,7 @@ export function NavMenu() {
     return items
       .filter((item) => item.permission !== false)
       .map((item) => {
-        // 🔧 UPDATED — MUSIC SUBMENU
+        // MUSIC SUBMENU
         if (item.isSubmenu && item.href.endsWith("/music")) {
           return (
             <DropdownMenuSub key="music">
@@ -165,7 +165,7 @@ export function NavMenu() {
           );
         }
 
-        // 🔧 UPDATED — ATTENDANCE SUBMENU
+        // ATTENDANCE SUBMENU
         if (item.isSubmenu && item.href.endsWith("/attendance")) {
           return (
             <DropdownMenuSub key="attendance">
