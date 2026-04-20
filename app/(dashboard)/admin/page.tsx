@@ -11,7 +11,7 @@ export default async function AdminHomePage() {
   if (!user) redirect("/login");
 
   // 2. Only RootAdmin can access this page
-  if (!can(user.roles, "system.manage")) {
+  if (!can(user.roles ?? [], "system.manage")) {
     redirect(`/church/${user.churchId}/user`);
   }
 

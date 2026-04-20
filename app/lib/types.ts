@@ -40,6 +40,11 @@ export interface Church {
   enabledAt?: Date | { seconds: number } | null;
   disabledAt?: Date | { seconds: number } | null;
   address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip?: string | null;
+  country?: string | null;
+  email?: string | null;
   phone?: string | null;
   leaderName?: string | null;
   leaderTitle?: string | null;
