@@ -72,7 +72,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
       setTimezone(data.timezone ?? '');
       setAddress(data.address ?? '');
 
-      // NEW: Leader fields
+      // Leader fields
       setLeaderName(data.leaderName ?? '');
       setLeaderTitle(data.leaderTitle ?? '');
 
@@ -183,7 +183,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
       </CardHeader>
 
       <CardContent className="space-y-8 pt-6">
-                {/* NEW: Leader Name + Title */}
+                {/* Leader Name + Title */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div className="grid gap-2">
             <Label className="text-sm font-medium">Church Leader Name</Label>
@@ -241,7 +241,12 @@ export default function ChurchProfileCard({ churchId }: Props) {
           {/* REGION SELECTOR */}
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium">Region</Label>
+              <Label className="text-sm font-medium">
+                Region
+                {selectedRegion?.regionAdminTitle && selectedRegion?.regionAdminName
+                  ? ` (Leader: ${selectedRegion.regionAdminTitle} ${selectedRegion.regionAdminName})`
+                  : ""}
+              </Label>
             </div>
 
             <Link
@@ -257,12 +262,6 @@ export default function ChurchProfileCard({ churchId }: Props) {
               </span>
               <span className="text-primary text-xs">Change →</span>
             </Link>
-
-            {selectedRegion?.regionAdminTitle && selectedRegion?.regionAdminName && (
-              <p className="text-sm text-green-400/80 text-center">
-                Leader: {selectedRegion.regionAdminTitle} {selectedRegion.regionAdminName}
-              </p>
-            )}
           </div>
         </div>
       </CardContent>

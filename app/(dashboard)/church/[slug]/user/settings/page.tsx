@@ -104,13 +104,17 @@ export default function UserSettingsPage() {
   useEffect(() => {
     if (authLoading || !authUser) return;
 
-    const userId = authUser.id;
+    const userId = authUser.uid;
 
     async function load() {
-      const ref = doc(db, "users", userId);
-      const snap = await getDoc(ref);
-      setFullUser(snap.data());
-      setLoading(false);
+      setLoading(true);
+      try {
+        const ref = doc(db, "users", userId);
+        const snap = await getDoc(ref);
+        setFullUser(snap.data());
+      } finally {
+        setLoading(false);
+      }
     }
 
     load();
@@ -119,6 +123,20 @@ export default function UserSettingsPage() {
   //
   // 3. NOW — AND ONLY NOW — YOU MAY RETURN CONDITIONALLY
   //
+  if (authLoading) {
+    return (
+      <>
+        <PageHeader
+          title="Settings"
+          subtitle="Manage your personal account and preferences."
+        />
+        <div className="h-32 bg-slate-900/40 rounded-xl animate-pulse" />
+        <div className="h-32 bg-slate-900/40 rounded-xl animate-pulse" />
+        <div className="h-32 bg-slate-900/40 rounded-xl animate-pulse" />
+      </>
+    );
+  }
+
   if (!authUser) {
     return (
       <div className="p-6 text-slate-300">

@@ -78,8 +78,8 @@ function getAttendanceSummaryText(
 // --------------------------------------------------
 export default function AttendanceHistoryPage() {
   const router = useRouter();
-  const { churchId } = useChurchId();
-  const { user } = useAuth();
+  const { churchId, loading: churchLoading } = useChurchId();
+  const { user, loading: authLoading } = useAuth();
 
   const { data, loading, refresh } = useAttendanceHistory(churchId);
   const canView = useCan("attendance.read");
@@ -233,7 +233,7 @@ export default function AttendanceHistoryPage() {
   // ------------------------------
   // Conditional returns
   // ------------------------------
-  if (loading) {
+  if (authLoading || churchLoading || loading) {
     return (
       <>
         <PageHeader title="Attendance History" />
