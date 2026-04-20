@@ -89,6 +89,20 @@ export function NavMenu() {
     return exact ? pathname === href : pathname.startsWith(href);
   }
 
+  function getIconColorClass(href: string) {
+    if (href.includes('/attendance')) return 'text-amber-300';
+    if (href.includes('/contributions')) return 'text-emerald-300';
+    if (href.includes('/calendar')) return 'text-sky-300';
+    if (href.includes('/members') || href.includes('/users') || href.includes('/churches')) return 'text-blue-300';
+    if (href.includes('/music')) return 'text-pink-300';
+    if (href.includes('/service-plan')) return 'text-violet-300';
+    if (href.includes('/reports') || href.includes('/logs')) return 'text-orange-300';
+    if (href.includes('/settings')) return 'text-cyan-300';
+    if (href.includes('/health')) return 'text-rose-300';
+    if (href === '/admin' || href.endsWith('/user') || href.includes('/admin/church/')) return 'text-indigo-300';
+    return 'text-white/70';
+  }
+
   // --- MENU CONFIGS ---
   const rootAdminMenu = [
     { href: "/admin", label: "Dashboard", icon: Home, exact: true },
@@ -143,21 +157,21 @@ export function NavMenu() {
           return (
             <DropdownMenuSub key="music">
               <DropdownMenuSubTrigger className={isActive(`/church/${churchId}/music`) ? "bg-accent" : ""}>
-                <item.icon className="mr-2 h-4 w-4" />
+                <item.icon className="mr-2 h-4 w-4 text-pink-300" />
                 <span>Music</span>
               </DropdownMenuSubTrigger>
 
               <DropdownMenuSubContent>
                 <Link href={`/church/${churchId}/music/setlists`}>
                   <DropdownMenuItem className={isActive(`/church/${churchId}/music/setlists`) ? "bg-accent" : ""}>
-                    <ListMusic className="mr-2 h-4 w-4" />
+                    <ListMusic className="mr-2 h-4 w-4 text-pink-300" />
                     <span>Set Lists</span>
                   </DropdownMenuItem>
                 </Link>
 
                 <Link href={`/church/${churchId}/music/songs`}>
                   <DropdownMenuItem className={isActive(`/church/${churchId}/music/songs`) ? "bg-accent" : ""}>
-                    <Music className="mr-2 h-4 w-4" />
+                    <Music className="mr-2 h-4 w-4 text-pink-300" />
                     <span>Songs</span>
                   </DropdownMenuItem>
                 </Link>
@@ -171,21 +185,21 @@ export function NavMenu() {
           return (
             <DropdownMenuSub key="attendance">
               <DropdownMenuSubTrigger className={isActive(`/church/${churchId}/attendance`) ? "bg-accent" : ""}>
-                <item.icon className="mr-2 h-4 w-4" />
+                <item.icon className="mr-2 h-4 w-4 text-amber-300" />
                 <span>Attendance</span>
               </DropdownMenuSubTrigger>
 
               <DropdownMenuSubContent>
                 <Link href={`/church/${churchId}/attendance`}>
                   <DropdownMenuItem className={isActive(`/church/${churchId}/attendance`, true) ? "bg-accent" : ""}>
-                    <CalendarCheck className="mr-2 h-4 w-4" />
+                    <CalendarCheck className="mr-2 h-4 w-4 text-amber-300" />
                     <span>Take Attendance</span>
                   </DropdownMenuItem>
                 </Link>
 
                 <Link href={`/church/${churchId}/attendance/history`}>
                   <DropdownMenuItem className={isActive(`/church/${churchId}/attendance/history`) ? "bg-accent" : ""}>
-                    <FileText className="mr-2 h-4 w-4" />
+                    <FileText className="mr-2 h-4 w-4 text-amber-300" />
                     <span>Attendance History</span>
                   </DropdownMenuItem>
                 </Link>
@@ -198,7 +212,7 @@ export function NavMenu() {
         return (
           <Link href={item.href} key={item.href}>
             <DropdownMenuItem className={isActive(item.href, item.exact) ? "bg-accent" : ""}>
-              <item.icon className="mr-2 h-4 w-4" />
+              <item.icon className={`mr-2 h-4 w-4 ${getIconColorClass(item.href)}`} />
               <span>{item.label}</span>
             </DropdownMenuItem>
           </Link>
@@ -247,7 +261,7 @@ export function NavMenu() {
           <DropdownMenuSeparator />
 
           <DropdownMenuItem onClick={() => setIsLogoutAlertOpen(true)}>
-            <LogOut className="mr-2 h-4 w-4" />
+            <LogOut className="mr-2 h-4 w-4 text-rose-300" />
             <span>Log Out</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
