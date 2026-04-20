@@ -11,12 +11,30 @@ import {
 import { getAuth, browserLocalPersistence, setPersistence } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
+function normalizeStorageBucket(bucket?: string) {
+  if (!bucket) return bucket;
+
+  const normalized = bucket.replace(/^gs:\/\//, "");
+
+  // New Firebase projects commonly use *.firebasestorage.app; using
+  // *.appspot.com on those projects can fail preflight with 404.
+  if (normalized.endsWith(".appspot.com")) {
+    return normalized.replace(".appspot.com", ".firebasestorage.app");
+  }
+
+  return normalized;
+}
+
+const resolvedStorageBucket = normalizeStorageBucket(
+  process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+);
+
 // --- 1. Firebase config ---
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+  storageBucket: resolvedStorageBucket!,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };

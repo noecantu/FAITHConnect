@@ -24,6 +24,9 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
   const [saving, setSaving] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [showConfirmRemove, setShowConfirmRemove] = useState(false);
+  const [uploadPath, setUploadPath] = useState(
+    `churches/${churchId}/logo/logo-${Date.now()}.png`
+  );
 
   const hasChanges = logoUrl !== originalLogoUrl;
 
@@ -39,6 +42,8 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
   // Load existing logo
   useEffect(() => {
     if (!churchId) return;
+
+    setUploadPath(`churches/${churchId}/logo/logo-${Date.now()}.png`);
 
     const load = async () => {
       const snap = await getDoc(doc(db, 'churches', churchId));
@@ -189,12 +194,19 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
         {/* Drag-and-drop uploader */}
         <ImageDropzone
           label="Upload Church Logo"
-          path={`churches/${churchId}/logo/logo.png`}
+          path={uploadPath}
           onUploaded={(url) => {
             setLogoUrl(url);
+            setUploadPath(`churches/${churchId}/logo/logo-${Date.now()}.png`);
             toast({
               title: "Logo uploaded",
-              description: "Preview updated.",
+              description: "Preview updated. Click the checkmark to save.",
+            });
+          }}
+          onError={(error) => {
+            toast({
+              title: "Upload failed",
+              description: error.message || "Could not upload logo.",
             });
           }}
         />
