@@ -14,7 +14,7 @@ export function useServicePlan(id?: string) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!churchId || !id || !user?.id) {
+    if (!churchId || !id || !user?.uid) {
       setPlan(null);
       setLoading(false);
       return;
@@ -41,7 +41,7 @@ export function useServicePlan(id?: string) {
     );
 
     return () => unsub();
-  }, [churchId, id, user?.id]);
+  }, [churchId, id, user?.uid]);
 
   return { plan, loading };
 }

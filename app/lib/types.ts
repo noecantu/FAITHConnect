@@ -348,18 +348,18 @@ export interface AppUser {
 }
 
 export interface SystemUser {
-  id: string;
+  uid: string;
   churchId?: string;
   roles?: string[];
   [key: string]: any;
 }
 
 export type UserProfile = {
-  id: string;
+  uid: string;
   email: string;
   firstName: string;
   lastName: string;
-  displayName: string;
+  displayName?: string;
   profilePhotoUrl?: string;
   roles: Role[];
   churchId: string | null;

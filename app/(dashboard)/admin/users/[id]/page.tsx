@@ -14,7 +14,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
   }
 
   const user = {
-    id: snap.id,
+    uid: snap.id,
     ...normalizeFirestore(snap.data()),
   };
 

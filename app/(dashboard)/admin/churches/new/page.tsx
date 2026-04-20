@@ -74,6 +74,7 @@ export default function NewChurchPage() {
       const uid = userCred.user.uid;
 
       await setDoc(doc(db, "users", uid), {
+        uid,
         email: adminEmail,
         roles: ["Admin"],
         churchId: slug,

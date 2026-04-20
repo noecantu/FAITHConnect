@@ -5,7 +5,7 @@ import type { QueryDocumentSnapshot, DocumentData } from "firebase-admin/firesto
 
 function normalizeUser(doc: QueryDocumentSnapshot<DocumentData>) {
   return {
-    id: doc.id,
+    uid: doc.id,
     ...normalizeFirestore(doc.data()),
   };
 }

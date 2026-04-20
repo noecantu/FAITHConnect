@@ -32,6 +32,7 @@ export async function createSystemUserAction(input: CreateSystemUserInput) {
 
   // 2. Create Firestore user document
   await adminDb.collection("users").doc(userRecord.uid).set({
+    uid: userRecord.uid,
     firstName,
     lastName,
     displayName: `${firstName} ${lastName}`.trim(),

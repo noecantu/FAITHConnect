@@ -34,7 +34,7 @@ export default function RegionalUserDetailPage() {
         return;
       }
 
-      setUser({ id: snap.id, ...data });
+      setUser({ ...data, uid: snap.id });
       setLoading(false);
     }
 

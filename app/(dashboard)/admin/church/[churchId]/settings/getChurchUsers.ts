@@ -12,7 +12,7 @@ export async function getChurchUsers(churchId: string) {
     const data = d.data();
 
     return {
-      id: d.id,
+      uid: d.id,
       firstName: data.firstName ?? "",
       lastName: data.lastName ?? "",
       displayName: data.displayName ?? "",

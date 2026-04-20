@@ -27,7 +27,7 @@ import {
 // Types
 // -----------------------------
 export type UserRecord = {
-  id: string;
+  uid: string;
   email: string;
   firstName?: string | null;
   lastName?: string | null;
@@ -143,9 +143,9 @@ export default function UsersClient({ users }: UsersClientProps) {
                 <tbody>
                   {filteredUsers.map((u) => (
                     <tr
-                      key={u.id}
+                      key={u.uid}
                       className="border-b hover:bg-muted/40 cursor-pointer"
-                      onClick={() => router.push(`/admin/users/${u.id}`)}
+                      onClick={() => router.push(`/admin/users/${u.uid}`)}
                     >
                       <td className="py-2 px-2">
                         {u.firstName || u.lastName

@@ -104,8 +104,8 @@ export async function updateUserAction(input: UpdateUserInput) {
         .where("roles", "array-contains", "Admin")
         .get();
 
-      const admins = adminsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      const otherAdmins = admins.filter((a) => a.id !== userId);
+      const admins = adminsSnap.docs.map((d) => ({ ...d.data(), uid: d.id }));
+      const otherAdmins = admins.filter((a) => a.uid !== userId);
       const isLastAdmin = otherAdmins.length === 0;
 
       if (isLastAdmin) {

@@ -90,7 +90,7 @@ export default async function MasterChurchDetailsPage({
     .get();
 
   const admins = adminsSnap.docs.map((d) => ({
-    id: d.id,
+    uid: d.id,
     ...normalizeFirestore(d.data()),
   }));
 

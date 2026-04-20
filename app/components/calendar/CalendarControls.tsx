@@ -38,7 +38,7 @@ interface CalendarControlsProps {
   month: MonthControls;
   view: ViewControls;
   filters: FilterControls;
-  user: { id?: string } | null;
+  user: { uid?: string } | null;
 }
 
 export function CalendarControls({

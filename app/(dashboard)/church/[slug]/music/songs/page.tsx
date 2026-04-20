@@ -144,7 +144,7 @@ export default function SongsPage() {
                 setSortBy(newSort as "title" | "artist" | "key" | "bpm");
 
                 if (!user) return;
-                await updateDoc(doc(db, "users", user.id), {
+                await updateDoc(doc(db, "users", user.uid), {
                   "settings.songSort": newSort,
                 });
               }}

@@ -71,7 +71,7 @@ export async function POST(req: Request) {
     if (!userSnap.exists) {
       await userRef.set(
         {
-          id: uid,
+          uid,
           email: decoded.email ?? null,
           firstName: null,
           lastName: null,

@@ -13,7 +13,7 @@ import {
 
 import { useToast } from '@/app/hooks/use-toast';
 import { Role } from '@/app/lib/auth/roles';
-import { User, Mode } from '@/app/lib/types';
+import type { AppUser, Mode } from '@/app/lib/types';
 import { can } from "@/app/lib/auth/permissions";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { useChurchId } from "@/app/hooks/useChurchId";
@@ -34,7 +34,7 @@ export function useUserManagement() {
   // -----------------------------
   // FORM STATE
   // -----------------------------
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<AppUser | null>(null);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -129,7 +129,7 @@ export function useUserManagement() {
 
       // 2. Create Firestore profile (client-side)
       await setDoc(doc(db, "users", uid), {
-        id: uid,
+        uid,
         churchId,
         firstName,
         lastName,
@@ -165,7 +165,7 @@ export function useUserManagement() {
       return;
     }
 
-    if (!authUser?.id) {
+    if (!authUser?.uid) {
       toast({ title: "Error", description: "Current user not available." });
       return;
     }
@@ -176,13 +176,13 @@ export function useUserManagement() {
       const rolesToAssign = canAssignRoles ? selectedRoles : (selectedUser.roles ?? []);
 
       await updateUserAction({
-        userId: selectedUser.id,
+        userId: selectedUser.uid,
         firstName,
         lastName,
         email,
         roles: rolesToAssign,
         regionName: rolesToAssign.includes("RegionalAdmin") ? regionName || null : null,
-        actorUid: authUser.id,
+        actorUid: authUser.uid,
         actorName: `${authUser.firstName ?? ""} ${authUser.lastName ?? ""}`.trim(),
       });
 
@@ -217,9 +217,9 @@ export function useUserManagement() {
 
     try {
       const deleteFn = httpsCallable(functions, "deleteUserByUid");
-      await deleteFn({ uid: selectedUser.id });
+      await deleteFn({ uid: selectedUser.uid });
 
-      await deleteDoc(doc(db, "users", selectedUser.id));
+      await deleteDoc(doc(db, "users", selectedUser.uid));
 
       toast({ title: "Success", description: "User deleted." });
       resetForm();
@@ -245,7 +245,7 @@ export function useUserManagement() {
     setMode('create');
   };
 
-  const startEdit = (user: User) => {
+  const startEdit = (user: AppUser) => {
     setSelectedUser(user);
     setFirstName(user.firstName ?? '');
     setLastName(user.lastName ?? '');
@@ -264,7 +264,7 @@ export function useUserManagement() {
   // SORTED USERS
   // -----------------------------
   const sortedUsers = useMemo(() => {
-    return (users: User[]) =>
+    return (users: AppUser[]) =>
       [...users].sort((a, b) => {
         const nameA = `${a.lastName ?? ""}, ${a.firstName ?? ""}`.toLowerCase();
         const nameB = `${b.lastName ?? ""}, ${b.firstName ?? ""}`.toLowerCase();

@@ -21,7 +21,7 @@ export default function RegionalUsersPage() {
     );
 
     const unsub = onSnapshot(q, (snap) => {
-      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const list = snap.docs.map((d) => ({ uid: d.id, ...d.data() }));
       setUsers(list);
       setLoading(false);
     });
@@ -69,7 +69,7 @@ export default function RegionalUsersPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {users.map((user) => (
           <div
-            key={user.id}
+            key={user.uid}
             className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl"
           >
             <h2 className="text-lg font-semibold">
@@ -84,7 +84,7 @@ export default function RegionalUsersPage() {
 
             <div className="flex justify-end mt-4">
               <Link
-                href={`/admin/regional/users/${user.id}`}
+                href={`/admin/regional/users/${user.uid}`}
                 className="
                   px-3 py-1.5 rounded-md border
                   bg-muted/20 hover:bg-muted transition

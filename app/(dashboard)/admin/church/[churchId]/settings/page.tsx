@@ -92,7 +92,7 @@ export default function ChurchSettingsPage() {
       (snap) => {
         const list = snap.docs.map((d) => ({
           ...(d.data() as AppUser),
-          id: d.id,
+          uid: d.id,
         }));
         setUsers(list);
         setLoadingUsers(false);

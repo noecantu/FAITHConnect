@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     }
 
     const baseProfile: Record<string, any> = {
-      id: uid,
+      uid,
       email,
       firstName: firstName || "",
       lastName: lastName || "",

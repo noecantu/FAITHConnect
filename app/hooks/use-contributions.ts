@@ -13,7 +13,7 @@ export function useContributions() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!churchId || !user?.id) {
+    if (!churchId || !user?.uid) {
       setContributions([]);
       setLoading(false);
       return;
@@ -28,7 +28,7 @@ export function useContributions() {
     );
 
     return () => unsubscribe();
-  }, [churchId, user?.id]);
+  }, [churchId, user?.uid]);
 
   return { contributions, loading };
 }

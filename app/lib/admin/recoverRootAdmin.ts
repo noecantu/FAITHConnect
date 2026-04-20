@@ -52,6 +52,7 @@ export async function recoverRootAdmin() {
 
   await db.collection("users").doc(user.uid).set(
     {
+      uid: user.uid,
       email: ROOT_EMAIL,
       roles: ["RootAdmin"],
       churchId: ROOT_CHURCH_ID,

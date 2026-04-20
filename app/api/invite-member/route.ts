@@ -80,7 +80,7 @@ export async function POST(req: Request) {
     // 6. Create or update Firestore user profile
     await adminDb.collection("users").doc(invitedUid).set(
       {
-        id: invitedUid,
+        uid: invitedUid,
         email,
         firstName: firstName || "",
         lastName: lastName || "",

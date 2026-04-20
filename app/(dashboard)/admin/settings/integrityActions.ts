@@ -2,8 +2,12 @@
 "use server";
 
 import { adminDb } from "@/app/lib/firebase/admin";
+import { FieldValue } from "firebase-admin/firestore";
 import { SystemUser } from "@/app/lib/types";
 import { ALL_ROLES, CHURCH_ROLES, SYSTEM_ROLES } from "@/app/lib/auth/roles";
+import { getCurrentUser } from "@/app/lib/auth/server/getCurrentUser";
+import { can } from "@/app/lib/auth/permissions";
+import { logSystemEvent } from "@/app/lib/system/logging";
 
 /**
  * Recursively converts Firestore data into JSON‑serializable values.
@@ -34,10 +38,22 @@ function serializeFirestore(obj: any): any {
   return obj;
 }
 
+async function requireSystemManager() {
+  const actor = await getCurrentUser();
+
+  if (!actor || !can(actor.roles ?? [], "system.manage")) {
+    throw new Error("Unauthorized");
+  }
+
+  return actor;
+}
+
 /* ---------------------------------------------------------
    SCAN: Users whose churchId is missing or references a non‑existent church
 --------------------------------------------------------- */
 export async function scanForStrayUsers() {
+  await requireSystemManager();
+
   const usersSnap = await adminDb
     .collection("users")
     .select("roles", "churchId")
@@ -67,7 +83,7 @@ export async function scanForStrayUsers() {
       return true;
     })
     .map(u => ({
-      id: u.id,
+      uid: u.id,
       ...serializeFirestore(u.data())
     }));
 
@@ -79,6 +95,8 @@ export async function scanForStrayUsers() {
    SCAN: Members inside churches who have no userId
 --------------------------------------------------------- */
 export async function scanForOrphanedMembers() {
+  await requireSystemManager();
+
   const churchesSnap = await adminDb.collection("churches").get();
 
   // Build a set of active church IDs
@@ -117,6 +135,8 @@ export async function scanForOrphanedMembers() {
    SCAN: Churches that have zero Admin users
 --------------------------------------------------------- */
 export async function scanForChurchesWithoutAdmins() {
+  await requireSystemManager();
+
   const churchesSnap = await adminDb.collection("churches").get();
   const usersSnap = await adminDb
     .collection("users")
@@ -124,7 +144,7 @@ export async function scanForChurchesWithoutAdmins() {
     .get();
 
   const users = usersSnap.docs.map(d => ({
-    id: d.id,
+    uid: d.id,
     ...serializeFirestore(d.data())
   })) as SystemUser[];
 
@@ -148,6 +168,8 @@ export async function scanForChurchesWithoutAdmins() {
    SCAN: Users with invalid roles
 --------------------------------------------------------- */
 export async function scanForInvalidRoles() {
+  await requireSystemManager();
+
   const usersSnap = await adminDb
     .collection("users")
     .select("roles")
@@ -162,10 +184,103 @@ export async function scanForInvalidRoles() {
       return roles.some(role => !ALL_ROLES.includes(role as any));
     })
     .map(u => ({
-      id: u.id,
+      uid: u.id,
       ...serializeFirestore(u.data())
     }));
 
   return invalid;
+}
+
+export async function normalizeUserUids() {
+  const actor = await requireSystemManager();
+
+  const usersSnap = await adminDb.collection("users").get();
+
+  let touched = 0;
+  let addedUid = 0;
+  let correctedUid = 0;
+  let removedLegacyId = 0;
+  const changedUsers: Array<{
+    uid: string;
+    previousUid: string | null;
+    previousId: string | null;
+  }> = [];
+
+  let batch = adminDb.batch();
+  let batchOps = 0;
+
+  for (const docSnap of usersSnap.docs) {
+    const data = docSnap.data();
+    const nextUid = docSnap.id;
+    const currentUid = typeof data.uid === "string" ? data.uid : null;
+    const legacyId = typeof data.id === "string" ? data.id : null;
+
+    const updatePayload: Record<string, unknown> = {};
+
+    if (currentUid !== nextUid) {
+      updatePayload.uid = nextUid;
+
+      if (currentUid) {
+        correctedUid += 1;
+      } else {
+        addedUid += 1;
+      }
+    }
+
+    if ("id" in data) {
+      updatePayload.id = FieldValue.delete();
+      removedLegacyId += 1;
+    }
+
+    if (Object.keys(updatePayload).length === 0) {
+      continue;
+    }
+
+    batch.update(docSnap.ref, updatePayload);
+    batchOps += 1;
+    touched += 1;
+
+    if (changedUsers.length < 25) {
+      changedUsers.push({
+        uid: nextUid,
+        previousUid: currentUid,
+        previousId: legacyId,
+      });
+    }
+
+    if (batchOps === 400) {
+      await batch.commit();
+      batch = adminDb.batch();
+      batchOps = 0;
+    }
+  }
+
+  if (batchOps > 0) {
+    await batch.commit();
+  }
+
+  await logSystemEvent({
+    type: "SYSTEM_EVENT",
+    actorUid: actor.uid,
+    actorName: `${actor.firstName ?? ""} ${actor.lastName ?? ""}`.trim() || actor.email,
+    targetType: "SYSTEM",
+    message: "Normalized users collection to uid-based identifiers.",
+    metadata: {
+      scanned: usersSnap.size,
+      touched,
+      addedUid,
+      correctedUid,
+      removedLegacyId,
+    },
+  });
+
+  return {
+    scanned: usersSnap.size,
+    touched,
+    addedUid,
+    correctedUid,
+    removedLegacyId,
+    changedUsers,
+  };
 }
 

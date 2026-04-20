@@ -66,6 +66,7 @@ export default function AddUserPage() {
       );
 
       await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         displayName: `${firstName.trim()} ${lastName.trim()}`.trim(),

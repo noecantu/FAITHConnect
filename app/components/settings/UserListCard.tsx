@@ -34,6 +34,12 @@ export default function UserListCard({ users, onCreate, onSelectUser }: Props) {
   const goPrev = () => setPage((p) => Math.max(1, p - 1));
   const goNext = () => setPage((p) => Math.min(totalPages, p + 1));
 
+  const getUserKey = (user: AppUser, index: number) => {
+    if (user.uid) return user.uid;
+    if (user.email) return `${user.email}-${index}`;
+    return `user-${page}-${index}`;
+  };
+
   return (
     <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
       <CardHeader>
@@ -65,8 +71,8 @@ export default function UserListCard({ users, onCreate, onSelectUser }: Props) {
 
         {/* GRID */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {pagedUsers.map((u) => (
-            <UserListItem key={u.uid} user={u} onClick={() => onSelectUser(u)} />
+          {pagedUsers.map((u, index) => (
+            <UserListItem key={getUserKey(u, index)} user={u} onClick={() => onSelectUser(u)} />
           ))}
         </div>
 

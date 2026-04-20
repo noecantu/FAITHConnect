@@ -36,7 +36,7 @@ export default function MasterChurchDetailsClient({
   memberCount: number;
   serviceCount: number;
   eventCount: number;
-  admins: { id: string; displayName?: string | null; email: string }[];
+  admins: { uid: string; displayName?: string | null; email: string }[];
 }) {
   const churchId = church.id;
   const [showDisableDialog, setShowDisableDialog] = useState(false);
@@ -119,7 +119,7 @@ export default function MasterChurchDetailsClient({
                   .toUpperCase();
 
                 return (
-                  <div key={admin.id} className="flex items-center gap-2">
+                  <div key={admin.uid} className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold">
                       {initials || "?"}
                     </div>

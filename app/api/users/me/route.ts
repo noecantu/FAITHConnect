@@ -54,7 +54,7 @@ export async function GET(req: Request) {
     // Return final JSON payload
     // ---------------------------------------------------------
     return NextResponse.json({
-      id: uid,
+      uid,
       email: user.email ?? null,
       firstName: user.firstName ?? null,
       lastName: user.lastName ?? null,

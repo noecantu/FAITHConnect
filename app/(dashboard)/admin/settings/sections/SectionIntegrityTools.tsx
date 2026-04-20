@@ -4,23 +4,40 @@
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
-import { scanForStrayUsers, scanForOrphanedMembers, scanForChurchesWithoutAdmins, scanForInvalidRoles } from "../integrityActions";
+import { scanForStrayUsers, scanForOrphanedMembers, scanForChurchesWithoutAdmins, scanForInvalidRoles, normalizeUserUids } from "../integrityActions";
+import { useToast } from "@/app/hooks/use-toast";
 
 interface IntegrityToolProps {
   title: string;
   description: string;
-  action: () => Promise<any[]>;
+  action: () => Promise<unknown>;
+  actionLabel?: string;
 }
 
-function IntegrityTool({ title, description, action }: IntegrityToolProps) {
-  const [results, setResults] = useState<any[] | null>(null);
+function IntegrityTool({ title, description, action, actionLabel = "Run Scan" }: IntegrityToolProps) {
+  const [results, setResults] = useState<unknown>(null);
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   async function run() {
-    setLoading(true);
-    const data = await action();
-    setResults(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const data = await action();
+      setResults(data);
+      toast({
+        title,
+        description: "Action completed successfully.",
+      });
+    } catch (error) {
+      const description = error instanceof Error ? error.message : "Action failed.";
+      toast({
+        title: "Action failed",
+        description,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -31,7 +48,7 @@ function IntegrityTool({ title, description, action }: IntegrityToolProps) {
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
         <Button onClick={run} disabled={loading}>
-          {loading ? "Scanning…" : "Run Scan"}
+          {loading ? "Running…" : actionLabel}
         </Button>
       </div>
 
@@ -74,6 +91,13 @@ export default function SectionIntegrityTools() {
           title="Users With Invalid Roles"
           description="Users whose roles include values not recognized by the system."
           action={scanForInvalidRoles}
+        />
+
+        <IntegrityTool
+          title="Normalize User UIDs"
+          description="One-time cleanup that sets each user document uid to its document ID and removes legacy id fields."
+          action={normalizeUserUids}
+          actionLabel="Normalize"
         />
 
       </CardContent>

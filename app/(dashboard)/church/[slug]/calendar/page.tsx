@@ -102,7 +102,7 @@ export default function CalendarPage() {
   const month = useCalendarMonth();
   const filters = useCalendarFilters<CalendarItem>(visible);
 
-  const { view, setView } = useUserCalendarSettings(user?.id ?? null);
+  const { view, setView } = useUserCalendarSettings(user?.uid ?? null);
   const viewControls = { view, setView };
 
   if (loadingUser) return <>Loading...</>;
