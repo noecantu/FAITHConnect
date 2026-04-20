@@ -32,6 +32,9 @@ import {
   Music,
   UserPlus,
   DollarSign,
+  Users,
+  Church as ChurchIcon,
+  Activity,
 } from "lucide-react";
 
 import Link from "next/link";
@@ -346,21 +349,29 @@ export default function ChurchAdminDashboard() {
             title="Members"
             description="Including Prospects"
             value={memberCount}
+            icon={Users}
+            iconClassName="text-blue-300"
           />
           <StatCard
             title="Upcoming Services"
             description="Scheduled From Today"
             value={serviceCount}
+            icon={ChurchIcon}
+            iconClassName="text-violet-300"
           />
           <StatCard
             title="Events This Week"
             description="Monday - Sunday"
             value={eventCount}
+            icon={Calendar}
+            iconClassName="text-emerald-300"
           />
           <StatCard
             title="Attendance This Week"
             description="Monday – Sunday"
             value={attendanceThisWeek}
+            icon={Activity}
+            iconClassName="text-amber-300"
           />
         </div>
 
@@ -372,13 +383,13 @@ export default function ChurchAdminDashboard() {
           </CardHeader>
 
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <QuickAction href={`/church/${churchId}/attendance`} icon={CalendarCheck} label="Attendance" />
-            <QuickAction href={`/church/${churchId}/contributions`} icon={DollarSign} label="Contributions" />
-            <QuickAction href={`/church/${churchId}/calendar`} icon={Calendar} label="Events" />
-            <QuickAction href={`/church/${churchId}/members`} icon={UserPlus} label="Members" />
-            <QuickAction href={`/church/${churchId}/reports`} icon={FileText} label="Reports" />
-            <QuickAction href={`/church/${churchId}/music/setlists`} icon={Music} label="Set Lists" />
-            <QuickAction href={`/church/${churchId}/service-plan`} icon={CalendarHeart} label="Service Plans" />
+            <QuickAction href={`/church/${churchId}/attendance`} icon={CalendarCheck} label="Attendance" iconClassName="text-amber-300" />
+            <QuickAction href={`/church/${churchId}/contributions`} icon={DollarSign} label="Contributions" iconClassName="text-emerald-300" />
+            <QuickAction href={`/church/${churchId}/calendar`} icon={Calendar} label="Events" iconClassName="text-sky-300" />
+            <QuickAction href={`/church/${churchId}/members`} icon={UserPlus} label="Members" iconClassName="text-blue-300" />
+            <QuickAction href={`/church/${churchId}/reports`} icon={FileText} label="Reports" iconClassName="text-orange-300" />
+            <QuickAction href={`/church/${churchId}/music/setlists`} icon={Music} label="Set Lists" iconClassName="text-pink-300" />
+            <QuickAction href={`/church/${churchId}/service-plan`} icon={CalendarHeart} label="Service Plans" iconClassName="text-violet-300" />
           </CardContent>
         </Card>
       </main>
@@ -395,20 +406,34 @@ function StatCard({
   title,
   description,
   value,
+  icon: Icon,
+  iconClassName,
 }: {
   title: string;
   description: string;
   value: number;
+  icon: IconType;
+  iconClassName?: string;
 }) {
   return (
-    <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
+    <Card className="relative overflow-hidden bg-black/80 border-white/20 backdrop-blur-xl transition hover:border-white/30">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.04] to-transparent" />
+
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <CardDescription className="text-xs">{description}</CardDescription>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <CardTitle className="text-sm font-medium text-white/90">{title}</CardTitle>
+            <CardDescription className="text-xs text-white/60">{description}</CardDescription>
+          </div>
+
+          <div className="rounded-md border border-white/20 bg-white/5 p-2">
+            <Icon className={`h-4 w-4 ${iconClassName ?? "text-white/70"}`} />
+          </div>
+        </div>
       </CardHeader>
 
       <CardContent className="pt-1">
-        <div className="text-3xl font-semibold tracking-tight">{value}</div>
+        <div className="text-3xl font-semibold tracking-tight text-white">{value}</div>
       </CardContent>
     </Card>
   );
@@ -418,10 +443,12 @@ function QuickAction({
   href,
   icon: Icon,
   label,
+  iconClassName,
 }: {
   href: string;
   icon: IconType;
   label: string;
+  iconClassName?: string;
 }) {
   return (
     <Button
@@ -436,7 +463,7 @@ function QuickAction({
       "
     >
       <Link href={href}>
-        <Icon className="h-5 w-5 text-white/70" />
+        <Icon className={`h-5 w-5 ${iconClassName ?? "text-white/70"}`} />
         <span className="font-medium">{label}</span>
       </Link>
     </Button>

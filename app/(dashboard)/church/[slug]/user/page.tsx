@@ -169,9 +169,24 @@ export default function UserDashboardPage({
               </CardHeader>
 
               <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                <QuickAction href={`/church/${slug}/user/services`} icon={CalendarHeart} label="Upcoming Services" />
-                <QuickAction href={`/church/${slug}/user/events`} icon={Calendar} label="Events" />
-                <QuickAction href={`/church/${slug}/user/schedule`} icon={CalendarCheck} label="My Schedule" />
+                <QuickAction
+                  href={`/church/${slug}/user/services`}
+                  icon={CalendarHeart}
+                  label="Upcoming Services"
+                  iconClassName="text-violet-300"
+                />
+                <QuickAction
+                  href={`/church/${slug}/user/events`}
+                  icon={Calendar}
+                  label="Events"
+                  iconClassName="text-sky-300"
+                />
+                <QuickAction
+                  href={`/church/${slug}/user/schedule`}
+                  icon={CalendarCheck}
+                  label="My Schedule"
+                  iconClassName="text-amber-300"
+                />
               </CardContent>
             </Card>
           )}
@@ -247,7 +262,17 @@ export default function UserDashboardPage({
 --------------------------- */
 type IconType = React.ComponentType<React.SVGProps<SVGSVGElement>>;
 
-function QuickAction({ href, icon: Icon, label }: { href: string; icon: IconType; label: string }) {
+function QuickAction({
+  href,
+  icon: Icon,
+  label,
+  iconClassName,
+}: {
+  href: string;
+  icon: IconType;
+  label: string;
+  iconClassName?: string;
+}) {
   return (
     <Button
       asChild
@@ -255,7 +280,7 @@ function QuickAction({ href, icon: Icon, label }: { href: string; icon: IconType
       className="w-full justify-start gap-2 border-border bg-background/60 hover:bg-muted/70"
     >
       <Link href={href}>
-        <Icon className="h-4 w-4 text-foreground/70" />
+        <Icon className={`h-4 w-4 ${iconClassName ?? "text-foreground/70"}`} />
         <span>{label}</span>
       </Link>
     </Button>
