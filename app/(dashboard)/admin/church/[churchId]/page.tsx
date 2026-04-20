@@ -316,9 +316,18 @@ export default function ChurchAdminDashboard() {
                     {church.leaderName ?? ""}
                   </p>
                 )}
-                <p className="text-sm text-muted-foreground">
-                  Phone: {formatPhone(church.phone ?? undefined)} | Address: {church.address ?? "N/A"}
-                </p>
+                {church.address && (
+                  <p className="text-sm text-muted-foreground">{church.address}</p>
+                )}
+                {(church.city || church.state || church.zip) && (
+                  <p className="text-sm text-muted-foreground">
+                    {[church.city, church.state].filter(Boolean).join(", ")}
+                    {church.zip ? ` ${church.zip}` : ""}
+                  </p>
+                )}
+                {church.phone && (
+                  <p className="text-sm text-muted-foreground">{formatPhone(church.phone)}</p>
+                )}
               </div>
             </div>
 
