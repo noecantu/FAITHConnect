@@ -14,9 +14,6 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid));
     }
 
-    // ---------------------------
-    // SYSTEM-LEVEL ROLES
-    // ---------------------------
     function isRootAdmin() {
       return request.auth.token.roles.hasAny(["RootAdmin"]);
     }
@@ -62,7 +59,6 @@ service cloud.firestore {
         && userDoc.data.rolesByChurch[churchId].hasAny(["ChurchAuditor"]);
     }
 
-    // Group Manager roles
     function isGroupManager(churchId) {
       return hasChurchRole(churchId, [
         "Finance",
@@ -74,7 +70,6 @@ service cloud.firestore {
       ]);
     }
 
-    // Group Member roles
     function isGroupMember(churchId) {
       return hasChurchRole(churchId, [
         "MusicMember",
@@ -91,33 +86,24 @@ service cloud.firestore {
 
     match /users/{uid} {
 
-      // User can read their own profile
       allow read: if request.auth != null && request.auth.uid == uid;
 
-      // User can update ONLY their profile photo
       allow update: if request.auth != null
         && request.auth.uid == uid
         && request.resource.data.diff(resource.data)
            .changedKeys().hasOnly(["profilePhotoUrl"]);
 
-      // Root Admin override
       allow read, write: if isRootAdmin();
 
-      // Church Admin can read users in their church
       allow read: if resource.data != null
         && hasChurchRole(resource.data.churchId, ["Admin"]);
 
-      // Church Admin can write users in their church
       allow write: if request.resource.data != null
         && hasChurchRole(getUserDoc().data.churchId, ["Admin"])
         && request.resource.data.churchId == getUserDoc().data.churchId;
 
-      // Regional Admin can read users in churches in their region
-      allow read: if isRegionalAdmin()
-        && request.auth.token.regionId ==
-           get(/databases/$(database)/documents/churches/$(resource.data.churchId)).data.regionId;
+      allow read: if isRegionalAdmin();
 
-      // Church Auditor can read users for audited churches
       allow read: if resource.data != null
         && isChurchAuditor(resource.data.churchId);
     }
@@ -147,28 +133,41 @@ service cloud.firestore {
       allow get: if true;
       allow list: if false;
 
-      // Regional Admin can read churches in their region
-      allow read: if isRegionalAdmin()
-        && request.auth.token.regionId == resource.data.regionId;
+      allow read: if isRegionalAdmin();
 
-      // Regional Admin can approve/reject churches in their region
-      allow update: if isRegionalAdmin()
-        && request.auth.token.regionId == resource.data.regionId;
+      allow update: if isRegionalAdmin();
 
-      // Church Admin can read/write their own church
       allow read, write: if isChurchMember(churchId);
 
-      // Church Auditor can only read
       allow read: if isChurchAuditor(churchId);
 
-      // Root Admin override
       allow read, write: if isRootAdmin();
+
+      // ---------------------------
+      // ATTENDANCE
+      // ---------------------------      
+      match /attendance/{attendanceId} {
+
+        allow read: if isChurchMember(churchId)
+          || hasChurchRole(churchId, ["Admin"])
+          || isRootAdmin();
+
+        allow read: if isRegionalAdmin();
+
+        allow write: if hasChurchRole(churchId, ["Admin"]) || isRootAdmin();
+      }
 
       // ---------------------------
       // CONTRIBUTIONS
       // ---------------------------
       match /contributions/{contributionId} {
-        allow read: if isChurchMember(churchId);
+
+        allow read: if isChurchMember(churchId)
+          || hasChurchRole(churchId, ["Admin", "Finance"])
+          || isRootAdmin();
+
+        allow read: if isRegionalAdmin();
+
         allow create, update, delete: if
           hasChurchRole(churchId, ["Admin", "Finance"]) ||
           isRootAdmin();
@@ -179,7 +178,12 @@ service cloud.firestore {
       // ---------------------------
       match /events/{eventId} {
 
-        allow read: if isChurchMember(churchId);
+        allow read: if isChurchMember(churchId)
+          || hasChurchRole(churchId, ["Admin"])
+          || isGroupManager(churchId)
+          || isRootAdmin();
+
+        allow read: if isRegionalAdmin();
 
         allow create: if
           hasChurchRole(churchId, ["Admin"]) ||
@@ -206,18 +210,84 @@ service cloud.firestore {
         allow read: if false;
         allow list: if false;
 
+        // Root Admin full access
         allow read, write: if isRootAdmin();
 
+        // Church Admin full access
         allow read, write: if hasChurchRole(churchId, ["Admin"]);
 
+        // Regional Admin read-only
+        allow read: if isRegionalAdmin();
+
+        // Church Auditor read-only
+        allow read: if isChurchAuditor(churchId);
+
+        // Member can read their own record
         allow read: if isChurchMember(churchId)
           && request.auth.uid == memberId;
 
+        // Check-in lookup
         allow list: if request.query.where.size() == 2
           && request.query.where[0].field == "checkInCode"
           && request.query.where[1].field == "phoneNumber";
 
         allow write: if false;
+      }
+      
+      // ---------------------------
+      // REPORTS
+      // ---------------------------
+      match /reports/{reportId} {
+
+        allow read: if isChurchMember(churchId)
+          || hasChurchRole(churchId, ["Admin"])
+          || isRootAdmin();
+
+        // Regional Admin read-only
+        allow read: if isRegionalAdmin();
+        allow write: if hasChurchRole(churchId, ["Admin"]) || isRootAdmin();
+      }		
+      
+      // ---------------------------
+      // SERVICE PLANS
+      // ---------------------------
+      match /servicePlans/{planId} {
+
+        allow read: if isChurchMember(churchId)
+          || hasChurchRole(churchId, ["Admin"])
+          || isRootAdmin();
+
+        // Regional Admin read-only
+        allow read: if isRegionalAdmin();
+        allow write: if hasChurchRole(churchId, ["Admin"]) || isRootAdmin();
+      }
+      
+      // ---------------------------
+      // SET LISTS
+      // ---------------------------
+      match /setLists/{setListId} {
+
+        allow read: if isChurchMember(churchId)
+          || hasChurchRole(churchId, ["Admin", "MusicManager"])
+          || isRootAdmin();
+
+        // Regional Admin read-only
+        allow read: if isRegionalAdmin();
+        allow write: if hasChurchRole(churchId, ["Admin", "MusicManager"]) || isRootAdmin();
+      }	
+      
+      // ---------------------------
+      // SONGS
+      // ---------------------------
+      match /songs/{songId} {
+
+        allow read: if isChurchMember(churchId)
+          || hasChurchRole(churchId, ["Admin", "MusicManager"])
+          || isRootAdmin();
+
+        // Regional Admin read-only
+        allow read: if isRegionalAdmin();
+        allow write: if hasChurchRole(churchId, ["Admin", "MusicManager"]) || isRootAdmin();
       }
 
       // ---------------------------
@@ -236,9 +306,7 @@ service cloud.firestore {
         allow read: if isChurchAuditor(churchId);
 
         // Regional Admin read‑only for churches in their region
-        allow read: if isRegionalAdmin()
-          && request.auth.token.regionId ==
-             get(/databases/$(database)/documents/churches/$(churchId)).data.regionId;
+        allow read: if isRegionalAdmin();
       }
     }
 

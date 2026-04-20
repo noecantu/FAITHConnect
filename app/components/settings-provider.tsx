@@ -57,7 +57,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (error) {
-        if (isActive) console.error("Error fetching user settings:", error);
+        const code = (error as { code?: string }).code;
+        if (isActive && code !== 'permission-denied') {
+          console.error('Error fetching user settings:', error);
+        }
       }
     };
 

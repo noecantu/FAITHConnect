@@ -23,11 +23,18 @@ export default function RegionalChurchesPage() {
       where('regionId', '==', regionId)
     );
 
-    const unsub = onSnapshot(q, (snap) => {
-      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setChurches(list);
-      setLoading(false);
-    });
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setChurches(list);
+        setLoading(false);
+      },
+      (error) => {
+        if ((error as { code?: string }).code !== 'permission-denied') console.error('regional churches list snapshot error:', error);
+        setLoading(false);
+      }
+    );
 
     return () => unsub();
   }, [regionId]);

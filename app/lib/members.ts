@@ -296,36 +296,44 @@ export function listenToMembers(
     orderBy("lastName", "asc")
   );
 
-  return onSnapshot(q, (snapshot) => {
-    const members: Member[] = snapshot.docs.map((doc) => {
-      const raw = doc.data();
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const members: Member[] = snapshot.docs.map((doc) => {
+        const raw = doc.data();
 
-      return {
-        id: doc.id,
-        userId: raw.userId ?? null,
-        checkInCode: raw.checkInCode ?? "",
-        qrCode: raw.qrCode ?? "",
-        firstName: raw.firstName ?? "",
-        lastName: raw.lastName ?? "",
-        email: raw.email ?? "",
-        phoneNumber: raw.phoneNumber ?? "",
-        profilePhotoUrl: raw.profilePhotoUrl ?? "",
-        status: raw.status ?? "",
-        address: raw.address ?? null,
-        birthday: parseDate(raw.birthday),
-        baptismDate: parseDate(raw.baptismDate),
-        anniversary: parseDate(raw.anniversary),
-        familyId: raw.familyId ?? null,
-        notes: raw.notes ?? "",
-        relationships: Array.isArray(raw.relationships)
-          ? raw.relationships.map((rel: any) => ({
-              ...rel,
-              memberIds: rel.memberIds as [string, string],
-            }))
-          : [],
-      };
-    });
+        return {
+          id: doc.id,
+          userId: raw.userId ?? null,
+          checkInCode: raw.checkInCode ?? "",
+          qrCode: raw.qrCode ?? "",
+          firstName: raw.firstName ?? "",
+          lastName: raw.lastName ?? "",
+          email: raw.email ?? "",
+          phoneNumber: raw.phoneNumber ?? "",
+          profilePhotoUrl: raw.profilePhotoUrl ?? "",
+          status: raw.status ?? "",
+          address: raw.address ?? null,
+          birthday: parseDate(raw.birthday),
+          baptismDate: parseDate(raw.baptismDate),
+          anniversary: parseDate(raw.anniversary),
+          familyId: raw.familyId ?? null,
+          notes: raw.notes ?? "",
+          relationships: Array.isArray(raw.relationships)
+            ? raw.relationships.map((rel: any) => ({
+                ...rel,
+                memberIds: rel.memberIds as [string, string],
+              }))
+            : [],
+        };
+      });
 
-    callback(members);
-  });
+      callback(members);
+    },
+    (error) => {
+      if ((error as { code?: string }).code !== "permission-denied") {
+        console.error("listenToMembers error:", error);
+      }
+    }
+  );
 }

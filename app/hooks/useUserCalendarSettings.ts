@@ -13,16 +13,26 @@ export function useUserCalendarSettings(uid: string | null) {
 
     const ref = doc(db, "users", uid, "settings", "calendar");
 
-    const unsub = onSnapshot(ref, (snap) => {
-      if (snap.exists()) {
-        const data = snap.data();
-        setViewState(data.view || "calendar");
-      } else {
-        // No settings doc yet → default to calendar
-        setViewState("calendar");
+    const unsub = onSnapshot(
+      ref,
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          setViewState(data.view || "calendar");
+        } else {
+          // No settings doc yet → default to calendar
+          setViewState("calendar");
+        }
+        setLoading(false);
+      },
+      (error) => {
+        const code = (error as { code?: string }).code;
+        if (code !== "permission-denied") {
+          console.error("useUserCalendarSettings snapshot error:", error);
+        }
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    );
 
     return () => unsub();
   }, [uid]);

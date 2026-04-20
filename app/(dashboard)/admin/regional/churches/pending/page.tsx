@@ -25,11 +25,18 @@ export default function PendingChurchesPage() {
       where('regionStatus', '==', 'pending')
     );
 
-    const unsub = onSnapshot(q, (snap) => {
-      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setPending(list);
-      setLoading(false);
-    });
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setPending(list);
+        setLoading(false);
+      },
+      (error) => {
+        if ((error as { code?: string }).code !== 'permission-denied') console.error('pending churches snapshot error:', error);
+        setLoading(false);
+      }
+    );
 
     return () => unsub();
   }, [regionId]);

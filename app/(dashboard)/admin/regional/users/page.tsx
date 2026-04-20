@@ -20,11 +20,18 @@ export default function RegionalUsersPage() {
       where('regionId', '==', regionId)
     );
 
-    const unsub = onSnapshot(q, (snap) => {
-      const list = snap.docs.map((d) => ({ uid: d.id, ...d.data() }));
-      setUsers(list);
-      setLoading(false);
-    });
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const list = snap.docs.map((d) => ({ uid: d.id, ...d.data() }));
+        setUsers(list);
+        setLoading(false);
+      },
+      (error) => {
+        if ((error as { code?: string }).code !== 'permission-denied') console.error('regional users snapshot error:', error);
+        setLoading(false);
+      }
+    );
 
     return () => unsub();
   }, [regionId]);

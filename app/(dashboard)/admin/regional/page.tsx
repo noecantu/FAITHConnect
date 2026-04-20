@@ -30,11 +30,18 @@ export default function RegionalDashboardPage() {
       where('regionId', '==', regionId)
     );
 
-    const unsub = onSnapshot(q, (snap) => {
-      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setChurches(list);
-      setLoading(false);
-    });
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setChurches(list);
+        setLoading(false);
+      },
+      (error) => {
+        if ((error as { code?: string }).code !== 'permission-denied') console.error('regional churches snapshot error:', error);
+        setLoading(false);
+      }
+    );
 
     return () => unsub();
   }, [regionId]);
@@ -49,9 +56,11 @@ export default function RegionalDashboardPage() {
       where("regionStatus", "==", "pending")
     );
 
-    const unsub = onSnapshot(q, (snap) => {
-      setPendingCount(snap.size);
-    });
+    const unsub = onSnapshot(
+      q,
+      (snap) => { setPendingCount(snap.size); },
+      (error) => { if ((error as { code?: string }).code !== 'permission-denied') console.error('pending churches snapshot error:', error); }
+    );
 
     return () => unsub();
   }, [regionId]);
@@ -60,14 +69,18 @@ export default function RegionalDashboardPage() {
   useEffect(() => {
     if (!regionId) return;
 
-    const unsub = onSnapshot(collection(db, 'regions'), (snap) => {
-      const regionDoc = snap.docs.find((d) => d.id === regionId);
-      if (regionDoc) {
-        const data = regionDoc.data();
-        setRegionName(data.name || 'Unknown Region');
-        setRegionAdminName(data.regionAdminName || 'Unknown Admin');
-      }
-    });
+    const unsub = onSnapshot(
+      collection(db, 'regions'),
+      (snap) => {
+        const regionDoc = snap.docs.find((d) => d.id === regionId);
+        if (regionDoc) {
+          const data = regionDoc.data();
+          setRegionName(data.name || 'Unknown Region');
+          setRegionAdminName(data.regionAdminName || 'Unknown Admin');
+        }
+      },
+      (error) => { if ((error as { code?: string }).code !== 'permission-denied') console.error('regions snapshot error:', error); }
+    );
 
     return () => unsub();
   }, [regionId]);

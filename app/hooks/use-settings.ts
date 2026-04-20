@@ -20,17 +20,27 @@ export function useSettings() {
 
     const ref = doc(db, 'users', user.uid);
 
-    const unsubscribe = onSnapshot(ref, (snap) => {
-      if (!snap.exists()) {
-        setSettings(null);
-        setLoading(false);
-        return;
-      }
+    const unsubscribe = onSnapshot(
+      ref,
+      (snap) => {
+        if (!snap.exists()) {
+          setSettings(null);
+          setLoading(false);
+          return;
+        }
 
-      const data = snap.data() as AppUser;
-      setSettings(data.settings ?? null);
-      setLoading(false);
-    });
+        const data = snap.data() as AppUser;
+        setSettings(data.settings ?? null);
+        setLoading(false);
+      },
+      (error) => {
+        const code = (error as { code?: string }).code;
+        if (code !== "permission-denied") {
+          console.error("useSettings snapshot error:", error);
+        }
+        setLoading(false);
+      }
+    );
 
     return () => unsubscribe();
   }, [user?.uid]);

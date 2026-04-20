@@ -34,8 +34,6 @@ export function useCalendarEvents(churchId: string | null) {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
-  console.log("CALENDAR HOOK churchId =", churchId);
-  
   useEffect(() => {
     if (!churchId) {
       setEvents([]);
@@ -48,15 +46,22 @@ export function useCalendarEvents(churchId: string | null) {
     const eventsRef = collection(db, "churches", churchId, "events");
     const eventsQuery = query(eventsRef, orderBy("date", "asc"));
 
-    const unsub = onSnapshot(eventsQuery, (snap) => {
-      const loaded = snap.docs.map((d) =>
-        normalizeEvent(d.data(), d.id)
-      );
-
-      loaded.sort((a, b) => a.date.getTime() - b.date.getTime());
-      setEvents(loaded);
-      setLoading(false);
-    });
+    const unsub = onSnapshot(
+      eventsQuery,
+      (snap) => {
+        const loaded = snap.docs.map((d) => normalizeEvent(d.data(), d.id));
+        loaded.sort((a, b) => a.date.getTime() - b.date.getTime());
+        setEvents(loaded);
+        setLoading(false);
+      },
+      (error) => {
+        const code = (error as { code?: string }).code;
+        if (code !== "permission-denied") {
+          console.error("useCalendarEvents snapshot error:", error);
+        }
+        setLoading(false);
+      }
+    );
 
     return () => unsub();
   }, [churchId]);

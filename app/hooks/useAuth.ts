@@ -54,6 +54,15 @@ export function useAuth() {
       }
 
       try {
+        // Mark loading immediately so downstream hooks don't fire Firestore
+        // reads against a stale/unauthenticated token during the transition.
+        setLoading(true);
+
+        // Force-refresh the ID token so custom claims (churchId, roles, etc.)
+        // are up-to-date before any downstream hooks fire. This is especially
+        // important when switching between users from different churches.
+        await firebaseUser.getIdToken(true);
+
         let firestoreData: Record<string, unknown> = {};
         let firestoreExists = false;
 
