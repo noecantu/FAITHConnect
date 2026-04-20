@@ -28,7 +28,7 @@ export default function SetListDetailPage() {
   const { id } = useParams();
   const { churchId } = useChurchId();
   const router = useRouter();
-  const { canReadMusic, canManageMusic } = usePermissions();
+  const { canReadMusic, canManageMusic, loading: rolesLoading } = usePermissions();
 
   const canView = canReadMusic;
   const canEdit = canManageMusic;
@@ -56,7 +56,7 @@ export default function SetListDetailPage() {
     load();
   }, [churchId, id]);
 
-  if (loading) {
+  if (loading || rolesLoading) {
     return (
       <div className="p-6">
         <PageHeader title="Set List" />
