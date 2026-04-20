@@ -18,7 +18,7 @@ import { CalendarViewSwitcher } from "@/app/components/calendar/CalendarViewSwit
 import type { Role } from "@/app/lib/auth/roles";
 import type { UserProfile, Event, ServicePlan } from "@/app/lib/types";
 import { useUserCalendarSettings } from "@/app/hooks/useUserCalendarSettings";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { dateKey } from "@/app/lib/calendar/utils";
 import { canUserSeeEvent } from "@/app/lib/canUserSeeEvent";
 import { cn } from "@/app/lib/utils";
@@ -30,6 +30,8 @@ type CalendarItem =
 
 export default function CalendarPage() {
   const router = useRouter();
+  const params = useParams();
+  const routeSlug = String(params?.slug ?? "");
   const { churchId } = useChurchId();
 
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -105,6 +107,7 @@ export default function CalendarPage() {
 
   if (loadingUser) return <>Loading...</>;
   if (!user) return <>No user found.</>;
+  if (!effectiveChurchId || !routeSlug) return <>Loading calendar...</>;
 
   return (
     <>
@@ -159,7 +162,7 @@ export default function CalendarPage() {
         events={filters.filtered}
         onSelectDate={(date) => {
           const key = dateKey(date);
-          router.push(`/calendar/day/${key}`);
+          router.push(`/church/${routeSlug}/calendar/day/${key}`);
         }}
         onPrevMonth={month.prevMonth}
         onNextMonth={month.nextMonth}
@@ -168,16 +171,16 @@ export default function CalendarPage() {
           if (!canManage) return;
 
           if ("timeString" in event) {
-            router.push(`/service-plan/${event.id}`);
+            router.push(`/church/${routeSlug}/service-plan/${event.id}`);
             return;
           }
 
-          router.push(`/calendar/${event.id}`);
+          router.push(`/church/${routeSlug}/calendar/${event.id}`);
         }}
       />
 
       {canManage && (
-        <Fab type="add" onClick={() => router.push("/calendar/new")} />
+        <Fab type="add" onClick={() => router.push(`/church/${routeSlug}/calendar/new`)} />
       )}
     </>
   );

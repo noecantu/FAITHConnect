@@ -1,183 +1,126 @@
-//app/(dashboard)/church/[slug]/calendar/day/[date]/page.tsx
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { format, parseISO } from "date-fns";
 import { PageHeader } from "@/app/components/page-header";
-import { Fab } from "@/app/components/ui/fab";
 import { Button } from "@/app/components/ui/button";
-import { Calendar, List } from "lucide-react";
-
-import { useChurchId } from "@/app/hooks/useChurchId";
+import { Fab } from "@/app/components/ui/fab";
+import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
 import { useCalendarEvents } from "@/app/hooks/useCalendarEvents";
 import { useUpcomingServices } from "@/app/hooks/useUpcomingServices";
-import { useCalendarMonth } from "@/app/hooks/useCalendarMonth";
-import { useCalendarFilters } from "@/app/hooks/useCalendarFilters";
-import { CalendarControls } from "@/app/components/calendar/CalendarControls";
-import { CalendarViewSwitcher } from "@/app/components/calendar/CalendarViewSwitcher";
-
-import type { Role } from "@/app/lib/auth/roles";
-import type { UserProfile, Event, ServicePlan } from "@/app/lib/types";
-import { useUserCalendarSettings } from "@/app/hooks/useUserCalendarSettings";
-import { useRouter } from "next/navigation";
-import { dateKey } from "@/app/lib/calendar/utils";
-import { canUserSeeEvent } from "@/app/lib/canUserSeeEvent";
-import { cn } from "@/app/lib/utils";
+import { useChurchId } from "@/app/hooks/useChurchId";
 import { usePermissions } from "@/app/hooks/usePermissions";
+import { dateKey } from "@/app/lib/calendar/utils";
 
-type CalendarItem =
-  | (Event & { type: "event" })
-  | (ServicePlan & { type: "service" });
-
-export default function CalendarPage() {
+export default function CalendarDayPage() {
   const router = useRouter();
+  const params = useParams();
+
+  const routeSlug = String(params?.slug ?? "");
+  const selectedDateKey = String(params?.date ?? "");
+
   const { churchId } = useChurchId();
-
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [loadingUser, setLoadingUser] = useState(true);
-
-  useEffect(() => {
-    async function load() {
-      const res = await fetch("/api/users/me");
-      const raw = await res.json();
-
-      const profile: UserProfile = {
-        ...raw,
-        roles: raw.roles as Role[],
-      };
-
-      setUser(profile);
-      setLoadingUser(false);
-    }
-
-    load();
-  }, []);
-
-  const {
-    canManageEvents,
-    isAuditor,
-    isRegionalAdmin,
-  } = usePermissions();
+  const { canManageEvents, isAuditor, isRegionalAdmin } = usePermissions();
 
   const isReadOnly = isAuditor || isRegionalAdmin;
   const canManage = !isReadOnly && canManageEvents;
 
-  const effectiveChurchId = churchId;
+  const { events } = useCalendarEvents(churchId);
+  const { services } = useUpcomingServices(churchId);
 
-  const { events } = useCalendarEvents(effectiveChurchId);
-  const { services } = useUpcomingServices(effectiveChurchId);
+  const dayEvents = useMemo(
+    () =>
+      events
+        .filter((event) => dateKey(event.date) === selectedDateKey)
+        .sort((a, b) => a.date.getTime() - b.date.getTime()),
+    [events, selectedDateKey]
+  );
 
-  const merged: CalendarItem[] = useMemo(() => {
-    const serviceItems: CalendarItem[] = services.map((sp) => ({
-      ...sp,
-      type: "service",
-      _key: `service-${sp.id}`,
-    }));
+  const dayServices = useMemo(
+    () =>
+      services
+        .filter((service) => service.dateString === selectedDateKey)
+        .sort((a, b) => a.timeString.localeCompare(b.timeString)),
+    [services, selectedDateKey]
+  );
 
-    const eventItems: CalendarItem[] = events.map((ev) => ({
-      ...ev,
-      type: "event",
-      _key: `event-${ev.id}`,
-    }));
-
-    return [...eventItems, ...serviceItems];
-  }, [events, services]);
-
-  const visible = useMemo(() => {
-    if (!user) return [];
-
-    if (isRegionalAdmin || isAuditor) {
-      return merged;
+  const selectedDate = useMemo(() => {
+    try {
+      return parseISO(selectedDateKey);
+    } catch {
+      return new Date();
     }
+  }, [selectedDateKey]);
 
-    return merged.filter((item) =>
-      canUserSeeEvent(user, {
-        visibility: item.visibility,
-        groups: item.groups,
-      })
-    );
-  }, [merged, user, isRegionalAdmin, isAuditor]);
-
-  const month = useCalendarMonth();
-  const filters = useCalendarFilters<CalendarItem>(visible);
-
-  const { view, setView } = useUserCalendarSettings(user?.id ?? null);
-  const viewControls = { view, setView };
-
-  if (loadingUser) return <>Loading...</>;
-  if (!user) return <>No user found.</>;
+  if (!routeSlug || !selectedDateKey) {
+    return <div className="p-6 text-muted-foreground">Loading day view...</div>;
+  }
 
   return (
     <>
       <PageHeader
-        title="Calendar of Events"
-        subtitle="Select a date to view or add events."
+        title="Day View"
+        subtitle={format(selectedDate, "EEEE, MMMM d, yyyy")}
       >
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setView("calendar")}
-            className={cn(
-              "flex items-center gap-2",
-              "bg-black/80 border border-white/20 backdrop-blur-xl",
-              "hover:bg-white/5 hover:border-white/20 transition",
-              view === "calendar" && "bg-white/10 border-white/20"
-            )}
-          >
-            Calendar
-            <Calendar className="h-5 w-5" />
-          </Button>
-
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setView("list")}
-            className={cn(
-              "flex items-center gap-2",
-              "bg-black/80 border border-white/20 backdrop-blur-xl",
-              "hover:bg-white/5 hover:border-white/20 transition",
-              view === "list" && "bg-white/10 border-white/20"
-            )}
-          >
-            List
-            <List className="h-5 w-5" />
-          </Button>
-        </div>
+        <Button asChild variant="outline" className="bg-black/80 border-white/20 text-white/80 hover:bg-white/5">
+          <Link href={`/church/${routeSlug}/calendar`}>Back to Calendar</Link>
+        </Button>
       </PageHeader>
 
-      <CalendarControls
-        month={month}
-        view={viewControls}
-        filters={filters}
-        user={user}
-        events={filters.filtered}
-      />
+      <div className="space-y-4">
+        <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
+          <CardHeader>
+            <CardTitle>Events</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {dayEvents.length === 0 && (
+              <p className="text-sm text-muted-foreground">No events scheduled for this day.</p>
+            )}
 
-      <CalendarViewSwitcher
-        view={view}
-        month={month.month}
-        events={filters.filtered}
-        onSelectDate={(date) => {
-          const key = dateKey(date);
-          router.push(`/church/${churchId}/calendar/day/${key}`);
-        }}
-        onPrevMonth={month.prevMonth}
-        onNextMonth={month.nextMonth}
-        canManage={canManage}
-        onEdit={(event) => {
-          if (!canManage) return;
+            {dayEvents.map((event) => (
+              <button
+                key={event.id}
+                type="button"
+                onClick={() => canManage && router.push(`/church/${routeSlug}/calendar/${event.id}`)}
+                className="w-full rounded-md border border-white/15 bg-black/30 p-3 text-left transition hover:bg-white/5"
+                disabled={!canManage}
+              >
+                <p className="font-medium">{event.title}</p>
+                <p className="text-sm text-muted-foreground">{format(event.date, "h:mm a")}</p>
+              </button>
+            ))}
+          </CardContent>
+        </Card>
 
-          if ("timeString" in event) {
-            router.push(`/service-plan/${event.id}`);
-            return;
-          }
+        <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
+          <CardHeader>
+            <CardTitle>Services</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {dayServices.length === 0 && (
+              <p className="text-sm text-muted-foreground">No service plans scheduled for this day.</p>
+            )}
 
-          router.push(`/calendar/${event.id}`);
-        }}
-      />
+            {dayServices.map((service) => (
+              <button
+                key={service.id}
+                type="button"
+                onClick={() => canManage && router.push(`/church/${routeSlug}/service-plan/${service.id}`)}
+                className="w-full rounded-md border border-white/15 bg-black/30 p-3 text-left transition hover:bg-white/5"
+                disabled={!canManage}
+              >
+                <p className="font-medium">{service.title}</p>
+                <p className="text-sm text-muted-foreground">{service.timeString}</p>
+              </button>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
 
       {canManage && (
-        <Fab type="add" onClick={() => router.push("/calendar/new")} />
+        <Fab type="add" onClick={() => router.push(`/church/${routeSlug}/calendar/new`)} />
       )}
     </>
   );

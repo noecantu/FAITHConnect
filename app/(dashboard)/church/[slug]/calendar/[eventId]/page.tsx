@@ -2,7 +2,7 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
 import { useCurrentUser } from "@/app/hooks/useCurrentUser";
@@ -26,6 +26,9 @@ export default function EditEventPage({
   params: Promise<{ eventId: string }>;
 }) {
   const router = useRouter();
+  const routeParams = useParams();
+  const routeSlug = String(routeParams?.slug ?? "");
+  const calendarPath = `/church/${routeSlug}/calendar`;
   const { user } = useCurrentUser();
   const { churchId } = useChurchId();
 
@@ -93,7 +96,7 @@ export default function EditEventPage({
   // --- Unauthorized ---
   if (!loading && (!eventData || !canEditEvent(eventData))) {
     return (
-      <Dialog open={true} onOpenChange={() => router.push("/calendar")}>
+      <Dialog open={true} onOpenChange={() => router.push(calendarPath)}>
         <DialogContent className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0">
           <VisuallyHidden>
             <DialogTitle>Unauthorized</DialogTitle>
@@ -113,7 +116,7 @@ export default function EditEventPage({
   // --- Loading ---
   if (loading) {
     return (
-      <Dialog open={true} onOpenChange={() => router.push("/calendar")}>
+      <Dialog open={true} onOpenChange={() => router.push(calendarPath)}>
         <DialogContent className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0">
           <VisuallyHidden>
             <DialogTitle>Loading</DialogTitle>
@@ -128,7 +131,7 @@ export default function EditEventPage({
   // --- Not Found ---
   if (!eventData) {
     return (
-      <Dialog open={true} onOpenChange={() => router.push("/calendar")}>
+      <Dialog open={true} onOpenChange={() => router.push(calendarPath)}>
         <DialogContent className="w-[95vw] max-w-lg max-h-[85dvh] flex flex-col p-0">
           <VisuallyHidden>
             <DialogTitle>Not Found</DialogTitle>
@@ -150,7 +153,7 @@ export default function EditEventPage({
     <Dialog
       open={true}
       onOpenChange={(open) => {
-        if (!open) router.push("/calendar");
+        if (!open) router.push(calendarPath);
       }}
     >
       <DialogContent
@@ -165,8 +168,8 @@ export default function EditEventPage({
         <EventEditor
           mode="edit"
           initialEvent={eventData}
-          onCancel={() => router.push("/calendar")}
-          onSaved={() => router.push("/calendar")}
+          onCancel={() => router.push(calendarPath)}
+          onSaved={() => router.push(calendarPath)}
         />
       </DialogContent>
     </Dialog>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import EventEditor from "@/app/components/calendar/EventEditor";
 import {
   Dialog,
@@ -12,13 +12,16 @@ import {
 
 export default function NewEventPage() {
   const router = useRouter();
+  const params = useParams();
+  const routeSlug = String(params?.slug ?? "");
+  const calendarPath = `/church/${routeSlug}/calendar`;
 
   return (
     <Dialog
       open={true}
       modal={false}
       onOpenChange={(open) => {
-        if (!open) router.push("/calendar");
+        if (!open) router.push(calendarPath);
       }}
     >
       <DialogContent
@@ -33,8 +36,8 @@ export default function NewEventPage() {
         <EventEditor
           mode="create"
           initialEvent={null}
-          onCancel={() => router.push("/calendar")}
-          onSaved={() => router.push("/calendar")}
+          onCancel={() => router.push(calendarPath)}
+          onSaved={() => router.push(calendarPath)}
         />
       </DialogContent>
     </Dialog>
