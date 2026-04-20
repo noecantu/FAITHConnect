@@ -5,21 +5,48 @@ import { useEffect, useState } from 'react';
 import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
 import { usePermissions } from '@/app/hooks/usePermissions';
+import { countPresentAttendanceEntries } from '@/app/lib/attendance-count';
+import { getUsersByChurchIds } from '@/app/lib/regional-users';
 import Link from 'next/link';
-import { Activity, Building2, Calendar, Church, MapPinned } from 'lucide-react';
+import {
+  Activity,
+  Building2,
+  Calendar,
+  ListMusic,
+  MapPinned,
+  Music4,
+  Shield,
+  Users,
+  Wallet,
+} from 'lucide-react';
+
+type RegionalChurch = {
+  id: string;
+  regionStatus?: string;
+  leaderName?: string | null;
+  leaderTitle?: string | null;
+};
+
+type RegionalUser = {
+  uid: string;
+  roles?: string[];
+};
 
 export default function RegionalDashboardPage() {
   const { isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
 
-  const [churches, setChurches] = useState<any[]>([]);
+  const [churches, setChurches] = useState<RegionalChurch[]>([]);
+  const [users, setUsers] = useState<RegionalUser[]>([]);
   const [regionName, setRegionName] = useState('');
   const [regionAdminName, setRegionAdminName] = useState('');
   const [loading, setLoading] = useState(true);
+  const [usersLoading, setUsersLoading] = useState(true);
   const [metricsLoading, setMetricsLoading] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
-  const [upcomingServicesCount, setUpcomingServicesCount] = useState(0);
-  const [upcomingEventsCount, setUpcomingEventsCount] = useState(0);
-  const [generalAttendanceCount, setGeneralAttendanceCount] = useState(0);
+  const [eventCount, setEventCount] = useState(0);
+  const [checkinCount, setCheckinCount] = useState(0);
+  const [musicItemCount, setMusicItemCount] = useState(0);
+  const [setlistCount, setSetlistCount] = useState(0);
 
   // Load churches in region
   useEffect(() => {
@@ -33,7 +60,7 @@ export default function RegionalDashboardPage() {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as RegionalChurch[];
         setChurches(list);
         setLoading(false);
       },
@@ -45,6 +72,43 @@ export default function RegionalDashboardPage() {
 
     return () => unsub();
   }, [regionId]);
+
+  // Load users belonging to churches in this region
+  useEffect(() => {
+    if (loading) return;
+
+    const churchIds = churches.map((church) => church.id).filter(Boolean);
+
+    if (churchIds.length === 0) {
+      setUsers([]);
+      setUsersLoading(false);
+      return;
+    }
+
+    let active = true;
+
+    const loadUsers = async () => {
+      setUsersLoading(true);
+
+      try {
+        if (!active) return;
+        const regionUsers = await getUsersByChurchIds(churchIds);
+        if (!active) return;
+        setUsers(regionUsers as RegionalUser[]);
+      } catch (error) {
+        console.error('regional users load error:', error);
+        if (active) setUsers([]);
+      } finally {
+        if (active) setUsersLoading(false);
+      }
+    };
+
+    loadUsers();
+
+    return () => {
+      active = false;
+    };
+  }, [churches, loading]);
 
   // Load pending churches
   useEffect(() => {
@@ -89,10 +153,13 @@ export default function RegionalDashboardPage() {
   useEffect(() => {
     if (loading) return;
 
-    if (churches.length === 0) {
-      setUpcomingServicesCount(0);
-      setUpcomingEventsCount(0);
-      setGeneralAttendanceCount(0);
+    const approvedChurches = churches.filter((church) => church.regionStatus === 'approved');
+
+    if (approvedChurches.length === 0) {
+      setEventCount(0);
+      setCheckinCount(0);
+      setMusicItemCount(0);
+      setSetlistCount(0);
       setMetricsLoading(false);
       return;
     }
@@ -102,96 +169,45 @@ export default function RegionalDashboardPage() {
     const loadMetrics = async () => {
       setMetricsLoading(true);
 
-      const now = new Date();
-      const startOfToday = new Date(now);
-      startOfToday.setHours(0, 0, 0, 0);
-
-      const day = now.getDay();
-      const diffToMonday = day === 0 ? -6 : 1 - day;
-
-      const startOfWeek = new Date(now);
-      startOfWeek.setDate(now.getDate() + diffToMonday);
-      startOfWeek.setHours(0, 0, 0, 0);
-
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-      endOfWeek.setHours(23, 59, 59, 999);
-
-      const todayIso = startOfToday.toISOString().slice(0, 10);
-      const startIso = startOfWeek.toISOString().slice(0, 10);
-      const endIso = endOfWeek.toISOString().slice(0, 10);
-
       try {
         const metricsPerChurch = await Promise.all(
-          churches.map(async (church) => {
+          approvedChurches.map(async (church) => {
             const churchId = church.id as string;
 
-            const servicesQuery = query(
-              collection(db, 'churches', churchId, 'servicePlans'),
-              where('dateString', '>=', todayIso)
-            );
-
-            const eventsQuery = query(
-              collection(db, 'churches', churchId, 'events'),
-              where('date', '>=', startOfToday)
-            );
-
-            const attendanceQuery = query(
-              collection(db, 'churches', churchId, 'attendance'),
-              where('__name__', '>=', startIso),
-              where('__name__', '<=', endIso)
-            );
-
-            const [servicesSnap, eventsSnap, attendanceSnap] = await Promise.all([
-              getDocs(servicesQuery),
-              getDocs(eventsQuery),
-              getDocs(attendanceQuery),
+            const [eventsSnap, attendanceSnap, musicItemsSnap, setlistsSnap] = await Promise.all([
+              getDocs(collection(db, 'churches', churchId, 'events')),
+              getDocs(collection(db, 'churches', churchId, 'attendance')),
+              getDocs(collection(db, 'churches', churchId, 'songs')),
+              getDocs(collection(db, 'churches', churchId, 'setlists')),
             ]);
 
-            let attendanceTotal = 0;
-
-            attendanceSnap.forEach((docSnap) => {
-              const data = docSnap.data();
-
-              const recordCount =
-                data.records && typeof data.records === 'object'
-                  ? Object.keys(data.records).filter((id) => data.records[id] === true).length
-                  : 0;
-
-              let visitorCount = 0;
-
-              if (typeof data.visitors === 'number') {
-                visitorCount = data.visitors;
-              } else if (
-                data.visitors &&
-                typeof data.visitors === 'object' &&
-                !Array.isArray(data.visitors)
-              ) {
-                visitorCount = Object.keys(data.visitors).length;
-              }
-
-              attendanceTotal += recordCount + visitorCount;
-            });
+            const attendanceTotal = attendanceSnap.docs.reduce(
+              (total, docSnap) => total + countPresentAttendanceEntries(docSnap.data()),
+              0
+            );
 
             return {
-              services: servicesSnap.size,
               events: eventsSnap.size,
-              attendance: attendanceTotal,
+              checkins: attendanceTotal,
+              musicItems: musicItemsSnap.size,
+              setlists: setlistsSnap.size,
             };
           })
         );
 
         if (!active) return;
 
-        setUpcomingServicesCount(metricsPerChurch.reduce((sum, m) => sum + m.services, 0));
-        setUpcomingEventsCount(metricsPerChurch.reduce((sum, m) => sum + m.events, 0));
-        setGeneralAttendanceCount(metricsPerChurch.reduce((sum, m) => sum + m.attendance, 0));
+        setEventCount(metricsPerChurch.reduce((sum, metric) => sum + metric.events, 0));
+        setCheckinCount(metricsPerChurch.reduce((sum, metric) => sum + metric.checkins, 0));
+        setMusicItemCount(metricsPerChurch.reduce((sum, metric) => sum + metric.musicItems, 0));
+        setSetlistCount(metricsPerChurch.reduce((sum, metric) => sum + metric.setlists, 0));
       } catch (error) {
         console.error('Error loading regional dashboard metrics:', error);
         if (active) {
-          setUpcomingServicesCount(0);
-          setUpcomingEventsCount(0);
-          setGeneralAttendanceCount(0);
+          setEventCount(0);
+          setCheckinCount(0);
+          setMusicItemCount(0);
+          setSetlistCount(0);
         }
       } finally {
         if (active) setMetricsLoading(false);
@@ -204,6 +220,16 @@ export default function RegionalDashboardPage() {
       active = false;
     };
   }, [churches, loading]);
+
+  const approvedChurches = churches.filter((church) => church.regionStatus === 'approved');
+  const adminCount = users.filter((user) => Array.isArray(user.roles) && user.roles.includes('Admin')).length;
+  const financeCount = users.filter((user) => Array.isArray(user.roles) && user.roles.includes('Finance')).length;
+  const churchLeaderCount = approvedChurches.filter((church) => {
+    const hasLeaderName = typeof church.leaderName === 'string' && church.leaderName.trim().length > 0;
+    const hasLeaderTitle = typeof church.leaderTitle === 'string' && church.leaderTitle.trim().length > 0;
+
+    return hasLeaderName || hasLeaderTitle;
+  }).length;
 
   // Permission check
   if (permLoading) {
@@ -223,7 +249,7 @@ export default function RegionalDashboardPage() {
     );
   }
 
-  if (loading || metricsLoading) {
+  if (loading || usersLoading || metricsLoading) {
     return (
       <div className="p-6 text-muted-foreground">
         Loading regional data…
@@ -244,7 +270,7 @@ export default function RegionalDashboardPage() {
       {pendingCount > 0 && (
         <div className="p-4 rounded-lg border border-yellow-500 bg-yellow-500/10">
           <h2 className="text-lg font-semibold">Churches Pending Approval</h2>
-          <p className="text-xl font-bold mt-2">{pendingCount}</p>
+          <p className="text-xl font-bold mt-1.5">{pendingCount}</p>
 
           <Link
             href="/admin/regional/churches/pending"
@@ -267,7 +293,7 @@ export default function RegionalDashboardPage() {
             </div>
           </div>
 
-          <p className="text-xl font-bold mt-2">{regionName}</p>
+          <p className="text-xl font-bold mt-1.5">{regionName}</p>
 
           <p className="text-sm text-muted-foreground mt-1">
             Admin: {regionAdminName}
@@ -281,50 +307,109 @@ export default function RegionalDashboardPage() {
         {/* Active Churches */}
         <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
           <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold">Active Churches</h2>
+            <h2 className="text-lg font-semibold">Churches</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
               <Building2 className="h-4 w-4 text-emerald-300" />
             </div>
           </div>
-          <p className="text-3xl font-bold mt-2">
-            {churches.filter((c) => c.regionStatus === "approved").length}
-          </p>
+          <p className="text-3xl font-bold mt-1.5">{approvedChurches.length}</p>
+          <p className="text-xs text-muted-foreground mt-1 opacity-70">Approved churches in this region</p>
         </div>
 
-        {/* Upcoming Services */}
+        {/* Users */}
         <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
           <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold">Upcoming Services</h2>
+            <h2 className="text-lg font-semibold">Users</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Church className="h-4 w-4 text-violet-300" />
+              <Users className="h-4 w-4 text-cyan-300" />
             </div>
           </div>
-          <p className="text-3xl font-bold mt-2">{upcomingServicesCount}</p>
-          <p className="text-xs text-muted-foreground mt-1 opacity-70">All supervised churches</p>
+          <p className="text-3xl font-bold mt-1.5">{users.length}</p>
+          <p className="text-xs text-muted-foreground mt-1 opacity-70">Users in churches within this region</p>
         </div>
 
-        {/* Upcoming Events */}
+        {/* Admins */}
         <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
           <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold">Upcoming Events</h2>
+            <h2 className="text-lg font-semibold">Admins</h2>
+            <div className="rounded-md border border-white/20 bg-white/5 p-2">
+              <Shield className="h-4 w-4 text-fuchsia-300" />
+            </div>
+          </div>
+          <p className="text-3xl font-bold mt-1.5">{adminCount}</p>
+          <p className="text-xs text-muted-foreground mt-1 opacity-70">Church admins in this region</p>
+        </div>
+
+        {/* Events */}
+        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="text-lg font-semibold">Events</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
               <Calendar className="h-4 w-4 text-sky-300" />
             </div>
           </div>
-          <p className="text-3xl font-bold mt-2">{upcomingEventsCount}</p>
-          <p className="text-xs text-muted-foreground mt-1 opacity-70">All supervised churches</p>
+          <p className="text-3xl font-bold mt-1.5">{eventCount}</p>
+          <p className="text-xs text-muted-foreground mt-1 opacity-70">Events across region churches</p>
         </div>
 
-        {/* General Attendance */}
+        {/* Check-ins */}
         <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
           <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold">General Attendance</h2>
+            <h2 className="text-lg font-semibold">Check-ins</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
               <Activity className="h-4 w-4 text-amber-300" />
             </div>
           </div>
-          <p className="text-3xl font-bold mt-2">{generalAttendanceCount}</p>
-          <p className="text-xs text-muted-foreground mt-1 opacity-70">Current week count</p>
+          <p className="text-3xl font-bold mt-1.5">{checkinCount}</p>
+          <p className="text-xs text-muted-foreground mt-1 opacity-70">Attendance entries across region churches</p>
+        </div>
+
+        {/* Music Items */}
+        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="text-lg font-semibold">Music Items</h2>
+            <div className="rounded-md border border-white/20 bg-white/5 p-2">
+              <Music4 className="h-4 w-4 text-rose-300" />
+            </div>
+          </div>
+          <p className="text-3xl font-bold mt-1.5">{musicItemCount}</p>
+          <p className="text-xs text-muted-foreground mt-1 opacity-70">Songs across region churches</p>
+        </div>
+
+        {/* Setlists */}
+        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="text-lg font-semibold">Setlists</h2>
+            <div className="rounded-md border border-white/20 bg-white/5 p-2">
+              <ListMusic className="h-4 w-4 text-lime-300" />
+            </div>
+          </div>
+          <p className="text-3xl font-bold mt-1.5">{setlistCount}</p>
+          <p className="text-xs text-muted-foreground mt-1 opacity-70">Setlists across region churches</p>
+        </div>
+
+        {/* Church Leaders */}
+        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="text-lg font-semibold">Church Leaders</h2>
+            <div className="rounded-md border border-white/20 bg-white/5 p-2">
+              <Users className="h-4 w-4 text-orange-300" />
+            </div>
+          </div>
+          <p className="text-3xl font-bold mt-1.5">{churchLeaderCount}</p>
+          <p className="text-xs text-muted-foreground mt-1 opacity-70">Approved churches with leader info</p>
+        </div>
+
+        {/* Finance Managers */}
+        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="text-lg font-semibold">Finance Managers</h2>
+            <div className="rounded-md border border-white/20 bg-white/5 p-2">
+              <Wallet className="h-4 w-4 text-teal-300" />
+            </div>
+          </div>
+          <p className="text-3xl font-bold mt-1.5">{financeCount}</p>
+          <p className="text-xs text-muted-foreground mt-1 opacity-70">Users with Finance role in region churches</p>
         </div>
       </div>
 
@@ -338,6 +423,12 @@ export default function RegionalDashboardPage() {
             className="px-4 py-2 rounded-md border bg-muted/20 hover:bg-muted transition"
           >
             View Regional Churches
+          </Link>
+          <Link
+            href="/admin/regional/users"
+            className="px-4 py-2 rounded-md border bg-muted/20 hover:bg-muted transition"
+          >
+            View Regional Users
           </Link>
         </div>
       </div>

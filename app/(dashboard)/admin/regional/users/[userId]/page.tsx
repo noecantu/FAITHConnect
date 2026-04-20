@@ -28,10 +28,23 @@ export default function RegionalUserDetailPage() {
       const data = snap.data();
 
       // Block cross‑region access
-      if (!isRootAdmin && data.regionId !== regionId) {
-        setUser(null);
-        setLoading(false);
-        return;
+      if (!isRootAdmin) {
+        const churchId = typeof data.churchId === 'string' ? data.churchId : null;
+
+        if (!churchId) {
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
+        const churchSnap = await getDoc(doc(db, 'churches', churchId));
+        const churchRegionId = churchSnap.exists() ? churchSnap.data().regionId : null;
+
+        if (churchRegionId !== regionId) {
+          setUser(null);
+          setLoading(false);
+          return;
+        }
       }
 
       setUser({ ...data, uid: snap.id });
@@ -81,8 +94,8 @@ export default function RegionalUserDetailPage() {
       <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl space-y-2">
         <p><strong>Email:</strong> {user.email || 'N/A'}</p>
         <p><strong>Roles:</strong> {Array.isArray(user.roles) ? user.roles.join(', ') : 'None'}</p>
-        <p><strong>Region:</strong> {user.regionId || 'N/A'}</p>
         <p><strong>Church:</strong> {user.churchId || 'N/A'}</p>
+        <p><strong>Region Access:</strong> Verified by church assignment</p>
 
         {user.churchId && (
           <Link

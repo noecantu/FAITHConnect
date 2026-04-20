@@ -5,36 +5,86 @@ import { useEffect, useState } from 'react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
 import { usePermissions } from '@/app/hooks/usePermissions';
+import { getUsersByChurchIds } from '@/app/lib/regional-users';
 import Link from 'next/link';
+
+type RegionalChurch = {
+  id: string;
+};
+
+type RegionalUser = {
+  uid: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  roles?: string[];
+};
 
 export default function RegionalUsersPage() {
   const { isRootAdmin, isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [churches, setChurches] = useState<RegionalChurch[]>([]);
+  const [users, setUsers] = useState<RegionalUser[]>([]);
+  const [churchesLoading, setChurchesLoading] = useState(true);
+  const [usersLoading, setUsersLoading] = useState(true);
 
   useEffect(() => {
     if (!regionId) return;
 
     const q = query(
-      collection(db, 'users'),
+      collection(db, 'churches'),
       where('regionId', '==', regionId)
     );
 
     const unsub = onSnapshot(
       q,
       (snap) => {
-        const list = snap.docs.map((d) => ({ uid: d.id, ...d.data() }));
-        setUsers(list);
-        setLoading(false);
+        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as RegionalChurch[];
+        setChurches(list);
+        setChurchesLoading(false);
       },
       (error) => {
-        if ((error as { code?: string }).code !== 'permission-denied') console.error('regional users snapshot error:', error);
-        setLoading(false);
+        if ((error as { code?: string }).code !== 'permission-denied') console.error('regional churches snapshot error:', error);
+        setChurchesLoading(false);
       }
     );
 
     return () => unsub();
   }, [regionId]);
+
+  useEffect(() => {
+    if (churchesLoading) return;
+
+    const churchIds = churches.map((church) => church.id);
+
+    if (churchIds.length === 0) {
+      setUsers([]);
+      setUsersLoading(false);
+      return;
+    }
+
+    let active = true;
+
+    const loadUsers = async () => {
+      setUsersLoading(true);
+
+      try {
+        const regionUsers = await getUsersByChurchIds(churchIds);
+        if (!active) return;
+        setUsers(regionUsers as RegionalUser[]);
+      } catch (error) {
+        console.error('regional users load error:', error);
+        if (active) setUsers([]);
+      } finally {
+        if (active) setUsersLoading(false);
+      }
+    };
+
+    loadUsers();
+
+    return () => {
+      active = false;
+    };
+  }, [churches, churchesLoading]);
 
     // Block unauthorized access
     if (permLoading) {
@@ -63,11 +113,11 @@ export default function RegionalUsersPage() {
         </p>
       </div>
 
-      {loading && (
+      {(churchesLoading || usersLoading) && (
         <div className="text-muted-foreground">Loading users…</div>
       )}
 
-      {!loading && users.length === 0 && (
+      {!churchesLoading && !usersLoading && users.length === 0 && (
         <div className="text-muted-foreground">
           No users found in your region.
         </div>
