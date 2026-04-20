@@ -7,7 +7,7 @@ import { usePermissions } from '@/app/hooks/usePermissions';
 import { Card } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/app/hooks/use-toast';
-import { collection, query, where, onSnapshot, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 
 export default function PendingChurchesPage() {
   const { regionId, isRegionalAdmin, user, loading: permLoading } = usePermissions();
@@ -42,38 +42,21 @@ export default function PendingChurchesPage() {
   }, [regionId]);
 
   async function handleApprove(churchId: string) {
-    if (!user?.uid) return;
+    const res = await fetch("/api/church-approval/approve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ churchId }),
+      credentials: "include",
+    });
 
-    // Load the church to get regionSelectedId
-    const churchRef = doc(db, "churches", churchId);
-    const churchSnap = await getDoc(churchRef);
-
-    if (!churchSnap.exists()) return;
-
-    const data = churchSnap.data();
-    const selected = data.regionSelectedId;
-
-    if (!selected) {
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
       toast({
         title: "Error",
-        description: "No regionSelectedId found on church.",
+        description: data.error ?? "Could not approve church.",
       });
       return;
     }
-
-    // 1. Update the church document
-    await updateDoc(churchRef, {
-      regionId: selected,
-      regionSelectedId: null,
-      regionStatus: "approved",
-      updatedAt: new Date(),
-    });
-
-    // 2. Grant Regional Admin read‑only access to this church
-    await updateDoc(doc(db, "users", user.uid), {
-      [`rolesByChurch.${churchId}`]: ["ChurchAuditor"],
-      managedChurchIds: arrayUnion(churchId),
-    });
 
     toast({
       title: "Church Approved",
