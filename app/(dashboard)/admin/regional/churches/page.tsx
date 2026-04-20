@@ -70,7 +70,7 @@ export default function RegionalChurchesPage() {
               hover:-translate-y-1
             "
           >
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:text-left">
               {/* Logo */}
               <div className="flex-shrink-0">
                 {church.logoUrl ? (
@@ -95,7 +95,7 @@ export default function RegionalChurchesPage() {
               </div>
 
               {/* Church Info */}
-              <div className="flex flex-col min-w-0 space-y-1">
+              <div className="flex min-w-0 flex-col space-y-1">
                 <h2 className="text-lg font-semibold truncate">{church.name}</h2>
 
                 {(church.leaderTitle || church.leaderName) && (
