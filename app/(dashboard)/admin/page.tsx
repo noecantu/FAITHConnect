@@ -4,6 +4,7 @@ import AdminHomeClient from "./AdminHomeClient";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/app/lib/auth/server/getCurrentUser";
 import { can } from "@/app/lib/auth/permissions";
+import { countPresentAttendanceEntries } from "@/app/lib/attendance-count";
 
 export default async function AdminHomePage() {
   // 1. Get the logged-in user
@@ -26,9 +27,17 @@ export default async function AdminHomePage() {
     .get();
 
   const eventsSnap = await adminDb.collectionGroup("events").count().get();
-  const checkinsSnap = await adminDb.collectionGroup("checkins").count().get();
+  const attendanceSnap = await adminDb
+    .collectionGroup("attendance")
+    .select("records", "visitors")
+    .get();
   const musicItemsSnap = await adminDb.collectionGroup("songs").count().get();
   const setlistsSnap = await adminDb.collectionGroup("setlists").count().get();
+
+  const checkinCount = attendanceSnap.docs.reduce(
+    (total, docSnap) => total + countPresentAttendanceEntries(docSnap.data()),
+    0
+  );
 
   const churchesLeaderDataSnap = await adminDb
     .collection("churches")
@@ -55,7 +64,7 @@ export default async function AdminHomePage() {
       userCount={usersSnap.data().count ?? 0}
       adminCount={adminsSnap.data().count ?? 0}
       eventCount={eventsSnap.data().count ?? 0}
-      checkinCount={checkinsSnap.data().count ?? 0}
+      checkinCount={checkinCount}
       musicItemCount={musicItemsSnap.data().count ?? 0}
       setlistCount={setlistsSnap.data().count ?? 0}
       churchLeaderCount={churchLeaderCount}

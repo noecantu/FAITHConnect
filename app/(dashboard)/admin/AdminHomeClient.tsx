@@ -84,7 +84,7 @@ export default function AdminHomeClient({
           <Card>
           <CardHeader>
             <CardTitle>Events</CardTitle>
-            <CardDescription>Events across all churches.</CardDescription>
+            <CardDescription>Events: all churches.</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold">{eventCount}</p>
@@ -94,7 +94,7 @@ export default function AdminHomeClient({
         <Card>
           <CardHeader>
             <CardTitle>Check-ins</CardTitle>
-            <CardDescription>All attendance check-ins.</CardDescription>
+            <CardDescription>Attendance: all churches.</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold">{checkinCount}</p>
