@@ -81,150 +81,160 @@ export default function ChurchAdminDashboard() {
 
     async function load() {
       setLoading(true);
+      try {
+        // ---------------------------
+        // Compute week range FIRST
+        // ---------------------------
+        const now = new Date();
+        const day = now.getDay();
+        const diffToMonday = day === 0 ? -6 : 1 - day;
 
-      // ---------------------------
-      // Compute week range FIRST
-      // ---------------------------
-      const now = new Date();
-      const day = now.getDay();
-      const diffToMonday = day === 0 ? -6 : 1 - day;
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() + diffToMonday);
+        startOfWeek.setHours(0, 0, 0, 0);
 
-      const startOfWeek = new Date(now);
-      startOfWeek.setDate(now.getDate() + diffToMonday);
-      startOfWeek.setHours(0, 0, 0, 0);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
 
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-      endOfWeek.setHours(23, 59, 59, 999);
+        // ---------------------------
+        // 1. Load church document
+        // ---------------------------
+        const churchRef = doc(db, "churches", churchId as string);
+        const churchSnap = await getDoc(churchRef);
 
-      // ---------------------------
-      // 1. Load church document
-      // ---------------------------
-      const churchRef = doc(db, "churches", churchId as string);
-      const churchSnap = await getDoc(churchRef);
-
-      if (!churchSnap.exists()) {
-        setLoading(false);
-        return;
-      }
-
-      const churchData = churchSnap.data() as Church;
-      setChurch(churchData);
-
-      if (churchData.status === "disabled") {
-        setLoading(false);
-        return;
-      }
-
-      // ---------------------------
-      // 2. Members count
-      // ---------------------------
-      const membersRef = collection(
-        db,
-        "churches",
-        churchId as string,
-        "members"
-      );
-
-      const membersQuery = query(
-        membersRef,
-        where("status", "!=", "Archived")
-      );
-
-      const membersSnap = await getDocs(membersQuery);
-      setMemberCount(membersSnap.size);
-
-
-      // ---------------------------
-      // 3. Upcoming Services
-      // ---------------------------
-      const todayIso = new Date().toISOString().slice(0, 10);
-
-      const servicesRef = collection(
-        db,
-        "churches",
-        churchId as string,
-        "servicePlans"
-      );
-
-      const servicesQuery = query(
-        servicesRef,
-        where("dateString", ">=", todayIso)
-      );
-
-      const servicesSnap = await getDocs(servicesQuery);
-      setServiceCount(servicesSnap.size);
-
-      // ---------------------------
-      // 4. Events This Week
-      // ---------------------------
-      const eventsRef = collection(
-        db,
-        "churches",
-        churchId as string,
-        "events"
-      );
-
-      const eventsQuery = query(
-        eventsRef,
-        where("date", ">=", startOfWeek),
-        where("date", "<=", endOfWeek)
-      );
-
-      const eventsSnap = await getDocs(eventsQuery);
-      setEventCount(eventsSnap.size);
-
-      // ---------------------------
-      // 5. Attendance This Week
-      // ---------------------------
-      const attendanceRef = collection(
-        db,
-        "churches",
-        churchId as string,
-        "attendance"
-      );
-
-      const startIso = startOfWeek.toISOString().slice(0, 10);
-      const endIso = endOfWeek.toISOString().slice(0, 10);
-
-      const attendanceQuery = query(
-        attendanceRef,
-        where("__name__", ">=", startIso),
-        where("__name__", "<=", endIso)
-      );
-
-      const attendanceSnap = await getDocs(attendanceQuery);
-
-      let totalPresent = 0;
-
-      attendanceSnap.forEach((docSnap) => {
-        const data = docSnap.data();
-
-        const recordCount =
-          data.records && typeof data.records === "object"
-            ? Object.keys(data.records).filter(
-                (id) => data.records[id] === true
-              ).length
-            : 0;
-
-        let visitorCount = 0;
-
-        if (typeof data.visitors === "number") {
-          visitorCount = data.visitors;
-        } else if (
-          data.visitors &&
-          typeof data.visitors === "object" &&
-          !Array.isArray(data.visitors)
-        ) {
-          visitorCount = Object.keys(data.visitors).length;
+        if (!churchSnap.exists()) {
+          return;
         }
 
-        totalPresent += recordCount + visitorCount;
-      });
+        const churchData = churchSnap.data() as Church;
+        setChurch(churchData);
 
-      setAttendanceThisWeek(totalPresent);
+        if (churchData.status === "disabled") {
+          return;
+        }
 
-      setLoading(false);
+        // ---------------------------
+        // 2. Members count
+        // ---------------------------
+        const membersRef = collection(
+          db,
+          "churches",
+          churchId as string,
+          "members"
+        );
+
+        const membersQuery = query(
+          membersRef,
+          where("status", "!=", "Archived")
+        );
+
+        const membersSnap = await getDocs(membersQuery);
+        setMemberCount(membersSnap.size);
+
+
+        // ---------------------------
+        // 3. Upcoming Services
+        // ---------------------------
+        const todayIso = new Date().toISOString().slice(0, 10);
+
+        const servicesRef = collection(
+          db,
+          "churches",
+          churchId as string,
+          "servicePlans"
+        );
+
+        const servicesQuery = query(
+          servicesRef,
+          where("dateString", ">=", todayIso)
+        );
+
+        const servicesSnap = await getDocs(servicesQuery);
+        setServiceCount(servicesSnap.size);
+
+        // ---------------------------
+        // 4. Events This Week
+        // ---------------------------
+        const eventsRef = collection(
+          db,
+          "churches",
+          churchId as string,
+          "events"
+        );
+
+        const eventsQuery = query(
+          eventsRef,
+          where("date", ">=", startOfWeek),
+          where("date", "<=", endOfWeek)
+        );
+
+        const eventsSnap = await getDocs(eventsQuery);
+        setEventCount(eventsSnap.size);
+
+        // ---------------------------
+        // 5. Attendance This Week
+        // ---------------------------
+        const attendanceRef = collection(
+          db,
+          "churches",
+          churchId as string,
+          "attendance"
+        );
+
+        const startIso = startOfWeek.toISOString().slice(0, 10);
+        const endIso = endOfWeek.toISOString().slice(0, 10);
+
+        const attendanceQuery = query(
+          attendanceRef,
+          where("__name__", ">=", startIso),
+          where("__name__", "<=", endIso)
+        );
+
+        const attendanceSnap = await getDocs(attendanceQuery);
+
+        let totalPresent = 0;
+
+        attendanceSnap.forEach((docSnap) => {
+          const data = docSnap.data();
+
+          const recordCount =
+            data.records && typeof data.records === "object"
+              ? Object.keys(data.records).filter(
+                  (id) => data.records[id] === true
+                ).length
+              : 0;
+
+          let visitorCount = 0;
+
+          if (typeof data.visitors === "number") {
+            visitorCount = data.visitors;
+          } else if (
+            data.visitors &&
+            typeof data.visitors === "object" &&
+            !Array.isArray(data.visitors)
+          ) {
+            visitorCount = Object.keys(data.visitors).length;
+          }
+
+          totalPresent += recordCount + visitorCount;
+        });
+
+        setAttendanceThisWeek(totalPresent);
+      } catch (error: unknown) {
+        const code =
+          typeof error === "object" && error !== null && "code" in error
+            ? String((error as { code?: unknown }).code)
+            : "";
+
+        // Initial login can briefly race claim/session propagation.
+        // Avoid noisy console errors for expected transient denials.
+        if (code !== "permission-denied") {
+          console.error("Error loading church admin dashboard:", error);
+        }
+      } finally {
+        setLoading(false);
+      }
     }
 
     load();

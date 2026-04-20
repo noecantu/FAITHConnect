@@ -53,31 +53,58 @@ export function useAuth() {
         return;
       }
 
-      const userRef = doc(db, "users", firebaseUser.uid);
-      const snap = await getDoc(userRef);
+      try {
+        let firestoreData: Record<string, unknown> = {};
+        let firestoreExists = false;
 
-      if (!snap.exists()) {
-        setUser(null);
+        try {
+          const userRef = doc(db, "users", firebaseUser.uid);
+          const snap = await getDoc(userRef);
+          firestoreExists = snap.exists();
+          if (firestoreExists) {
+            firestoreData = snap.data() as Record<string, unknown>;
+          }
+        } catch (error: unknown) {
+          const code =
+            typeof error === "object" && error !== null && "code" in error
+              ? String((error as { code?: unknown }).code)
+              : "";
+
+          if (code !== "permission-denied") {
+            console.error("useAuth Firestore profile read failed:", error);
+          }
+        }
+
+        let serverData: Record<string, unknown> = {};
+        try {
+          const res = await fetch("/api/users/me");
+          if (res.ok) {
+            serverData = (await res.json()) as Record<string, unknown>;
+          }
+        } catch (error) {
+          console.error("useAuth server profile fetch failed:", error);
+        }
+
+        // Prefer server payload, then firestore payload, then auth payload.
+        // This avoids hard-failing during initial login claim propagation.
+        const mergedUser = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email ?? "",
+          ...firestoreData,
+          ...serverData,
+        };
+
+        const hasProfileData =
+          firestoreExists ||
+          Boolean(serverData.uid) ||
+          Boolean(serverData.email) ||
+          Boolean(firestoreData.email);
+
+        setUser(hasProfileData ? (mergedUser as AppUser) : null);
+      } finally {
         clearLogoutTransition();
         setLoading(false);
-        return;
       }
-
-      const firestoreData = snap.data();
-
-      const res = await fetch("/api/users/me");
-      const serverData = res.ok ? await res.json() : {};
-
-      const mergedUser = {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email ?? "",
-        ...firestoreData,
-        ...serverData,
-      };
-
-      setUser(mergedUser);
-      clearLogoutTransition();
-      setLoading(false);
     });
 
     return () => unsubscribeAuth();
