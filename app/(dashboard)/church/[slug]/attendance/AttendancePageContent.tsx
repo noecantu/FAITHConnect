@@ -1,7 +1,7 @@
 //app/(dashboard)/AttendancePageContent.tsx
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, useParams } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { format } from "date-fns";
 import { PageHeader } from "@/app/components/page-header";
@@ -28,6 +28,8 @@ import { useCan } from "@/app/hooks/useCan";import { useAuth } from '@/app/hooks
 
 export default function AttendancePageContent() {
   const searchParams = useSearchParams();
+  const params = useParams();
+  const routeSlug = String(params?.slug ?? "");
   const urlDate = searchParams.get("date");
 
   function parseLocalDate(dateString: string): Date {
@@ -42,6 +44,7 @@ export default function AttendancePageContent() {
   const router = useRouter();
   const { toast } = useToast();
   const { churchId } = useChurchId();
+  const attendancePath = routeSlug ? `/church/${routeSlug}/attendance` : "/attendance";
 
   const [visitorName, setVisitorName] = useState("");
   const [qrUrl, setQrUrl] = useState<string | null>(null);
@@ -227,7 +230,7 @@ export default function AttendancePageContent() {
             const newDate = new Date(year, month - 1, day)
 
             setDate(newDate)
-            router.push(`/attendance?date=${value}`)
+            router.push(`${attendancePath}?date=${value}`)
           }}
           className="
             w-full sm:w-[150px]
@@ -244,7 +247,7 @@ export default function AttendancePageContent() {
           onClick={() => {
             const today = new Date();
             setDate(today);
-            router.push(`/attendance?date=${format(today, "yyyy-MM-dd")}`);
+            router.push(`${attendancePath}?date=${format(today, "yyyy-MM-dd")}`);
           }}
           className="w-full sm:w-auto bg-black/80 border border-white/20 backdrop-blur-xl"
         >
@@ -368,7 +371,7 @@ export default function AttendancePageContent() {
       {mode === "history" && canEdit && (
         <Button
           onClick={() =>
-            router.push(`/attendance?date=${selectedString}&correcting=true`)
+            router.push(`${attendancePath}?date=${selectedString}&correcting=true`)
           }
           className="w-full bg-blue-700/60 hover:bg-blue-800/60 text-white/80"
         >
@@ -418,7 +421,7 @@ export default function AttendancePageContent() {
             await save();
 
             if (mode === "correction") {
-              router.push(`/attendance?date=${selectedString}`);
+              router.push(`${attendancePath}?date=${selectedString}`);
             }
 
             toast({ title: "Attendance Saved" });
