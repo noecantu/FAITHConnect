@@ -30,11 +30,18 @@ export default async function AdminHomePage() {
   const musicItemsSnap = await adminDb.collectionGroup("songs").count().get();
   const setlistsSnap = await adminDb.collectionGroup("setlists").count().get();
 
-  const pastorsSnap = await adminDb
-    .collection("users")
-    .where("roles", "array-contains", "Pastor")
-    .count()
+  const churchesLeaderDataSnap = await adminDb
+    .collection("churches")
+    .select("leaderName", "leaderTitle")
     .get();
+
+  const churchLeaderCount = churchesLeaderDataSnap.docs.reduce((count, docSnap) => {
+    const data = docSnap.data() as { leaderName?: unknown; leaderTitle?: unknown };
+    const hasLeaderName = typeof data.leaderName === "string" && data.leaderName.trim().length > 0;
+    const hasLeaderTitle = typeof data.leaderTitle === "string" && data.leaderTitle.trim().length > 0;
+
+    return hasLeaderName || hasLeaderTitle ? count + 1 : count;
+  }, 0);
 
   const financeSnap = await adminDb
     .collection("users")
@@ -51,7 +58,7 @@ export default async function AdminHomePage() {
       checkinCount={checkinsSnap.data().count ?? 0}
       musicItemCount={musicItemsSnap.data().count ?? 0}
       setlistCount={setlistsSnap.data().count ?? 0}
-      pastorCount={pastorsSnap.data().count ?? 0}
+      churchLeaderCount={churchLeaderCount}
       financeCount={financeSnap.data().count ?? 0}
     />
   );

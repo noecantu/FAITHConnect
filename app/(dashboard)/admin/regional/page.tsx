@@ -324,7 +324,7 @@ export default function RegionalDashboardPage() {
             </div>
           </div>
           <p className="text-3xl font-bold mt-2">{generalAttendanceCount}</p>
-          <p className="text-xs text-muted-foreground mt-1 opacity-70">Current week total</p>
+          <p className="text-xs text-muted-foreground mt-1 opacity-70">Current week count</p>
         </div>
       </div>
 

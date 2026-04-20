@@ -17,7 +17,7 @@ export default function AdminHomeClient({
   checkinCount,
   musicItemCount,
   setlistCount,
-  pastorCount,
+  churchLeaderCount,
   financeCount,
 }: {
   churchCount: number;
@@ -27,7 +27,7 @@ export default function AdminHomeClient({
   checkinCount: number;
   musicItemCount: number;
   setlistCount: number;
-  pastorCount: number;
+  churchLeaderCount: number;
   financeCount: number;
 }) {
   const renderStat = (value: number | null) => {
@@ -54,7 +54,7 @@ export default function AdminHomeClient({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Total Churches</CardTitle>
+              <CardTitle>Churches</CardTitle>
               <CardDescription>All churches in the system.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -64,8 +64,8 @@ export default function AdminHomeClient({
 
           <Card>
             <CardHeader>
-              <CardTitle>Total Users</CardTitle>
-              <CardDescription>All users across all churches.</CardDescription>
+              <CardTitle>Users</CardTitle>
+              <CardDescription>Users across all churches.</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-4xl font-bold">{renderStat(userCount)}</p>
@@ -74,7 +74,7 @@ export default function AdminHomeClient({
 
           <Card>
             <CardHeader>
-              <CardTitle>Total Admins</CardTitle>
+              <CardTitle>Admins</CardTitle>
               <CardDescription>Church Administrators</CardDescription>
             </CardHeader>
             <CardContent>
@@ -83,8 +83,8 @@ export default function AdminHomeClient({
           </Card>
           <Card>
           <CardHeader>
-            <CardTitle>Total Events</CardTitle>
-            <CardDescription>All events across all churches.</CardDescription>
+            <CardTitle>Events</CardTitle>
+            <CardDescription>Events across all churches.</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold">{eventCount}</p>
@@ -93,7 +93,7 @@ export default function AdminHomeClient({
 
         <Card>
           <CardHeader>
-            <CardTitle>Total Check-ins</CardTitle>
+            <CardTitle>Check-ins</CardTitle>
             <CardDescription>All attendance check-ins.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -103,7 +103,7 @@ export default function AdminHomeClient({
 
         <Card>
           <CardHeader>
-            <CardTitle>Total Music Items</CardTitle>
+            <CardTitle>Music Items</CardTitle>
             <CardDescription>All songs in the system.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -113,7 +113,7 @@ export default function AdminHomeClient({
 
         <Card>
           <CardHeader>
-            <CardTitle>Total Setlists</CardTitle>
+            <CardTitle>Setlists</CardTitle>
             <CardDescription>All worship setlists.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -123,17 +123,17 @@ export default function AdminHomeClient({
 
         <Card>
           <CardHeader>
-            <CardTitle>Total Pastors</CardTitle>
-            <CardDescription>Users with the Pastor role.</CardDescription>
+            <CardTitle>Church Leaders</CardTitle>
+            <CardDescription>Churches with leader info.</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">{pastorCount}</p>
+            <p className="text-4xl font-bold">{churchLeaderCount}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Total Finance Managers</CardTitle>
+            <CardTitle>Finance Managers</CardTitle>
             <CardDescription>Users with the Finance role.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -189,7 +189,7 @@ export default function AdminHomeClient({
             <Card className="p-6 hover:shadow-md transition cursor-pointer">
               <CardTitle className="text-xl mb-2">Platform Health</CardTitle>
               <CardDescription>
-                System performance, usage metrics, and operational health.
+                Performance, Metrics, and Health.
               </CardDescription>
             </Card>
           </Link>
