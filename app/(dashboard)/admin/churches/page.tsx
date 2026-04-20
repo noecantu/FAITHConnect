@@ -8,25 +8,14 @@ import {
   query,
   orderBy,
   limit,
-  startAfter,
   getDocs,
-} from "firebase/firestore";
-
-import type {
-  QueryDocumentSnapshot,
-  DocumentData,
 } from "firebase/firestore";
 
 import Link from "next/link";
 import { Input } from "@/app/components/ui/input";
-import { Button } from "@/app/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/app/components/ui/card";
+import { Card, CardContent } from "@/app/components/ui/card";
 import { PageHeader } from "@/app/components/page-header";
+
 import {
   Select,
   SelectTrigger,
@@ -45,77 +34,13 @@ export default function GlobalChurchListPage() {
   // STATE
   // -----------------------------
   const [churches, setChurches] = useState<Church[]>([]);
-
-  const [lastDoc, setLastDoc] =
-    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
-
-  const [firstDoc, setFirstDoc] =
-    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
-
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
   const [sortField, setSortField] = useState<"name" | "createdAt">("name");
 
   // -----------------------------
-  // LOAD NEXT PAGE
-  // -----------------------------
-  async function loadNext() {
-    if (!lastDoc) return;
-
-    setLoading(true);
-
-    const ref = collection(db, "churches");
-    const q = query(
-      ref,
-      orderBy(sortField),
-      startAfter(lastDoc),
-      limit(PAGE_SIZE)
-    );
-
-    const snap = await getDocs(q);
-
-    const docs = snap.docs.map((d) => {
-      const { id: _ignored, ...rest } = d.data() as Church;
-      return { id: d.id, ...rest };
-    });
-
-    if (docs.length > 0) {
-      setChurches(docs);
-      setFirstDoc(snap.docs[0] || null);
-      setLastDoc(snap.docs[snap.docs.length - 1] || null);
-    }
-
-    setLoading(false);
-  }
-
-  // -----------------------------
-  // LOAD PREVIOUS PAGE
-  // -----------------------------
-  async function loadPrevious() {
-    if (!firstDoc) return;
-
-    setLoading(true);
-
-    const ref = collection(db, "churches");
-    const q = query(ref, orderBy(sortField), limit(PAGE_SIZE));
-
-    const snap = await getDocs(q);
-
-    setChurches(
-      snap.docs.map((d) => {
-        const { id: _ignored, ...rest } = d.data() as Church;
-        return { id: d.id, ...rest };
-      })
-    );
-    setFirstDoc(snap.docs[0] || null);
-    setLastDoc(snap.docs[snap.docs.length - 1] || null);
-
-    setLoading(false);
-  }
-
-  // -----------------------------
-  // EFFECT — RELOAD ON SORT CHANGE
+  // LOAD INITIAL DATA
   // -----------------------------
   useEffect(() => {
     async function loadInitial() {
@@ -132,9 +57,6 @@ export default function GlobalChurchListPage() {
       });
 
       setChurches(docs);
-      setFirstDoc(snap.docs[0] || null);
-      setLastDoc(snap.docs[snap.docs.length - 1] || null);
-
       setLoading(false);
     }
 
@@ -163,39 +85,34 @@ export default function GlobalChurchListPage() {
 
       {/* Search + Sort */}
       <div className="flex flex-col md:flex-row md:items-center gap-4 w-full">
-        <div className="flex-1">
-          <Input
-            placeholder="Search churches..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full"
-          />
-        </div>
+        <Input
+          placeholder="Search churches..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1"
+        />
 
-        <div className="w-full md:w-48">
-          <Select
-            value={sortField}
-            onValueChange={(v) =>
-              setSortField(v as "name" | "createdAt")
-            }
+        <Select
+          value={sortField}
+          onValueChange={(v) => setSortField(v as "name" | "createdAt")}
+        >
+          <SelectTrigger
+            className="
+              w-[140px] h-9
+              bg-black/80 border border-white/20 backdrop-blur-xl
+              text-white/80
+              hover:bg-white/5 hover:border-white/20
+              transition
+            "
           >
-            <SelectTrigger
-              className="
-                w-[140px] h-9
-                bg-black/80 border border-white/20 backdrop-blur-xl
-                text-white/80
-                hover:bg-white/5 hover:border-white/20
-                transition
-              "
-            >
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">Sort by Name</SelectItem>
-              <SelectItem value="createdAt">Sort by Created Date</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+
+          <SelectContent>
+            <SelectItem value="name">Sort by Name</SelectItem>
+            <SelectItem value="createdAt">Sort by Created Date</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Church Grid */}
@@ -237,7 +154,9 @@ export default function GlobalChurchListPage() {
 
                   {/* Church Info */}
                   <div className="flex flex-col min-w-0 space-y-1">
-                    <h2 className="text-lg font-semibold truncate">{church.name}</h2>
+                    <h2 className="text-lg font-semibold truncate">
+                      {church.name}
+                    </h2>
 
                     {(church.leaderTitle || church.leaderName) && (
                       <p className="text-sm text-muted-foreground truncate">
@@ -262,10 +181,13 @@ export default function GlobalChurchListPage() {
                       Created:{" "}
                       {church.createdAt
                         ? (() => {
-                            const value = church.createdAt as Date | { seconds: number };
+                            const value =
+                              church.createdAt as Date | { seconds: number };
 
-                            if (value && "seconds" in value) {
-                              return new Date(value.seconds * 1000).toLocaleDateString();
+                            if ("seconds" in value) {
+                              return new Date(
+                                value.seconds * 1000
+                              ).toLocaleDateString();
                             }
 
                             if (value instanceof Date) {
