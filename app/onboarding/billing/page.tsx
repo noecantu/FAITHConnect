@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/app/hooks/use-toast";
 import { Button } from "@/app/components/ui/button";
@@ -14,7 +14,19 @@ export default function BillingPage() {
 
   const plan = searchParams.get("plan");
 
+  useEffect(() => {
+    if (!plan) {
+      toast({
+        title: "Missing Plan",
+        description: "Please choose a plan before billing.",
+      });
+      router.replace("/onboarding/choose-plan");
+    }
+  }, [plan, router, toast]);
+
   const handleCheckout = async () => {
+    if (!plan) return;
+
     setIsLoading(true);
 
     try {
@@ -84,7 +96,7 @@ export default function BillingPage() {
 
         <Button
           onClick={handleCheckout}
-          disabled={isLoading}
+          disabled={isLoading || !plan}
           className="w-full bg-blue-600 hover:bg-blue-700 py-6 text-lg rounded-xl shadow-lg shadow-blue-600/20"
         >
           {isLoading ? "Redirecting..." : "Proceed to Checkout"}

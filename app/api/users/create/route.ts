@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { adminDb } from "@/app/lib/firebase/admin";
+import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
 import admin from "firebase-admin";
 
 export async function POST(req: Request) {
@@ -14,6 +14,10 @@ export async function POST(req: Request) {
       firstName,
       lastName,
       token,
+      roles,
+      plan,
+      onboardingStep,
+      onboardingComplete,
     } = body;
 
     if (!uid || !email || !token) {
@@ -21,6 +25,44 @@ export async function POST(req: Request) {
         { error: "Missing required fields: uid, email, or token" },
         { status: 400 }
       );
+    }
+
+    const baseProfile: Record<string, any> = {
+      id: uid,
+      email,
+      firstName: firstName || "",
+      lastName: lastName || "",
+      churchId: null,
+      createdAt: new Date(),
+      onboardingStep: onboardingStep ?? "billing",
+      onboardingComplete:
+        typeof onboardingComplete === "boolean" ? onboardingComplete : false,
+      roles: Array.isArray(roles) && roles.length > 0 ? roles : ["Admin"],
+      planId: plan ?? null,
+    };
+
+    if (!token) {
+      const cookieHeader = req.headers.get("cookie") || "";
+      const match = cookieHeader.match(/session=([^;]+)/);
+      const sessionCookie = match?.[1];
+
+      if (!sessionCookie) {
+        return NextResponse.json(
+          { error: "Not authenticated" },
+          { status: 401 }
+        );
+      }
+
+      const decoded = await adminAuth.verifySessionCookie(sessionCookie, true);
+      if (decoded.uid !== uid) {
+        return NextResponse.json(
+          { error: "Authenticated user mismatch." },
+          { status: 403 }
+        );
+      }
+
+      await adminDb.collection("users").doc(uid).set(baseProfile, { merge: true });
+      return NextResponse.json({ success: true });
     }
 
     // 1. Validate signup token
@@ -60,13 +102,7 @@ export async function POST(req: Request) {
     // 2. Create user profile
     await adminDb.collection("users").doc(uid).set(
       {
-        id: uid,
-        email,
-        firstName: firstName || "",
-        lastName: lastName || "",
-        roles: [],
-        churchId: null,
-        createdAt: new Date(),
+        ...baseProfile,
         planId: tokenData.planId ?? null,
         stripeCustomerId: tokenData.customerId ?? null,
         stripeSubscriptionId: tokenData.subscriptionId ?? null,

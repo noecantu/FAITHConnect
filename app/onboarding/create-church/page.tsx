@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
@@ -19,11 +19,58 @@ import { ArrowLeft } from "lucide-react";
 export default function CreateChurchPage() {
   const [churchName, setChurchName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [healing, setHealing] = useState(true);
+  const [healFailed, setHealFailed] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
+  useEffect(() => {
+    let isActive = true;
+
+    const healOnboardingState = async () => {
+      try {
+        const res = await fetch("/api/users/update-onboarding-step", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            onboardingStep: "create-church",
+            onboardingComplete: false,
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error("Unable to restore onboarding state.");
+        }
+
+        if (!isActive) return;
+        setHealFailed(false);
+      } catch (error) {
+        console.error(error);
+
+        if (!isActive) return;
+
+        setHealFailed(true);
+        toast({
+          title: "Unable to continue setup",
+          description: "We couldn't restore your onboarding session. Please return to billing and try again.",
+          variant: "destructive",
+        });
+      } finally {
+        if (isActive) setHealing(false);
+      }
+    };
+
+    healOnboardingState();
+
+    return () => {
+      isActive = false;
+    };
+  }, [toast]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (healing || healFailed) return;
     setLoading(true);
 
     try {
@@ -103,6 +150,28 @@ export default function CreateChurchPage() {
             Enter your church name. This will be used across your dashboard and reports.
           </p>
 
+          {healing && (
+            <p className="text-sm text-white/60 text-center mb-6">
+              Restoring your onboarding session...
+            </p>
+          )}
+
+          {healFailed && (
+            <div className="mb-6 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
+              We couldn&apos;t restore your onboarding session automatically.
+              <div className="mt-3 flex justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="bg-black/80 border-white/20 text-white/80 hover:bg-white/5"
+                  onClick={() => router.replace("/onboarding/billing")}
+                >
+                  Return to Billing
+                </Button>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="churchName" className="text-zinc-300">
@@ -113,6 +182,7 @@ export default function CreateChurchPage() {
                 value={churchName}
                 onChange={(e) => setChurchName(e.target.value)}
                 required
+                disabled={healing || healFailed || loading}
                 placeholder="e.g. Grace Fellowship Church"
                 className="bg-black/80 border-white/20 text-white"
               />
@@ -121,9 +191,9 @@ export default function CreateChurchPage() {
             <Button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg text-lg shadow-lg shadow-blue-600/20"
-              disabled={loading}
+              disabled={loading || healing || healFailed}
             >
-              {loading ? "Creating..." : "Create Church"}
+              {healing ? "Preparing..." : loading ? "Creating..." : "Create Church"}
             </Button>
           </form>
         </CardContent>

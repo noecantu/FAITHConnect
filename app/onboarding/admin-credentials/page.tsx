@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/app/lib/firebase/client";
 import {
   Card,
@@ -31,31 +31,39 @@ export default function AdminCredentialsPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+
+    if (isLoading) return;
 
     if (!plan) {
       toast({
         title: "Missing Plan",
         description: "Please choose a plan first.",
+        variant: "destructive",
       });
-      router.replace("/onboarding");
+      router.replace("/onboarding/choose-plan");
       return;
     }
 
-    if (password !== confirmPassword) {
+    const normalizedEmail = email.trim();
+    const normalizedPassword = password;
+    const normalizedConfirmPassword = confirmPassword;
+
+    if (normalizedPassword !== normalizedConfirmPassword) {
       toast({
         title: "Passwords do not match",
         description: "Please make sure both passwords are identical.",
+        variant: "destructive",
       });
-      setIsLoading(false);
       return;
     }
+
+    setIsLoading(true);
 
     try {
       const { user } = await createUserWithEmailAndPassword(
         auth,
-        email.trim(),
-        password
+        normalizedEmail,
+        normalizedPassword
       );
 
       const idToken = await user.getIdToken(true);
@@ -66,12 +74,12 @@ export default function AdminCredentialsPage() {
         body: JSON.stringify({ idToken }),
       });
 
-      await fetch("/api/users/create", {
+      const createProfileRes = await fetch("/api/users/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           uid: user.uid,
-          email,
+          email: normalizedEmail,
           firstName,
           lastName,
           roles: ["Admin"],
@@ -81,6 +89,11 @@ export default function AdminCredentialsPage() {
           onboardingComplete: false,
         }),
       });
+
+      if (!createProfileRes.ok) {
+        const data = await createProfileRes.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to initialize onboarding profile.");
+      }
 
       toast({
         title: "Account Created",
@@ -92,19 +105,52 @@ export default function AdminCredentialsPage() {
       console.error("Signup error:", error);
 
       if (error.code === "auth/email-already-in-use") {
-        toast({
-          title: "Account already exists",
-          description: "Try logging in instead.",
-          action: (
-            <Button onClick={() => router.push("/login")}>
-              Go to Login
-            </Button>
-          ),
-        });
+        try {
+          const { user } = await signInWithEmailAndPassword(
+            auth,
+            normalizedEmail,
+            normalizedPassword
+          );
+
+          const idToken = await user.getIdToken(true);
+
+          await fetch("/api/auth/session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idToken }),
+          });
+
+          await fetch("/api/users/update-onboarding-step", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              onboardingStep: "billing",
+              onboardingComplete: false,
+              planId: plan,
+            }),
+          });
+
+          toast({
+            title: "Account Found",
+            description: "Continuing onboarding from billing.",
+          });
+
+          router.replace(`/onboarding/billing?plan=${plan}`);
+        } catch {
+          toast({
+            title: "Account already exists",
+            description: "That email is already registered. Try logging in or reset your password.",
+            variant: "destructive",
+            action: (
+              <Button onClick={() => router.push("/login")}>Go to Login</Button>
+            ),
+          });
+        }
       } else {
         toast({
           title: "Signup Failed",
           description: "Unable to create your account.",
+          variant: "destructive",
         });
       }
     } finally {

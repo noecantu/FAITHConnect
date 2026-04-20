@@ -6,7 +6,31 @@ import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
 
 export async function POST(req: Request) {
   try {
-    const { onboardingStep, churchId, onboardingComplete } = await req.json();
+    const {
+      onboardingStep,
+      churchId,
+      onboardingComplete,
+      stripeCustomerId,
+      stripeSubscriptionId,
+      planId,
+    } = await req.json();
+
+    if (
+      onboardingStep &&
+      ![
+        "choose-plan",
+        "confirm-plan",
+        "admin-credentials",
+        "billing",
+        "create-church",
+        "done",
+      ].includes(onboardingStep)
+    ) {
+      return NextResponse.json(
+        { error: "Invalid onboarding step." },
+        { status: 400 }
+      );
+    }
 
     // Extract session cookie
     const cookieHeader = req.headers.get("cookie") || "";
@@ -28,6 +52,9 @@ export async function POST(req: Request) {
     const updateData: Record<string, any> = {};
     if (onboardingStep) updateData.onboardingStep = onboardingStep;
     if (churchId) updateData.churchId = churchId;
+    if (planId) updateData.planId = planId;
+    if (stripeCustomerId) updateData.stripeCustomerId = stripeCustomerId;
+    if (stripeSubscriptionId) updateData.stripeSubscriptionId = stripeSubscriptionId;
     if (typeof onboardingComplete === "boolean")
       updateData.onboardingComplete = onboardingComplete;
 
@@ -42,7 +69,20 @@ export async function POST(req: Request) {
     const userSnap = await userRef.get();
 
     if (!userSnap.exists) {
-      // Do NOT error — prevents onboarding crashes after Stripe
+      await userRef.set(
+        {
+          id: uid,
+          email: decoded.email ?? null,
+          firstName: null,
+          lastName: null,
+          roles: [],
+          churchId: null,
+          createdAt: new Date(),
+          ...updateData,
+        },
+        { merge: true }
+      );
+
       return NextResponse.json({ success: true });
     }
 

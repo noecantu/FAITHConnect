@@ -1,21 +1,45 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/app/hooks/use-toast";
 
 export default function BillingSuccessPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   useEffect(() => {
+    const sessionId = searchParams.get("session_id");
+    const plan = searchParams.get("plan");
+
     const updateStep = async () => {
       try {
+        if (!sessionId) {
+          throw new Error("Missing Stripe session id.");
+        }
+
+        const verifyRes = await fetch(`/api/stripe/verify?session_id=${encodeURIComponent(sessionId)}`);
+        if (!verifyRes.ok) throw new Error("Unable to verify payment.");
+
+        const verifyData = await verifyRes.json();
+        const isPaid =
+          verifyData.status === "paid" ||
+          verifyData.status === "no_payment_required";
+
+        if (!isPaid || !verifyData.subscription) {
+          throw new Error("Payment has not been completed.");
+        }
+
         const res = await fetch("/api/users/update-onboarding-step", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             onboardingStep: "create-church",
+            onboardingComplete: false,
+            stripeCustomerId: verifyData.customer ?? null,
+            stripeSubscriptionId: verifyData.subscription ?? null,
+            planId: plan ?? null,
           }),
         });
 
@@ -27,11 +51,18 @@ export default function BillingSuccessPage() {
           title: "Error",
           description: "Unable to continue onboarding.",
         });
+
+        const plan = searchParams.get("plan");
+        const fallbackPath = plan
+          ? `/onboarding/billing?plan=${encodeURIComponent(plan)}`
+          : "/onboarding/billing";
+
+        router.replace(fallbackPath);
       }
     };
 
     updateStep();
-  }, [router, toast]);
+  }, [router, searchParams, toast]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black flex flex-col items-center justify-center px-6 text-white">

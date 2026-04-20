@@ -28,7 +28,7 @@ export default function OnboardingGuard({ children }: { children: React.ReactNod
         const step = user.onboardingStep;
 
         const steps: Record<string, string> = {
-          "choose-plan": "/onboarding",
+          "choose-plan": "/onboarding/choose-plan",
           "confirm-plan": "/onboarding/confirm-plan",
           "admin-credentials": "/onboarding/admin-credentials",
           "billing": "/onboarding/billing",
