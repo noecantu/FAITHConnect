@@ -7,6 +7,8 @@ import type { Song } from "@/app/lib/types";
 import { useChurchId } from "@/app/hooks/useChurchId";
 import { getSectionColor } from "@/app/lib/sectionColors";
 import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/app/components/ui/button";
 
 export default function SongViewOnly({ songId }: { songId: string }) {
   const { churchId } = useChurchId();
@@ -30,13 +32,10 @@ export default function SongViewOnly({ songId }: { songId: string }) {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-semibold">{song.title}</h1>
 
-          {setlistId && (
-            <button
-              onClick={() => router.push(`/music/setlists/${setlistId}`)}
-              className="text-sm text-muted-foreground hover:text-white flex items-center gap-2"
-            >
-              ← Back
-            </button>
+          {setlistId && churchId && (
+            <Button asChild variant="outline" className="bg-black/80 border-white/20 text-white/80 hover:bg-white/5">
+              <Link href={`/church/${churchId}/music/setlists/${setlistId}`}>Back to Set List</Link>
+            </Button>
           )}
         </div>
 

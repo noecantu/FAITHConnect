@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { PageHeader } from '@/app/components/page-header';
 import { Card } from '@/app/components/ui/card';
@@ -91,13 +92,9 @@ export default function SetListDetailPage() {
       <div className="flex items-center justify-between">
         <PageHeader title={setList.title} subtitle={formattedDate} />
 
-        {/* FIXED BACK BUTTON */}
-        <button
-          onClick={() => router.push(`/church/${churchId}/music/setlists`)}
-          className="text-sm text-muted-foreground hover:text-white flex items-center gap-2"
-        >
-          ← Back
-        </button>
+        <Button asChild variant="outline" className="bg-black/80 border-white/20 text-white/80 hover:bg-white/5">
+          <Link href={`/church/${churchId}/music/setlists`}>Back to Set Lists</Link>
+        </Button>
       </div>
 
       {(setList.serviceType ||

@@ -1,9 +1,11 @@
 //app/components/service-plans/ServicePlanDetailView.tsx
 'use client';
 
+import Link from 'next/link';
 import { PageHeader } from '@/app/components/page-header';
 import { Card } from '@/app/components/ui/card';
 import { Fab } from '@/app/components/ui/fab';
+import { Button } from '@/app/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,12 +45,11 @@ export function ServicePlanDetailView({
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <PageHeader title={plan.title} subtitle={formattedDate} />
-            <button
-              onClick={() => router.push(`/church/${churchId}/service-plan`)}
-              className="text-sm text-muted-foreground hover:text-white flex items-center gap-2"
-            >
-              ← Back
-            </button>
+          {churchId && (
+            <Button asChild variant="outline" className="bg-black/80 border-white/20 text-white/80 hover:bg-white/5">
+              <Link href={`/church/${churchId}/service-plan`}>Back to Service Plans</Link>
+            </Button>
+          )}
         </div>
         <div className="space-y-6">
           {plan.sections.map((section) => {

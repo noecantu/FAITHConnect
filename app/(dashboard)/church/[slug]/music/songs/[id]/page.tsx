@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { PageHeader } from '@/app/components/page-header';
 import { Card } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
@@ -28,10 +29,17 @@ import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dial
 
 export default function SongDetailPage() {
   const { id } = useParams();
+  const routeParams = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { churchId } = useChurchId();
   const { canManageMusic } = usePermissions();
   const canEdit = canManageMusic;
+
+  const routeSlug = String(routeParams?.slug ?? '');
+  const setlistId = searchParams.get('setlist');
+  const songsBasePath = routeSlug ? `/church/${routeSlug}/music/songs` : '/music/songs';
+  const setlistsBasePath = routeSlug ? `/church/${routeSlug}/music/setlists` : '/music/setlists';
 
   const [song, setSong] = useState<Song | null>(null);
   const [loading, setLoading] = useState(true);
@@ -91,7 +99,7 @@ export default function SongDetailPage() {
       description: `"${song.title}" has been removed.`,
     });
   
-    router.push('/music/songs');
+    router.push(songsBasePath);
   };  
   
   const handleDuplicate = async () => {
@@ -116,7 +124,7 @@ export default function SongDetailPage() {
       description: `"${song.title}" was copied successfully.`,
     });
   
-    router.push(`/music/songs/${newSong.id}`);
+    router.push(`${songsBasePath}/${newSong.id}`);
   };   
   
   // Find recent usage
@@ -128,7 +136,13 @@ export default function SongDetailPage() {
 
   return (
     <>
-      <PageHeader title={song.title} />
+      <PageHeader title={song.title}>
+        {setlistId && (
+          <Button asChild variant="outline" className="bg-black/80 border-white/20 text-white/80 hover:bg-white/5">
+            <Link href={`${setlistsBasePath}/${setlistId}`}>Back to Set List</Link>
+          </Button>
+        )}
+      </PageHeader>
       {/* SECTION: Basic Info */}
       <Card className="p-6 space-y-6">
         <div>
@@ -239,7 +253,7 @@ export default function SongDetailPage() {
                 <Button
                   variant="link"
                   className="p-0"
-                  onClick={() => router.push(`/music/setlists/${list.id}`)}
+                  onClick={() => router.push(`${setlistsBasePath}/${list.id}`)}
                 >
                   {list.title} — {new Date(list.date).toLocaleDateString()}
                 </Button>
@@ -262,7 +276,7 @@ export default function SongDetailPage() {
             >
 
             <DropdownMenuItem
-              onClick={() => router.push(`/music/songs/${song.id}/edit`)}
+              onClick={() => router.push(`${songsBasePath}/${song.id}/edit`)}
               className="flex items-center gap-2"
             >
               <Pencil className="h-4 w-4" />
