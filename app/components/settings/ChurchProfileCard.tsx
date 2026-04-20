@@ -9,7 +9,7 @@ import { db } from '@/app/lib/firebase/client';
 import { collection, doc, getDoc, getDocs, updateDoc } from 'firebase/firestore';
 import TimezoneSelect from '@/app/components/settings/TimezoneSelect';
 import { usePhoneInput } from '@/app/hooks/usePhoneInput';
-import { Check } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import Link from 'next/link';
 import {
   Select,
@@ -63,6 +63,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
   const [regions, setRegions] = useState<any[]>([]);
   const [regionId, setRegionId] = useState("");
   const [regionSelectedId, setRegionSelectedId] = useState("");
+  const [regionStatus, setRegionStatus] = useState("");
 
   useEffect(() => {
     if (!churchId) return;
@@ -81,6 +82,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
       // Set region from church data
       setRegionId(data.regionId ?? "");
       setRegionSelectedId(data.regionSelectedId ?? "");
+      setRegionStatus(data.regionStatus ?? "");
 
       // Identity
       setName(data.name ?? '');
@@ -185,9 +187,13 @@ export default function ChurchProfileCard({ churchId }: Props) {
   };
 
   // Helper: Get region object
+  // Only resolve the full region (including leader info) when approved.
+  // Before approval, still resolve by regionSelectedId so the name shows,
+  // but leader info is suppressed via the regionStatus check.
   const selectedRegion = regions.find(
     (r) => r.id === regionId || r.id === regionSelectedId
   );
+  const isRegionApproved = regionStatus === 'approved';
 
   return (
     <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl rounded-xl shadow-lg">
@@ -374,8 +380,10 @@ export default function ChurchProfileCard({ churchId }: Props) {
             <div className="flex items-center justify-between">
               <Label className="text-sm font-medium">
                 Region
-                {selectedRegion?.regionAdminTitle && selectedRegion?.regionAdminName
+                {isRegionApproved && selectedRegion?.regionAdminTitle && selectedRegion?.regionAdminName
                   ? ` (Leader: ${selectedRegion.regionAdminTitle} ${selectedRegion.regionAdminName})`
+                  : regionStatus === 'pending' && regionSelectedId
+                  ? " (Pending)"
                   : ""}
               </Label>
             </div>
@@ -391,7 +399,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
               <span className="truncate">
                 {selectedRegion ? selectedRegion.name : "Select a Region"}
               </span>
-              <span className="text-primary text-xs">Change →</span>
+              <ChevronDown className="h-4 w-4 text-white/50 shrink-0" />
             </Link>
           </div>
         </div>
