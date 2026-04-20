@@ -9,7 +9,7 @@ import Link from 'next/link';
 
 export default function RegionalUserDetailPage() {
   const { userId } = useParams();
-  const { isRootAdmin, isRegionalAdmin, regionId } = usePermissions();
+  const { isRootAdmin, isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
 
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,6 +40,10 @@ export default function RegionalUserDetailPage() {
 
     loadUser();
   }, [userId, regionId, isRootAdmin]);
+
+  if (permLoading) {
+    return <div className="p-6 text-muted-foreground">Loading…</div>;
+  }
 
     // Unauthorized
   if (!isRegionalAdmin && !isRootAdmin) {

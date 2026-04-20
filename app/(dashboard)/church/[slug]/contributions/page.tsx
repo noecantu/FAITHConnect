@@ -48,7 +48,7 @@ export default function ContributionsPage() {
   const [selected, setSelected] = useState<Contribution | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const { canManageContributions, canReadContributions } = usePermissions();
+  const { canManageContributions, canReadContributions, loading: rolesLoading } = usePermissions();
   const canEdit = canManageContributions;
   const canView = canReadContributions;
 
@@ -167,7 +167,7 @@ export default function ContributionsPage() {
   // ------------------------------
   // Conditional return (AFTER all hooks)
   // ------------------------------
-  if (!isClient) return null;
+  if (!isClient || rolesLoading) return null;
 
   if (!canView) {
     return (

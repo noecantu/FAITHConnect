@@ -22,7 +22,7 @@ import { SearchBar } from '@/app/components/ui/search-bar';
 export default function SongsPage() {
   const { churchId } = useChurchId();
   const { songs, loading } = useSongs(churchId);
-  const { canManageMusic, canReadMusic } = usePermissions();
+  const { canManageMusic, canReadMusic, loading: rolesLoading } = usePermissions();
   const canManage = canManageMusic;
   const canView = canReadMusic;
   const { user } = useAuth();
@@ -51,7 +51,7 @@ export default function SongsPage() {
     }
   }
 
-  if (!churchId || loading) {
+  if (!churchId || loading || rolesLoading) {
     return (
       <>
         <PageHeader title="Song List" />

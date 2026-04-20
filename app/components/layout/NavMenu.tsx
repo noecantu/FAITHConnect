@@ -45,6 +45,7 @@ import { Button } from "../ui/button";
 import { useToast } from "@/app/hooks/use-toast";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { useChurchId } from "@/app/hooks/useChurchId";
+import { clearLogoutTransition, startLogoutTransition } from "@/app/hooks/useAuth";
 import { AlertDialogAction, AlertDialogCancel } from "@radix-ui/react-alert-dialog";
 import { can } from "@/app/lib/auth/permissions";
 import type { Role } from "@/app/lib/auth/roles";
@@ -207,11 +208,12 @@ export function NavMenu() {
 
   // --- LOGOUT ---
   const handleLogout = async () => {
+    setIsLogoutAlertOpen(false);
+    startLogoutTransition();
+
     try {
       await signOut(auth);
       await fetch("/api/auth/logout", { method: "POST" });
-
-      setIsLogoutAlertOpen(false);
 
       toast({
         title: "Logged Out",
@@ -224,6 +226,8 @@ export function NavMenu() {
         title: "Logout Failed",
         description: "Could not log you out. Please try again.",
       });
+
+      clearLogoutTransition();
     }
   };
 

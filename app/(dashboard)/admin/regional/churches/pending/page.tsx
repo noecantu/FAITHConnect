@@ -10,7 +10,7 @@ import { useToast } from '@/app/hooks/use-toast';
 import { collection, query, where, onSnapshot, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 
 export default function PendingChurchesPage() {
-  const { regionId, isRegionalAdmin, user } = usePermissions();
+  const { regionId, isRegionalAdmin, user, loading: permLoading } = usePermissions();
   const { toast } = useToast();
 
   const [pending, setPending] = useState<any[]>([]);
@@ -84,6 +84,14 @@ export default function PendingChurchesPage() {
       title: 'Church Rejected',
       description: 'The church has been marked as rejected.',
     });
+  }
+
+  if (permLoading) {
+    return (
+      <div className="p-6 text-muted-foreground">
+        Loading…
+      </div>
+    );
   }
 
   if (!isRegionalAdmin) {

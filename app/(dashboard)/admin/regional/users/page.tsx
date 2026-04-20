@@ -8,7 +8,7 @@ import { usePermissions } from '@/app/hooks/usePermissions';
 import Link from 'next/link';
 
 export default function RegionalUsersPage() {
-  const { isRootAdmin, isRegionalAdmin, regionId } = usePermissions();
+  const { isRootAdmin, isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,6 +30,14 @@ export default function RegionalUsersPage() {
   }, [regionId]);
 
     // Block unauthorized access
+    if (permLoading) {
+      return (
+        <div className="p-6 text-muted-foreground">
+          Loading…
+        </div>
+      );
+    }
+
     if (!isRegionalAdmin && !isRootAdmin) {
       return (
         <div className="p-6">

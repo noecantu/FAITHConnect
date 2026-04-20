@@ -8,7 +8,7 @@ import { usePermissions } from '@/app/hooks/usePermissions';
 import Link from 'next/link';
 
 export default function RegionalDashboardPage() {
-  const { isRegionalAdmin, regionId } = usePermissions();
+  const { isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
 
   const [churches, setChurches] = useState<any[]>([]);
   const [churchAdmins, setChurchAdmins] = useState<any[]>([]);
@@ -104,6 +104,14 @@ export default function RegionalDashboardPage() {
   }, [churches]);
 
   // Permission check
+  if (permLoading) {
+    return (
+      <div className="p-6 text-muted-foreground">
+        Loading…
+      </div>
+    );
+  }
+
   if (!isRegionalAdmin) {
     return (
       <div className="p-6">

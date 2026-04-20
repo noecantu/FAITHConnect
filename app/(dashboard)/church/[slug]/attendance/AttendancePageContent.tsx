@@ -24,8 +24,7 @@ import { useToast } from "@/app/hooks/use-toast";
 import { QRCodeCanvas } from "qrcode.react";
 import { AttendanceGrid } from "@/app/components/attendance/AttendanceGrid";
 import { Card, CardContent, CardHeader } from "@/app/components/ui/card";
-import { useCan } from "@/app/hooks/useCan";
-import { Separator } from "@/app/components/ui/separator";
+import { useCan } from "@/app/hooks/useCan";import { useAuth } from '@/app/hooks/useAuth';import { Separator } from "@/app/components/ui/separator";
 
 export default function AttendancePageContent() {
   const searchParams = useSearchParams();
@@ -50,6 +49,7 @@ export default function AttendancePageContent() {
   const [qrLoading, setQrLoading] = useState(false);
 
   // PERMISSIONS
+  const { loading: authLoading } = useAuth();
   const canView = useCan("attendance.read");
   const canEdit = useCan("attendance.manage");
 
@@ -172,7 +172,7 @@ export default function AttendancePageContent() {
     );
   }
 
-  if (!canView) {
+  if (!authLoading && !canView) {
     return (
       <>
         <PageHeader title="Attendance" subtitle={dateString} />
