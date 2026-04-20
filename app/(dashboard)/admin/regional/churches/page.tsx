@@ -105,13 +105,22 @@ export default function RegionalChurchesPage() {
                   </p>
                 )}
 
-                <p className="text-sm text-muted-foreground truncate">
-                  Phone: {formatPhone(church.phone ?? undefined)}
-                </p>
+                {church.address && (
+                  <p className="text-sm text-muted-foreground truncate">{church.address}</p>
+                )}
 
-                <p className="text-sm text-muted-foreground truncate">
-                  Address: {church.address ?? "N/A"}
-                </p>
+                {(church.city || church.state || church.zip) && (
+                  <p className="text-sm text-muted-foreground truncate">
+                    {[church.city, church.state].filter(Boolean).join(", ")}
+                    {church.zip ? ` ${church.zip}` : ""}
+                  </p>
+                )}
+
+                {church.phone && (
+                  <p className="text-sm text-muted-foreground truncate">
+                    {formatPhone(church.phone)}
+                  </p>
+                )}
 
                 <p className="text-xs text-muted-foreground truncate">
                   Timezone: {church.timezone}
