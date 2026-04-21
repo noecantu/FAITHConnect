@@ -4,6 +4,14 @@ function normalizeSectionTitle(str: string) {
   return str.replace(/\s+/g, "").toLowerCase();
 }
 
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i += 1) {
+    hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
 const SECTION_COLORS: Record<string, string> = {
   opening:     "rgba(139, 92,  246, 0.20)",  // purple
   praise:      "rgba(59,  130, 246, 0.20)",  // blue
@@ -16,7 +24,16 @@ const SECTION_COLORS: Record<string, string> = {
 /** Returns the default color for a section based on its title. */
 export function getSectionColor(title: string): string {
   const key = normalizeSectionTitle(title);
-  return SECTION_COLORS[key] ?? "transparent";
+  if (!key) return "transparent";
+
+  // Preserve semantic colors for well-known section names.
+  if (SECTION_COLORS[key]) {
+    return SECTION_COLORS[key];
+  }
+
+  // Deterministic fallback for custom/new section names.
+  const idx = hashString(key) % SECTION_COLOR_PALETTE.length;
+  return SECTION_COLOR_PALETTE[idx].bg;
 }
 
 /** Palette exposed to the color picker UI. */

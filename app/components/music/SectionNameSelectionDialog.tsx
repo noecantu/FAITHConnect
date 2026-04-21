@@ -75,17 +75,23 @@ export default function SectionNameDialog({
     if (isOpen) fetchItems();
   }, [isOpen, fetchItems]);
 
-  const handleAdd = async (value?: string) => {
+  const handleAdd = async (value?: string, autoSelect = false) => {
     const title = (value || newTitle).trim();
     if (!db || !churchId || title === '' || items.some(i => i.title.toLowerCase() === title.toLowerCase())) {
       return;
     }
 
     try {
-      await addDoc(collection(db, 'churches', churchId, 'sectionNames'), {
+      const created = await addDoc(collection(db, 'churches', churchId, 'sectionNames'), {
         title,
         createdAt: new Date(),
       });
+
+      if (autoSelect) {
+        onSelect(title);
+        onOpenChange(false);
+        return;
+      }
 
       setNewTitle('');
       setTitleToAdd(null);
@@ -106,8 +112,8 @@ export default function SectionNameDialog({
     }
   };
 
-  const handleSelect = (id: string) => {
-    onSelect(id);
+  const handleSelect = (title: string) => {
+    onSelect(title);
     onOpenChange(false);
   };
 
@@ -131,7 +137,7 @@ export default function SectionNameDialog({
         {titleToAdd ? (
           <div className="flex justify-end space-x-2 pt-4">
             <Button variant="outline" onClick={() => setTitleToAdd(null)}>No</Button>
-            <Button onClick={() => handleAdd(titleToAdd)}>Yes, Add It</Button>
+            <Button onClick={() => handleAdd(titleToAdd, true)}>Yes, Add It</Button>
           </div>
         ) : (
           <div className="flex flex-col space-y-4">
@@ -149,7 +155,7 @@ export default function SectionNameDialog({
               ) : filtered.length > 0 ? (
                 filtered.map(i => (
                   <div key={i.id} className="group flex items-center justify-between p-2 rounded-md hover:bg-muted text-sm">
-                    <span onClick={() => handleSelect(i.id)} className="flex-grow cursor-pointer">
+                    <span onClick={() => handleSelect(i.title)} className="flex-grow cursor-pointer">
                       {i.title}
                     </span>
                     <Button
@@ -180,11 +186,11 @@ export default function SectionNameDialog({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    handleAdd();
+                    handleAdd(undefined, true);
                   }
                 }}
               />
-              <Button variant="outline" onClick={() => handleAdd()}>
+              <Button variant="outline" onClick={() => handleAdd(undefined, true)}>
                 <Plus className="h-4 w-4" />
               </Button>
               <Button

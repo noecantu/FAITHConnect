@@ -111,6 +111,13 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
 
       <div className="space-y-4">
         {sections.map((section, index) => (
+          (() => {
+            const isCustomTitle = section.title.trim().length > 0
+              && !sectionNames.some((sn) => sn.title === section.title);
+            const showCustomInput = isCustomTitle || section.title === '';
+            const selectValue = showCustomInput ? '__custom' : section.title;
+
+            return (
           <Card
             key={section.id}
             className="p-4 space-y-4"
@@ -204,8 +211,16 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
 
             {/* Section Title */}
             <Select
-              value={section.title}
-              onValueChange={(value) => updateSection(section.id, { title: value })}
+              value={selectValue}
+              onValueChange={(value) => {
+                if (value === '__custom') {
+                  if (!isCustomTitle) {
+                    updateSection(section.id, { title: '' });
+                  }
+                  return;
+                }
+                updateSection(section.id, { title: value });
+              }}
             >
               <SelectTrigger className="font-medium">
                 <SelectValue placeholder="Select section" />
@@ -221,11 +236,11 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
               </SelectContent>
             </Select>
 
-            {section.title === '__custom' && (
+            {showCustomInput && (
               <Input
                 autoFocus
                 placeholder="Custom section name"
-                value=""
+                value={section.title}
                 onChange={(e) =>
                   updateSection(section.id, { title: e.target.value })
                 }
@@ -252,6 +267,8 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
               allSongs={allSongs}
             />
           </Card>
+            );
+          })()
         ))}
       </div>
 
@@ -259,13 +276,12 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
       <SectionNameSelectionDialog
         isOpen={isSectionNameDialogOpen}
         onOpenChange={setIsSectionNameDialogOpen}
-        onSelect={(newId) => {
-          const sn = sectionNames.find((s) => s.id === newId);
-          if (!sn) return;
+        onSelect={(selectedTitle) => {
+          if (!selectedTitle) return;
 
           const newSection: SetListSection = {
             id: nanoid(),
-            title: sn.title,
+            title: selectedTitle,
             songs: [],
             notes: '',
           };
