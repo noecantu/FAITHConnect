@@ -200,7 +200,7 @@ export default function SetListsPage() {
 
           {/* List */}
           <div className="space-y-3">
-            {visible.map((row) => (
+            {visible.map((row, index) => (
               <div
                 key={row.id}
                 role="button"
@@ -211,7 +211,11 @@ export default function SetListsPage() {
                     router.push(`/church/${churchId}/music/setlists/${row.id}`);
                   }
                 }}
-                className="border border-white/20 rounded-md p-4 flex items-start justify-between cursor-pointer bg-white/5 hover:bg-white/10 transition-colors"
+                className={`border border-white/20 rounded-md p-4 flex items-start justify-between cursor-pointer transition-colors ${
+                  index % 2 === 0
+                    ? 'bg-white/[0.04] hover:bg-white/[0.10]'
+                    : 'bg-white/[0.14] hover:bg-white/[0.20]'
+                }`}
               >
                 <div>
                   <div className="font-medium">{row.title}</div>
