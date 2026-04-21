@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 export default function SpotlightOne() {
   return (
     <section className="py-24">
-      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 items-center px-6">
+      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 items-center px-8 md:px-6">
 
         {/* Text */}
         <motion.div

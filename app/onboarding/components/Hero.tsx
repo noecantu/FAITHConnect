@@ -6,7 +6,7 @@ import { Button } from "@/app/components/ui/button";
 
 export default function Hero() {
   return (
-    <section className="max-w-5xl mx-auto px-6 pb-24 text-center">
+    <section className="max-w-5xl mx-auto px-8 md:px-6 pb-24 text-center">
 
       {/* Floating Halo */}
       <div className="relative flex justify-center mb-6">
