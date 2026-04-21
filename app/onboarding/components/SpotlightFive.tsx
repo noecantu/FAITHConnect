@@ -28,7 +28,7 @@ export default function SpotlightFive() {
           viewport={{ once: true }}
         >
           <img
-            src="/Visitor.png"
+            src="/visitor.png"
             width={600}
             height={600}
             className="rounded-xl shadow-xl w-full h-auto"
