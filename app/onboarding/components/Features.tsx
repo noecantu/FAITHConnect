@@ -16,7 +16,21 @@ const features = [
 export default function Features() {
   return (
     <section className="max-w-6xl mx-auto px-8 md:px-6 lg:px-2 py-12">
-      <h2 className="text-3xl font-bold text-center mb-6">Features</h2>
+      <motion.h2
+        initial={{ opacity: 0, y: 12 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        viewport={{ once: true }}
+        className="text-center mb-8"
+      >
+        <span className="block text-xs md:text-sm font-semibold tracking-[0.28em] uppercase text-blue-200/85 mb-2">
+          Built For Ministry Teams
+        </span>
+        <span className="block text-4xl md:text-5xl font-extrabold leading-tight bg-gradient-to-r from-cyan-300 via-white to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(59,130,246,0.35)]">
+          Features
+        </span>
+        <span className="mx-auto mt-3 block h-1 w-28 rounded-full bg-gradient-to-r from-blue-500 via-cyan-300 to-blue-500" />
+      </motion.h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {features.map((f, i) => (

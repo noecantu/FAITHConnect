@@ -2,6 +2,7 @@
 
 import AnimatedBackground from "./onboarding/components/AnimatedBackground";
 import Hero from "./onboarding/components/Hero";
+import SpotlightIntro from "./onboarding/components/SpotlightIntro";
 import SpotlightOne from "./onboarding/components/SpotlightOne";
 import SpotlightTwo from "./onboarding/components/SpotlightTwo";
 import Features from "./onboarding/components/Features";
@@ -19,6 +20,7 @@ export default function LandingPage() {
 
       {/* Foreground Content */}
       <Hero />
+      <SpotlightIntro />
       <SpotlightOne />
       <SpotlightTwo />
       <SpotlightThree />
