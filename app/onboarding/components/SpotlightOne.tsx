@@ -15,7 +15,7 @@ export default function SpotlightOne() {
           viewport={{ once: true }}
         >
           <h2 className="text-4xl font-bold mb-4">Track Attendance Effortlessly</h2>
-          <p className="text-white/70 mb-6">
+          <p className="text-white/70">
             Scan QR codes, view real-time check-ins, and keep your ministry organized.
           </p>
         </motion.div>
@@ -28,7 +28,7 @@ export default function SpotlightOne() {
           viewport={{ once: true }}
         >
           <img
-            src="/dashboard-attendance.png"
+            src="/Attendance.png"
             width={600}
             height={600}
             className="rounded-xl shadow-xl w-full h-auto"

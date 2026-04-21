@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export default function SpotlightThree() {
   return (
-    <section className="py-24">
+    <section className="py-12">
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 items-center px-8 md:px-6">
 
         {/* Text */}
@@ -14,7 +14,7 @@ export default function SpotlightThree() {
           transition={{ duration: 0.7, ease: "easeOut" }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl font-bold mb-4">No Stress Contribution Monitoring</h2>
+          <h2 className="text-4xl font-bold">No Stress Contribution Monitoring</h2>
           <p className="text-white/70 mb-6">
             Easily track and manage contributions without any hassle.
           </p>
@@ -28,7 +28,7 @@ export default function SpotlightThree() {
           viewport={{ once: true }}
         >
           <img
-            src="/finance-frustration.png"
+            src="/Finance_Frustration.png"
             width={600}
             height={600}
             className="rounded-xl shadow-xl w-full h-auto"

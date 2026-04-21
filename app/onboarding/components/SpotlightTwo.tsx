@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export default function SpotlightTwo() {
   return (
-    <section className="py-24">
+    <section className="py-12">
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 items-center px-8 md:px-6">
 
         {/* Image */}
@@ -16,7 +16,7 @@ export default function SpotlightTwo() {
           className="order-2 md:order-1"
         >
           <img
-            src="/usher-rotation.png"
+            src="/Usher_Rotation.png"
             width={600}
             height={600}
             className="rounded-xl shadow-xl w-full h-auto"
@@ -32,7 +32,7 @@ export default function SpotlightTwo() {
           viewport={{ once: true }}
           className="order-1 md:order-2"
         >
-          <h2 className="text-4xl font-bold mb-4">Manage Usher Teams</h2>
+          <h2 className="text-4xl font-bold">Manage Usher Teams</h2>
           <p className="text-white/70 mb-6">
             Keep your congregation organized and up to date with usher team calendar rotations.
           </p>
