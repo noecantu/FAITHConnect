@@ -16,7 +16,7 @@ export default function SpotlightTwo() {
           className="order-2 md:order-1"
         >
           <img
-            src="/dashboard-members.png"
+            src="/usher-rotation.png"
             width={600}
             height={600}
             className="rounded-xl shadow-xl w-full h-auto"
@@ -32,9 +32,9 @@ export default function SpotlightTwo() {
           viewport={{ once: true }}
           className="order-1 md:order-2"
         >
-          <h2 className="text-4xl font-bold mb-4">Manage Members With Ease</h2>
+          <h2 className="text-4xl font-bold mb-4">Manage Usher Teams</h2>
           <p className="text-white/70 mb-6">
-            Keep your congregation organized and up to date with powerful member tools.
+            Keep your congregation organized and up to date with usher team calendar rotations.
           </p>
         </motion.div>
 
