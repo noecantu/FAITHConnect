@@ -9,9 +9,9 @@ export default function SpotlightTwo() {
 
         {/* Image */}
         <motion.div
-          initial={{ opacity: 0, x: -40 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          transition={{ duration: 3.0 }}
+          initial={{ opacity: 0, scale: 0.96 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
           viewport={{ once: true }}
           className="order-2 md:order-1"
         >
@@ -26,9 +26,9 @@ export default function SpotlightTwo() {
 
         {/* Text */}
         <motion.div
-          initial={{ opacity: 0, x: 40 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          transition={{ duration: 3.0 }}
+          initial={{ opacity: 0, scale: 0.96 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
           viewport={{ once: true }}
           className="order-1 md:order-2"
         >
