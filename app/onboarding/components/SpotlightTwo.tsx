@@ -33,7 +33,7 @@ export default function SpotlightTwo() {
           className="order-1 md:order-2"
         >
           <h2 className="text-4xl font-bold">Manage Usher Teams</h2>
-          <p className="text-white/70 mb-6">
+          <p className="text-white/70">
             Keep your congregation organized and up to date with usher team calendar rotations.
           </p>
         </motion.div>

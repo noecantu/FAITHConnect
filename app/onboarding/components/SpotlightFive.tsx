@@ -15,7 +15,7 @@ export default function SpotlightFive() {
           viewport={{ once: true }}
         >
           <h2 className="text-4xl font-bold">Visitor Management</h2>
-          <p className="text-white/70 mb-6">
+          <p className="text-white/70">
             Keep track of your visitors effortlessly and ensure a smooth experience.
           </p>
         </motion.div>

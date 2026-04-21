@@ -15,7 +15,7 @@ export default function SpotlightThree() {
           viewport={{ once: true }}
         >
           <h2 className="text-4xl font-bold">No Stress Contribution Monitoring</h2>
-          <p className="text-white/70 mb-6">
+          <p className="text-white/70">
             Easily track and manage contributions without any hassle.
           </p>
         </motion.div>

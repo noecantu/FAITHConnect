@@ -14,7 +14,7 @@ export default function SpotlightOne() {
           transition={{ duration: 0.7, ease: "easeOut" }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl font-bold mb-4">Track Attendance Effortlessly</h2>
+          <h2 className="text-4xl font-bold">Track Attendance Effortlessly</h2>
           <p className="text-white/70">
             Scan QR codes, view real-time check-ins, and keep your ministry organized.
           </p>

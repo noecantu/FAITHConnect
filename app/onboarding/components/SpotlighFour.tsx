@@ -16,7 +16,7 @@ export default function SpotlightFour() {
           className="order-2 md:order-1"
         >
           <img
-            src="/SetLists.png"
+            src="/Set_Lists.png"
             width={600}
             height={600}
             className="rounded-xl shadow-xl w-full h-auto"
@@ -33,7 +33,7 @@ export default function SpotlightFour() {
           className="order-1 md:order-2"
         >
           <h2 className="text-4xl font-bold">Musician Set Lists</h2>
-          <p className="text-white/70 mb-6">
+          <p className="text-white/70">
             Keep your music team organized with easy-to-manage set lists.
           </p>
         </motion.div>
