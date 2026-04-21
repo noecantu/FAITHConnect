@@ -9,7 +9,7 @@ const features = [
   { icon: Users, title: "Member Management", desc: "Keep your congregation organized and up to date." },
   { icon: Calendar, title: "Events & Calendar", desc: "Plan, schedule, and manage church events effortlessly." },
   { icon: BarChart, title: "Reports", desc: "Track attendance trends and ministry engagement." },
-  { icon: Shield, title: "Roles & Permissions", desc: "Control access with secure role-based permissions." },
+  { icon: Shield, title: "Permissions", desc: "Control access with secure role-based permissions." },
   { icon: CheckCircle, title: "Simple Onboarding", desc: "Get started in minutes with guided setup." },
 ];
 

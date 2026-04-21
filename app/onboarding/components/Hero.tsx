@@ -33,7 +33,7 @@ export default function Hero() {
       <motion.h1
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
+        transition={{ duration: 3.0 }}
         className="text-5xl font-bold mb-6"
       >
         Church Management Made Effortless

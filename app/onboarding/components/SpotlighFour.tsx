@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 
-export default function SpotlightTwo() {
+export default function SpotlightFour() {
   return (
     <section className="py-24">
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 items-center px-6">
@@ -16,11 +16,11 @@ export default function SpotlightTwo() {
           className="order-2 md:order-1"
         >
           <img
-            src="/usher-rotation.png"
+            src="/set-lists.png"
             width={600}
             height={600}
             className="rounded-xl shadow-xl w-full h-auto"
-            alt="Members Dashboard"
+            alt="Musician Set Lists"
           />
         </motion.div>
 
@@ -32,9 +32,9 @@ export default function SpotlightTwo() {
           viewport={{ once: true }}
           className="order-1 md:order-2"
         >
-          <h2 className="text-4xl font-bold mb-4">Manage Usher Teams</h2>
+          <h2 className="text-4xl font-bold mb-4">Musician Set Lists</h2>
           <p className="text-white/70 mb-6">
-            Keep your congregation organized and up to date with usher team calendar rotations.
+            Keep your music team organized with easy-to-manage set lists.
           </p>
         </motion.div>
 
