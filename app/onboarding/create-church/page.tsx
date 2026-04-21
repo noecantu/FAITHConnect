@@ -174,7 +174,7 @@ export default function CreateChurchPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="churchName" className="text-zinc-300">
+              <Label htmlFor="churchName" className="text-zinc-500">
                 Church Name
               </Label>
               <Input

@@ -289,7 +289,7 @@ export default function RegionalDashboardPage() {
           <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-semibold">Region</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <MapPinned className="h-4 w-4 text-blue-300" />
+              <MapPinned className="h-4 w-4 text-blue-500" />
             </div>
           </div>
 
@@ -309,7 +309,7 @@ export default function RegionalDashboardPage() {
           <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-semibold">Churches</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Building2 className="h-4 w-4 text-emerald-300" />
+              <Building2 className="h-4 w-4 text-emerald-500" />
             </div>
           </div>
           <p className="text-3xl font-bold mt-1.5">{approvedChurches.length}</p>
@@ -321,7 +321,7 @@ export default function RegionalDashboardPage() {
           <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-semibold">Users</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Users className="h-4 w-4 text-cyan-300" />
+              <Users className="h-4 w-4 text-cyan-500" />
             </div>
           </div>
           <p className="text-3xl font-bold mt-1.5">{users.length}</p>
@@ -333,7 +333,7 @@ export default function RegionalDashboardPage() {
           <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-semibold">Admins</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Shield className="h-4 w-4 text-fuchsia-300" />
+              <Shield className="h-4 w-4 text-fuchsia-500" />
             </div>
           </div>
           <p className="text-3xl font-bold mt-1.5">{adminCount}</p>
@@ -345,7 +345,7 @@ export default function RegionalDashboardPage() {
           <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-semibold">Events</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Calendar className="h-4 w-4 text-sky-300" />
+              <Calendar className="h-4 w-4 text-sky-500" />
             </div>
           </div>
           <p className="text-3xl font-bold mt-1.5">{eventCount}</p>
@@ -357,7 +357,7 @@ export default function RegionalDashboardPage() {
           <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-semibold">Check-ins</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Activity className="h-4 w-4 text-amber-300" />
+              <Activity className="h-4 w-4 text-amber-500" />
             </div>
           </div>
           <p className="text-3xl font-bold mt-1.5">{checkinCount}</p>
@@ -369,7 +369,7 @@ export default function RegionalDashboardPage() {
           <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-semibold">Music Items</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Music4 className="h-4 w-4 text-rose-300" />
+              <Music4 className="h-4 w-4 text-red-500" />
             </div>
           </div>
           <p className="text-3xl font-bold mt-1.5">{musicItemCount}</p>
@@ -381,7 +381,7 @@ export default function RegionalDashboardPage() {
           <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-semibold">Setlists</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <ListMusic className="h-4 w-4 text-lime-300" />
+              <ListMusic className="h-4 w-4 text-lime-500" />
             </div>
           </div>
           <p className="text-3xl font-bold mt-1.5">{setlistCount}</p>
@@ -393,7 +393,7 @@ export default function RegionalDashboardPage() {
           <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-semibold">Church Leaders</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Users className="h-4 w-4 text-orange-300" />
+              <Users className="h-4 w-4 text-orange-500" />
             </div>
           </div>
           <p className="text-3xl font-bold mt-1.5">{churchLeaderCount}</p>
@@ -405,7 +405,7 @@ export default function RegionalDashboardPage() {
           <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-semibold">Finance Managers</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Wallet className="h-4 w-4 text-teal-300" />
+              <Wallet className="h-4 w-4 text-teal-500" />
             </div>
           </div>
           <p className="text-3xl font-bold mt-1.5">{financeCount}</p>

@@ -272,7 +272,7 @@ export default function AttendancePageContent() {
               variant="default"
               disabled={!canEdit || qrLoading}
               className="w-full flex flex-col items-center justify-center text-center 
-                bg-gradient-to-b from-yellow-400/70 to-yellow-600/70
+                bg-gradient-to-b from-yellow-500/70 to-yellow-600/70
                 gap-1 transition-colors"
             >
               <span className="text-sm text-white/80">
@@ -287,8 +287,8 @@ export default function AttendancePageContent() {
                   variant="default"
                   disabled={!canEdit}
                   className="w-full flex flex-col items-center justify-center text-center 
-                    bg-gradient-to-b from-cyan-400/70 to-cyan-600/70
-                    hover:from-cyan-400/90 hover:to-cyan-600/90
+                    bg-gradient-to-b from-cyan-500/70 to-cyan-600/70
+                    hover:from-cyan-500/90 hover:to-cyan-600/90
                     active:scale-[0.97]
                     gap-1 transition-colors"
                 >
@@ -343,7 +343,7 @@ export default function AttendancePageContent() {
               variant="default"
               disabled={!canEdit}
               className="w-full flex flex-col items-center justify-center text-center 
-                bg-gradient-to-b from-green-400/70 to-green-700/70
+                bg-gradient-to-b from-green-500/70 to-green-700/70
                 gap-1 transition-colors"
             >
               <span className="text-sm text-white/80">Mark All Present</span>
@@ -355,8 +355,8 @@ export default function AttendancePageContent() {
               variant="default"
               disabled={!canEdit}
               className="w-full flex flex-col items-center justify-center text-center
-                bg-gradient-to-b from-red-400/70 to-red-700/70
-                hover:from-red-400/90 hover:to-red-700/90
+                bg-gradient-to-b from-red-500/70 to-red-700/70
+                hover:from-red-500/90 hover:to-red-700/90
                 active:scale-[0.97]
                 gap-1 transition-colors"
             >

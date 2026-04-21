@@ -360,28 +360,28 @@ export default function ChurchAdminDashboard() {
             description="Including Prospects"
             value={memberCount}
             icon={Users}
-            iconClassName="text-blue-300"
+            iconClassName="text-blue-500"
           />
           <StatCard
             title="Upcoming Services"
             description="Scheduled From Today"
             value={serviceCount}
             icon={ChurchIcon}
-            iconClassName="text-violet-300"
+            iconClassName="text-violet-500"
           />
           <StatCard
             title="Events This Week"
             description="Monday - Sunday"
             value={eventCount}
             icon={Calendar}
-            iconClassName="text-emerald-300"
+            iconClassName="text-emerald-500"
           />
           <StatCard
             title="Attendance This Week"
             description="Monday – Sunday"
             value={attendanceThisWeek}
             icon={Activity}
-            iconClassName="text-amber-300"
+            iconClassName="text-amber-500"
           />
         </div>
 
@@ -393,13 +393,13 @@ export default function ChurchAdminDashboard() {
           </CardHeader>
 
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <QuickAction href={`/church/${churchId}/attendance`} icon={CalendarCheck} label="Attendance" iconClassName="text-amber-300" />
-            <QuickAction href={`/church/${churchId}/contributions`} icon={DollarSign} label="Contributions" iconClassName="text-emerald-300" />
-            <QuickAction href={`/church/${churchId}/calendar`} icon={Calendar} label="Events" iconClassName="text-sky-300" />
-            <QuickAction href={`/church/${churchId}/members`} icon={UserPlus} label="Members" iconClassName="text-blue-300" />
-            <QuickAction href={`/church/${churchId}/reports`} icon={FileText} label="Reports" iconClassName="text-orange-300" />
-            <QuickAction href={`/church/${churchId}/music/setlists`} icon={Music} label="Set Lists" iconClassName="text-gray-300" />
-            <QuickAction href={`/church/${churchId}/service-plan`} icon={CalendarHeart} label="Service Plans" iconClassName="text-violet-300" />
+            <QuickAction href={`/church/${churchId}/attendance`} icon={CalendarCheck} label="Attendance" iconClassName="text-amber-500" />
+            <QuickAction href={`/church/${churchId}/contributions`} icon={DollarSign} label="Contributions" iconClassName="text-emerald-500" />
+            <QuickAction href={`/church/${churchId}/calendar`} icon={Calendar} label="Events" iconClassName="text-sky-500" />
+            <QuickAction href={`/church/${churchId}/members`} icon={UserPlus} label="Members" iconClassName="text-blue-500" />
+            <QuickAction href={`/church/${churchId}/reports`} icon={FileText} label="Reports" iconClassName="text-orange-500" />
+            <QuickAction href={`/church/${churchId}/music/setlists`} icon={Music} label="Set Lists" iconClassName="text-gray-500" />
+            <QuickAction href={`/church/${churchId}/service-plan`} icon={CalendarHeart} label="Service Plans" iconClassName="text-violet-500" />
           </CardContent>
         </Card>
       </main>

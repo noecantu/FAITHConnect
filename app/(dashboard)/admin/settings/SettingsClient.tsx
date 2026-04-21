@@ -38,7 +38,7 @@ export default function RootAdminSettingsPage({ initialSettings }: { initialSett
     return (
       <>
         <PageHeader title="System Settings" subtitle="Loading…" />
-        <div className="p-6 text-neutral-400">Loading settings…</div>
+        <div className="p-6 text-neutral-500">Loading settings…</div>
       </>
     );
   }

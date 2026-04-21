@@ -30,7 +30,7 @@ export default function Features() {
           >
             <Card className="bg-white/5 border-white/20 backdrop-blur-sm">
               <CardHeader>
-                <f.icon className="h-8 w-8 text-blue-400 mb-2" />
+                <f.icon className="h-8 w-8 text-blue-500 mb-2" />
                 <CardTitle>{f.title}</CardTitle>
               </CardHeader>
               <CardContent className="text-white/70">{f.desc}</CardContent>

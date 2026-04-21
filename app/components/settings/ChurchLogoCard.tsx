@@ -231,7 +231,7 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
 
         {/* Confirm Remove */}
         {showConfirmRemove && (
-          <div className="border border-red-300 bg-red-50 rounded-md p-4 space-y-3">
+          <div className="border border-red-500 bg-red-50 rounded-md p-4 space-y-3">
             <p className="text-sm text-red-800">
               Are you sure you want to remove the church logo? This action cannot be undone.
             </p>

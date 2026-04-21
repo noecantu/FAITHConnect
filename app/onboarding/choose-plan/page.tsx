@@ -81,7 +81,7 @@ export default function OnboardingChoosePlan() {
             <ul className="space-y-2 mb-6 text-white/70">
               {p.features.map((f, idx) => (
                 <li key={idx} className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-400" />
+                  <CheckCircle className="h-4 w-4 text-blue-500" />
                   {f}
                 </li>
               ))}

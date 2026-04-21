@@ -139,7 +139,7 @@ export default function UserSettingsPage() {
 
   if (!authUser) {
     return (
-      <div className="p-6 text-slate-300">
+      <div className="p-6 text-slate-500">
         You must be logged in to view settings.
       </div>
     );
@@ -193,7 +193,7 @@ export default function UserSettingsPage() {
         onClick={handleSaveAll}
         disabled={!isDirty && !isSaving}
         className={`
-          h-14 w-14 transition-all duration-300
+          h-14 w-14 transition-all duration-500
           ${(!isDirty && !isSaving) ? "opacity-40" : "opacity-100"}
         `}
       >

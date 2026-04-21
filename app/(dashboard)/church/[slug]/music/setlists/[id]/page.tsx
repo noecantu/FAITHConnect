@@ -190,10 +190,10 @@ export default function SetListDetailPage() {
 
                       <div className="flex items-center gap-2 ml-2">
                         {fullSong?.lyrics && (
-                          <FileText size={16} className="text-blue-400/80" />
+                          <FileText size={16} className="text-blue-500/80" />
                         )}
                         {fullSong?.chords && (
-                          <Music size={16} className="text-green-400/80" />
+                          <Music size={16} className="text-green-500/80" />
                         )}
                       </div>
                     </div>
@@ -276,7 +276,7 @@ export default function SetListDetailPage() {
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem
-                  className="flex items-center justify-center p-2 text-red-400"
+                  className="flex items-center justify-center p-2 text-red-500"
                   onSelect={(e) => e.preventDefault()}
                 >
                   <Trash className="h-4 w-4" />

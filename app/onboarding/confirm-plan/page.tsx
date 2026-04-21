@@ -66,7 +66,7 @@ export default function ConfirmPlanPage() {
           {price && <p className="text-2xl text-white/70 mb-6">{price}</p>}
 
           <div className="flex items-start gap-3 text-white/70 mb-8">
-            <CheckCircle className="h-6 w-6 text-blue-400 mt-1" />
+            <CheckCircle className="h-6 w-6 text-blue-500 mt-1" />
             <p>
               This is the plan you selected. You can continue or go back to choose a different one.
             </p>

@@ -173,19 +173,19 @@ export default function UserDashboardPage({
                   href={`/church/${slug}/user/services`}
                   icon={CalendarHeart}
                   label="Upcoming Services"
-                  iconClassName="text-violet-300"
+                  iconClassName="text-violet-500"
                 />
                 <QuickAction
                   href={`/church/${slug}/user/events`}
                   icon={Calendar}
                   label="Events"
-                  iconClassName="text-sky-300"
+                  iconClassName="text-sky-500"
                 />
                 <QuickAction
                   href={`/church/${slug}/user/schedule`}
                   icon={CalendarCheck}
                   label="My Schedule"
-                  iconClassName="text-amber-300"
+                  iconClassName="text-amber-500"
                 />
               </CardContent>
             </Card>

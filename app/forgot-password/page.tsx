@@ -83,7 +83,7 @@ export default function ForgotPasswordPage() {
             <Button
               type="button"
               variant="ghost"
-              className="w-full text-sm text-blue-400 hover:underline"
+              className="w-full text-sm text-blue-500 hover:underline"
               onClick={() => history.back()}
             >
               Back to Login

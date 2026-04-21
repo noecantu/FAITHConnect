@@ -84,7 +84,7 @@ export default function AddSectionDropdown({
               <span className="flex items-center gap-2">
                 {sn.title}
                 {isNew && (
-                  <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                  <span className="text-xs text-slate-500 dark:text-slate-500 font-medium">
                     New
                   </span>
                 )}

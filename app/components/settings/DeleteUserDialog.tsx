@@ -12,7 +12,7 @@ interface Props {
 
 export default function DeleteUserDialog({ user, onCancel, onConfirm, isDeleting }: Props) {
   return (
-    <div className="space-y-4 border border-red-300 rounded-md p-4 bg-red-50">
+    <div className="space-y-4 border border-red-500 rounded-md p-4 bg-red-50">
       <h2 className="text-lg font-semibold text-red-700">Delete User Account</h2>
 
       <p className="text-sm text-red-800">

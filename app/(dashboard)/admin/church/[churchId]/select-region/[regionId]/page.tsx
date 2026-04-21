@@ -73,7 +73,7 @@ export default function ConfirmRegionPage() {
 
   if (!region) {
     return (
-      <div className="p-6 text-red-400">
+      <div className="p-6 text-red-500">
         Region not found.
       </div>
     );

@@ -35,7 +35,7 @@ export default function OnboardingCompletedPage() {
 
         <CardContent className="space-y-6">
           <div className="flex justify-center">
-            <CheckCircle className="h-16 w-16 text-blue-400" />
+            <CheckCircle className="h-16 w-16 text-blue-500" />
           </div>
 
           <p className="text-white/70 text-lg">

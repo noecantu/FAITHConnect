@@ -35,12 +35,12 @@ export function AttendanceCard({
         // Visitor logic
         isVisitor
           ? present
-            ? "bg-gradient-to-b from-blue-400/60 to-blue-700/70 shadow-[0_4px_12px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-md"
-            : "bg-gradient-to-b from-red-400/60 to-red-700/70 shadow-[0_4px_12px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-md"
+            ? "bg-gradient-to-b from-blue-500/60 to-blue-700/70 shadow-[0_4px_12px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-md"
+            : "bg-gradient-to-b from-red-500/60 to-red-700/70 shadow-[0_4px_12px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-md"
           : // Member logic
             present
-            ? "bg-gradient-to-b from-green-400/60 to-green-700/70 shadow-[0_4px_12px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-md"
-            : "bg-gradient-to-b from-red-400/60 to-red-700/70 shadow-[0_4px_12px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-md",
+            ? "bg-gradient-to-b from-green-500/60 to-green-700/70 shadow-[0_4px_12px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-md"
+            : "bg-gradient-to-b from-red-500/60 to-red-700/70 shadow-[0_4px_12px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-md",
 
         !editable && "cursor-default opacity-80"
       )}
