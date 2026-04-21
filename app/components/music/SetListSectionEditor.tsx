@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
+import { ChevronUp, ChevronDown, Trash2, Palette } from 'lucide-react';
 
 import { SetListSection, SetListSongEntry, Song } from '@/app/lib/types';
 import { SectionSongList } from './SectionSongList';
@@ -17,7 +17,13 @@ import {
   SelectValue,
 } from '../ui/select';
 
-import { getSectionColor } from '@/app/lib/sectionColors';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '../ui/popover';
+
+import { getSectionColor, SECTION_COLOR_PALETTE } from '@/app/lib/sectionColors';
 import { useChurchId } from '@/app/hooks/useChurchId';
 
 import { db } from '@/app/lib/firebase/client';
@@ -108,7 +114,7 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
           <Card
             key={section.id}
             className="p-4 space-y-4"
-            style={{ backgroundColor: getSectionColor(section.title) }}
+            style={{ backgroundColor: section.color ?? getSectionColor(section.title) }}
           >
             {/* Header */}
             <div className="flex items-center gap-2">
@@ -136,6 +142,54 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
                 >
                   <ChevronDown className="h-4 w-4" />
                 </Button>
+
+                {/* Color Picker */}
+                <Popover>
+                  {(() => {
+                    const activeEntry = SECTION_COLOR_PALETTE.find(c => c.bg === section.color);
+                    return (
+                      <PopoverTrigger
+                        title="Set section color"
+                        className="inline-flex items-center justify-center rounded-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        style={activeEntry
+                          ? { border: `1.5px solid ${activeEntry.solid}`, boxShadow: `0 0 0 1px ${activeEntry.solid}`, height: '2.25rem', width: '2.25rem' }
+                          : { background: 'linear-gradient(135deg,#8b5cf6,#3b82f6,#22c55e,#eab308,#ef4444)', padding: '1.5px', height: '2.25rem', width: '2.25rem' }
+                        }
+                      >
+                        <span className="flex items-center justify-center w-full h-full rounded-[calc(0.375rem-1px)] bg-background">
+                          <Palette className="h-4 w-4" style={{ color: activeEntry?.solid }} />
+                        </span>
+                      </PopoverTrigger>
+                    );
+                  })()}
+                  <PopoverContent className="w-auto p-2" align="end">
+                    <p className="text-xs text-muted-foreground mb-2">Section color</p>
+                    <div className="flex flex-wrap gap-1.5 max-w-[160px]">
+                      {SECTION_COLOR_PALETTE.map((c) => (
+                        <button
+                          key={c.label}
+                          type="button"
+                          title={c.label}
+                          onClick={() => updateSection(section.id, { color: c.bg })}
+                          className="h-6 w-6 rounded-full border-2 transition-transform hover:scale-110"
+                          style={{
+                            backgroundColor: c.solid,
+                            borderColor: section.color === c.bg ? 'white' : 'transparent',
+                          }}
+                        />
+                      ))}
+                      {/* Reset to default */}
+                      <button
+                        type="button"
+                        title="Default (auto)"
+                        onClick={() => updateSection(section.id, { color: undefined })}
+                        className="h-6 w-6 rounded-full border-2 border-white/30 bg-white/10 text-[10px] font-bold hover:bg-white/20 transition-colors"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
 
                 <Button
                   type="button"

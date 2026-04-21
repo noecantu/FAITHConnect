@@ -16,10 +16,16 @@ import {
   FormMessage,
   FormControl,
 } from "../ui/form";
-import { ChevronUp, ChevronDown, Trash2 } from "lucide-react";
+import { ChevronUp, ChevronDown, Trash2, Palette } from "lucide-react";
 
 import { SECTION_TEMPLATES } from "@/app/lib/sectionTemplates";
-import { getSectionColor } from "@/app/lib/sectionColors";
+import { getSectionColor, SECTION_COLOR_PALETTE } from "@/app/lib/sectionColors";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../ui/popover";
 
 const SECTION_TITLES = SECTION_TEMPLATES.map(t => t.title);
 
@@ -48,7 +54,8 @@ export function SectionEditor({
   const { control, watch, setValue } = useFormContext();
 
   const title = watch(`sections.${index}.title`);
-  const sectionColor = getSectionColor(title);
+  const sectionColorOverride: string | undefined = watch(`sections.${index}.color`);
+  const sectionColor = sectionColorOverride ?? getSectionColor(title);
 
   return (
     <div
@@ -86,6 +93,54 @@ export function SectionEditor({
           >
             <ChevronDown className="h-4 w-4" />
           </Button>
+
+          {/* Color Picker */}
+          <Popover>
+            {(() => {
+              const activeEntry = SECTION_COLOR_PALETTE.find(c => c.bg === sectionColorOverride);
+              return (
+                <PopoverTrigger
+                  title="Set section color"
+                  className="inline-flex items-center justify-center rounded-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  style={activeEntry
+                    ? { border: `1.5px solid ${activeEntry.solid}`, boxShadow: `0 0 0 1px ${activeEntry.solid}`, height: '1.75rem', width: '1.75rem' }
+                    : { background: 'linear-gradient(135deg,#8b5cf6,#3b82f6,#22c55e,#eab308,#ef4444)', padding: '1.5px', height: '1.75rem', width: '1.75rem' }
+                  }
+                >
+                  <span className="flex items-center justify-center w-full h-full rounded-[calc(0.375rem-1px)] bg-background">
+                    <Palette className="h-4 w-4" style={{ color: activeEntry?.solid }} />
+                  </span>
+                </PopoverTrigger>
+              );
+            })()}
+            <PopoverContent className="w-auto p-2" align="end">
+              <p className="text-xs text-muted-foreground mb-2">Section color</p>
+              <div className="flex flex-wrap gap-1.5 max-w-[160px]">
+                {SECTION_COLOR_PALETTE.map((c) => (
+                  <button
+                    key={c.label}
+                    type="button"
+                    title={c.label}
+                    onClick={() => setValue(`sections.${index}.color`, c.bg)}
+                    className="h-6 w-6 rounded-full border-2 transition-transform hover:scale-110"
+                    style={{
+                      backgroundColor: c.solid,
+                      borderColor: sectionColorOverride === c.bg ? 'white' : 'transparent',
+                    }}
+                  />
+                ))}
+                {/* Reset to default */}
+                <button
+                  type="button"
+                  title="Default (auto)"
+                  onClick={() => setValue(`sections.${index}.color`, undefined)}
+                  className="h-6 w-6 rounded-full border-2 border-white/30 bg-white/10 text-[10px] font-bold hover:bg-white/20 transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
 
           <Button
             type="button"

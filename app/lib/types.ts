@@ -179,6 +179,7 @@ export interface ServicePlanSection {
   personId: string | null;
   songIds: string[];
   notes: string;
+  color?: string;
 }
 
 export interface SetList {
@@ -233,6 +234,7 @@ export interface SetListSection {
   title: string;
   songs: SetListSongEntry[];
   notes?: string;
+  color?: string;
 }
 
 export type SongTag = 'worship' | 'fast' | 'slow' | 'praise' | 'altar' | 'special' | string;
