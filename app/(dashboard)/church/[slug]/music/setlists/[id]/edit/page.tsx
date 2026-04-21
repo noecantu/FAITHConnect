@@ -102,7 +102,7 @@ export default function EditSetListPage() {
       },
     });
 
-    router.push(`/music/setlists/${setList.id}`);
+    router.push(`/church/${churchId}/music/setlists/${setList.id}`);
   };
 
   return (

@@ -140,7 +140,7 @@ export default function SetListDetailPage() {
             key={section.id}
             className="p-4 space-y-4"
             style={{
-              backgroundColor: getSectionColor(section.title),
+              backgroundColor: section.color ?? getSectionColor(section.title),
             }}
           >
             <h2 className="text-lg font-semibold">
