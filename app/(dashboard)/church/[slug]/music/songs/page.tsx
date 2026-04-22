@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Card } from '@/app/components/ui/card';
 import { Separator } from '@/app/components/ui/separator';
 import { PageHeader } from '@/app/components/page-header';
@@ -11,13 +11,14 @@ import type { Song } from '@/app/lib/types';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { useRouter } from "next/navigation";
 import { Fab } from '@/app/components/ui/fab';
-import { FileText, Music } from "lucide-react";
+import { ChevronRight, FileText, Music2 } from "lucide-react";
 import { useSettings } from '@/app/hooks/use-settings';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
 import { useAuth } from '@/app/hooks/useAuth';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { SearchBar } from '@/app/components/ui/search-bar';
+import { Button } from '@/app/components/ui/button';
 
 export default function SongsPage() {
   const { churchId } = useChurchId();
@@ -51,26 +52,10 @@ export default function SongsPage() {
     }
   }
 
-  if (!churchId || loading || rolesLoading) {
-    return (
-      <>
-        <PageHeader title="Songs" />
-        <p className="text-muted-foreground">Loading…</p>
-      </>
-    );
-  }
-
-  if (!canView) {
-    return (
-      <>
-        <PageHeader title="Songs" />
-        <p className="text-muted-foreground">You do not have permission to view songs.</p>
-      </>
-    );
-  }
+  const allSongs = songs ?? [];
 
   // FILTER
-  const filteredSongs = songs.filter((song) => {
+  const filteredSongs = allSongs.filter((song) => {
     const q = search.toLowerCase();
     return (
       song.title.toLowerCase().includes(q) ||
@@ -100,153 +85,218 @@ export default function SongsPage() {
     }, {} as Record<string, Song[]>);
   }
 
-  const grouped = groupSongs(filteredSongs, sortBy);
+  // GROUP + SORT KEYS
+  const { grouped, sortedGroupKeys } = useMemo(() => {
+    const groupedSongs = groupSongs(filteredSongs, sortBy);
+    const keys = Object.keys(groupedSongs).sort((a, b) => {
+      if (sortBy === 'bpm') {
+        const numA = parseInt(a, 10);
+        const numB = parseInt(b, 10);
+        return numA - numB;
+      }
+      return a.localeCompare(b);
+    });
 
-  // SORT GROUP KEYS
-  const sortedGroupKeys = Object.keys(grouped).sort((a, b) => {
-    if (sortBy === 'bpm') {
-      const numA = parseInt(a);
-      const numB = parseInt(b);
-      return numA - numB;
-    }
-    return a.localeCompare(b);
-  });
+    return { grouped: groupedSongs, sortedGroupKeys: keys };
+  }, [filteredSongs, sortBy]);
 
-  const totalSongs = songs.length;
+  const titleLetters = useMemo(
+    () => sortedGroupKeys.filter((key) => /^[A-Z]$/.test(key)),
+    [sortedGroupKeys]
+  );
 
-  const subtitleText = `Total: ${totalSongs} | Sorted by ${
+  const totalSongs = allSongs.length;
+  const hasActiveFilters = search.trim().length > 0;
+
+  const subtitleText = `Showing ${filteredSongs.length} of ${totalSongs} | Sorted by ${
     sortBy === "bpm"
       ? "Tempo"
       : sortBy.charAt(0).toUpperCase() + sortBy.slice(1)
   }`;
 
+  if (!churchId || loading || rolesLoading) {
+    return (
+      <>
+        <PageHeader title="Songs" />
+        <p className="text-muted-foreground">Loading…</p>
+      </>
+    );
+  }
+
+  if (!canView) {
+    return (
+      <>
+        <PageHeader title="Songs" />
+        <p className="text-muted-foreground">You do not have permission to view songs.</p>
+      </>
+    );
+  }
+
   return (
     <>
       <PageHeader title="Songs" subtitle={subtitleText}/>
       {/* Sticky Search + Sort Bar */}
-      <div className="sticky top-0 z-10">
-        <div className="flex flex-wrap items-center gap-3 py-2 w-full">
+      <div className="sticky top-0 z-10 py-2">
+        <div className="rounded-xl border border-white/20 bg-black/70 p-3 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
+          <div className="flex flex-wrap items-center gap-3 w-full">
 
           {/* Search */}
-          <div className="w-full sm:flex-1 flex items-center gap-3">
-            <SearchBar
-              value={search}
-              onChange={setSearch}
-              placeholder="Search Songs..."
-            />
-          </div>
+            <div className="w-full sm:flex-1 flex items-center gap-3">
+              <SearchBar
+                value={search}
+                onChange={setSearch}
+                placeholder="Search Songs..."
+              />
+            </div>
 
           {/* Sort */}
-          <div className="flex w-full gap-3 sm:w-auto sm:ml-auto">
-            <Select
-              value={sortBy}
-              onValueChange={async (newSort) => {
-                setSortBy(newSort as "title" | "artist" | "key" | "bpm");
+            <div className="flex w-full gap-3 sm:w-auto sm:ml-auto">
+              <Select
+                value={sortBy}
+                onValueChange={async (newSort) => {
+                  setSortBy(newSort as "title" | "artist" | "key" | "bpm");
 
-                if (!user) return;
-                await updateDoc(doc(db, "users", user.uid), {
-                  "settings.songSort": newSort,
-                });
-              }}
-            >
-              <SelectTrigger
-                className="
-                  w-full sm:w-[140px] h-9
-                  bg-black/80 border border-white/20 backdrop-blur-xl
-                  text-white/80
-                  hover:bg-white/5 hover:border-white/20
-                  transition
-                "
+                  if (!user) return;
+                  await updateDoc(doc(db, "users", user.uid), {
+                    "settings.songSort": newSort,
+                  });
+                }}
               >
-                <SelectValue placeholder="Sort" />
-              </SelectTrigger>
+                <SelectTrigger
+                  className="
+                    w-full sm:w-[150px] h-9
+                    bg-black/80 border border-white/20 backdrop-blur-xl
+                    text-white/80
+                    hover:bg-white/5 hover:border-white/20
+                    transition
+                  "
+                >
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
 
-              <SelectContent>
-                <SelectItem value="title">Title</SelectItem>
-                <SelectItem value="artist">Artist</SelectItem>
-                <SelectItem value="key">Key</SelectItem>
-                <SelectItem value="bpm">Tempo</SelectItem>
-              </SelectContent>
-            </Select>
+                <SelectContent>
+                  <SelectItem value="title">Title</SelectItem>
+                  <SelectItem value="artist">Artist</SelectItem>
+                  <SelectItem value="key">Key</SelectItem>
+                  <SelectItem value="bpm">Tempo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-
         </div>
       </div>
 
       {/* GROUPED SECTIONS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {sortedGroupKeys.map((groupKey) => (
-          <Card
-            key={groupKey}
+      {sortedGroupKeys.length === 0 ? (
+        <Card className="rounded-xl border border-dashed border-white/25 bg-black/35 px-6 py-12 text-center backdrop-blur-xl">
+          <div className="mx-auto max-w-lg space-y-3">
+            <p className="text-base font-medium text-white/90">
+              {allSongs.length === 0 ? 'No songs yet' : 'No songs match your search'}
+            </p>
+            <p className="text-sm text-white/60">
+              {allSongs.length === 0
+                ? 'Start your music library by adding your first song.'
+                : 'Try a different search term to find songs by title, artist, or key.'}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+              {hasActiveFilters && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-white/30 bg-white/5 hover:bg-white/10"
+                  onClick={() => setSearch('')}
+                >
+                  Clear Search
+                </Button>
+              )}
+              {canManage && (
+                <Button
+                  type="button"
+                  onClick={() => router.push(`/church/${churchId}/music/songs/new`)}
+                >
+                  Add Song
+                </Button>
+              )}
+            </div>
+          </div>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {sortedGroupKeys.map((groupKey, groupIndex) => (
+            <Card
+              key={groupKey}
               ref={(el) => {
-              groupRefs.current[groupKey] = el;
-            }}
-            className="relative p-6 space-y-4 bg-black/50 border-white/20 backdrop-blur-xl"
-          >
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">{groupKey}</h2>
-              <span className="text-sm text-muted-foreground">
-                Songs: {grouped[groupKey].length}
-              </span>
-            </div>
+                groupRefs.current[groupKey] = el;
+              }}
+              style={{ animationDelay: `${groupIndex * 40}ms` }}
+              className="relative overflow-hidden p-5 space-y-4 bg-gradient-to-b from-black/80 to-black/60 border-white/20 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.28)] animate-in fade-in slide-in-from-bottom-2 duration-500"
+            >
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_35%)]" />
+              <div className="relative flex items-center justify-between">
+                <h2 className="text-lg font-semibold tracking-tight">{groupKey}</h2>
+                <span className="inline-flex items-center rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-xs text-white/75">
+                  {grouped[groupKey].length} {grouped[groupKey].length === 1 ? 'Song' : 'Songs'}
+                </span>
+              </div>
 
-            <Separator />
+              <Separator />
 
-            <div className="max-h-[300px] overflow-y-auto pr-2">
-              <ul className="space-y-2">
-                {grouped[groupKey]
-                  .sort((a, b) => a.title.localeCompare(b.title))
-                  .map((song) => (
-                    <li key={song.id}>
-                      <Link href={`/church/${churchId}/music/songs/${song.id}`}>
-                        <Card
-                          className="relative p-4 cursor-pointer 
-                                    bg-black/70 border-white/20 backdrop-blur-xl 
-                                    hover:bg-white/5 transition"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h3 className="font-medium">{song.title}</h3>
-                              <p className="text-sm text-muted-foreground">
-                                Key: {song.key || '—'} • Tempo: {song.bpm ?? '—'} • Time Signature: {song.timeSignature ?? '—'}
-                              </p>
+              <div className="relative max-h-[320px] overflow-y-auto pr-2">
+                <ul className="space-y-2">
+                  {grouped[groupKey]
+                    .sort((a, b) => a.title.localeCompare(b.title))
+                    .map((song) => (
+                      <li key={song.id}>
+                        <Link href={`/church/${churchId}/music/songs/${song.id}`}>
+                          <Card
+                            className="group relative p-4 cursor-pointer bg-black/60 border-white/15 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/[0.10] hover:shadow-[0_8px_22px_rgba(0,0,0,0.24)] focus-within:ring-2 focus-within:ring-white/35"
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="min-w-0">
+                                <h3 className="font-medium truncate group-hover:text-white transition-colors">{song.title}</h3>
+                                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-white/70">
+                                  <span className="rounded-full border border-white/20 bg-black/35 px-2 py-0.5">Key: {song.key || '—'}</span>
+                                  <span className="rounded-full border border-white/20 bg-black/35 px-2 py-0.5">{song.bpm ?? '—'} BPM</span>
+                                  <span className="rounded-full border border-white/20 bg-black/35 px-2 py-0.5">{song.timeSignature ?? '—'} Time</span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2 ml-2">
+                                {song.lyrics && (
+                                  <FileText size={16} className="text-blue-500/80" />
+                                )}
+                                {song.chords && (
+                                  <Music2 size={16} className="text-gray-500/80" />
+                                )}
+                                <ChevronRight size={16} className="text-white/35 group-hover:text-white/70 transition-colors" />
+                              </div>
                             </div>
-
-                            <div className="flex items-center gap-2 ml-2">
-                              {song.lyrics && (
-                                <FileText size={16} className="text-blue-500/80" />
-                              )}
-                              {song.chords && (
-                                <Music size={16} className="text-gray-500/80" />
-                              )}
-                            </div>
-                          </div>
-                        </Card>
-                      </Link>
-                    </li>
-                  ))}
-              </ul>
-            </div>
-          </Card>
-        ))}
-      </div>
+                          </Card>
+                        </Link>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {canManage && (
         <Fab
           type="add"
-          onClick={() => router.push("/music/songs/new")}
+          onClick={() => router.push(`/church/${churchId}/music/songs/new`)}
         />
       )}
 
       {/* Alphabet Index */}
-      <div
-        className="fixed right-2 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-1 
-        bg-background/40 backdrop-blur-sm rounded-full px-1 py-2"
-        onTouchMove={handleTouchMove}
-      >
-        {sortedGroupKeys
-          .filter((key) => /^[A-Z]$/.test(key))
-          .map((letter) => (
+      {sortBy === 'title' && titleLetters.length > 0 && (
+        <div
+          className="fixed right-2 top-1/2 -translate-y-1/2 z-20 hidden md:flex flex-col items-center gap-1 border border-white/20 bg-black/55 backdrop-blur-md rounded-full px-1.5 py-2 shadow-[0_8px_24px_rgba(0,0,0,0.28)]"
+          onTouchMove={handleTouchMove}
+          aria-label="Alphabet index"
+        >
+          {titleLetters.map((letter) => (
             <button
               key={letter}
               data-letter={letter}
@@ -254,12 +304,14 @@ export default function SongsPage() {
                 const el = groupRefs.current[letter];
                 if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
               }}
-              className="text-xs text-muted-foreground hover:text-foreground px-1"
+              className="text-[11px] leading-none text-white/60 hover:text-white px-1 transition-colors"
+              aria-label={`Jump to ${letter}`}
             >
               {letter}
             </button>
           ))}
-      </div>
+        </div>
+      )}
 
     </>
   );

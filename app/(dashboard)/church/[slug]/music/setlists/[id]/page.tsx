@@ -165,11 +165,9 @@ export default function SetListDetailPage() {
                     className="relative p-4 cursor-pointer 
                       bg-black/80 border-white/20 backdrop-blur-xl 
                       hover:bg-black/50 transition"
-
-                    // ⭐ FIXED SONG NAVIGATION
                     onClick={() =>
                       router.push(
-                        `/church/${churchId}/music/songs/${song.songId}?setlist=${setList.id}`
+                        `/church/${churchId}/music/songs/${song.songId}/view?setlist=${setList.id}`
                       )
                     }
                   >
