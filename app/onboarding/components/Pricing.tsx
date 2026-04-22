@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Card } from "@/app/components/ui/card";
 import { CheckCircle } from "lucide-react";
@@ -24,6 +25,12 @@ const plans = [
 ];
 
 export default function Pricing() {
+  const router = useRouter();
+
+  const handlePlanSelect = (planName: string) => {
+    router.push(`/onboarding/choose-plan?plan=${encodeURIComponent(planName.toLowerCase())}`);
+  };
+
   return (
     <section className="max-w-6xl mx-auto px-8 md:px-6 lg:px-2 py-12">
       <motion.h2
@@ -51,9 +58,10 @@ export default function Pricing() {
             transition={{ duration: 0.6, delay: i * 0.1 }}
             viewport={{ once: true }}
             whileHover={{ scale: 1.05 }}
+            onClick={() => handlePlanSelect(p.name)}
           >
             <Card
-              className={`bg-white/5 border-white/20 backdrop-blur-sm p-6 ${
+              className={`bg-white/5 border-white/20 backdrop-blur-sm p-6 cursor-pointer transition-all hover:border-blue-500/80 ${
                 p.highlight ? "border-blue-500 shadow-lg shadow-blue-500/20" : ""
               }`}
             >
