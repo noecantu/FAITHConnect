@@ -219,3 +219,33 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 [data-radix-popper-content-wrapper] {
   z-index: 10000 !important;
 }
+
+/*
+  Soft global hover treatment for common utility classes.
+  Keeps highlights present, but with subtler gray transparency.
+*/
+@layer utilities {
+  .hover\:bg-accent:hover {
+    background-color: hsl(215 10% 55% / 0.08) !important;
+  }
+
+  .focus\:bg-accent:focus {
+    background-color: hsl(215 10% 55% / 0.1) !important;
+  }
+
+  .data-\[state\=open\]\:bg-accent[data-state="open"] {
+    background-color: hsl(215 10% 55% / 0.1) !important;
+  }
+
+  .hover\:bg-white\/10:hover {
+    background-color: hsl(215 10% 55% / 0.08) !important;
+  }
+
+  .hover\:bg-white\/5:hover {
+    background-color: hsl(215 10% 55% / 0.05) !important;
+  }
+
+  .hover\:bg-muted:hover {
+    background-color: hsl(215 10% 55% / 0.07) !important;
+  }
+}
