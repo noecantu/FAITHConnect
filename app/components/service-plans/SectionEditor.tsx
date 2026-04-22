@@ -1,6 +1,6 @@
 import { useFormContext } from "react-hook-form";
+import { useState } from "react";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import {
   Select,
@@ -17,8 +17,7 @@ import {
   FormControl,
 } from "../ui/form";
 import { ChevronUp, ChevronDown, Trash2, Palette } from "lucide-react";
-
-import { SECTION_TEMPLATES } from "@/app/lib/sectionTemplates";
+import SectionNameDialog from "@/app/components/music/SectionNameSelectionDialog";
 import { getSectionColor, SECTION_COLOR_PALETTE } from "@/app/lib/sectionColors";
 
 import {
@@ -27,10 +26,9 @@ import {
   PopoverTrigger,
 } from "../ui/popover";
 
-const SECTION_TITLES = SECTION_TEMPLATES.map(t => t.title);
-
 type SectionEditorProps = {
   index: number;
+  churchId: string;
   members: { id: string; firstName: string; lastName: string }[];
   songs: { id: string; title: string }[];
   remove: () => void;
@@ -43,6 +41,7 @@ type SectionEditorProps = {
 
 export function SectionEditor({
   index,
+  churchId,
   members,
   songs,
   remove,
@@ -52,6 +51,7 @@ export function SectionEditor({
   isLast,
 }: SectionEditorProps) {
   const { control, watch, setValue } = useFormContext();
+  const [nameDialogOpen, setNameDialogOpen] = useState(false);
 
   const title = watch(`sections.${index}.title`);
   const sectionColorOverride: string | undefined = watch(`sections.${index}.color`);
@@ -161,43 +161,32 @@ export function SectionEditor({
         render={({ field }) => (
           <FormItem>
             <FormLabel>Section Title</FormLabel>
-
-            <Select
-              value={field.value}
-              onValueChange={(value) => setValue(`sections.${index}.title`, value)}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select section" />
-                </SelectTrigger>
-              </FormControl>
-
-              <SelectContent>
-                {SECTION_TITLES.map((title) => (
-                  <SelectItem key={title} value={title}>
-                    {title}
-                  </SelectItem>
-                ))}
-                <SelectItem value="__custom">Custom…</SelectItem>
-              </SelectContent>
-            </Select>
-
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 justify-start font-normal text-left"
+                onClick={() => setNameDialogOpen(true)}
+              >
+                {field.value
+                  ? field.value
+                  : <span className="text-muted-foreground">Select section name…</span>}
+              </Button>
+            </div>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      {/* Custom Title Input */}
-      {title === "__custom" && (
-        <Input
-          autoFocus
-          placeholder="Custom section name"
-          onChange={(e) =>
-            setValue(`sections.${index}.title`, e.target.value)
-          }
-          className="font-medium"
-        />
-      )}
+      <SectionNameDialog
+        isOpen={nameDialogOpen}
+        onOpenChange={setNameDialogOpen}
+        churchId={churchId}
+        currentTitle={title}
+        onSelect={(selected) => {
+          if (selected !== null) setValue(`sections.${index}.title`, selected);
+        }}
+      />
 
       {/* Person */}
       <FormField

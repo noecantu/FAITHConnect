@@ -34,9 +34,8 @@ import { useSongs } from '@/app/hooks/useSongs';
 
 import dayjs from 'dayjs';
 import { SectionEditor } from './SectionEditor';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { SECTION_TEMPLATES } from '@/app/lib/sectionTemplates';
 import { useState } from 'react';
+import SectionNameDialog from '@/app/components/music/SectionNameSelectionDialog';
 
 // ZOD SCHEMAS — NEW ARCHITECTURE
 const sectionSchema = z.object({
@@ -114,6 +113,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
   const [localTimeString, setLocalTimeString] = useState(
     plan?.timeString ?? "10:00"
   );
+  const [isSectionNameDialogOpen, setIsSectionNameDialogOpen] = useState(false);
   const { members } = useMembers();
   const { songs } = useSongs(churchId);
 
@@ -245,48 +245,16 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="font-semibold text-lg">Sections</h3>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline">Add Section</Button>
-                    </DropdownMenuTrigger>
-
-                    <DropdownMenuContent className="w-56">
-                      {SECTION_TEMPLATES.map((tpl) => (
-                        <DropdownMenuItem
-                          key={tpl.id}
-                          onClick={() =>
-                            append({
-                              title: tpl.title,
-                              personId: tpl.defaultPersonId ?? null,
-                              songIds: tpl.defaultSongIds ?? [],
-                              notes: tpl.defaultNotes ?? "",
-                            })
-                          }
-                        >
-                          {tpl.title}
-                        </DropdownMenuItem>
-                      ))}
-
-                      <DropdownMenuItem
-                        onClick={() =>
-                          append({
-                            title: "",
-                            personId: null,
-                            songIds: [],
-                            notes: "",
-                          })
-                        }
-                      >
-                        Custom Section
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <Button variant="outline" type="button" onClick={() => setIsSectionNameDialogOpen(true)}>
+                    Add Section
+                  </Button>
                 </div>
 
                 {fields.map((field, index) => (
                   <SectionEditor
                     key={field.id}
                     index={index}
+                    churchId={churchId}
                     members={members}
                     songs={songs}
                     remove={() => remove(index)}
@@ -296,6 +264,22 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                     isLast={index === fields.length - 1}
                   />
                 ))}
+
+                <SectionNameDialog
+                  isOpen={isSectionNameDialogOpen}
+                  onOpenChange={setIsSectionNameDialogOpen}
+                  churchId={churchId}
+                  onSelect={(selectedTitle) => {
+                    if (!selectedTitle) return;
+
+                    append({
+                      title: selectedTitle,
+                      personId: null,
+                      songIds: [],
+                      notes: '',
+                    });
+                  }}
+                />
               </div>
             </form>
           </Form>
