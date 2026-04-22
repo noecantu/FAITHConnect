@@ -11,20 +11,20 @@ const plans = [
     key: "starter",
     name: "Starter",
     price: "$9/mo",
-    features: ["Up to 50 members", "Attendance tracking", "Basic reports"],
+    features: ["Up to 50 Members", "All Core Features", "Email Support"],
   },
   {
     key: "standard",
     name: "Standard",
     price: "$19/mo",
-    features: ["Up to 300 members", "QR attendance", "Full reports", "User roles"],
+    features: ["Up to 300 Members", "All Core Features", "Priority Email Support"],
     highlight: true,
   },
   {
     key: "pro",
     name: "Pro",
     price: "$49/mo",
-    features: ["Unlimited members", "Advanced analytics", "Priority support"],
+    features: ["Unlimited Members", "All Core Features", "Priority Support"],
   },
 ] as const;
 
