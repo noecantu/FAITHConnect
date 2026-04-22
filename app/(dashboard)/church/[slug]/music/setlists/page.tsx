@@ -13,6 +13,7 @@ import { Fab } from '@/app/components/ui/fab';
 import { usePreviewPagination } from '@/app/hooks/usePreviewPagination';
 import { PreviewPaginationFooter } from '@/app/components/layout/PreviewPaginationFooter';
 import { SearchBar } from '@/app/components/ui/search-bar';
+import { CalendarDays, Layers3, Music2 } from 'lucide-react';
 
 // TYPES
 type SortType = 'date-desc' | 'date-asc' | 'title-asc';
@@ -191,12 +192,13 @@ export default function SetListsPage() {
       </div>
 
       {/* ⭐ Card wrapper for list + footer */}
-      <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
-        <CardHeader>
-          <CardTitle>All Sets</CardTitle>
+      <Card className="relative overflow-hidden bg-gradient-to-b from-black/85 to-black/70 border-white/20 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_35%)]" />
+        <CardHeader className="relative">
+          <CardTitle className="text-xl tracking-tight">All Set Lists</CardTitle>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent className="relative space-y-6">
 
           {/* List */}
           <div className="space-y-3">
@@ -211,20 +213,28 @@ export default function SetListsPage() {
                     router.push(`/church/${churchId}/music/setlists/${row.id}`);
                   }
                 }}
-                className={`border border-white/20 rounded-md p-4 flex items-start justify-between cursor-pointer transition-colors ${
+                className={`group border border-white/15 rounded-lg p-4 flex items-start justify-between cursor-pointer transition-all duration-200 ${
                   index % 2 === 0
-                    ? 'bg-white/[0.04] hover:bg-white/[0.10]'
-                    : 'bg-white/[0.14] hover:bg-white/[0.20]'
+                    ? 'bg-white/[0.03] hover:bg-white/[0.08]'
+                    : 'bg-white/[0.08] hover:bg-white/[0.13]'
                 }`}
               >
-                <div>
-                  <div className="font-medium">{row.title}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {row.totalSets} sections • {row.totalSongs} songs
+                <div className="space-y-2">
+                  <div className="font-semibold tracking-tight group-hover:text-white transition-colors">{row.title}</div>
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/40 px-2.5 py-1 text-white/80">
+                      <Layers3 className="h-3.5 w-3.5 text-gray-500" />
+                      {row.totalSets} {row.totalSets === 1 ? 'Section' : 'Sections'}
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/40 px-2.5 py-1 text-white/80">
+                      <Music2 className="h-3.5 w-3.5 text-gray-500" />
+                      {row.totalSongs} {row.totalSongs === 1 ? 'Song' : 'Songs'}
+                    </span>
                   </div>
                 </div>
 
-                <div className="text-sm text-muted-foreground">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/40 px-3 py-1.5 text-xs text-white/80">
+                  <CalendarDays className="h-3.5 w-3.5 text-sky-500" />
                   {row.date ? format(row.date, "M/d/yy, h:mm a") : "—"}
                 </div>
               </div>
