@@ -38,7 +38,7 @@ export default function AdminCredentialsPage() {
       toast({
         title: "Missing Plan",
         description: "Please choose a plan first.",
-        variant: "destructive",
+        // variant: "destructive",
       });
       router.replace("/onboarding/choose-plan");
       return;
@@ -52,7 +52,7 @@ export default function AdminCredentialsPage() {
       toast({
         title: "Passwords do not match",
         description: "Please make sure both passwords are identical.",
-        variant: "destructive",
+        // variant: "destructive",
       });
       return;
     }
@@ -140,7 +140,7 @@ export default function AdminCredentialsPage() {
           toast({
             title: "Account already exists",
             description: "That email is already registered. Try logging in or reset your password.",
-            variant: "destructive",
+            // variant: "destructive",
             action: (
               <Button onClick={() => router.push("/login")}>Go to Login</Button>
             ),
@@ -150,7 +150,7 @@ export default function AdminCredentialsPage() {
         toast({
           title: "Signup Failed",
           description: "Unable to create your account.",
-          variant: "destructive",
+          // variant: "destructive",
         });
       }
     } finally {
@@ -199,7 +199,7 @@ export default function AdminCredentialsPage() {
           <form onSubmit={handleSignup} className="space-y-5">
 
             <div className="space-y-2">
-              <label className="text-zinc-500">First Name</label>
+              <label className="text-white/90">First Name</label>
               <input
                 className="w-full rounded-md bg-black/80 border border-white/20 px-3 py-2 text-white"
                 value={firstName}
@@ -209,7 +209,7 @@ export default function AdminCredentialsPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-zinc-500">Last Name</label>
+              <label className="text-white/90">Last Name</label>
               <input
                 className="w-full rounded-md bg-black/80 border border-white/20 px-3 py-2 text-white"
                 value={lastName}
@@ -219,7 +219,7 @@ export default function AdminCredentialsPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-zinc-500">Email</label>
+              <label className="text-white/90">Email</label>
               <input
                 type="email"
                 className="w-full rounded-md bg-black/80 border border-white/20 px-3 py-2 text-white"
@@ -230,7 +230,7 @@ export default function AdminCredentialsPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-zinc-500">Password</label>
+              <label className="text-white/90">Password</label>
               <input
                 type="password"
                 className="w-full rounded-md bg-black/80 border border-white/20 px-3 py-2 text-white"
@@ -241,7 +241,7 @@ export default function AdminCredentialsPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-zinc-500">Confirm Password</label>
+              <label className="text-white/90">Confirm Password</label>
               <input
                 type="password"
                 className="w-full rounded-md bg-black/80 border border-white/20 px-3 py-2 text-white"

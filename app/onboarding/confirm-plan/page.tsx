@@ -39,7 +39,7 @@ export default function ConfirmPlanPage() {
   const planName = selectedPlan?.name || "Unknown Plan";
   const planPrice = selectedPlan?.price || fallbackPrice;
   const planFeatures = selectedPlan?.features || [];
-  const planHighlight = selectedPlan?.highlight || false;
+  const planHighlight = selectedPlan ? ("highlight" in selectedPlan && selectedPlan.highlight) : false;
 
   const handleConfirm = () => {
     router.push(`/onboarding/admin-credentials?plan=${selectedPlanKey || "starter"}`);
@@ -90,7 +90,13 @@ export default function ConfirmPlanPage() {
       <h1 className="text-4xl font-bold text-center mb-12">Confirm Your Plan</h1>
 
       <div className="max-w-lg mx-auto">
-        <motion.div whileHover={{ scale: 1.05 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          whileHover={{ scale: 1.05 }}
+        >
           <Card
             className={`bg-white/5 border-white/20 backdrop-blur-sm p-8 ${
               planHighlight ? "border-blue-500 shadow-lg shadow-blue-500/20" : ""
