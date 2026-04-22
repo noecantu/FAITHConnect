@@ -142,6 +142,17 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
     name: 'sections',
   });
 
+  const watchedTitle = form.watch('title');
+  const watchedSections = form.watch('sections');
+  const hasValidSectionTitles = (watchedSections ?? []).every(
+    (section) => section.title.trim().length > 0
+  );
+  const canSubmit =
+    watchedTitle.trim().length > 0 &&
+    localDateString.trim().length > 0 &&
+    localTimeString.trim().length > 0 &&
+    hasValidSectionTitles;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose} modal={false}>
       <DialogContent
@@ -289,7 +300,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
           <Button variant="outline" type="button" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" form="service-plan-form">
+          <Button type="submit" form="service-plan-form" disabled={!canSubmit || form.formState.isSubmitting}>
             {isEdit ? "Save Changes" : "Create Service Plan"}
           </Button>
         </DialogFooter>

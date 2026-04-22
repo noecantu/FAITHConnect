@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
@@ -25,9 +25,10 @@ interface SetListFormProps {
     };
   }) => void;
   onReady?: (submitFn: () => void) => void;
+  onValidityChange?: (isValid: boolean) => void;
 }
 
-export function SetListForm({ initial, allSongs, onSubmit, onReady }: SetListFormProps) {
+export function SetListForm({ initial, allSongs, onSubmit, onReady, onValidityChange }: SetListFormProps) {
   const [title, setTitle] = useState(initial?.title ?? '');
   const [dateString, setDateString] = useState(
     initial?.dateString ?? new Date().toISOString().substring(0, 10)
@@ -39,25 +40,82 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady }: SetListFor
   const [theme, setTheme] = useState(initial?.serviceNotes?.theme ?? '');
   const [scripture, setScripture] = useState(initial?.serviceNotes?.scripture ?? '');
   const [notes, setNotes] = useState(initial?.serviceNotes?.notes ?? '');
+  const onReadyRef = useRef(onReady);
+  const onValidityChangeRef = useRef(onValidityChange);
+  const onSubmitRef = useRef(onSubmit);
+  const valuesRef = useRef({
+    title: initial?.title ?? '',
+    dateString: initial?.dateString ?? new Date().toISOString().substring(0, 10),
+    timeString: initial?.timeString ?? '09:00',
+    sections: initial?.sections ?? [],
+    serviceType: initial?.serviceType ?? '',
+    theme: initial?.serviceNotes?.theme ?? '',
+    scripture: initial?.serviceNotes?.scripture ?? '',
+    notes: initial?.serviceNotes?.notes ?? '',
+  });
 
-  const handleSubmit = () => {
-    onSubmit({
-      title: title.trim(),
+  useEffect(() => {
+    onReadyRef.current = onReady;
+  }, [onReady]);
+
+  useEffect(() => {
+    onValidityChangeRef.current = onValidityChange;
+  }, [onValidityChange]);
+
+  useEffect(() => {
+    onSubmitRef.current = onSubmit;
+  }, [onSubmit]);
+
+  const isFormValid =
+    title.trim().length > 0 &&
+    dateString.trim().length > 0 &&
+    timeString.trim().length > 0 &&
+    sections.every((section) => section.title.trim().length > 0);
+
+  useEffect(() => {
+    valuesRef.current = {
+      title,
       dateString,
       timeString,
       sections,
       serviceType,
+      theme,
+      scripture,
+      notes,
+    };
+  }, [title, dateString, timeString, sections, serviceType, theme, scripture, notes]);
+
+  const handleSubmit = useCallback(() => {
+    const current = valuesRef.current;
+    const submitIsValid =
+      current.title.trim().length > 0 &&
+      current.dateString.trim().length > 0 &&
+      current.timeString.trim().length > 0 &&
+      current.sections.every((section) => section.title.trim().length > 0);
+
+    if (!submitIsValid) return;
+
+    onSubmitRef.current({
+      title: current.title.trim(),
+      dateString: current.dateString,
+      timeString: current.timeString,
+      sections: current.sections,
+      serviceType: current.serviceType,
       serviceNotes: {
-        theme: theme.trim() || null,
-        scripture: scripture.trim() || null,
-        notes: notes.trim() || null,
+        theme: current.theme.trim() || null,
+        scripture: current.scripture.trim() || null,
+        notes: current.notes.trim() || null,
       },
     });
-  };
+  }, []);
 
   useEffect(() => {
-    onReady?.(handleSubmit);
-  }, [title, dateString, timeString, sections, serviceType, theme, scripture, notes]);
+    onReadyRef.current?.(handleSubmit);
+  }, [handleSubmit]);
+
+  useEffect(() => {
+    onValidityChangeRef.current?.(isFormValid);
+  }, [isFormValid]);
 
   return (
     <div className="space-y-6">

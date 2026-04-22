@@ -16,13 +16,23 @@ export default function NewSetListPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
   const { songs: allSongs } = useSongs(churchId);
-  const { canManageMusic } = usePermissions();
+  const { canManageMusic, loading: permissionsLoading } = usePermissions();
   const canCreate = canManageMusic;
 
   const [saving, setSaving] = useState(false);
+  const [canSave, setCanSave] = useState(false);
   const [submitForm, setSubmitForm] = useState<() => void>(() => () => {});
 
   if (!churchId) {
+    return (
+      <>
+        <PageHeader title="Create New Set List" />
+        <p className="text-muted-foreground">Loading…</p>
+      </>
+    );
+  }
+
+  if (permissionsLoading) {
     return (
       <>
         <PageHeader title="Create New Set List" />
@@ -86,13 +96,14 @@ export default function NewSetListPage() {
           allSongs={allSongs}
           onSubmit={handleSubmit}
           onReady={(fn) => setSubmitForm(() => fn)}
+          onValidityChange={setCanSave}
         />
       </Card>
 
       <Fab
         type="save"
         onClick={() => submitForm()}
-        disabled={saving}
+        disabled={saving || !canSave}
       />
     </>
   );
