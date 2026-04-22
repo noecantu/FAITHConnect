@@ -284,6 +284,10 @@ export default function ChurchAdminDashboard() {
     );
   }
 
+  const isChurchDisabled = church.status === "disabled";
+  const statusLabel = isChurchDisabled ? "Disabled" : "Active";
+  const accessModeLabel = isReadOnly ? "Read-Only" : "Full Access";
+
   // ---------------------------
   // NORMAL RENDER
   // ---------------------------
@@ -318,7 +322,7 @@ export default function ChurchAdminDashboard() {
                 </div>
               )}
 
-              <div className="space-y-2">
+              <div>
                 <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
                   {church.name}
                 </h1>
@@ -344,11 +348,32 @@ export default function ChurchAdminDashboard() {
               </div>
             </div>
 
-            {/* Right: Status */}
-            <div className="flex items-center gap-3">
-              <span className="inline-flex items-center rounded-full border border-border bg-blue-500/15 px-3 py-1 text-xs font-medium text-muted-foreground">
-                Status: {church.status === "disabled" ? "Disabled" : "Active"}
-              </span>
+            {/* Right: Status Panel */}
+            <div className="w-full md:w-auto md:min-w-[240px] rounded-xl border border-white/15 bg-white/[0.03] p-3 backdrop-blur-sm">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-white/60">System Status</p>
+
+              <div className="mt-2 space-y-2">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-xs text-white/65">Operational</span>
+                  <span
+                    className={`inline-flex items-center gap-2 text-xs font-semibold ${
+                      isChurchDisabled ? "text-rose-200" : "text-emerald-200"
+                    }`}
+                  >
+                    <span
+                      className={`h-2 w-2 rounded-full ${
+                        isChurchDisabled ? "bg-rose-300" : "bg-emerald-300"
+                      }`}
+                    />
+                    {statusLabel}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-4 border-t border-white/10 pt-2">
+                  <span className="text-xs text-white/65">Access Mode</span>
+                  <span className="text-xs font-medium text-white/85">{accessModeLabel}</span>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
