@@ -2,7 +2,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Button } from "@/app/components/ui/button";
 import { Card } from "@/app/components/ui/card";
 import Link from "next/link";
 import { CheckCircle, ArrowLeft } from "lucide-react";
@@ -11,20 +10,20 @@ const plans = [
   {
     name: "Starter",
     price: "$9/mo",
-    features: ["Up to 50 members", "Attendance tracking", "Basic reports"],
+    features: ["Up to 50 Members", "All Core Features", "Email Support"],
     plan: "starter",
   },
   {
     name: "Standard",
     price: "$19/mo",
-    features: ["Up to 300 members", "QR attendance", "Full reports", "User roles"],
+    features: ["Up to 300 Members", "All Core Features", "Priority Email Support"],
     plan: "standard",
     highlight: true,
   },
   {
     name: "Pro",
     price: "$49/mo",
-    features: ["Unlimited members", "Advanced analytics", "Priority support"],
+    features: ["Unlimited Members", "All Core Features", "Priority Support"],
     plan: "pro",
   },
 ];
@@ -79,9 +78,12 @@ export default function OnboardingChoosePlan() {
             whileHover={{ scale: 1.05 }}
           >
             <Card
-              className={`bg-white/5 border-white/20 backdrop-blur-sm p-6 ${
+              className={`bg-white/5 border-white/20 backdrop-blur-sm p-6 cursor-pointer transition-all hover:border-blue-500/80 ${
                 p.highlight ? "border-blue-500 shadow-lg shadow-blue-500/20" : ""
               }`}
+              onClick={() => {
+                window.location.href = `/onboarding/confirm-plan?plan=${p.plan}&price=${encodeURIComponent(p.price)}`;
+              }}
             >
               <h3 className="text-2xl font-semibold mb-2">{p.name}</h3>
               <p className="text-4xl font-bold mb-6">{p.price}</p>
@@ -95,14 +97,9 @@ export default function OnboardingChoosePlan() {
                 ))}
               </ul>
 
-              <Button
-                className="w-full bg-blue-600 hover:bg-blue-700"
-                onClick={() => {
-                  window.location.href = `/onboarding/confirm-plan?plan=${p.plan}&price=${p.price}`;
-                }}
-              >
+              <div className="text-center text-sm font-semibold text-blue-400 hover:text-blue-300">
                 Choose {p.name}
-              </Button>
+              </div>
             </Card>
           </motion.div>
         ))}

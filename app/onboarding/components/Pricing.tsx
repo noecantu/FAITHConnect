@@ -10,25 +10,28 @@ const plans = [
     name: "Starter",
     price: "$9/mo",
     features: ["Up to 50 Members", "All Core Features", "Email Support"],
+    plan: "starter",
   },
   {
     name: "Standard",
     price: "$19/mo",
     features: ["Up to 300 Members", "All Core Features", "Priority Email Support"],
+    plan: "standard",
     highlight: true,
   },
   {
     name: "Pro",
     price: "$49/mo",
     features: ["Unlimited Members", "All Core Features", "Priority Support"],
+    plan: "pro",
   },
 ];
 
 export default function Pricing() {
   const router = useRouter();
 
-  const handlePlanSelect = (planName: string) => {
-    router.push(`/onboarding/choose-plan?plan=${encodeURIComponent(planName.toLowerCase())}`);
+  const handlePlanSelect = (plan: string, price: string) => {
+    router.push(`/onboarding/confirm-plan?plan=${plan}&price=${encodeURIComponent(price)}`);
   };
 
   return (
@@ -58,12 +61,12 @@ export default function Pricing() {
             transition={{ duration: 0.6, delay: i * 0.1 }}
             viewport={{ once: true }}
             whileHover={{ scale: 1.05 }}
-            onClick={() => handlePlanSelect(p.name)}
           >
             <Card
               className={`bg-white/5 border-white/20 backdrop-blur-sm p-6 cursor-pointer transition-all hover:border-blue-500/80 ${
                 p.highlight ? "border-blue-500 shadow-lg shadow-blue-500/20" : ""
               }`}
+              onClick={() => handlePlanSelect(p.plan, p.price)}
             >
               <h3 className="text-2xl font-semibold mb-2">{p.name}</h3>
               <p className="text-4xl font-bold mb-6">{p.price}</p>
@@ -76,6 +79,10 @@ export default function Pricing() {
                   </li>
                 ))}
               </ul>
+
+              <div className="text-center text-sm font-semibold text-blue-400 hover:text-blue-300">
+                Choose {p.name}
+              </div>
             </Card>
           </motion.div>
         ))}
