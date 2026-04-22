@@ -137,9 +137,13 @@ export default function SongDetailPage() {
   return (
     <>
       <PageHeader title={song.title}>
-        {setlistId && (
+        {setlistId ? (
           <Button asChild variant="outline" className="bg-black/80 border-white/20 text-white/80 hover:bg-white/5">
             <Link href={`${setlistsBasePath}/${setlistId}`}>Back to Set List</Link>
+          </Button>
+        ) : (
+          <Button asChild variant="outline" className="bg-black/80 border-white/20 text-white/80 hover:bg-white/5">
+            <Link href={songsBasePath}>Back to Songs</Link>
           </Button>
         )}
       </PageHeader>

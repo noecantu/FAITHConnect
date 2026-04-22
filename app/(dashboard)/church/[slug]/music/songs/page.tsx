@@ -198,7 +198,7 @@ export default function SongsPage() {
                   .sort((a, b) => a.title.localeCompare(b.title))
                   .map((song) => (
                     <li key={song.id}>
-                      <Link href={`/music/songs/${song.id}`}>
+                      <Link href={`/church/${churchId}/music/songs/${song.id}`}>
                         <Card
                           className="relative p-4 cursor-pointer 
                                     bg-black/70 border-white/20 backdrop-blur-xl 
