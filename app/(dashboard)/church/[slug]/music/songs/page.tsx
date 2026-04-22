@@ -234,7 +234,7 @@ export default function SongsPage() {
       {canManage && (
         <Fab
           type="add"
-          onClick={() => router.push("/music/songs/new")}
+          onClick={() => router.push(`/church/${churchId}/music/songs/new`)}
         />
       )}
 
