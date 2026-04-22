@@ -17,7 +17,7 @@ export default function EditSetListPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
   const { songs: allSongs } = useSongs(churchId);
-  const { canManageMusic } = usePermissions();
+  const { canManageMusic, loading: permissionsLoading } = usePermissions();
   const canEdit = canManageMusic;
 
   const [setList, setSetList] = useState<SetList | null>(null);
@@ -60,6 +60,15 @@ export default function EditSetListPage() {
       <div className="p-6">
         <PageHeader title="Edit Set List" />
         <p className="text-muted-foreground">Set List not found.</p>
+      </div>
+    );
+  }
+
+  if (permissionsLoading) {
+    return (
+      <div className="p-6">
+        <PageHeader title="Edit Set List" />
+        <p className="text-muted-foreground">Loading Set Lists…</p>
       </div>
     );
   }

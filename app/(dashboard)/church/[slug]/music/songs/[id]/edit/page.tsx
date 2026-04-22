@@ -16,7 +16,7 @@ export default function EditSongPage() {
   const { churchId } = useChurchId();
 
   // UPDATED ROLES
-  const { canManageMusic } = usePermissions();
+  const { canManageMusic, loading: permissionsLoading } = usePermissions();
   const canEdit = canManageMusic;
 
   const [song, setSong] = useState<Song | null>(null);
@@ -58,6 +58,15 @@ export default function EditSongPage() {
       <>
         <PageHeader title="Edit Song" />
         <p className="text-muted-foreground">Song not found.</p>
+      </>
+    );
+  }
+
+  if (permissionsLoading) {
+    return (
+      <>
+        <PageHeader title="Edit Song" />
+        <p className="text-muted-foreground">Loading permissions…</p>
       </>
     );
   }

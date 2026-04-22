@@ -13,7 +13,7 @@ import { Fab } from '@/app/components/ui/fab';
 export default function NewSongPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
-  const { canManageMusic } = usePermissions();
+  const { canManageMusic, loading: permissionsLoading } = usePermissions();
   const canEdit = canManageMusic;
   const [saving, setSaving] = useState(false);
 
@@ -22,6 +22,15 @@ export default function NewSongPage() {
       <>
         <PageHeader title="Add New Song" />
         <p className="text-muted-foreground">Loading…</p>
+      </>
+    );
+  }
+
+  if (permissionsLoading) {
+    return (
+      <>
+        <PageHeader title="Add New Song" />
+        <p className="text-muted-foreground">Loading Songs...</p>
       </>
     );
   }
