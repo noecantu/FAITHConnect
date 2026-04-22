@@ -48,7 +48,7 @@ export default function EditSongPage() {
     return (
       <>
         <PageHeader title="Edit Song" />
-        <p className="text-muted-foreground">Loading song…</p>
+        <p className="text-muted-foreground">Loading…</p>
       </>
     );
   }
@@ -66,7 +66,7 @@ export default function EditSongPage() {
     return (
       <>
         <PageHeader title="Edit Song" />
-        <p className="text-muted-foreground">Loading permissions…</p>
+        <p className="text-muted-foreground">Loading…</p>
       </>
     );
   }

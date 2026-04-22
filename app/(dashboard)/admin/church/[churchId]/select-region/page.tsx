@@ -34,7 +34,7 @@ export default function SelectRegionPage() {
   if (loading) {
     return (
       <div className="p-6 text-muted-foreground">
-        Loading regions…
+        Loading Regions…
       </div>
     );
   }

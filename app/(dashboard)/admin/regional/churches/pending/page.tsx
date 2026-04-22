@@ -96,7 +96,7 @@ export default function PendingChurchesPage() {
   if (loading) {
     return (
       <div className="p-6 text-muted-foreground">
-        Loading pending churches…
+        Loading Pending Churches…
       </div>
     );
   }

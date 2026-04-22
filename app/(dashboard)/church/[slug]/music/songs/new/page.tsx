@@ -30,7 +30,7 @@ export default function NewSongPage() {
     return (
       <>
         <PageHeader title="Add New Song" />
-        <p className="text-muted-foreground">Loading Songs...</p>
+        <p className="text-muted-foreground">Loading…</p>
       </>
     );
   }

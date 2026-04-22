@@ -55,7 +55,7 @@ export default function SongsPage() {
     return (
       <>
         <PageHeader title="Songs" />
-        <p className="text-muted-foreground">Loading songs…</p>
+        <p className="text-muted-foreground">Loading…</p>
       </>
     );
   }
@@ -234,7 +234,7 @@ export default function SongsPage() {
       {canManage && (
         <Fab
           type="add"
-          onClick={() => router.push(`/church/${churchId}/music/songs/new`)}
+          onClick={() => router.push("/music/songs/new")}
         />
       )}
 

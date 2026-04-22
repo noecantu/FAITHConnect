@@ -66,7 +66,7 @@ export default function ConfirmRegionPage() {
   if (loading) {
     return (
       <div className="p-6 text-muted-foreground">
-        Loading region…
+        Loading Region…
       </div>
     );
   }
