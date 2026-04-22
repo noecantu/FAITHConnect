@@ -16,6 +16,7 @@ import {
   CalendarHeart,
   Home,
   CalendarCheck,
+  Activity,
 } from "lucide-react";
 import { useState } from "react";
 import { signOut } from "firebase/auth";
@@ -206,7 +207,7 @@ export function NavMenu() {
 
                 <Link href={`/church/${churchId}/attendance/history`}>
                   <DropdownMenuItem className={isActive(`/church/${churchId}/attendance/history`) ? "bg-accent" : ""}>
-                    <FileText className="mr-2 h-4 w-4 text-amber-500" />
+                    <Activity className="mr-2 h-4 w-4 text-amber-500" />
                     <span>Attendance History</span>
                   </DropdownMenuItem>
                 </Link>
