@@ -16,6 +16,7 @@ import type { Role } from "@/app/lib/auth/roles";
 import { can } from "@/app/lib/auth/permissions";
 import { PageHeader } from "@/app/components/page-header";
 import { formatPhone } from "@/app/lib/formatters";
+import { ChurchDisabledNotice } from "@/app/components/layout/ChurchDisabledNotice";
 
 export default function UserDashboardPage({
   params,
@@ -37,7 +38,6 @@ export default function UserDashboardPage({
         roles: raw.roles as Role[],
       };
       setUser(profile);
-      setUser(profile);
       setLoadingUser(false);
     }
     load();
@@ -57,6 +57,20 @@ export default function UserDashboardPage({
 
   if (!user) return <div className="p-6">No user found.</div>;
   if (!church) return <div className="p-6">No church found.</div>;
+
+  if (church.status === "disabled") {
+    return (
+      <main className="flex-1 flex flex-col">
+        <PageHeader
+          title="My Dashboard"
+          subtitle="Your church is currently in restricted mode."
+        />
+        <div className="flex-1 py-6 space-y-6">
+          <ChurchDisabledNotice churchName={church.name} />
+        </div>
+      </main>
+    );
+  }
 
   return (
     <>

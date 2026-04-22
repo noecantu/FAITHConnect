@@ -99,7 +99,8 @@ export interface HealthMetrics {
     totalUsers: number;
     providers: Record<string, number>;
   };
-  logs: LogEntry[];
+  logTypeCounts: { type: string; count: number }[];
+  generatedAt: string;
 }
 
 export interface LogEntry {

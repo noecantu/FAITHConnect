@@ -2,8 +2,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { db } from "@/app/lib/firebase/client";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { AlertTriangle, CalendarDays, ShieldCheck, Users } from "lucide-react";
 
 import { PageHeader } from "@/app/components/page-header";
 import {
@@ -21,9 +23,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogCancel,
 } from "@/app/components/ui/alert-dialog";
 import type { Church } from "@/app/lib/types";
-import { AlertDialogAction, AlertDialogCancel } from "@radix-ui/react-alert-dialog";
+import { useToast } from "@/app/hooks/use-toast";
 
 export default function MasterChurchDetailsClient({
   church,
@@ -38,9 +41,13 @@ export default function MasterChurchDetailsClient({
   eventCount: number;
   admins: { uid: string; displayName?: string | null; email: string }[];
 }) {
+  const router = useRouter();
+  const { toast } = useToast();
   const churchId = church.id;
   const [showDisableDialog, setShowDisableDialog] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [localChurch, setLocalChurch] = useState<Church>(church);
+  const isDisabled = localChurch.status === "disabled";
 
   const initials = localChurch.name
     .split(" ")
@@ -49,8 +56,42 @@ export default function MasterChurchDetailsClient({
     .slice(0, 2)
     .toUpperCase();
 
+  async function updateChurchStatus(nextStatus: "active" | "disabled") {
+    setIsUpdatingStatus(true);
+    try {
+      await updateDoc(doc(db, "churches", churchId), {
+        status: nextStatus,
+        ...(nextStatus === "active"
+          ? { enabledAt: serverTimestamp() }
+          : { disabledAt: serverTimestamp() }),
+      });
+
+      setLocalChurch((prev) => ({ ...prev, status: nextStatus }));
+
+      toast({
+        title: nextStatus === "active" ? "Church Enabled" : "Church Disabled",
+        description:
+          nextStatus === "active"
+            ? `${localChurch.name} is now operational.`
+            : `${localChurch.name} access is now restricted.`,
+      });
+
+      if (nextStatus === "disabled") {
+        setShowDisableDialog(false);
+      }
+    } catch (error) {
+      console.error("Failed to update church status", error);
+      toast({
+        title: "Status Update Failed",
+        description: "Could not update church status. Please try again.",
+      });
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  }
+
   return (
-    <>
+    <div className="space-y-6">
 
       <PageHeader
         title={localChurch.name}
@@ -58,8 +99,9 @@ export default function MasterChurchDetailsClient({
       />
 
       {/* Identity */}
-      <Card>
-        <CardContent className="flex items-center gap-4 p-6">
+      <Card className="border-white/15">
+        <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
           {localChurch.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -77,6 +119,20 @@ export default function MasterChurchDetailsClient({
             <h2 className="text-xl font-semibold">{localChurch.name}</h2>
             <p className="text-muted-foreground">{localChurch.timezone}</p>
           </div>
+          </div>
+
+          <div
+            className={`inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${
+              isDisabled
+                ? "border-rose-400/30 bg-rose-500/10 text-rose-300"
+                : "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
+            }`}
+          >
+            <span
+              className={`h-2 w-2 rounded-full ${isDisabled ? "bg-rose-300" : "bg-emerald-300"}`}
+            />
+            {isDisabled ? "Disabled" : "Operational"}
+          </div>
         </CardContent>
       </Card>
 
@@ -84,21 +140,30 @@ export default function MasterChurchDetailsClient({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         {/* Stats */}
-        <Card>
+        <Card className="border-cyan-500/20">
           <CardHeader>
             <CardTitle>Church Stats</CardTitle>
             <CardDescription>System-level overview</CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-3 text-sm">
-            <p><strong>Members:</strong> {memberCount}</p>
-            <p><strong>Upcoming Services:</strong> {serviceCount}</p>
-            <p><strong>Events This Week:</strong> {eventCount}</p>
+          <CardContent className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <p className="text-xs text-muted-foreground">Members</p>
+              <p className="mt-1 text-2xl font-semibold">{memberCount}</p>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <p className="text-xs text-muted-foreground">Upcoming Services</p>
+              <p className="mt-1 text-2xl font-semibold">{serviceCount}</p>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <p className="text-xs text-muted-foreground">Events This Week</p>
+              <p className="mt-1 text-2xl font-semibold">{eventCount}</p>
+            </div>
           </CardContent>
         </Card>
 
         {/* Admins */}
-        <Card>
+        <Card className="border-blue-500/20">
           <CardHeader>
             <CardTitle>Church Admins</CardTitle>
             <CardDescription>Users with Admin role</CardDescription>
@@ -119,11 +184,17 @@ export default function MasterChurchDetailsClient({
                   .toUpperCase();
 
                 return (
-                  <div key={admin.uid} className="flex items-center gap-2">
+                  <div
+                    key={admin.uid}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2"
+                  >
+                    <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold">
                       {initials || "?"}
                     </div>
                     <span>{name || "Unknown User"}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">Admin</span>
                   </div>
                 );
               })
@@ -134,58 +205,62 @@ export default function MasterChurchDetailsClient({
       </div>
 
       {/* Actions */}
-      <Card>
+      <Card className="border-amber-500/20">
         <CardHeader>
           <CardTitle>High-Level Controls</CardTitle>
           <CardDescription>System-level actions for this church</CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-3">
+        <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2">
 
           <Button
-            className="w-full"
+            className="w-full justify-start"
+            disabled={isUpdatingStatus}
             onClick={() => {
-              window.location.href = `/admin/church/${churchId}`;
+              router.push(`/admin/church/${churchId}`);
             }}
           >
+            <ShieldCheck className="h-4 w-4" />
             Open as Church Admin
           </Button>
 
           <Button
-            className="w-full"
+            className="w-full justify-start"
+            disabled={isUpdatingStatus}
             onClick={() => {
-              window.location.href = `/admin/churches/${churchId}/edit`;
+              router.push(`/admin/churches/${churchId}/edit`);
             }}
           >
+            <CalendarDays className="h-4 w-4" />
             Edit Church
           </Button>
 
           <Button
-            className="w-full"
+            className="w-full justify-start"
+            disabled={isUpdatingStatus}
             onClick={() => {
-              window.location.href = `/admin/churches/${churchId}/add-user`;
+              router.push(`/admin/churches/${churchId}/add-user`);
             }}
           >
+            <Users className="h-4 w-4" />
             Add User
           </Button>
 
-          {localChurch.status === "disabled" ? (
+          {isDisabled ? (
             <Button
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
-              onClick={async () => {
-                await updateDoc(doc(db, "churches", churchId), {
-                  status: "active",
-                  enabledAt: serverTimestamp(),
-                });
-                setLocalChurch(prev => ({ ...prev, status: "active" }));
+              className="w-full justify-start bg-green-600 hover:bg-green-700 text-white"
+              disabled={isUpdatingStatus}
+              onClick={() => {
+                void updateChurchStatus("active");
               }}
             >
-              Enable Church
+              {isUpdatingStatus ? "Enabling Church..." : "Enable Church"}
             </Button>
           ) : (
             <Button
               variant="destructive"
-              className="w-full"
+              className="w-full justify-start"
+              disabled={isUpdatingStatus}
               onClick={() => setShowDisableDialog(true)}
             >
               Disable Church
@@ -196,34 +271,50 @@ export default function MasterChurchDetailsClient({
       </Card>
 
       {/* Disable Confirmation */}
-      <AlertDialog open={showDisableDialog} onOpenChange={setShowDisableDialog}>
-        <AlertDialogContent>
+      <AlertDialog
+        open={showDisableDialog}
+        onOpenChange={(open) => {
+          if (!isUpdatingStatus) setShowDisableDialog(open);
+        }}
+      >
+        <AlertDialogContent className="border-rose-500/30 sm:max-w-[560px]">
           <AlertDialogHeader>
-            <AlertDialogTitle>Disable this church?</AlertDialogTitle>
+            <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full border border-rose-400/30 bg-rose-500/10 text-rose-300">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+            <AlertDialogTitle className="text-left">Disable this church?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will prevent all users from accessing this church.
-              No data will be deleted, and you can re-enable it later.
+              You are about to disable <span className="font-semibold text-foreground">{localChurch.name}</span>.
+              This blocks access for all users in that church.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
+          <div className="rounded-lg border border-rose-400/20 bg-rose-500/5 p-3 text-sm">
+            <p className="font-medium text-rose-300">What happens next</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
+              <li>Church users lose access immediately.</li>
+              <li>No church data is deleted.</li>
+              <li>You can re-enable this church anytime.</li>
+            </ul>
+          </div>
+
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                await updateDoc(doc(db, "churches", churchId), {
-                  status: "disabled",
-                  disabledAt: serverTimestamp(),
-                });
-                setLocalChurch(prev => ({ ...prev, status: "disabled" }));
-                setShowDisableDialog(false);
+            <AlertDialogCancel asChild>
+              <Button variant="outline" disabled={isUpdatingStatus}>Keep Church Active</Button>
+            </AlertDialogCancel>
+            <Button
+              variant="destructive"
+              disabled={isUpdatingStatus}
+              onClick={() => {
+                void updateChurchStatus("disabled");
               }}
             >
-              Disable Church
-            </AlertDialogAction>
+              {isUpdatingStatus ? "Disabling Church..." : "Yes, Disable Church"}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-    </>
+    </div>
   );
 }

@@ -3,7 +3,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import type { HealthMetrics } from "@/app/lib/types";
-import type { LogEntry } from "@/app/lib/types";
 
 export default function HealthDashboard({
   metrics,
@@ -15,7 +14,7 @@ export default function HealthDashboard({
     count,
   }));
 
-  const logTypeCounts = countLogTypes(metrics.logs);
+  const logTypeCounts = metrics.logTypeCounts;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -62,6 +61,7 @@ export default function HealthDashboard({
       <Card className="md:col-span-2">
         <CardHeader>
           <CardTitle>System Log Activity</CardTitle>
+          <p className="text-xs text-muted-foreground">Last updated: {new Date(metrics.generatedAt).toLocaleString()}</p>
         </CardHeader>
         <CardContent style={{ height: 300 }}>
           <ResponsiveContainer width="100%" height="100%">
@@ -85,14 +85,4 @@ const COLORS = [
   "hsl(var(--chart-3))",
   "hsl(var(--chart-4))",
   "hsl(var(--chart-5))",
-];
-
-function countLogTypes(logs: LogEntry[]) {
-  const counts: Record<string, number> = {};
-
-  logs.forEach((log) => {
-    counts[log.type] = (counts[log.type] || 0) + 1;
-  });
-
-  return Object.entries(counts).map(([type, count]) => ({ type, count }));
-}
+]

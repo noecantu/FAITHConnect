@@ -45,6 +45,7 @@ import { Button } from "../ui/button";
 import { useToast } from "@/app/hooks/use-toast";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { useChurchId } from "@/app/hooks/useChurchId";
+import { useChurch } from "@/app/hooks/useChurch";
 import { clearLogoutTransition, startLogoutTransition } from "@/app/hooks/useAuth";
 import { AlertDialogAction, AlertDialogCancel } from "@radix-ui/react-alert-dialog";
 import { can } from "@/app/lib/auth/permissions";
@@ -64,6 +65,7 @@ export function NavMenu() {
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false);
   const { toast } = useToast();
   const { churchId } = useChurchId();
+  const { church } = useChurch(churchId);
   const { roles = [] } = usePermissions();
 
   const typedRoles = roles as Role[];
@@ -75,6 +77,7 @@ export function NavMenu() {
   const isRootAdmin = can(typedRoles, "system.manage");
   const isRegionalAdmin = typedRoles.includes("RegionalAdmin");
   const isChurchAdmin = can(typedRoles, "church.manage") && !!churchId;
+  const isChurchDisabled = church?.status === "disabled";
 
   const canSeeContributions = can(typedRoles, "contributions.read");
   const canAccessMusic = can(typedRoles, "music.read");
@@ -144,8 +147,12 @@ export function NavMenu() {
     : isRegionalAdmin
     ? regionalAdminMenu
     : isChurchAdmin
-    ? churchAdminMenu
-    : userMenu;
+    ? isChurchDisabled
+      ? [{ href: `/admin/church/${churchId}`, label: "Dashboard", icon: Home, exact: true }]
+      : churchAdminMenu
+    : isChurchDisabled
+      ? [{ href: `/church/${churchId}/user`, label: "Dashboard", icon: Home, exact: true }]
+      : userMenu;
 
   // --- RENDERER ---
   function renderMenuItems(items: MenuItem[]) {

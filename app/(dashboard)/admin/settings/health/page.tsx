@@ -2,37 +2,36 @@
 
 import { adminDb, adminAuth } from "@/app/lib/firebase/admin";
 import HealthDashboard from "./HealthDashboard";
-import { normalizeFirestore } from "@/app/lib/normalize";
 import type { UserRecord, UserInfo } from "firebase-admin/auth";
 
 export default async function HealthPage() {
-  // Firestore stats
-  const usersSnap = await adminDb.collection("users").get();
-  const churchesSnap = await adminDb.collection("churches").get();
-  const logsSnap = await adminDb.collection("systemLogs").limit(500).get();
+  // Firestore stats (aggregate counts)
+  const [usersCountSnap, churchesCountSnap, logsCountSnap] = await Promise.all([
+    adminDb.collection("users").count().get(),
+    adminDb.collection("churches").count().get(),
+    adminDb.collection("systemLogs").count().get(),
+  ]);
 
-  // Auth stats
-  const authUsers = await adminAuth.listUsers(1000);
-  const totalUsers = authUsers.users.length;
+  // Auth stats (full pagination so counts are not capped)
+  const authUsers = await listAllAuthUsers();
+  const totalUsers = authUsers.length;
 
-  // Normalize logs to avoid Timestamp serialization errors
-  const normalizedLogs = logsSnap.docs.map((d) => ({
-    id: d.id,
-    ...normalizeFirestore(d.data()),
-  }));
+  // Log type distribution for chart (real, uncapped)
+  const logTypeCounts = await getSystemLogTypeCounts();
 
   // Build metrics object
   const metrics = {
     firestore: {
-      users: usersSnap.size,
-      churches: churchesSnap.size,
-      logs: logsSnap.size,
+      users: usersCountSnap.data().count ?? 0,
+      churches: churchesCountSnap.data().count ?? 0,
+      logs: logsCountSnap.data().count ?? 0,
     },
     auth: {
       totalUsers,
-      providers: countProviders(authUsers.users),
+      providers: countProviders(authUsers),
     },
-    logs: normalizedLogs, // ← SAFE
+    logTypeCounts,
+    generatedAt: new Date().toISOString(),
   };
 
   return (
@@ -53,4 +52,32 @@ function countProviders(users: UserRecord[]) {
   });
 
   return providerCounts;
+}
+
+async function listAllAuthUsers() {
+  const users: UserRecord[] = [];
+  let nextPageToken: string | undefined = undefined;
+
+  do {
+    const result = await adminAuth.listUsers(1000, nextPageToken);
+    users.push(...result.users);
+    nextPageToken = result.pageToken;
+  } while (nextPageToken);
+
+  return users;
+}
+
+async function getSystemLogTypeCounts() {
+  const logsSnap = await adminDb.collection("systemLogs").select("type").get();
+  const counts: Record<string, number> = {};
+
+  logsSnap.docs.forEach((docSnap) => {
+    const data = docSnap.data() as { type?: unknown };
+    const type = typeof data.type === "string" && data.type.trim().length > 0 ? data.type : "unknown";
+    counts[type] = (counts[type] || 0) + 1;
+  });
+
+  return Object.entries(counts)
+    .map(([type, count]) => ({ type, count }))
+    .sort((a, b) => b.count - a.count);
 }

@@ -42,6 +42,7 @@ import type { Church } from "@/app/lib/types";
 import { useAuth } from "@/app/hooks/useAuth";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { formatPhone } from "@/app/lib/formatters";
+import { ChurchDisabledNotice } from "@/app/components/layout/ChurchDisabledNotice";
 
 export default function ChurchAdminDashboard() {
   const { churchId } = useParams();
@@ -278,9 +279,13 @@ export default function ChurchAdminDashboard() {
 
   if (church.status === "disabled") {
     return (
-      <>
-        This church is currently disabled.
-      </>
+      <main className="flex-1 flex flex-col space-y-6">
+        <PageHeader
+          title="Church Dashboard"
+          subtitle="System-level church details"
+        />
+        <ChurchDisabledNotice churchName={church.name} />
+      </main>
     );
   }
 
