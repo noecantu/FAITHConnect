@@ -267,7 +267,7 @@ export default function SetListsPage() {
                         {row.totalSets} {row.totalSets === 1 ? 'Section' : 'Sections'}
                       </span>
                       <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/40 px-2.5 py-1 text-white/80">
-                        <Music2 className="h-3.5 w-3.5 text-gray-500" />
+                        <Music2 className="h-3.5 w-3.5 text-emerald-500" />
                         {row.totalSongs} {row.totalSongs === 1 ? 'Song' : 'Songs'}
                       </span>
                     </div>

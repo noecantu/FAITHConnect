@@ -84,7 +84,7 @@ export default function FullscreenModal({
                     {isLyrics ? (
                       <FileText className="h-3.5 w-3.5 text-blue-500/80" />
                     ) : (
-                      <Music2 className="h-3.5 w-3.5 text-gray-400/90" />
+                      <Music2 className="h-3.5 w-3.5 text-emerald-500/90" />
                     )}
                     {contentLabel}
                   </span>

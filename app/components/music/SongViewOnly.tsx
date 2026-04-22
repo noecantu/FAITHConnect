@@ -174,7 +174,7 @@ export default function SongViewOnly({ songId }: { songId: string }) {
               <div className="relative flex items-center justify-between gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-base font-semibold">
-                    <Music2 className="h-4 w-4 text-gray-500/90" />
+                    <Music2 className="h-4 w-4 text-emerald-500/90" />
                     Fullscreen Chords
                   </div>
                   <p className="text-sm leading-6 text-white/70">
@@ -214,7 +214,7 @@ export default function SongViewOnly({ songId }: { songId: string }) {
           <div className="relative space-y-4">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <Music2 className="h-4 w-4 text-gray-500/90" />
+                <Music2 className="h-4 w-4 text-emerald-500/90" />
                 <h2 className="text-xl font-medium text-white">Chords</h2>
               </div>
               <span className="rounded-full border border-white/15 bg-black/35 px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-white/55">

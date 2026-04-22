@@ -164,21 +164,21 @@ export function NavMenu() {
           return (
             <DropdownMenuSub key="music">
               <DropdownMenuSubTrigger className={isActive(`/church/${churchId}/music`) ? "bg-accent" : ""}>
-                <item.icon className="mr-2 h-4 w-4 text-gray-500" />
+                <item.icon className="mr-2 h-4 w-4 text-emerald-500" />
                 <span>Music</span>
               </DropdownMenuSubTrigger>
 
               <DropdownMenuSubContent>
                 <Link href={`/church/${churchId}/music/setlists`}>
                   <DropdownMenuItem className={isActive(`/church/${churchId}/music/setlists`) ? "bg-accent" : ""}>
-                    <ListMusic className="mr-2 h-4 w-4 text-gray-500" />
+                    <ListMusic className="mr-2 h-4 w-4 text-emerald-500" />
                     <span>Set Lists</span>
                   </DropdownMenuItem>
                 </Link>
 
                 <Link href={`/church/${churchId}/music/songs`}>
                   <DropdownMenuItem className={isActive(`/church/${churchId}/music/songs`) ? "bg-accent" : ""}>
-                    <Music className="mr-2 h-4 w-4 text-gray-500" />
+                    <Music className="mr-2 h-4 w-4 text-emerald-500" />
                     <span>Songs</span>
                   </DropdownMenuItem>
                 </Link>

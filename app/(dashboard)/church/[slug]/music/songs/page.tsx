@@ -266,7 +266,7 @@ export default function SongsPage() {
                                   <FileText size={16} className="text-blue-500/80" />
                                 )}
                                 {song.chords && (
-                                  <Music2 size={16} className="text-gray-500/80" />
+                                  <Music2 size={16} className="text-emerald-500/80" />
                                 )}
                                 <ChevronRight size={16} className="text-white/35 group-hover:text-white/70 transition-colors" />
                               </div>
