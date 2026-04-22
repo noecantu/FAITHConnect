@@ -22,7 +22,7 @@ import { useRouter } from 'next/navigation';
 import { usePreviewPagination } from '@/app/hooks/usePreviewPagination';
 import { PreviewPaginationFooter } from '@/app/components/layout/PreviewPaginationFooter';
 import { SearchBar } from '@/app/components/ui/search-bar';
-import { CalendarDays, Layers3 } from 'lucide-react';
+import { CalendarDays, ChevronRight, Layers3 } from 'lucide-react';
 
 // TYPES
 type SortType = "date-desc" | "date-asc" | "title-asc";
@@ -215,43 +215,86 @@ export default function ServicePlanPage() {
 
           {/* List */}
           <div className="space-y-3">
-            {visible.map((plan, index) => {
-              const totalSections = plan.sections.length;
-
-              return (
-                <div
-                  key={plan.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => router.push(`/church/${churchId}/service-plan/${plan.id}`)}
-                  onKeyDown={(ev) => {
-                    if (ev.key === "Enter" || ev.key === " ") {
-                      router.push(`/church/${churchId}/service-plan/${plan.id}`);
-                    }
-                  }}
-                  className={`group border border-white/15 rounded-lg p-4 flex items-start justify-between cursor-pointer transition-all duration-200 ${
-                    index % 2 === 0
-                      ? 'bg-white/[0.03] hover:bg-white/[0.08]'
-                      : 'bg-white/[0.08] hover:bg-white/[0.13]'
-                  }`}
-                >
-                  <div className="space-y-2">
-                    <div className="font-semibold tracking-tight group-hover:text-white transition-colors">{plan.title}</div>
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/40 px-2.5 py-1 text-white/80">
-                        <Layers3 className="h-3.5 w-3.5 text-violet-500" />
-                        {totalSections} {totalSections === 1 ? 'Section' : 'Sections'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/40 px-3 py-1.5 text-xs text-white/80">
-                    <CalendarDays className="h-3.5 w-3.5 text-sky-500" />
-                    {format(plan.dateTime, "M/d/yy, h:mm a")}
+            {visible.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-white/25 bg-black/35 px-6 py-12 text-center">
+                <div className="mx-auto max-w-md space-y-3">
+                  <p className="text-base font-medium text-white/90">
+                    {plans.length === 0 ? 'No service plans yet' : 'No service plans match your filters'}
+                  </p>
+                  <p className="text-sm text-white/60">
+                    {plans.length === 0
+                      ? 'Create your first service plan to organize each section for your next service.'
+                      : 'Try adjusting search, date filter, or sort settings to find what you need.'}
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                    {(search || filter !== 'all' || sort !== 'date-desc') && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="border-white/30 bg-white/5 hover:bg-white/10"
+                        onClick={() => {
+                          setSearch('');
+                          setFilter('all');
+                          setSort('date-desc');
+                        }}
+                      >
+                        Reset Filters
+                      </Button>
+                    )}
+                    {canManage && (
+                      <Button
+                        type="button"
+                        onClick={() => router.push(`/church/${churchId}/service-plan/new`)}
+                      >
+                        Create Service Plan
+                      </Button>
+                    )}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ) : (
+              visible.map((plan, index) => {
+                const totalSections = plan.sections.length;
+
+                return (
+                  <div
+                    key={plan.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => router.push(`/church/${churchId}/service-plan/${plan.id}`)}
+                    onKeyDown={(ev) => {
+                      if (ev.key === "Enter" || ev.key === " ") {
+                        router.push(`/church/${churchId}/service-plan/${plan.id}`);
+                      }
+                    }}
+                    style={{ animationDelay: `${index * 50}ms` }}
+                    className={`group border border-white/15 rounded-lg p-4 flex items-start justify-between cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(0,0,0,0.28)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 animate-in fade-in slide-in-from-bottom-2 duration-500 ${
+                      index % 2 === 0
+                        ? 'bg-white/[0.03] hover:bg-white/[0.08]'
+                        : 'bg-white/[0.08] hover:bg-white/[0.13]'
+                    }`}
+                  >
+                    <div className="space-y-2">
+                      <div className="font-semibold tracking-tight group-hover:text-white transition-colors">{plan.title}</div>
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/40 px-2.5 py-1 text-white/80">
+                          <Layers3 className="h-3.5 w-3.5 text-gray-500" />
+                          {totalSections} {totalSections === 1 ? 'Section' : 'Sections'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/40 px-3 py-1.5 text-xs text-white/80">
+                        <CalendarDays className="h-3.5 w-3.5 text-sky-500" />
+                        {format(plan.dateTime, "M/d/yy, h:mm a")}
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-white/35 transition-colors group-hover:text-white/75" />
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
 
           {/* Pagination Footer */}

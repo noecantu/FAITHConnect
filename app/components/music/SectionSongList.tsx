@@ -114,9 +114,7 @@ function SongItem({
         <p className="font-medium">{entry.title}</p>
 
         <div className="text-xs text-muted-foreground flex gap-4">
-          <span>Key: {entry.key ?? '—'}</span>
-          <span>BPM: {entry.bpm ?? '—'}</span>
-          <span>Time: {entry.timeSignature ?? '—'}</span>
+          <span>Key: {entry.key ?? '—'} • {entry.bpm ?? '—'} BPM • {entry.timeSignature ?? '—'} Time</span>
         </div>
 
         <div>

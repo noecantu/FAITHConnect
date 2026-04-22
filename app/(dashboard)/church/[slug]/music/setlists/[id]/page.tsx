@@ -178,9 +178,7 @@ export default function SetListDetailPage() {
                         <h3 className="font-medium">{song.title}</h3>
 
                         <p className="text-sm text-muted-foreground">
-                          Key: {song.key || "—"} • Tempo:{" "}
-                          {song.bpm ?? "—"} • Time Signature:{" "}
-                          {song.timeSignature ?? "—"}
+                          Key: {song.key || "—"} • {song.bpm ?? "—"} BPM • {song.timeSignature ?? "—"} Time
                         </p>
 
                         {song.notes && (

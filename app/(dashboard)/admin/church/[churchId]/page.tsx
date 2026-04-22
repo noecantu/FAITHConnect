@@ -375,7 +375,7 @@ export default function ChurchAdminDashboard() {
                 </div>
 
                 <div className="flex items-center justify-between gap-4 border-t border-white/10 pt-2">
-                  <span className="text-xs text-white/65">Access Mode</span>
+                  <span className="text-xs text-white/65">Site Access</span>
                   <span className="text-xs font-medium text-white/85">{accessModeLabel}</span>
                 </div>
               </div>
