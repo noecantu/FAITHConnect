@@ -54,7 +54,7 @@ export default function SongsPage() {
   if (!churchId || loading || rolesLoading) {
     return (
       <>
-        <PageHeader title="Song List" />
+        <PageHeader title="Songs" />
         <p className="text-muted-foreground">Loading songs…</p>
       </>
     );
