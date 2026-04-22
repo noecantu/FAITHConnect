@@ -37,7 +37,7 @@ const features = [
   },
   {
     icon: Music2,
-    iconClassName: "text-gray-500",
+    iconClassName: "text-emerald-500",
     title: "Song Set Lists",
     desc: "Manage and organize song sets for worship services.",
   },
