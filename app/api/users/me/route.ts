@@ -59,6 +59,12 @@ export async function GET(req: Request) {
       firstName: user.firstName ?? null,
       lastName: user.lastName ?? null,
       profilePhotoUrl: user.profilePhotoUrl ?? null,
+      planId: user.planId ?? null,
+      stripeCustomerId: user.stripeCustomerId ?? null,
+      stripeSubscriptionId: user.stripeSubscriptionId ?? null,
+      billingStatus: user.billingStatus ?? null,
+      billingDelinquent: user.billingDelinquent ?? null,
+      billingUpdatedAt: user.billingUpdatedAt ?? null,
 
       roles,
       permissions,

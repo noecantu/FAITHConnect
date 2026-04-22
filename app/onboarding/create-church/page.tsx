@@ -37,7 +37,11 @@ export default function CreateChurchPage() {
 
         const profile = await profileRes.json();
 
-        if (!profile.stripeSubscriptionId) {
+        const hasHealthyBilling = profile.billingStatus
+          ? profile.billingStatus === "active" || profile.billingStatus === "trialing"
+          : Boolean(profile.stripeSubscriptionId);
+
+        if (!profile.stripeSubscriptionId || !hasHealthyBilling) {
           // User hasn't paid yet — send them back to billing with their plan.
           if (!isActive) return;
           const planPath = profile.planId

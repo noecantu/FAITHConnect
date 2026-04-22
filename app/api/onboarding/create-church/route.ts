@@ -58,6 +58,19 @@ export async function POST(req: Request) {
       );
     }
 
+    const billingStatus =
+      typeof userData.billingStatus === "string" ? userData.billingStatus : null;
+    const hasHealthyBilling = billingStatus
+      ? billingStatus === "active" || billingStatus === "trialing"
+      : Boolean(userData.stripeSubscriptionId);
+
+    if (!hasHealthyBilling) {
+      return NextResponse.json(
+        { error: "Subscription is not in good standing. Please update billing." },
+        { status: 403 }
+      );
+    }
+
     // Create slug from church name
     const slug = churchName
       .trim()
