@@ -63,7 +63,7 @@ export function DuplicateServicePlanDialog({
                 });
 
                 onOpenChange(false);
-                router.push(`/service-plan/${newPlan.id}`);
+                router.push(`/church/${churchId}/service-plan/${newPlan.id}`);
               }}
             >
               Duplicate

@@ -66,7 +66,7 @@ export function DeleteServicePlanDialog({
                 });
 
                 onOpenChange(false);
-                router.push('/service-plan');
+                router.push(`/church/${churchId}/service-plan`);
               }}
             >
               Delete

@@ -30,7 +30,6 @@ type SectionEditorProps = {
   index: number;
   churchId: string;
   members: { id: string; firstName: string; lastName: string }[];
-  songs: { id: string; title: string }[];
   remove: () => void;
 
   moveUp: () => void;
@@ -43,7 +42,6 @@ export function SectionEditor({
   index,
   churchId,
   members,
-  songs,
   remove,
   moveUp,
   moveDown,
@@ -209,73 +207,6 @@ export function SectionEditor({
                 ))}
               </SelectContent>
             </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      {/* Songs */}
-      <FormField
-        control={control}
-        name={`sections.${index}.songIds`}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Songs</FormLabel>
-
-            <div className="space-y-3">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => field.onChange([...(field.value ?? []), ""])}
-              >
-                Add Song
-              </Button>
-
-              {(field.value ?? []).map((songId: string, songIndex: number) => (
-                <div
-                  key={songIndex}
-                  className="flex items-center gap-2 bg-muted/30 p-2 rounded-md"
-                >
-                  <Select
-                    value={songId}
-                    onValueChange={(val) => {
-                      const updated = [...field.value];
-                      updated[songIndex] = val;
-                      field.onChange(updated);
-                    }}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a song" />
-                      </SelectTrigger>
-                    </FormControl>
-
-                    <SelectContent>
-                      {songs.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const updated = [...field.value];
-                      updated.splice(songIndex, 1);
-                      field.onChange(updated);
-                    }}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ))}
-            </div>
-
             <FormMessage />
           </FormItem>
         )}

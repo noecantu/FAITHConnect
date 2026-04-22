@@ -30,7 +30,6 @@ import { Button } from '../ui/button';
 import { createServicePlan, updateServicePlan } from '@/app/lib/servicePlans';
 import type { ServicePlan, ServicePlanSection } from '@/app/lib/types';
 import { useMembers } from '@/app/hooks/useMembers';
-import { useSongs } from '@/app/hooks/useSongs';
 
 import dayjs from 'dayjs';
 import { SectionEditor } from './SectionEditor';
@@ -115,7 +114,6 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
   );
   const [isSectionNameDialogOpen, setIsSectionNameDialogOpen] = useState(false);
   const { members } = useMembers();
-  const { songs } = useSongs(churchId);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -267,7 +265,6 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                     index={index}
                     churchId={churchId}
                     members={members}
-                    songs={songs}
                     remove={() => remove(index)}
                     moveUp={() => index > 0 && move(index, index - 1)}
                     moveDown={() => index < fields.length - 1 && move(index, index + 1)}

@@ -142,7 +142,10 @@ export function ServicePlanDetailView({
           >
             <DropdownMenuItem
               className="flex items-center justify-center p-2"
-              onClick={() => router.push(`/service-plan/${plan.id}/edit`)}
+              onClick={() => {
+                if (!churchId) return;
+                router.push(`/church/${churchId}/service-plan/${plan.id}/edit`);
+              }}
             >
               <Pencil className="h-4 w-4" />
             </DropdownMenuItem>
