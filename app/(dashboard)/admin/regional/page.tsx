@@ -321,7 +321,7 @@ export default function RegionalDashboardPage() {
           <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-semibold">Users</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Users className="h-4 w-4 text-cyan-500" />
+              <Users className="h-4 w-4 text-blue-500" />
             </div>
           </div>
           <p className="text-3xl font-bold mt-1.5">{users.length}</p>
@@ -369,7 +369,7 @@ export default function RegionalDashboardPage() {
           <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-semibold">Music Items</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Music4 className="h-4 w-4 text-red-500" />
+              <Music4 className="h-4 w-4 text-gray-500" />
             </div>
           </div>
           <p className="text-3xl font-bold mt-1.5">{musicItemCount}</p>
@@ -381,7 +381,7 @@ export default function RegionalDashboardPage() {
           <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-semibold">Setlists</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <ListMusic className="h-4 w-4 text-lime-500" />
+              <ListMusic className="h-4 w-4 text-gray-500" />
             </div>
           </div>
           <p className="text-3xl font-bold mt-1.5">{setlistCount}</p>
@@ -393,7 +393,7 @@ export default function RegionalDashboardPage() {
           <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-semibold">Church Leaders</h2>
             <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Users className="h-4 w-4 text-orange-500" />
+              <Users className="h-4 w-4 text-blue-500" />
             </div>
           </div>
           <p className="text-3xl font-bold mt-1.5">{churchLeaderCount}</p>

@@ -217,7 +217,7 @@ export default function SongsPage() {
                                 <FileText size={16} className="text-blue-500/80" />
                               )}
                               {song.chords && (
-                                <Music size={16} className="text-green-500/80" />
+                                <Music size={16} className="text-gray-500/80" />
                               )}
                             </div>
                           </div>

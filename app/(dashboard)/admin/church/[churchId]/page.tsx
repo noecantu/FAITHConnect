@@ -404,7 +404,7 @@ export default function ChurchAdminDashboard() {
             description="Monday - Sunday"
             value={eventCount}
             icon={Calendar}
-            iconClassName="text-emerald-500"
+            iconClassName="text-sky-500"
           />
           <StatCard
             title="Attendance This Week"

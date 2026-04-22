@@ -2,15 +2,45 @@
 
 import { motion } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
-import { CheckCircle, Users, Calendar, QrCode, Shield, BarChart } from "lucide-react";
+import { Shield, Users, Calendar, QrCode, Music2, BarChart } from "lucide-react";
 
 const features = [
-  { icon: QrCode, title: "QR Attendance", desc: "Fast, accurate check-ins with auto-generated QR codes." },
-  { icon: Users, title: "Member Management", desc: "Keep your congregation organized and up to date." },
-  { icon: Calendar, title: "Events & Calendar", desc: "Plan, schedule, and manage church events effortlessly." },
-  { icon: BarChart, title: "Reports", desc: "Track attendance trends and ministry engagement." },
-  { icon: Shield, title: "Permissions", desc: "Control access with secure role-based permissions." },
-  { icon: CheckCircle, title: "Simple Onboarding", desc: "Get started in minutes with guided setup." },
+  {
+    icon: Calendar,
+    iconClassName: "text-sky-500",
+    title: "Events & Calendar",
+    desc: "Plan, schedule, and manage church events effortlessly.",
+  },
+  {
+    icon: Users,
+    iconClassName: "text-blue-500",
+    title: "Member Management",
+    desc: "Keep your congregation organized and up to date.",
+  },
+  {
+    icon: Shield,
+    iconClassName: "text-amber-500",
+    title: "Permissions",
+    desc: "Control access with secure role-based permissions.",
+  },
+  {
+    icon: QrCode,
+    iconClassName: "text-cyan-500",
+    title: "QR Attendance",
+    desc: "Fast, accurate check-ins with auto-generated QR codes.",
+  },
+  {
+    icon: BarChart,
+    iconClassName: "text-orange-500",
+    title: "Reports",
+    desc: "Track attendance trends and ministry engagement.",
+  },
+  {
+    icon: Music2,
+    iconClassName: "text-gray-500",
+    title: "Song Set Lists",
+    desc: "Manage and organize song sets for worship services.",
+  },
 ];
 
 export default function Features() {
@@ -44,7 +74,7 @@ export default function Features() {
           >
             <Card className="bg-white/5 border-white/20 backdrop-blur-sm">
               <CardHeader>
-                <f.icon className="h-8 w-8 text-blue-500 mb-2" />
+                <f.icon className={`h-8 w-8 mb-2 ${f.iconClassName}`} />
                 <CardTitle>{f.title}</CardTitle>
               </CardHeader>
               <CardContent className="text-white/70">{f.desc}</CardContent>

@@ -97,7 +97,7 @@ export function NavMenu() {
     if (href.includes('/contributions')) return 'text-emerald-500';
     if (href.includes('/calendar')) return 'text-sky-500';
     if (href.includes('/members') || href.includes('/users') || href.includes('/churches')) return 'text-blue-500';
-    if (href.includes('/music')) return 'text-pink-500';
+    if (href.includes('/music')) return 'text-gray-500';
     if (href.includes('/service-plan')) return 'text-violet-500';
     if (href.includes('/reports') || href.includes('/logs')) return 'text-orange-500';
     if (href.includes('/settings')) return 'text-cyan-500';
