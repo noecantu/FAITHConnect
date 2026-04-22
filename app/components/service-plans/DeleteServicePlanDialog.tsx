@@ -55,6 +55,12 @@ export function DeleteServicePlanDialog({
 
           <DialogFooter className="shrink-0 border-t px-6 pb-6 pt-4 flex justify-end">
             <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button
               variant="destructive"
               onClick={async () => {
                 await deleteServicePlan(churchId, plan.id);
