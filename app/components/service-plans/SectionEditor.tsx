@@ -1,5 +1,6 @@
 import { useFormContext } from "react-hook-form";
 import { useState } from "react";
+import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import {
@@ -56,12 +57,9 @@ export function SectionEditor({
   const sectionColor = sectionColorOverride ?? getSectionColor(title);
 
   return (
-    <div
-      className="rounded-md border border-border p-5 space-y-5 bg-card relative"
-      style={{
-        // Soft color tint instead of full background
-        boxShadow: `0 0 0 3px ${sectionColor}33`,
-      }}
+    <Card
+      className="p-5 space-y-5 relative"
+      style={{ backgroundColor: sectionColor }}
     >
       {/* Header Row */}
       <div className="flex justify-between items-center">
@@ -230,6 +228,6 @@ export function SectionEditor({
           </FormItem>
         )}
       />
-    </div>
+    </Card>
   );
 }

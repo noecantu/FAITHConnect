@@ -126,10 +126,12 @@ export default function SetListDetailPage() {
           )}
 
           {setList.serviceNotes?.notes && (
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              <span className="font-medium">Notes:</span>{" "}
-              {setList.serviceNotes.notes}
-            </p>
+            <div className="space-y-1 rounded-md border border-white/15 bg-black/60 p-3 backdrop-blur-xl">
+              <p className="text-sm font-medium text-foreground">Notes</p>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                {setList.serviceNotes.notes}
+              </p>
+            </div>
           )}
         </Card>
       )}
@@ -182,9 +184,12 @@ export default function SetListDetailPage() {
                         </p>
 
                         {song.notes && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            Notes: {song.notes}
-                          </p>
+                          <div className="mt-2 space-y-1 rounded-md border border-white/15 bg-black/60 p-3 backdrop-blur-xl">
+                            <p className="text-xs font-medium text-foreground">Notes</p>
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                              {song.notes}
+                            </p>
+                          </div>
                         )}
                       </div>
 

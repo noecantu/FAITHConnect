@@ -63,7 +63,7 @@ export function ServicePlanDetailView({
               key={section.id}
               className="p-5 space-y-2"
               style={{
-                backgroundColor: getSectionColor(section.title),
+                backgroundColor: section.color ?? getSectionColor(section.title),
               }}
             >
               <h2 className="text-lg font-semibold tracking-tight">
@@ -74,7 +74,7 @@ export function ServicePlanDetailView({
 
               <div className="space-y-4">
                 {hasPerson && (
-                  <div className="space-y-2">
+                  <div className="space-y-2 rounded-md border border-white/15 bg-black/60 p-4 backdrop-blur-xl">
                     <p className="text-sm font-medium text-foreground">Person</p>
                     <p className="text-muted-foreground">
                       {member
@@ -110,7 +110,7 @@ export function ServicePlanDetailView({
                 )}
 
                 {hasNotes && (
-                  <div className="space-y-2">
+                  <div className="space-y-2 rounded-md border border-white/15 bg-black/60 p-4 backdrop-blur-xl">
                     <p className="text-sm font-medium text-foreground">Notes</p>
                     <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
                       {section.notes}

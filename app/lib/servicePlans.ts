@@ -184,6 +184,7 @@ export async function duplicateServicePlan(
     personId: s.personId,
     songIds: [...s.songIds],
     notes: s.notes,
+    color: s.color,
   }));
 
   // Must satisfy ServicePlanFirestore

@@ -36,6 +36,7 @@ const sectionSchema = z.object({
   personId: z.string().nullable(),
   songIds: z.array(z.string()).default([]),
   notes: z.string().optional(),
+  color: z.string().optional(),
 });
 
 const formSchema = z.object({
@@ -133,6 +134,7 @@ export default function NewServicePlanPage() {
         personId: s.personId ?? null,
         notes: s.notes ?? '',
         songIds: Array.isArray(s.songIds) ? s.songIds : [],
+        color: s.color,
       })),
       createdBy: 'system',
     });
