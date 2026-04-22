@@ -116,8 +116,8 @@ export default function SongViewOnly({ songId }: { songId: string }) {
 
               <div className="flex flex-wrap items-center gap-2 text-sm text-white/70">
                 <span className="rounded-full border border-white/20 bg-black/35 px-3 py-1">Key: {song.key || '—'}</span>
-                <span className="rounded-full border border-white/20 bg-black/35 px-3 py-1">BPM: {song.bpm ?? '—'}</span>
-                <span className="rounded-full border border-white/20 bg-black/35 px-3 py-1">Time: {song.timeSignature || '—'}</span>
+                <span className="rounded-full border border-white/20 bg-black/35 px-3 py-1">{song.bpm ?? '—'} BPM</span>
+                <span className="rounded-full border border-white/20 bg-black/35 px-3 py-1">{song.timeSignature || '—'} Time</span>
               </div>
             </div>
 
