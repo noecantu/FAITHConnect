@@ -175,7 +175,7 @@ export default function AdminCredentialsPage() {
       <Card className="relative w-full max-w-md bg-white/5 border-white/20 backdrop-blur-xl p-8 shadow-xl">
 
         {/* LOGO */}
-        <div className="relative flex justify-center mb-6">
+        <div className="relative flex justify-center">
           <div className="absolute inset-0 flex items-center justify-center z-0">
             <div className="h-32 w-32 bg-blue-600/20 blur-3xl rounded-full"></div>
           </div>
@@ -183,7 +183,7 @@ export default function AdminCredentialsPage() {
           <img
             src="/FAITH_CONNECT_FLAME_LOGO.svg"
             alt="FAITH Connect Logo"
-            className="relative z-10 mx-auto h-24 w-24"
+            className="relative z-10 mx-auto h-48 w-48"
             draggable={false}
           />
         </div>
