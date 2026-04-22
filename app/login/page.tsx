@@ -87,12 +87,27 @@ export default function LoginPage() {
         return;
       }
 
+      // Onboarding resume — must run before any churchId-based routing
+      // so mid-onboarding users aren't sent to create-church prematurely.
+      if (profile.onboardingComplete === false) {
+        const onboardingStepPaths: Record<string, string> = {
+          "choose-plan": "/onboarding/choose-plan",
+          "confirm-plan": "/onboarding/confirm-plan",
+          "admin-credentials": "/onboarding/admin-credentials",
+          "billing": "/onboarding/billing",
+          "create-church": "/onboarding/create-church",
+        };
+        const stepPath = onboardingStepPaths[profile.onboardingStep as string];
+        router.replace(stepPath ?? "/onboarding/choose-plan");
+        return;
+      }
+
       // Church Admin
       if (can(roles, "church.manage")) {
         if (profile.churchId) {
           router.replace(`/admin/church/${profile.churchId}`);
         } else {
-          router.replace("/onboarding/create-church");
+          router.replace("/onboarding/choose-plan");
         }
         return;
       }

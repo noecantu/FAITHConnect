@@ -29,6 +29,24 @@ export default function CreateChurchPage() {
 
     const healOnboardingState = async () => {
       try {
+        // First verify the user has a paid subscription before we allow
+        // church creation. This prevents corrupting onboardingStep for users
+        // who arrive here without having completed billing.
+        const profileRes = await fetch("/api/users/me");
+        if (!profileRes.ok) throw new Error("Unable to verify session.");
+
+        const profile = await profileRes.json();
+
+        if (!profile.stripeSubscriptionId) {
+          // User hasn't paid yet — send them back to billing with their plan.
+          if (!isActive) return;
+          const planPath = profile.planId
+            ? `/onboarding/billing?plan=${encodeURIComponent(profile.planId)}`
+            : "/onboarding/billing";
+          router.replace(planPath);
+          return;
+        }
+
         const res = await fetch("/api/users/update-onboarding-step", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -65,7 +83,7 @@ export default function CreateChurchPage() {
     return () => {
       isActive = false;
     };
-  }, [toast]);
+  }, [toast, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

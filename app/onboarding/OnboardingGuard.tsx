@@ -20,6 +20,13 @@ export default function OnboardingGuard({ children }: { children: React.ReactNod
         const res = await fetch("/api/users/me");
 
         if (!res.ok) {
+          // User is not authenticated. Allow pass-through only for pre-auth
+          // steps. Redirect to login for steps that require a session.
+          const protectedSteps = ["/onboarding/billing", "/onboarding/create-church"];
+          if (protectedSteps.some((s) => pathname.startsWith(s))) {
+            router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+            return;
+          }
           setReady(true);
           return;
         }

@@ -11,18 +11,44 @@ export default function BillingPage() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+  const [resolvedPlan, setResolvedPlan] = useState<string | null>(null);
 
-  const plan = searchParams.get("plan");
+  const planParam = searchParams.get("plan");
 
   useEffect(() => {
-    if (!plan) {
+    // If the plan is in the URL (normal forward flow), use it directly.
+    if (planParam) {
+      setResolvedPlan(planParam);
+      return;
+    }
+
+    // If no URL param (guard-resume after re-login), try to recover from the
+    // user's saved profile in Firestore via /api/users/me.
+    const recover = async () => {
+      try {
+        const res = await fetch("/api/users/me");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.planId) {
+            setResolvedPlan(data.planId);
+            return;
+          }
+        }
+      } catch {
+        // fall through
+      }
+
       toast({
         title: "Missing Plan",
         description: "Please choose a plan before billing.",
       });
       router.replace("/onboarding/choose-plan");
-    }
-  }, [plan, router, toast]);
+    };
+
+    recover();
+  }, [planParam, router, toast]);
+
+  const plan = resolvedPlan;
 
   const handleCheckout = async () => {
     if (!plan) return;

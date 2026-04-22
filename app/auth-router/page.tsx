@@ -23,6 +23,26 @@ export default function AuthRouter() {
       return;
     }
 
+    // ONBOARDING RESUME — check before any role-based routing.
+    // If the user hasn't finished onboarding, send them to the correct step.
+    if (user.onboardingComplete === false) {
+      const onboardingSteps: Record<string, string> = {
+        "choose-plan": "/onboarding/choose-plan",
+        "confirm-plan": "/onboarding/confirm-plan",
+        "admin-credentials": "/onboarding/admin-credentials",
+        "billing": "/onboarding/billing",
+        "create-church": "/onboarding/create-church",
+      };
+
+      const stepPath = onboardingSteps[user.onboardingStep as string];
+      if (stepPath && !pathname.startsWith(stepPath)) {
+        router.push(stepPath);
+        return;
+      }
+      // Already on the correct onboarding step — let the page render.
+      return;
+    }
+
     // ADMIN ROUTES
     if (can(roles, "system.manage")) {
       router.push("/admin");
