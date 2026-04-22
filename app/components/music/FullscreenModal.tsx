@@ -69,7 +69,7 @@ export default function FullscreenModal({
               className="
                 relative
                 z-40
-                mx-auto w-full max-w-5xl
+                mx-auto w-full max-w-7xl
                 rounded-2xl border border-white/15
                 bg-black/65
                 px-4 py-4 md:px-6
@@ -119,7 +119,7 @@ export default function FullscreenModal({
 
             {/* SCROLL AREA */}
             <div className="relative flex-1 overflow-y-auto px-1 py-4 md:px-2 md:py-5">
-              <div className="mx-auto max-w-5xl rounded-[28px] border border-white/10 bg-black/45 px-5 py-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm md:px-8 md:py-8">
+              <div className="mx-auto max-w-7xl rounded-[28px] border border-white/10 bg-black/45 px-5 py-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm md:px-8 md:py-8">
                 <ZoomableText>{content}</ZoomableText>
               </div>
             </div>
@@ -129,7 +129,7 @@ export default function FullscreenModal({
               className="
                 relative
                 z-40
-                mx-auto w-full max-w-5xl
+                mx-auto w-full max-w-7xl
                 rounded-2xl border border-white/15
                 bg-black/65
                 px-4 py-4 md:px-6
