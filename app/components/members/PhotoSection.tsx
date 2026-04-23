@@ -20,6 +20,7 @@ import type { UseFormReturn } from "react-hook-form";
 import type { MemberFormValues } from "@/app/lib/memberForm.schema";
 
 type Props = {
+  churchId: string;
   form: UseFormReturn<MemberFormValues>;
   previewUrl: string | null;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
@@ -28,12 +29,15 @@ type Props = {
 };
 
 export function PhotoSection({
+  churchId,
   form,
   previewUrl,
   fileInputRef,
   setIsTakingPhoto,
   handleRemovePhoto,
 }: Props) {
+  const memberId = form.watch("tempId");
+
   return (
     <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
       <CardHeader className="pb-2">
@@ -60,7 +64,7 @@ export function PhotoSection({
         {/* Drag-and-drop uploader */}
         <ImageDropzone
           label="Upload Photo"
-          path={`members/uploads/temp-${Date.now()}.jpg`}
+          path={`churches/${churchId}/members/${memberId}/profile.jpg`}
           onUploaded={(url) => {
             form.setValue("profilePhotoUrl", url);
             form.setValue("photoFile", null);

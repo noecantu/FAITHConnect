@@ -215,7 +215,8 @@ export default function MemberForm({
       __temp_rel_type: "",
       checkInCode: member?.checkInCode ?? "",
       qrCode: member?.qrCode ?? "",
-      tempId: member?.id ?? undefined,
+      profilePhotoUrl: member?.profilePhotoUrl ?? "",
+      tempId: member?.id ?? crypto.randomUUID(),
     },
   });
 
@@ -308,6 +309,7 @@ export default function MemberForm({
           />
 
           <PhotoSection
+            churchId={churchId}
             form={form}
             previewUrl={photo.previewUrl}
             fileInputRef={photo.fileInputRef}

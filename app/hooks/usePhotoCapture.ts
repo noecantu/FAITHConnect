@@ -32,6 +32,7 @@ export function usePhotoCapture({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const photoFile = form.watch("photoFile");
+  const profilePhotoUrl = form.watch("profilePhotoUrl");
 
   useEffect(() => {
     if (photoFile) {
@@ -42,12 +43,14 @@ export function usePhotoCapture({
           URL.revokeObjectURL(url);
         }
       };
-      } else if (initialUrl) {
+      } else if (profilePhotoUrl) {
+      setPreviewUrl(profilePhotoUrl);
+    } else if (initialUrl) {
       setPreviewUrl(initialUrl);
     } else {
       setPreviewUrl(null);
     }
-  }, [photoFile, member, isOpen, initialUrl]);
+  }, [photoFile, profilePhotoUrl, member, isOpen, initialUrl]);
 
   useEffect(() => {
     async function uploadPhoto() {
