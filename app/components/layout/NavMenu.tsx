@@ -113,7 +113,7 @@ export function NavMenu() {
     { href: "/admin/logs", label: "Activity Logs", icon: FileText },
     { href: "/admin/churches", label: "Churches", icon: Users },
     { href: "/admin/settings/health", label: "Platform Health", icon: CalendarHeart },
-    { href: "/admin/users", label: "Users", icon: Users },
+    { href: "/admin/users", label: "System Users", icon: Users },
     { href: "/admin/settings", label: "System Settings", icon: Settings, exact: true },
   ];
 
