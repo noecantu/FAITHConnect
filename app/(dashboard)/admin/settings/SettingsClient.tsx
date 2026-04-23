@@ -48,10 +48,10 @@ export default function RootAdminSettingsPage({ initialSettings }: { initialSett
         <SectionIdentity settings={settings} updateSettings={updateSettings} />
         <SectionBranding settings={settings} updateSettings={updateSettings} />
         <SectionDeveloperTools settings={settings} updateSettings={updateSettings} />
-        <SectionIntegrityTools />
+        <SectionSecurity settings={settings} updateSettings={updateSettings} />
         <SectionFeatureFlags settings={settings} updateSettings={updateSettings} />
         <SectionMaintenance settings={settings} updateSettings={updateSettings} />
-        <SectionSecurity settings={settings} updateSettings={updateSettings} />
+        <SectionIntegrityTools />
         <SectionMonitoring />
       </div>
 
