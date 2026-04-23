@@ -61,8 +61,8 @@ export default function SelectRegionPage() {
               <Card
                 key={region.id}
                 className="
-                  p-4 border border-white/10 bg-black/40 backdrop-blur-xl
-                  hover:bg-black/60 transition cursor-pointer
+                  p-4 bg-black/40 backdrop-blur-xl
+                  hover:bg-black/60 cursor-pointer interactive-card interactive-card-focus
                 "
                 onClick={() =>
                   router.push(

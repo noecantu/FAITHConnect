@@ -8,6 +8,7 @@ type RegionalUserRecord = {
   firstName?: string;
   lastName?: string;
   email?: string;
+  profilePhotoUrl?: string | null;
 };
 
 export async function getUsersByChurchIds(churchIds: string[]): Promise<RegionalUserRecord[]> {

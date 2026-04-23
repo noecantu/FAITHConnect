@@ -149,8 +149,8 @@ export default function AdminHomeClient({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-          <Link href="/admin/churches">
-            <Card className="p-6 hover:shadow-md transition cursor-pointer border-cyan-500/30">
+          <Link href="/admin/churches" className="group block">
+            <Card className="p-6 cursor-pointer interactive-card interactive-card-focus">
               <CardTitle className="text-xl mb-2">Churches</CardTitle>
               <CardDescription>
                 Create, edit, and manage all churches.
@@ -158,8 +158,8 @@ export default function AdminHomeClient({
             </Card>
           </Link>
 
-          <Link href="/admin/users">
-            <Card className="p-6 hover:shadow-md transition cursor-pointer border-blue-500/30">
+          <Link href="/admin/users" className="group block">
+            <Card className="p-6 cursor-pointer interactive-card interactive-card-focus">
               <CardTitle className="text-xl mb-2">System Users</CardTitle>
               <CardDescription>
                 View and manage system-level users.
@@ -167,8 +167,8 @@ export default function AdminHomeClient({
             </Card>
           </Link>
 
-          <Link href="/admin/settings">
-            <Card className="p-6 hover:shadow-md transition cursor-pointer border-violet-500/30">
+          <Link href="/admin/settings" className="group block">
+            <Card className="p-6 cursor-pointer interactive-card interactive-card-focus">
               <CardTitle className="text-xl mb-2">System Settings</CardTitle>
               <CardDescription>
                 Global configuration and platform settings.
@@ -176,8 +176,8 @@ export default function AdminHomeClient({
             </Card>
           </Link>
 
-          <Link href="/admin/logs">
-            <Card className="p-6 hover:shadow-md transition cursor-pointer border-rose-500/30">
+          <Link href="/admin/logs" className="group block">
+            <Card className="p-6 cursor-pointer interactive-card interactive-card-focus">
               <CardTitle className="text-xl mb-2">Activity Logs</CardTitle>
               <CardDescription>
                 System-wide events and audit trails.
@@ -185,8 +185,8 @@ export default function AdminHomeClient({
             </Card>
           </Link>
 
-          <Link href="/admin/settings/health">
-            <Card className="p-6 hover:shadow-md transition cursor-pointer border-emerald-500/30">
+          <Link href="/admin/settings/health" className="group block">
+            <Card className="p-6 cursor-pointer interactive-card interactive-card-focus">
               <CardTitle className="text-xl mb-2">Platform Health</CardTitle>
               <CardDescription>
                 Performance, Metrics, and Health.
@@ -194,8 +194,8 @@ export default function AdminHomeClient({
             </Card>
           </Link>
 
-          <Link href="/admin/subscription-audit">
-            <Card className="p-6 hover:shadow-md transition cursor-pointer border-amber-500/30">
+          <Link href="/admin/subscription-audit" className="group block">
+            <Card className="p-6 cursor-pointer interactive-card interactive-card-focus">
               <CardTitle className="text-xl mb-2">Subscription Audit</CardTitle>
               <CardDescription>
                 Verify all valid active subscriptions.

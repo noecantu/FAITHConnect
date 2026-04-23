@@ -63,7 +63,7 @@ export default function Pricing() {
             whileHover={{ scale: 1.05 }}
           >
             <Card
-              className={`bg-white/5 border-white/20 backdrop-blur-sm p-6 cursor-pointer transition-all hover:border-blue-500/80 ${
+              className={`bg-white/5 border-white/20 backdrop-blur-sm p-6 cursor-pointer interactive-card interactive-card-focus ${
                 p.highlight ? "border-blue-500 shadow-lg shadow-blue-500/20" : ""
               }`}
               onClick={() => handlePlanSelect(p.plan, p.price)}

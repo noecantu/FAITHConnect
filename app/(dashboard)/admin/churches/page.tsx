@@ -126,11 +126,8 @@ export default function GlobalChurchListPage() {
             <Link key={church.id} href={`/admin/churches/${church.id}`} className="group block">
               <Card
                 className="
-                  h-full transition-all duration-200
+                  h-full interactive-card interactive-card-focus
                   bg-black/40 backdrop-blur-xl
-                  border border-white/15
-                  hover:border-cyan-400/50 hover:shadow-md hover:-translate-y-1
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50
                 "
               >
                 <CardContent className="p-4">
@@ -143,16 +140,14 @@ export default function GlobalChurchListPage() {
                           alt={`${church.name} logo`}
                           className="
                             h-20 w-20 rounded-md object-cover 
-                            border border-white/20 bg-white shadow-md
-                            group-hover:border-cyan-300/60
+                            interactive-card-media bg-white shadow-md
                           "
                         />
                       ) : (
                         <div
                           className="
                             h-20 w-20 rounded-md flex items-center justify-center 
-                            bg-white/10 border border-white/20 text-xl font-semibold
-                            group-hover:border-cyan-300/60
+                            bg-white/10 interactive-card-media text-xl font-semibold
                           "
                         >
                           {church.name?.[0]?.toUpperCase() ?? "C"}

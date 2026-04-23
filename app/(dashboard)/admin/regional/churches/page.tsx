@@ -76,10 +76,8 @@ export default function RegionalChurchesPage() {
               className="
                 h-full p-5 rounded-xl
                 bg-black/40 backdrop-blur-xl
-                border border-white/15
                 shadow-lg
-                transition-all duration-200
-                hover:border-cyan-400/50 hover:shadow-xl hover:-translate-y-1
+                interactive-card
               "
             >
               <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:text-left">
@@ -91,16 +89,14 @@ export default function RegionalChurchesPage() {
                       alt={`${church.name} logo`}
                       className="
                         h-32 w-32 rounded-md object-cover 
-                        border border-white/20 bg-white shadow-md
-                        group-hover:border-cyan-300/60
+                        interactive-card-media bg-white shadow-md
                       "
                     />
                   ) : (
                     <div
                       className="
                         h-20 w-20 rounded-md flex items-center justify-center 
-                        bg-white/10 border border-white/20 text-xl font-semibold
-                        group-hover:border-cyan-300/60
+                        bg-white/10 interactive-card-media text-xl font-semibold
                       "
                     >
                       {church.name?.[0]?.toUpperCase() ?? "C"}

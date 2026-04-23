@@ -249,7 +249,7 @@ export default function SongsPage() {
                       <li key={song.id}>
                         <Link href={`/church/${churchId}/music/songs/${song.id}`}>
                           <Card
-                            className="group relative p-4 cursor-pointer bg-black/60 border-white/15 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/[0.10] hover:shadow-[0_8px_22px_rgba(0,0,0,0.24)] focus-within:ring-2 focus-within:ring-white/35"
+                            className="group relative p-4 cursor-pointer bg-black/60 backdrop-blur-xl interactive-card interactive-card-focus hover:bg-white/[0.10]"
                           >
                             <div className="flex items-center justify-between gap-3">
                               <div className="min-w-0">

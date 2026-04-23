@@ -5,6 +5,13 @@ import { useParams } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
 import { usePermissions } from '@/app/hooks/usePermissions';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/app/components/ui/card';
+import { Badge } from '@/app/components/ui/badge';
 import Link from 'next/link';
 
 export default function RegionalUserDetailPage() {
@@ -12,6 +19,7 @@ export default function RegionalUserDetailPage() {
   const { isRootAdmin, isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
 
   const [user, setUser] = useState<any | null>(null);
+  const [church, setChurch] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -45,6 +53,10 @@ export default function RegionalUserDetailPage() {
           setLoading(false);
           return;
         }
+
+        if (churchSnap.exists()) {
+          setChurch(churchSnap.data());
+        }
       }
 
       setUser({ ...data, uid: snap.id });
@@ -58,7 +70,7 @@ export default function RegionalUserDetailPage() {
     return <div className="p-6 text-muted-foreground">Loading…</div>;
   }
 
-    // Unauthorized
+  // Unauthorized
   if (!isRegionalAdmin && !isRootAdmin) {
     return (
       <div className="p-6">
@@ -82,30 +94,155 @@ export default function RegionalUserDetailPage() {
   }
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-3 space-y-3">
       <div>
-        <h1 className="text-2xl font-semibold">
-          {user.firstName} {user.lastName}
+        <h1 className="text-xl font-semibold">
+          {user.lastName}, {user.firstName}
         </h1>
         <p className="text-muted-foreground">User details in your region.</p>
       </div>
 
-      {/* Profile */}
-      <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl space-y-2">
-        <p><strong>Email:</strong> {user.email || 'N/A'}</p>
-        <p><strong>Roles:</strong> {Array.isArray(user.roles) ? user.roles.join(', ') : 'None'}</p>
-        <p><strong>Church:</strong> {user.churchId || 'N/A'}</p>
-        <p><strong>Region Access:</strong> Verified by church assignment</p>
+      {/* Profile Card */}
+      {user.churchId ? (
+        <Link href={`/admin/regional/church/${user.churchId}`} className="group block">
+          <Card className="flex flex-col overflow-hidden bg-black/80 backdrop-blur-xl max-w-sm interactive-card">
+            {/* Photo Section */}
+            <div className="relative aspect-video w-full flex items-center justify-center bg-muted text-muted-foreground overflow-hidden">
+          {user.profilePhotoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={user.profilePhotoUrl}
+              alt={`${user.firstName ?? "User"} ${user.lastName ?? ""} profile photo`.trim()}
+              className="w-full h-full object-contain"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-white/10">
+              <div className="text-center">
+                <div className="text-4xl font-semibold text-foreground/30">
+                  {`${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase() || "U"}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
-        {user.churchId && (
-          <Link
-            href={`/admin/regional/church/${user.churchId}`}
-            className="inline-block mt-3 text-sm text-primary hover:underline"
-          >
-            View Church →
-          </Link>
-        )}
-      </div>
+        {/* Content Section */}
+        <CardHeader className="pb-1 pt-2 px-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">
+              {user.firstName} {user.lastName}
+            </CardTitle>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-1 text-xs px-3 pb-2">
+          {/* Email */}
+          <div>
+            <p className="text-muted-foreground">Email</p>
+            <p className="text-primary">{user.email || 'N/A'}</p>
+          </div>
+
+          {/* Roles */}
+          <div>
+            <p className="text-muted-foreground mb-2">Roles</p>
+            <div className="flex flex-wrap gap-2">
+              {Array.isArray(user.roles) && user.roles.length > 0 ? (
+                user.roles.map((role: string) => (
+                  <Badge key={role} variant="secondary">
+                    {role}
+                  </Badge>
+                ))
+              ) : (
+                <p className="text-muted-foreground">None</p>
+              )}
+            </div>
+          </div>
+
+          {/* Church */}
+          {user.churchId && (
+            <div>
+              <p className="text-muted-foreground mb-2">Church</p>
+              <p className="text-foreground">
+                {church?.name || user.churchId}
+              </p>
+            </div>
+          )}
+
+          {/* Region Info */}
+          <div>
+            <p className="text-muted-foreground">Region Access</p>
+            <p className="text-foreground">Verified by church assignment</p>
+          </div>
+        </CardContent>
+          </Card>
+        </Link>
+      ) : (
+        <Card className="flex flex-col overflow-hidden bg-black/80 border-white/15 backdrop-blur-xl max-w-sm">
+          {/* Photo Section */}
+          <div className="relative aspect-video w-full flex items-center justify-center bg-muted text-muted-foreground overflow-hidden">
+            {user.profilePhotoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={user.profilePhotoUrl}
+                alt={`${user.firstName ?? "User"} ${user.lastName ?? ""} profile photo`.trim()}
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-white/10">
+                <div className="text-center">
+                  <div className="text-4xl font-semibold text-foreground/30">
+                    {`${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase() || "U"}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Content Section */}
+          <CardHeader className="pb-1 pt-2 px-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">
+                {user.firstName} {user.lastName}
+              </CardTitle>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-1 text-xs px-3 pb-2">
+            {/* Email */}
+            <div>
+              <p className="text-muted-foreground">Email</p>
+              <a
+                href={`mailto:${user.email}`}
+                className="text-primary hover:underline"
+              >
+                {user.email || 'N/A'}
+              </a>
+            </div>
+
+            {/* Roles */}
+            <div>
+              <p className="text-muted-foreground mb-2">Roles</p>
+              <div className="flex flex-wrap gap-2">
+                {Array.isArray(user.roles) && user.roles.length > 0 ? (
+                  user.roles.map((role: string) => (
+                    <Badge key={role} variant="secondary">
+                      {role}
+                    </Badge>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground">None</p>
+                )}
+              </div>
+            </div>
+
+            {/* Region Info */}
+            <div>
+              <p className="text-muted-foreground">Region Access</p>
+              <p className="text-foreground">Verified by church assignment</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

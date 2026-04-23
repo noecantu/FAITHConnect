@@ -97,8 +97,8 @@ export function ServicePlanDetailView({
                         return (
                           <Card key={songId}
                             className="relative p-4 cursor-pointer 
-                          bg-black/80 border-white/20 backdrop-blur-xl 
-                          hover:bg-black/50 transition">
+                          bg-black/80 backdrop-blur-xl interactive-card 
+                          hover:bg-black/50">
                             <p className="font-medium">
                               {song ? song.title : 'Unknown Song'}
                             </p>

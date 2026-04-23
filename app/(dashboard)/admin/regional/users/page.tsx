@@ -18,6 +18,7 @@ type RegionalUser = {
   lastName?: string;
   email?: string;
   roles?: string[];
+  profilePhotoUrl?: string | null;
 };
 
 export default function RegionalUsersPage() {
@@ -123,35 +124,47 @@ export default function RegionalUsersPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {users.map((user) => (
-          <div
+          <Link
             key={user.uid}
-            className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl"
+            href={`/admin/regional/users/${user.uid}`}
+            className="group block"
           >
-            <h2 className="text-lg font-semibold">
-              {user.firstName} {user.lastName}
-            </h2>
+            <div
+              className="
+                h-full p-4 rounded-lg
+                bg-black/40 backdrop-blur-xl
+                interactive-card
+              "
+            >
+              <div className="flex items-center gap-3">
+                {user.profilePhotoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={user.profilePhotoUrl}
+                    alt={`${user.firstName ?? "User"} ${user.lastName ?? ""} profile photo`.trim()}
+                    className="h-24 w-24 rounded-xl object-cover interactive-card-media"
+                  />
+                ) : (
+                  <div className="h-24 w-24 rounded-xl flex items-center justify-center bg-white/10 interactive-card-media text-sm font-semibold">
+                    {`${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase() || "U"}
+                  </div>
+                )}
 
-            <p className="text-sm text-muted-foreground">{user.email}</p>
+                <div className="min-w-0">
+                  <h2 className="text-lg font-semibold truncate">
+                    {user.firstName} {user.lastName}
+                  </h2>
+                  <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                </div>
+              </div>
 
-            <p className="text-sm text-muted-foreground mt-1">
-              Roles: {Array.isArray(user.roles) ? user.roles.join(', ') : 'None'}
-            </p>
-
-            <div className="flex justify-end mt-4">
-              <Link
-                href={`/admin/regional/users/${user.uid}`}
-                className="
-                  px-3 py-1.5 rounded-md border
-                  bg-muted/20 hover:bg-muted transition
-                  text-sm
-                "
-              >
-                View
-              </Link>
+              <p className="text-sm text-muted-foreground mt-3">
+                Roles: {Array.isArray(user.roles) ? user.roles.join(', ') : 'None'}
+              </p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

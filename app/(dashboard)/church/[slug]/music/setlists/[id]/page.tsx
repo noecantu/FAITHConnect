@@ -163,8 +163,8 @@ export default function SetListDetailPage() {
                   <Card
                     key={song.songId}
                     className="relative p-4 cursor-pointer 
-                      bg-black/80 border-white/20 backdrop-blur-xl 
-                      hover:bg-black/50 transition"
+                      bg-black/80 backdrop-blur-xl interactive-card 
+                      hover:bg-black/50"
                     onClick={() =>
                       router.push(
                         `/church/${churchId}/music/songs/${song.songId}/view?setlist=${setList.id}`

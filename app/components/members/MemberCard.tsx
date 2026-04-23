@@ -130,7 +130,7 @@ export default function MemberCard({
     return (
       <Card
         className={cn(
-          "relative flex flex-col overflow-hidden bg-black/80 border-white/20 backdrop-blur-xl",
+          "relative flex flex-col overflow-hidden bg-black/80 backdrop-blur-xl interactive-card",
           !readOnly && "cursor-pointer"
         )}
         onClick={() => router.push(`/church/${churchId}/members/${member.id}/edit`)}
