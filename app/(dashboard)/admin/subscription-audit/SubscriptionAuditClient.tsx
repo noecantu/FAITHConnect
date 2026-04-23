@@ -74,14 +74,14 @@ export default function SubscriptionAuditClient({
     <>
       <PageHeader
         title="Subscription Audit"
-        subtitle="Verify that all church admins hold a valid active subscription."
+        subtitle="Verify that each church account owner holds a valid active subscription."
       />
 
       {/* Summary row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Total Church Admins</CardDescription>
+            <CardDescription>Total Churches Audited</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">{records.length}</p>
@@ -112,7 +112,7 @@ export default function SubscriptionAuditClient({
       {/* Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Church Admin Subscription Status</CardTitle>
+          <CardTitle>Church Owner Subscription Status</CardTitle>
           <CardDescription>
             Live subscription data pulled from Stripe. Rows in red need attention.
           </CardDescription>
@@ -136,7 +136,7 @@ export default function SubscriptionAuditClient({
                   const isProblem = PROBLEM_STATUSES.includes(r.subscriptionStatus);
                   return (
                     <tr
-                      key={r.uid}
+                      key={`${r.churchId ?? "no-church"}:${r.uid}`}
                       className={`border-b border-white/5 transition hover:bg-white/[0.03] ${
                         isProblem ? "bg-rose-500/[0.04]" : ""
                       }`}
@@ -154,7 +154,7 @@ export default function SubscriptionAuditClient({
                             href={`/admin/churches/${r.churchId}`}
                             className="text-blue-400 hover:underline"
                           >
-                            {r.churchId}
+                            {r.churchName ?? r.churchId}
                           </Link>
                         ) : (
                           <span className="text-muted-foreground italic">No church</span>
@@ -199,7 +199,7 @@ export default function SubscriptionAuditClient({
                 {records.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                      No church admins found.
+                      No church owners found.
                     </td>
                   </tr>
                 )}

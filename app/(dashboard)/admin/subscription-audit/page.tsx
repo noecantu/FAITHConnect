@@ -17,6 +17,7 @@ export type AuditRecord = {
   email: string;
   name: string;
   churchId: string | null;
+  churchName: string | null;
   planId: string | null;
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
@@ -41,17 +42,38 @@ export default async function SubscriptionAuditPage() {
     redirect(`/church/${user.churchId}/user`);
   }
 
-  // Fetch all church admins (role = "Admin")
-  const snap = await adminDb
-    .collection("users")
-    .where("roles", "array-contains", "Admin")
-    .limit(200)
-    .get();
+  // Audit one record per church using the church owner (createdBy).
+  const churchesSnap = await adminDb.collection("churches").get();
+
+  const churchOwners = churchesSnap.docs.map((doc) => {
+    const data = doc.data() as { createdBy?: unknown; name?: unknown };
+    return {
+      churchId: doc.id,
+      churchName: typeof data.name === "string" ? data.name : null,
+      ownerUid: typeof data.createdBy === "string" ? data.createdBy : null,
+    };
+  });
+
+  const ownerUids = Array.from(
+    new Set(churchOwners.map((c) => c.ownerUid).filter((uid): uid is string => Boolean(uid)))
+  );
+
+  const ownerRefs = ownerUids.map((uid) => adminDb.collection("users").doc(uid));
+  const ownerSnaps = ownerRefs.length > 0 ? await adminDb.getAll(...ownerRefs) : [];
+
+  const ownersByUid = new Map(
+    ownerSnaps
+      .filter((snap) => snap.exists)
+      .map((snap) => [snap.id, snap.data() as Record<string, unknown>])
+  );
 
   const records: AuditRecord[] = await Promise.all(
-    snap.docs.map(async (doc) => {
-      const data = doc.data();
-      const subscriptionId: string | null = data.stripeSubscriptionId ?? null;
+    churchOwners.map(async ({ churchId, churchName, ownerUid }) => {
+      const owner = ownerUid ? ownersByUid.get(ownerUid) : undefined;
+      const subscriptionId =
+        owner && typeof owner.stripeSubscriptionId === "string"
+          ? owner.stripeSubscriptionId
+          : null;
 
       let subscriptionStatus: AuditRecord["subscriptionStatus"] = "no_subscription";
 
@@ -64,19 +86,24 @@ export default async function SubscriptionAuditPage() {
         }
       }
 
-      const firstName = data.firstName ?? "";
-      const lastName = data.lastName ?? "";
-      const name = [firstName, lastName].filter(Boolean).join(" ") || data.email;
+      const firstName = owner && typeof owner.firstName === "string" ? owner.firstName : "";
+      const lastName = owner && typeof owner.lastName === "string" ? owner.lastName : "";
+      const email = owner && typeof owner.email === "string" ? owner.email : "Unknown owner";
+      const name = [firstName, lastName].filter(Boolean).join(" ") || email;
 
       return {
-        uid: doc.id,
-        email: data.email ?? "",
+        uid: ownerUid ?? `missing-owner:${churchId}`,
+        email,
         name,
-        churchId: data.churchId ?? null,
-        planId: data.planId ?? null,
-        stripeCustomerId: data.stripeCustomerId ?? null,
+        churchId,
+        churchName,
+        planId: owner && typeof owner.planId === "string" ? owner.planId : null,
+        stripeCustomerId:
+          owner && typeof owner.stripeCustomerId === "string"
+            ? owner.stripeCustomerId
+            : null,
         stripeSubscriptionId: subscriptionId,
-        onboardingComplete: data.onboardingComplete === true,
+        onboardingComplete: owner?.onboardingComplete === true,
         subscriptionStatus,
       };
     })
