@@ -10,9 +10,10 @@ interface Props {
   users: AppUser[];
   onCreate: () => void;
   onSelectUser: (user: AppUser) => void;
+  billingOwnerUid?: string | null;
 }
 
-export default function UserListCard({ users, onCreate, onSelectUser }: Props) {
+export default function UserListCard({ users, onCreate, onSelectUser, billingOwnerUid = null }: Props) {
   const [page, setPage] = useState(1);
 
   // Determine how many items per page based on screen size
@@ -72,7 +73,12 @@ export default function UserListCard({ users, onCreate, onSelectUser }: Props) {
         {/* GRID */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {pagedUsers.map((u, index) => (
-            <UserListItem key={getUserKey(u, index)} user={u} onClick={() => onSelectUser(u)} />
+            <UserListItem
+              key={getUserKey(u, index)}
+              user={u}
+              onClick={() => onSelectUser(u)}
+              isBillingOwner={Boolean(billingOwnerUid && u.uid === billingOwnerUid)}
+            />
           ))}
         </div>
 

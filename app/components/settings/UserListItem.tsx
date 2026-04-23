@@ -6,9 +6,10 @@ import type { AppUser } from '@/app/lib/types';
 interface Props {
   user: AppUser;
   onClick: () => void;
+  isBillingOwner?: boolean;
 }
 
-export default function UserListItem({ user, onClick }: Props) {
+export default function UserListItem({ user, onClick, isBillingOwner = false }: Props) {
   const roles = user.roles ?? [];
   return (
     <button
@@ -20,9 +21,16 @@ export default function UserListItem({ user, onClick }: Props) {
         focus:outline-none focus:ring-2 focus:ring-primary
       "
     >
-      <p className="font-semibold">
-        {(user.firstName ?? '') + ' ' + (user.lastName ?? '')}
-      </p>
+      <div className="flex items-center gap-2">
+        <p className="font-semibold">
+          {(user.firstName ?? '') + ' ' + (user.lastName ?? '')}
+        </p>
+        {isBillingOwner && (
+          <span className="inline-flex items-center rounded-full border border-cyan-300/40 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-200">
+            Billing Owner
+          </span>
+        )}
+      </div>
 
       <p className="text-sm text-muted-foreground">{user.email}</p>
 

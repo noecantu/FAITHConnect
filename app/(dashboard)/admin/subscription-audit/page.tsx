@@ -42,15 +42,38 @@ export default async function SubscriptionAuditPage() {
     redirect(`/church/${user.churchId}/user`);
   }
 
-  // Audit one record per church using the church owner (createdBy).
+  // Audit one record per church using church-level billing ownership.
   const churchesSnap = await adminDb.collection("churches").get();
 
   const churchOwners = churchesSnap.docs.map((doc) => {
-    const data = doc.data() as { createdBy?: unknown; name?: unknown };
+    const data = doc.data() as {
+      createdBy?: unknown;
+      billingOwnerUid?: unknown;
+      name?: unknown;
+      planId?: unknown;
+      stripeCustomerId?: unknown;
+      stripeSubscriptionId?: unknown;
+      billingStatus?: unknown;
+      billingContactEmail?: unknown;
+    };
     return {
       churchId: doc.id,
       churchName: typeof data.name === "string" ? data.name : null,
-      ownerUid: typeof data.createdBy === "string" ? data.createdBy : null,
+      ownerUid:
+        typeof data.billingOwnerUid === "string"
+          ? data.billingOwnerUid
+          : typeof data.createdBy === "string"
+          ? data.createdBy
+          : null,
+      churchPlanId: typeof data.planId === "string" ? data.planId : null,
+      churchStripeCustomerId:
+        typeof data.stripeCustomerId === "string" ? data.stripeCustomerId : null,
+      churchStripeSubscriptionId:
+        typeof data.stripeSubscriptionId === "string" ? data.stripeSubscriptionId : null,
+      churchBillingStatus:
+        typeof data.billingStatus === "string" ? data.billingStatus : null,
+      churchBillingContactEmail:
+        typeof data.billingContactEmail === "string" ? data.billingContactEmail : null,
     };
   });
 
@@ -68,14 +91,34 @@ export default async function SubscriptionAuditPage() {
   );
 
   const records: AuditRecord[] = await Promise.all(
-    churchOwners.map(async ({ churchId, churchName, ownerUid }) => {
+    churchOwners.map(async ({
+      churchId,
+      churchName,
+      ownerUid,
+      churchPlanId,
+      churchStripeCustomerId,
+      churchStripeSubscriptionId,
+      churchBillingStatus,
+      churchBillingContactEmail,
+    }) => {
       const owner = ownerUid ? ownersByUid.get(ownerUid) : undefined;
       const subscriptionId =
-        owner && typeof owner.stripeSubscriptionId === "string"
+        churchStripeSubscriptionId ??
+        (owner && typeof owner.stripeSubscriptionId === "string"
           ? owner.stripeSubscriptionId
-          : null;
+          : null);
 
-      let subscriptionStatus: AuditRecord["subscriptionStatus"] = "no_subscription";
+      let subscriptionStatus: AuditRecord["subscriptionStatus"] =
+        churchBillingStatus === "active" ||
+        churchBillingStatus === "trialing" ||
+        churchBillingStatus === "past_due" ||
+        churchBillingStatus === "canceled" ||
+        churchBillingStatus === "unpaid" ||
+        churchBillingStatus === "incomplete" ||
+        churchBillingStatus === "incomplete_expired" ||
+        churchBillingStatus === "paused"
+          ? (churchBillingStatus as AuditRecord["subscriptionStatus"])
+          : "no_subscription";
 
       if (subscriptionId) {
         try {
@@ -88,7 +131,9 @@ export default async function SubscriptionAuditPage() {
 
       const firstName = owner && typeof owner.firstName === "string" ? owner.firstName : "";
       const lastName = owner && typeof owner.lastName === "string" ? owner.lastName : "";
-      const email = owner && typeof owner.email === "string" ? owner.email : "Unknown owner";
+      const email =
+        churchBillingContactEmail ??
+        (owner && typeof owner.email === "string" ? owner.email : "Unknown owner");
       const name = [firstName, lastName].filter(Boolean).join(" ") || email;
 
       return {
@@ -97,11 +142,14 @@ export default async function SubscriptionAuditPage() {
         name,
         churchId,
         churchName,
-        planId: owner && typeof owner.planId === "string" ? owner.planId : null,
+        planId:
+          churchPlanId ??
+          (owner && typeof owner.planId === "string" ? owner.planId : null),
         stripeCustomerId:
-          owner && typeof owner.stripeCustomerId === "string"
+          churchStripeCustomerId ??
+          (owner && typeof owner.stripeCustomerId === "string"
             ? owner.stripeCustomerId
-            : null,
+            : null),
         stripeSubscriptionId: subscriptionId,
         onboardingComplete: owner?.onboardingComplete === true,
         subscriptionStatus,

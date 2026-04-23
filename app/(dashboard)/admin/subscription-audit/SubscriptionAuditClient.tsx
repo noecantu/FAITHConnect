@@ -74,7 +74,7 @@ export default function SubscriptionAuditClient({
     <>
       <PageHeader
         title="Subscription Audit"
-        subtitle="Verify that each church account owner holds a valid active subscription."
+        subtitle="Verify each church billing owner has a valid active subscription (falls back to original owner for legacy records)."
       />
 
       {/* Summary row */}

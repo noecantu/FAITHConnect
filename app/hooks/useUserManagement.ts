@@ -2,9 +2,9 @@
 
 import { useState, useMemo } from 'react';
 import { db } from '@/app/lib/firebase/client';
-import { getFunctions, httpsCallable } from 'firebase/functions';
 import {
   doc,
+  getDoc,
   setDoc,
   updateDoc,
   deleteDoc,
@@ -22,7 +22,6 @@ import { updateUserAction } from "@/app/(dashboard)/admin/actions/updateUserActi
 
 export function useUserManagement() {
   const { toast } = useToast();
-  const functions = getFunctions(undefined, 'us-central1');
 
   const { roles: actorRoles } = usePermissions();
   const { churchId } = useChurchId();
@@ -50,6 +49,7 @@ export function useUserManagement() {
   const [isCreating, setIsCreating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isTransferringBillingOwner, setIsTransferringBillingOwner] = useState(false);
 
   // -----------------------------
   // RESET FORM
@@ -216,10 +216,36 @@ export function useUserManagement() {
     setIsDeleting(true);
 
     try {
-      const deleteFn = httpsCallable(functions, "deleteUserByUid");
-      await deleteFn({ uid: selectedUser.uid });
+      if (churchId) {
+        const churchSnap = await getDoc(doc(db, "churches", churchId));
+        const churchData = churchSnap.exists()
+          ? (churchSnap.data() as { billingOwnerUid?: unknown; createdBy?: unknown })
+          : null;
 
-      await deleteDoc(doc(db, "users", selectedUser.uid));
+        const billingOwnerUid =
+          typeof churchData?.billingOwnerUid === "string"
+            ? churchData.billingOwnerUid
+            : typeof churchData?.createdBy === "string"
+            ? churchData.createdBy
+            : null;
+
+        if (billingOwnerUid && selectedUser.uid === billingOwnerUid) {
+          throw new Error(
+            "This user is the billing owner for this church. Reassign billing ownership before deleting this account."
+          );
+        }
+      }
+
+      const res = await fetch('/api/church-users/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: selectedUser.uid }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: 'Failed to delete user.' }));
+        throw new Error(data.error || 'Failed to delete user.');
+      }
 
       toast({ title: "Success", description: "User deleted." });
       resetForm();
@@ -234,6 +260,48 @@ export function useUserManagement() {
       toast({ title: "Error", description: message });
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  // -----------------------------
+  // TRANSFER BILLING OWNER
+  // -----------------------------
+  const handleTransferBillingOwner = async () => {
+    if (!selectedUser) return;
+
+    if (!canManageChurch) {
+      toast({ title: "Forbidden", description: "You cannot manage billing ownership." });
+      return;
+    }
+
+    setIsTransferringBillingOwner(true);
+
+    try {
+      const res = await fetch('/api/church-users/transfer-billing-owner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: selectedUser.uid }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: 'Failed to transfer billing ownership.' }));
+        throw new Error(data.error || 'Failed to transfer billing ownership.');
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Billing ownership transferred successfully.',
+      });
+    } catch (err: unknown) {
+      let message = 'Something went wrong.';
+
+      if (err instanceof Error) {
+        message = err.message;
+      }
+
+      toast({ title: 'Error', description: message });
+    } finally {
+      setIsTransferringBillingOwner(false);
     }
   };
 
@@ -294,11 +362,13 @@ export function useUserManagement() {
     isCreating,
     isSaving,
     isDeleting,
+    isTransferringBillingOwner,
 
     handleRoleChange,
     handleCreateUser,
     handleSaveUser,
     handleDeleteUser,
+    handleTransferBillingOwner,
 
     startCreate,
     startEdit,

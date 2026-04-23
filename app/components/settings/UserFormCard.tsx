@@ -34,6 +34,11 @@ interface Props {
 
   isCreating: boolean;
   isSaving: boolean;
+  isTransferringBillingOwner: boolean;
+
+  isBillingOwner: boolean;
+  canTransferBillingOwner: boolean;
+  onTransferBillingOwner: () => void;
 
   currentUserId: string;
   currentUserRoles: Role[];
@@ -63,6 +68,11 @@ export default function UserFormCard({
 
   isCreating,
   isSaving,
+  isTransferringBillingOwner,
+
+  isBillingOwner,
+  canTransferBillingOwner,
+  onTransferBillingOwner,
 
   currentUserId,
   currentUserRoles,
@@ -136,6 +146,21 @@ export default function UserFormCard({
       />
 
       <div className="flex flex-col sm:flex-row justify-end gap-2 mt-4">
+        {mode === 'edit' && canTransferBillingOwner && (
+          <Button
+            variant="outline"
+            onClick={onTransferBillingOwner}
+            disabled={isTransferringBillingOwner || isBillingOwner}
+            className="w-full sm:w-auto"
+          >
+            {isBillingOwner
+              ? 'Current Billing Owner'
+              : isTransferringBillingOwner
+              ? 'Transferring...'
+              : 'Set as Billing Owner'}
+          </Button>
+        )}
+
         {mode === 'edit' && (
           <Button variant="destructive" onClick={onDelete} className="w-full sm:w-auto">
             Delete User

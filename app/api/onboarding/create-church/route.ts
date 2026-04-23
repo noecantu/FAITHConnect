@@ -97,6 +97,24 @@ export async function POST(req: Request) {
         name: churchName,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         createdBy: uid,
+        billingOwnerUid: uid,
+        billingContactEmail:
+          typeof userData.email === "string" ? userData.email : null,
+        stripeCustomerId:
+          typeof userData.stripeCustomerId === "string"
+            ? userData.stripeCustomerId
+            : null,
+        stripeSubscriptionId:
+          typeof userData.stripeSubscriptionId === "string"
+            ? userData.stripeSubscriptionId
+            : null,
+        planId: typeof userData.planId === "string" ? userData.planId : null,
+        billingStatus,
+        billingDelinquent:
+          billingStatus == null
+            ? null
+            : !(billingStatus === "active" || billingStatus === "trialing"),
+        billingUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
         settings: {
           featureFlags: {},
           platformHealth: {},
