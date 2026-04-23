@@ -12,7 +12,6 @@ import {
   scanForChurchesWithoutAdmins,
   scanForInvalidRoles,
   repairInvalidUserRoles,
-  normalizeUserUids,
 } from "../integrityActions";
 import { useToast } from "@/app/hooks/use-toast";
 
@@ -31,7 +30,7 @@ type OrphanedMember = {
   memberId: string;
   memberName?: string;
   linkedUserId?: string | null;
-  reason?: "inactive-church" | "missing-user-link" | "dangling-user-link";
+  reason?: "inactive-church" | "dangling-user-link";
 };
 
 type ChurchWithoutAdmin = {
@@ -49,60 +48,6 @@ type InvalidRoleUser = {
   invalidRoles?: string[];
   validRoles?: string[];
 };
-
-interface IntegrityToolProps {
-  title: string;
-  description: string;
-  action: () => Promise<unknown>;
-  actionLabel?: string;
-}
-
-function IntegrityTool({ title, description, action, actionLabel = "Run Scan" }: IntegrityToolProps) {
-  const [results, setResults] = useState<unknown>(null);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-
-  async function run() {
-    try {
-      setLoading(true);
-      const data = await action();
-      setResults(data);
-      toast({
-        title,
-        description: "Action completed successfully.",
-      });
-    } catch (error) {
-      const description = error instanceof Error ? error.message : "Action failed.";
-      toast({
-        title: "Action failed",
-        description,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <div className="border p-4 rounded-md space-y-2">
-      <div className="flex justify-between items-center">
-        <div>
-          <h3 className="font-medium">{title}</h3>
-          <p className="text-sm text-muted-foreground">{description}</p>
-        </div>
-        <Button onClick={run} disabled={loading}>
-          {loading ? "Running…" : actionLabel}
-        </Button>
-      </div>
-
-      {results && (
-        <pre className="bg-black/20 p-3 rounded text-xs overflow-auto max-h-64">
-          {JSON.stringify(results, null, 2)}
-        </pre>
-      )}
-    </div>
-  );
-}
 
 function StrayUsersTool() {
   const [results, setResults] = useState<StrayUser[]>([]);
@@ -124,7 +69,6 @@ function StrayUsersTool() {
       toast({
         title: "Action failed",
         description,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -149,7 +93,6 @@ function StrayUsersTool() {
       toast({
         title: "Delete failed",
         description,
-        variant: "destructive",
       });
     } finally {
       setDeletingUid(null);
@@ -235,7 +178,7 @@ function OrphanedMembersTool() {
       toast({ title: "Orphaned Members", description: "Scan completed successfully." });
     } catch (error) {
       const description = error instanceof Error ? error.message : "Action failed.";
-      toast({ title: "Action failed", description, variant: "destructive" });
+      toast({ title: "Action failed", description });
     } finally {
       setLoading(false);
     }
@@ -257,7 +200,7 @@ function OrphanedMembersTool() {
       toast({ title: "Member deleted", description: "Orphaned member has been removed." });
     } catch (error) {
       const description = error instanceof Error ? error.message : "Delete failed.";
-      toast({ title: "Delete failed", description, variant: "destructive" });
+      toast({ title: "Delete failed", description });
     } finally {
       setDeletingKey(null);
     }
@@ -265,7 +208,6 @@ function OrphanedMembersTool() {
 
   const reasonLabel: Record<NonNullable<OrphanedMember["reason"]>, string> = {
     "inactive-church": "Church inactive",
-    "missing-user-link": "No user link",
     "dangling-user-link": "Linked user missing",
   };
 
@@ -275,7 +217,7 @@ function OrphanedMembersTool() {
         <div>
           <h3 className="font-medium">Orphaned Members</h3>
           <p className="text-sm text-muted-foreground">
-            Members with missing user links or in inactive churches.
+            Members in inactive churches or with broken linked user references.
           </p>
         </div>
         <Button onClick={run} disabled={loading}>{loading ? "Running…" : "Run Scan"}</Button>
@@ -330,7 +272,7 @@ function ChurchesWithoutAdminsTool() {
       toast({ title: "Churches Without Admins", description: "Scan completed successfully." });
     } catch (error) {
       const description = error instanceof Error ? error.message : "Action failed.";
-      toast({ title: "Action failed", description, variant: "destructive" });
+      toast({ title: "Action failed", description });
     } finally {
       setLoading(false);
     }
@@ -379,7 +321,7 @@ function InvalidRolesTool() {
       toast({ title: "Users With Invalid Roles", description: "Scan completed successfully." });
     } catch (error) {
       const description = error instanceof Error ? error.message : "Action failed.";
-      toast({ title: "Action failed", description, variant: "destructive" });
+      toast({ title: "Action failed", description });
     } finally {
       setLoading(false);
     }
@@ -403,7 +345,7 @@ function InvalidRolesTool() {
       toast({ title: "Roles repaired", description: "Invalid roles removed for this user." });
     } catch (error) {
       const description = error instanceof Error ? error.message : "Repair failed.";
-      toast({ title: "Repair failed", description, variant: "destructive" });
+      toast({ title: "Repair failed", description });
     } finally {
       setRepairingUid(null);
     }
@@ -473,13 +415,6 @@ export default function SectionIntegrityTools() {
         <ChurchesWithoutAdminsTool />
 
         <InvalidRolesTool />
-
-        <IntegrityTool
-          title="Normalize User UIDs"
-          description="One-time cleanup that sets each user document uid to its document ID and removes legacy id fields."
-          action={normalizeUserUids}
-          actionLabel="Normalize"
-        />
 
       </CardContent>
     </Card>

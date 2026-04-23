@@ -40,6 +40,21 @@ function serializeFirestore(obj: any): any {
   return obj;
 }
 
+function isChurchActiveForIntegrity(data: Record<string, unknown>): boolean {
+  const rawStatus = typeof data.status === "string" ? data.status.trim().toLowerCase() : "";
+  const explicitInactive = new Set(["disabled", "inactive", "archived", "suspended"]);
+
+  if (typeof data.active === "boolean") {
+    if (data.active === true) return true;
+    if (data.active === false) return false;
+  }
+
+  if (!rawStatus) return true;
+  if (explicitInactive.has(rawStatus)) return false;
+
+  return true;
+}
+
 async function requireSystemManager() {
   const actor = await getCurrentUser();
 
@@ -171,7 +186,7 @@ export async function deleteStrayUser(uid: string) {
 
 
 /* ---------------------------------------------------------
-   SCAN: Members inside churches who have no userId
+  SCAN: Members in inactive churches OR with dangling user links
 --------------------------------------------------------- */
 export async function scanForOrphanedMembers() {
   await requireSystemManager();
@@ -183,11 +198,8 @@ export async function scanForOrphanedMembers() {
   // Build a set of active church IDs
   const activeChurchIds = new Set(
     churchesSnap.docs
-      .filter(c => {
-        const data = c.data();
-        return data.status === "Active" || data.active === true || !data.status;
-      })
-      .map(c => c.id)
+      .filter((c) => isChurchActiveForIntegrity(c.data() as Record<string, unknown>))
+      .map((c) => c.id)
   );
 
   const orphaned: any[] = [];
@@ -214,14 +226,12 @@ export async function scanForOrphanedMembers() {
       const memberName = `${firstName} ${lastName}`.trim() || "Unnamed member";
       const linkedUserId = typeof memberData.userId === "string" ? memberData.userId : null;
 
-      let reason: "inactive-church" | "missing-user-link" | "dangling-user-link" | null = null;
+      let reason: "inactive-church" | "dangling-user-link" | null = null;
 
       // If the church is NOT active, all its members are orphaned
       if (!activeChurchIds.has(churchId)) {
         reason = "inactive-church";
-      } else if (!linkedUserId) {
-        reason = "missing-user-link";
-      } else if (!userIds.has(linkedUserId)) {
+      } else if (linkedUserId && !userIds.has(linkedUserId)) {
         reason = "dangling-user-link";
       }
 
