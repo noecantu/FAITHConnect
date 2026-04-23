@@ -147,18 +147,20 @@ export default function UserFormCard({
 
       <div className="flex flex-col sm:flex-row justify-end gap-2 mt-4">
         {mode === 'edit' && canTransferBillingOwner && (
-          <Button
-            variant="outline"
-            onClick={onTransferBillingOwner}
-            disabled={isTransferringBillingOwner || isBillingOwner}
-            className="w-full sm:w-auto"
-          >
-            {isBillingOwner
-              ? 'Current Billing Owner'
-              : isTransferringBillingOwner
-              ? 'Transferring...'
-              : 'Set as Billing Owner'}
-          </Button>
+          isBillingOwner ? (
+            <span className="inline-flex items-center rounded-sm border border-cyan-300/40 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-200">
+              Billing Owner
+            </span>
+          ) : (
+            <Button
+              variant="outline"
+              onClick={onTransferBillingOwner}
+              disabled={isTransferringBillingOwner}
+              className="w-full sm:w-auto"
+            >
+              {isTransferringBillingOwner ? 'Transferring...' : 'Set as Billing Owner'}
+            </Button>
+          )
         )}
 
         {mode === 'edit' && (
