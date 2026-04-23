@@ -6,8 +6,6 @@ import {
   doc,
   getDoc,
   setDoc,
-  updateDoc,
-  deleteDoc,
   serverTimestamp,
 } from 'firebase/firestore';
 
@@ -328,6 +326,11 @@ export function useUserManagement() {
     setMode('list');
   };
 
+  const startConfirmDelete = () => {
+    if (!selectedUser) return;
+    setMode('confirm-delete');
+  };
+
   // -----------------------------
   // SORTED USERS
   // -----------------------------
@@ -372,6 +375,7 @@ export function useUserManagement() {
 
     startCreate,
     startEdit,
+    startConfirmDelete,
     goBackToList,
 
     getSortedUsers: sortedUsers,

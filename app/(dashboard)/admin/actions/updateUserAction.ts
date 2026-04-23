@@ -77,6 +77,22 @@ export async function updateUserAction(input: UpdateUserInput) {
   }
 
   // ---------------------------------------
+  // 2.5 Block any self-role changes server-side
+  // ---------------------------------------
+  if (newRoles && isSelf) {
+    const currentRoles = (before.roles ?? []) as Role[];
+    const normalizedCurrent = [...currentRoles].sort();
+    const normalizedNew = [...newRoles].sort();
+    const rolesChanged =
+      normalizedCurrent.length !== normalizedNew.length ||
+      normalizedCurrent.some((role, index) => role !== normalizedNew[index]);
+
+    if (rolesChanged) {
+      throw new Error("You cannot change your own roles.");
+    }
+  }
+
+  // ---------------------------------------
   // 3. Only RootAdmin can assign RootAdmin
   // ---------------------------------------
   if (newRoles?.includes("RootAdmin") && !isRootAdmin) {

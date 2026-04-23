@@ -1,9 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Label } from '@/app/components/ui/label';
 import { Checkbox } from '@/app/components/ui/checkbox';
-import { Role, ALL_ROLES, SYSTEM_ROLES } from '@/app/lib/auth/roles';
+import {
+  Role,
+  CHURCH_ROLES,
+  SYSTEM_ROLES,
+  ROLE_LABELS,
+} from '@/app/lib/auth/roles';
 import { can } from '@/app/lib/auth/permissions';
 
 interface Props {
@@ -22,58 +25,62 @@ export default function RoleSelector({
   currentUserRoles,
   targetUserId,
 }: Props) {
-  const [isSystemUser, setIsSystemUser] = useState(false);
-  const [canAssignRoles, setCanAssignRoles] = useState(false);
-
-  useEffect(() => {
-    setIsSystemUser(
-      currentUserRoles.some((r) => SYSTEM_ROLES.includes(r as any))
-    );
-
-    setCanAssignRoles(can(currentUserRoles, "roles.assign"));
-  }, [currentUserRoles]);
-
+  const canAssignRoles = can(currentUserRoles, 'roles.assign');
+  const isRootAdmin = currentUserRoles.includes('RootAdmin');
   const isSelf = currentUserId === targetUserId;
+  const churchRoles = [...CHURCH_ROLES].sort((a, b) => {
+    if (a === 'Admin') return -1;
+    if (b === 'Admin') return 1;
+    return ROLE_LABELS[a].localeCompare(ROLE_LABELS[b]);
+  });
 
   return (
-    <div className="space-y-3">
-      <Label>User Roles</Label>
-
+    <div className="space-y-0">
       {/* Church Roles */}
       <div className="space-y-2 border border-white/10 rounded-md p-3">
         <p className="text-sm text-muted-foreground">Church Roles</p>
 
-        {ALL_ROLES.map((role) => (
-          <div key={role} className="flex items-center space-x-2">
-            <Checkbox
-              checked={selectedRoles.includes(role)}
-              onCheckedChange={(checked) =>
-                onChange(role, Boolean(checked))
-              }
-              disabled={!canAssignRoles}
-            />
-            <span>{role}</span>
-          </div>
-        ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {churchRoles.map((role) => (
+            <div key={role} className="flex items-center space-x-2">
+              <Checkbox
+                checked={selectedRoles.includes(role)}
+                onCheckedChange={(checked) =>
+                  onChange(role, Boolean(checked))
+                }
+                disabled={!canAssignRoles}
+              />
+              <span>{ROLE_LABELS[role]}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* System Roles */}
-      <div className="space-y-2 border border-white/10 rounded-md p-3">
-        <p className="text-sm text-muted-foreground">System Roles</p>
+      {/* System Roles (Root Admin only) */}
+      {isRootAdmin && (
+        <div className="space-y-2 border border-white/10 rounded-md p-3">
+          <p className="text-sm text-muted-foreground">System Roles</p>
 
-        {SYSTEM_ROLES.map((role) => (
-          <div key={role} className="flex items-center space-x-2">
-            <Checkbox
-              checked={selectedRoles.includes(role as Role)}
-              onCheckedChange={(checked) =>
-                onChange(role as Role, Boolean(checked))
-              }
-              disabled={!canAssignRoles}
-            />
-            <span>{role}</span>
-          </div>
-        ))}
-      </div>
+          {SYSTEM_ROLES.map((role) => (
+            <div key={role} className="flex items-center space-x-2">
+              <Checkbox
+                checked={selectedRoles.includes(role as Role)}
+                onCheckedChange={(checked) =>
+                  onChange(role as Role, Boolean(checked))
+                }
+                disabled={!canAssignRoles || isSelf}
+              />
+              <span>{ROLE_LABELS[role]}</span>
+            </div>
+          ))}
+
+          {isSelf && (
+            <p className="text-xs text-muted-foreground">
+              You cannot change your own system-level roles.
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

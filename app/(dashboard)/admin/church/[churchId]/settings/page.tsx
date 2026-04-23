@@ -63,6 +63,7 @@ export default function ChurchSettingsPage() {
 
     startCreate,
     startEdit,
+    startConfirmDelete,
     goBackToList,
 
     getSortedUsers,
@@ -259,7 +260,7 @@ export default function ChurchSettingsPage() {
           onRoleChange={handleRoleChange}
           onCreate={handleCreateUser}
           onSave={handleSaveUser}
-          onDelete={() => {}}
+          onDelete={startConfirmDelete}
           onTransferBillingOwner={handleTransferBillingOwner}
           onClose={goBackToList}
           isCreating={isCreating}
