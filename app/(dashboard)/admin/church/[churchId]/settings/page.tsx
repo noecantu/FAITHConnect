@@ -7,6 +7,8 @@ import { useAuth } from '@/app/hooks/useAuth';
 
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
+import { can } from '@/app/lib/auth/permissions';
+import type { Role } from '@/app/lib/auth/roles';
 
 import type { AppUser } from '@/app/lib/types';
 import { useUserManagement } from '@/app/hooks/useUserManagement';
@@ -17,18 +19,6 @@ import UserFormCard from '@/app/components/settings/UserFormCard';
 import DeleteUserDialog from '@/app/components/settings/DeleteUserDialog';
 import ChurchLogoCard from '@/app/components/settings/ChurchLogoCard';
 import ChurchProfileCard from '@/app/components/settings/ChurchProfileCard';
-
-const SYSTEM_ROLES = [
-  'RootAdmin',
-  'SystemAdmin',
-  'RegionalAdmin',
-  'Support',
-  'Auditor',
-] as const;
-
-function isSystemUser(roles: string[]) {
-  return roles?.some((r) => SYSTEM_ROLES.includes(r as any));
-}
 
 export default function ChurchSettingsPage() {
   const { churchId } = useChurchId();
@@ -151,14 +141,14 @@ export default function ChurchSettingsPage() {
     );
   }
 
-  if (isSystemUser(user.roles ?? [])) {
+  if (!can((user.roles ?? []) as Role[], 'church.manage')) {
     return (
       <div className="p-6">
         <h1 className="text-xl font-bold text-red-600">
           You do not have permission to access church settings.
         </h1>
         <p className="text-muted-foreground mt-2">
-          System-level accounts cannot manage church-level settings.
+          You need church management permission to manage church-level settings.
         </p>
       </div>
     );

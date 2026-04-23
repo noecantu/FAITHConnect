@@ -123,99 +123,94 @@ export default function GlobalChurchListPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filtered.map((church) => (
-            <Card
-              key={church.id}
-              className="hover:shadow-md transition bg-black/40 border border-white/10 backdrop-blur-xl"
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  {/* Logo */}
-                  <div className="flex-shrink-0">
-                    {church.logoUrl ? (
-                      <img
-                        src={church.logoUrl}
-                        alt={`${church.name} logo`}
-                        className="
-                          h-20 w-20 rounded-md object-cover 
-                          border border-white/20 bg-white shadow-md
-                        "
-                      />
-                    ) : (
-                      <div
-                        className="
-                          h-20 w-20 rounded-md flex items-center justify-center 
-                          bg-white/10 border border-white/20 text-xl font-semibold
-                        "
-                      >
-                        {church.name?.[0]?.toUpperCase() ?? "C"}
-                      </div>
-                    )}
-                  </div>
+            <Link key={church.id} href={`/admin/churches/${church.id}`} className="group block">
+              <Card
+                className="
+                  h-full transition-all duration-200
+                  bg-black/40 backdrop-blur-xl
+                  border border-white/15
+                  hover:border-cyan-400/50 hover:shadow-md hover:-translate-y-1
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50
+                "
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    {/* Logo */}
+                    <div className="flex-shrink-0">
+                      {church.logoUrl ? (
+                        <img
+                          src={church.logoUrl}
+                          alt={`${church.name} logo`}
+                          className="
+                            h-20 w-20 rounded-md object-cover 
+                            border border-white/20 bg-white shadow-md
+                            group-hover:border-cyan-300/60
+                          "
+                        />
+                      ) : (
+                        <div
+                          className="
+                            h-20 w-20 rounded-md flex items-center justify-center 
+                            bg-white/10 border border-white/20 text-xl font-semibold
+                            group-hover:border-cyan-300/60
+                          "
+                        >
+                          {church.name?.[0]?.toUpperCase() ?? "C"}
+                        </div>
+                      )}
+                    </div>
 
-                  {/* Church Info */}
-                  <div className="flex flex-col min-w-0 space-y-1">
-                    <h2 className="text-lg font-semibold truncate">
-                      {church.name}
-                    </h2>
+                    {/* Church Info */}
+                    <div className="flex flex-col min-w-0 space-y-1">
+                      <h2 className="text-lg font-semibold truncate">
+                        {church.name}
+                      </h2>
 
-                    {(church.leaderTitle || church.leaderName) && (
+                      {(church.leaderTitle || church.leaderName) && (
+                        <p className="text-sm text-muted-foreground truncate">
+                          {church.leaderTitle ? church.leaderTitle + " " : ""}
+                          {church.leaderName ?? ""}
+                        </p>
+                      )}
+
                       <p className="text-sm text-muted-foreground truncate">
-                        {church.leaderTitle ? church.leaderTitle + " " : ""}
-                        {church.leaderName ?? ""}
+                        Phone: {formatPhone(church.phone ?? undefined)}
                       </p>
-                    )}
 
-                    <p className="text-sm text-muted-foreground truncate">
-                      Phone: {formatPhone(church.phone ?? undefined)}
-                    </p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        Address: {church.address ?? "N/A"}
+                      </p>
 
-                    <p className="text-sm text-muted-foreground truncate">
-                      Address: {church.address ?? "N/A"}
-                    </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        Timezone: {church.timezone}
+                      </p>
 
-                    <p className="text-xs text-muted-foreground truncate">
-                      Timezone: {church.timezone}
-                    </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        Created:{" "}
+                        {church.createdAt
+                          ? (() => {
+                              const value =
+                                church.createdAt as Date | { seconds: number };
 
-                    <p className="text-xs text-muted-foreground truncate">
-                      Created:{" "}
-                      {church.createdAt
-                        ? (() => {
-                            const value =
-                              church.createdAt as Date | { seconds: number };
+                              if ("seconds" in value) {
+                                return new Date(
+                                  value.seconds * 1000
+                                ).toLocaleDateString();
+                              }
 
-                            if ("seconds" in value) {
-                              return new Date(
-                                value.seconds * 1000
-                              ).toLocaleDateString();
-                            }
+                              if (value instanceof Date) {
+                                return value.toLocaleDateString();
+                              }
 
-                            if (value instanceof Date) {
-                              return value.toLocaleDateString();
-                            }
-
-                            return "—";
-                          })()
-                        : "—"}
-                    </p>
+                              return "—";
+                            })()
+                          : "—"}
+                      </p>
+                    </div>
                   </div>
-                </div>
-
-                {/* View Button */}
-                <div className="flex justify-center pt-4">
-                  <Link
-                    href={`/admin/churches/${church.id}`}
-                    className="
-                      px-4 py-2 rounded-md border
-                      bg-muted/20 hover:bg-muted transition
-                      text-sm
-                    "
-                  >
-                    View Details →
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       )}

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "@/app/lib/firebase/client";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { AlertTriangle, CalendarDays, ShieldCheck, Users } from "lucide-react";
+import { AlertTriangle, CalendarDays, Settings, ShieldCheck, Users } from "lucide-react";
 
 import { PageHeader } from "@/app/components/page-header";
 import {
@@ -233,6 +233,17 @@ export default function MasterChurchDetailsClient({
           >
             <CalendarDays className="h-4 w-4" />
             Edit Church
+          </Button>
+
+          <Button
+            className="w-full justify-start"
+            disabled={isUpdatingStatus}
+            onClick={() => {
+              router.push(`/admin/church/${churchId}/settings`);
+            }}
+          >
+            <Settings className="h-4 w-4" />
+            Church Settings
           </Button>
 
           <Button

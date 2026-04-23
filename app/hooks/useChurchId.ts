@@ -17,14 +17,19 @@ export function useChurchId() {
     }
   }, []);
 
-  // 1. ANY route with /church/[slug]
+  // 1. ANY route with /church/[slug] or /admin/church/[churchId]
   // Works for:
   // - /church/[slug]
   // - /admin/church/[slug]
   // - /admin/regional/church/[slug]
-  if (params?.slug) {
+  const routeChurchId =
+    (typeof params?.churchId === "string" && params.churchId) ||
+    (typeof params?.slug === "string" && params.slug) ||
+    null;
+
+  if (routeChurchId) {
     return {
-      churchId: params.slug as string,
+      churchId: routeChurchId,
       loading: authLoading,
     };
   }

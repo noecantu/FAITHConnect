@@ -3,6 +3,8 @@ import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { normalizeFirestore } from "@/app/lib/normalize";
 
+export const dynamic = "force-dynamic";
+
 if (!getApps().length) {
   initializeApp({
     credential: cert({
@@ -52,7 +54,7 @@ export default async function MasterChurchDetailsPage({
     .collection("churches")
     .doc(churchId)
     .collection("servicePlans")
-    .where("date", ">=", today.toISOString())
+    .where("dateString", ">=", today.toISOString().slice(0, 10))
     .count()
     .get();
 
@@ -75,8 +77,8 @@ export default async function MasterChurchDetailsPage({
     .collection("churches")
     .doc(churchId)
     .collection("events")
-    .where("date", ">=", startOfWeek.toISOString())
-    .where("date", "<=", endOfWeek.toISOString())
+    .where("date", ">=", startOfWeek)
+    .where("date", "<=", endOfWeek)
     .count()
     .get();
 
