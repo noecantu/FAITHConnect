@@ -7,6 +7,8 @@ import { Button } from "@/app/components/ui/button";
 import {
   scanForStrayUsers,
   deleteStrayUser,
+  scanForStrayAuthUsers,
+  deleteStrayAuthUser,
   scanForOrphanedMembers,
   deleteOrphanedMember,
   scanForChurchesWithoutAdmins,
@@ -47,6 +49,15 @@ type InvalidRoleUser = {
   roles?: string[];
   invalidRoles?: string[];
   validRoles?: string[];
+};
+
+type StrayAuthUser = {
+  uid: string;
+  email?: string | null;
+  disabled?: boolean;
+  providerIds: string[];
+  creationTime?: string | null;
+  lastSignInTime?: string | null;
 };
 
 function StrayUsersTool() {
@@ -158,6 +169,114 @@ function StrayUsersTool() {
               </div>
             );
           })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StrayAuthUsersTool() {
+  const [results, setResults] = useState<StrayAuthUser[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [deletingUid, setDeletingUid] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  async function run() {
+    try {
+      setLoading(true);
+      const data = await scanForStrayAuthUsers();
+      setResults(Array.isArray(data) ? (data as StrayAuthUser[]) : []);
+      toast({
+        title: "Stray Firebase Auth Users",
+        description: "Scan completed successfully.",
+      });
+    } catch (error) {
+      const description = error instanceof Error ? error.message : "Action failed.";
+      toast({ title: "Action failed", description });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDelete(user: StrayAuthUser) {
+    const label = user.email || user.uid;
+    const confirmed = window.confirm(`Delete stray Firebase Auth user ${label}? This cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+      setDeletingUid(user.uid);
+      await deleteStrayAuthUser(user.uid);
+      setResults((prev) => prev.filter((item) => item.uid !== user.uid));
+      toast({
+        title: "Auth user deleted",
+        description: `${label} has been removed from Firebase Authentication.`,
+      });
+    } catch (error) {
+      const description = error instanceof Error ? error.message : "Delete failed.";
+      toast({ title: "Delete failed", description });
+    } finally {
+      setDeletingUid(null);
+    }
+  }
+
+  return (
+    <div className="border p-4 rounded-md space-y-3">
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="font-medium">Stray Firebase Auth Users</h3>
+          <p className="text-sm text-muted-foreground">
+            Authentication accounts without a matching Firestore user profile.
+          </p>
+        </div>
+        <Button onClick={run} disabled={loading}>
+          {loading ? "Running…" : "Run Scan"}
+        </Button>
+      </div>
+
+      {!loading && results.length > 0 && (
+        <p className="text-sm text-muted-foreground">
+          Found {results.length} stray auth user{results.length === 1 ? "" : "s"}.
+        </p>
+      )}
+
+      {!loading && results.length === 0 && (
+        <p className="text-sm text-muted-foreground">No scan results yet.</p>
+      )}
+
+      {results.length > 0 && (
+        <div className="space-y-2 max-h-72 overflow-auto pr-1">
+          {results.map((user) => (
+            <div
+              key={user.uid}
+              className="rounded-md border border-border/70 bg-black/10 p-3 flex items-start justify-between gap-3"
+            >
+              <div className="min-w-0">
+                <p className="font-medium truncate">{user.email || "No email"}</p>
+                <p className="text-xs text-muted-foreground mt-1">UID: {user.uid}</p>
+                <p className="text-xs text-muted-foreground">
+                  Providers: {user.providerIds?.length ? user.providerIds.join(", ") : "None"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Status: {user.disabled ? "Disabled" : "Enabled"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Created: {user.creationTime ? new Date(user.creationTime).toLocaleString() : "Unknown"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Last sign-in: {user.lastSignInTime ? new Date(user.lastSignInTime).toLocaleString() : "Never"}
+                </p>
+              </div>
+
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => handleDelete(user)}
+                disabled={deletingUid === user.uid}
+              >
+                {deletingUid === user.uid ? "Deleting..." : "Delete"}
+              </Button>
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -409,6 +528,8 @@ export default function SectionIntegrityTools() {
       <CardContent className="space-y-4">
 
         <StrayUsersTool />
+
+        <StrayAuthUsersTool />
 
         <OrphanedMembersTool />
 

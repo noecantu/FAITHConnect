@@ -375,6 +375,75 @@ export async function repairInvalidUserRoles(uid: string) {
   return { success: true, uid, roles: filteredRoles };
 }
 
+async function listAllAuthUsers() {
+  const users: Array<{
+    uid: string;
+    email?: string | null;
+    disabled?: boolean;
+    providerIds: string[];
+    creationTime?: string | null;
+    lastSignInTime?: string | null;
+  }> = [];
+
+  let nextPageToken: string | undefined;
+
+  do {
+    const page = await adminAuth.listUsers(1000, nextPageToken);
+
+    page.users.forEach((u) => {
+      users.push({
+        uid: u.uid,
+        email: u.email ?? null,
+        disabled: u.disabled,
+        providerIds: u.providerData.map((p) => p.providerId),
+        creationTime: u.metadata.creationTime ?? null,
+        lastSignInTime: u.metadata.lastSignInTime ?? null,
+      });
+    });
+
+    nextPageToken = page.pageToken;
+  } while (nextPageToken);
+
+  return users;
+}
+
+export async function scanForStrayAuthUsers() {
+  await requireSystemManager();
+
+  const authUsers = await listAllAuthUsers();
+  const firestoreUsersSnap = await adminDb.collection("users").select().get();
+  const firestoreUserIds = new Set(firestoreUsersSnap.docs.map((docSnap) => docSnap.id));
+
+  return authUsers
+    .filter((authUser) => !firestoreUserIds.has(authUser.uid))
+    .sort((a, b) => {
+      const aTime = a.creationTime ? new Date(a.creationTime).getTime() : 0;
+      const bTime = b.creationTime ? new Date(b.creationTime).getTime() : 0;
+      return bTime - aTime;
+    });
+}
+
+export async function deleteStrayAuthUser(uid: string) {
+  const actor = await requireSystemManager();
+
+  if (!uid || typeof uid !== "string") {
+    throw new Error("Missing uid.");
+  }
+
+  if (actor.uid === uid) {
+    throw new Error("You cannot delete your own auth account.");
+  }
+
+  const firestoreUserSnap = await adminDb.collection("users").doc(uid).get();
+  if (firestoreUserSnap.exists) {
+    throw new Error("This uid has a Firestore user profile. Use standard user deletion instead.");
+  }
+
+  await adminAuth.deleteUser(uid);
+
+  return { success: true, uid };
+}
+
 export async function normalizeUserUids() {
   const actor = await requireSystemManager();
 
