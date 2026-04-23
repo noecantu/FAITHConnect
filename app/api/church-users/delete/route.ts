@@ -4,11 +4,26 @@ import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
 import { can } from "@/app/lib/auth/permissions";
 import type { Role } from "@/app/lib/auth/roles";
+import type { DocumentReference } from "firebase-admin/firestore";
 
 function readSessionCookie(req: Request): string | null {
   const cookieHeader = req.headers.get("cookie") || "";
   const match = cookieHeader.match(/session=([^;]+)/);
   return match?.[1] ?? null;
+}
+
+async function deleteDocumentTree(ref: DocumentReference) {
+  const subcollections = await ref.listCollections();
+
+  for (const subcollection of subcollections) {
+    const childRefs = await subcollection.listDocuments();
+
+    for (const childRef of childRefs) {
+      await deleteDocumentTree(childRef);
+    }
+  }
+
+  await ref.delete();
 }
 
 export async function POST(req: Request) {
@@ -104,7 +119,7 @@ export async function POST(req: Request) {
       }
     }
 
-    await targetRef.delete();
+    await deleteDocumentTree(targetRef);
 
     return NextResponse.json({ success: true });
   } catch (error) {

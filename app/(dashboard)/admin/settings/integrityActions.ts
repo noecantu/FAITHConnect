@@ -2,7 +2,9 @@
 "use server";
 
 import { adminDb } from "@/app/lib/firebase/admin";
+import { adminAuth } from "@/app/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
+import type { DocumentReference } from "firebase-admin/firestore";
 import { SystemUser } from "@/app/lib/types";
 import { ALL_ROLES, CHURCH_ROLES, SYSTEM_ROLES } from "@/app/lib/auth/roles";
 import { getCurrentUser } from "@/app/lib/auth/server/getCurrentUser";
@@ -48,6 +50,20 @@ async function requireSystemManager() {
   return actor;
 }
 
+async function deleteDocumentTree(ref: DocumentReference) {
+  const subcollections = await ref.listCollections();
+
+  for (const subcollection of subcollections) {
+    const childRefs = await subcollection.listDocuments();
+
+    for (const childRef of childRefs) {
+      await deleteDocumentTree(childRef);
+    }
+  }
+
+  await ref.delete();
+}
+
 /* ---------------------------------------------------------
    SCAN: Users whose churchId is missing or references a non‑existent church
 --------------------------------------------------------- */
@@ -56,7 +72,7 @@ export async function scanForStrayUsers() {
 
   const usersSnap = await adminDb
     .collection("users")
-    .select("roles", "churchId")
+    .select("roles", "churchId", "email", "firstName", "lastName")
     .get();
 
   const churchesSnap = await adminDb.collection("churches").get();
@@ -90,6 +106,69 @@ export async function scanForStrayUsers() {
   return stray;
 }
 
+export async function deleteStrayUser(uid: string) {
+  const actor = await requireSystemManager();
+
+  if (!uid || typeof uid !== "string") {
+    throw new Error("Missing uid.");
+  }
+
+  if (actor.uid === uid) {
+    throw new Error("You cannot delete your own account.");
+  }
+
+  const userRef = adminDb.collection("users").doc(uid);
+  const userSnap = await userRef.get();
+
+  if (!userSnap.exists) {
+    throw new Error("User not found.");
+  }
+
+  const userData = userSnap.data() as { churchId?: unknown };
+  const targetChurchId =
+    typeof userData.churchId === "string" ? userData.churchId : null;
+
+  if (targetChurchId) {
+    const churchSnap = await adminDb.collection("churches").doc(targetChurchId).get();
+    if (churchSnap.exists) {
+      const church = churchSnap.data() as {
+        billingOwnerUid?: unknown;
+        createdBy?: unknown;
+      };
+
+      const billingOwnerUid =
+        typeof church.billingOwnerUid === "string"
+          ? church.billingOwnerUid
+          : typeof church.createdBy === "string"
+          ? church.createdBy
+          : null;
+
+      if (billingOwnerUid === uid) {
+        throw new Error(
+          "This user is the billing owner for this church. Reassign billing ownership before deleting this account."
+        );
+      }
+    }
+  }
+
+  try {
+    await adminAuth.deleteUser(uid);
+  } catch (error: unknown) {
+    const code =
+      typeof error === "object" && error !== null && "code" in error
+        ? String((error as { code?: unknown }).code)
+        : "";
+
+    if (code !== "auth/user-not-found") {
+      throw error;
+    }
+  }
+
+  await deleteDocumentTree(userRef);
+
+  return { success: true, uid };
+}
+
 
 /* ---------------------------------------------------------
    SCAN: Members inside churches who have no userId
@@ -98,6 +177,8 @@ export async function scanForOrphanedMembers() {
   await requireSystemManager();
 
   const churchesSnap = await adminDb.collection("churches").get();
+  const usersSnap = await adminDb.collection("users").select().get();
+  const userIds = new Set(usersSnap.docs.map((docSnap) => docSnap.id));
 
   // Build a set of active church IDs
   const activeChurchIds = new Set(
@@ -112,23 +193,80 @@ export async function scanForOrphanedMembers() {
   const orphaned: any[] = [];
 
   for (const church of churchesSnap.docs) {
+    const churchData = church.data() as { name?: unknown };
+    const churchName =
+      typeof churchData.name === "string" && churchData.name.trim().length > 0
+        ? churchData.name
+        : church.id;
+
     const membersSnap = await church.ref.collection("members").get();
 
     membersSnap.docs.forEach(m => {
       const churchId = church.id;
+      const memberData = m.data() as {
+        firstName?: unknown;
+        lastName?: unknown;
+        userId?: unknown;
+      };
+
+      const firstName = typeof memberData.firstName === "string" ? memberData.firstName : "";
+      const lastName = typeof memberData.lastName === "string" ? memberData.lastName : "";
+      const memberName = `${firstName} ${lastName}`.trim() || "Unnamed member";
+      const linkedUserId = typeof memberData.userId === "string" ? memberData.userId : null;
+
+      let reason: "inactive-church" | "missing-user-link" | "dangling-user-link" | null = null;
 
       // If the church is NOT active, all its members are orphaned
       if (!activeChurchIds.has(churchId)) {
+        reason = "inactive-church";
+      } else if (!linkedUserId) {
+        reason = "missing-user-link";
+      } else if (!userIds.has(linkedUserId)) {
+        reason = "dangling-user-link";
+      }
+
+      if (reason) {
         orphaned.push({
           churchId,
+          churchName,
           memberId: m.id,
-          ...serializeFirestore(m.data())
+          memberName,
+          linkedUserId,
+          reason,
+          ...serializeFirestore(memberData),
         });
       }
     });
   }
 
   return orphaned;
+}
+
+export async function deleteOrphanedMember(churchId: string, memberId: string) {
+  await requireSystemManager();
+
+  if (!churchId || typeof churchId !== "string") {
+    throw new Error("Missing churchId.");
+  }
+
+  if (!memberId || typeof memberId !== "string") {
+    throw new Error("Missing memberId.");
+  }
+
+  const memberRef = adminDb
+    .collection("churches")
+    .doc(churchId)
+    .collection("members")
+    .doc(memberId);
+
+  const memberSnap = await memberRef.get();
+  if (!memberSnap.exists) {
+    throw new Error("Member not found.");
+  }
+
+  await memberRef.delete();
+
+  return { success: true, churchId, memberId };
 }
 
 /* ---------------------------------------------------------
@@ -185,10 +323,46 @@ export async function scanForInvalidRoles() {
     })
     .map(u => ({
       uid: u.id,
-      ...serializeFirestore(u.data())
+      ...serializeFirestore(u.data()),
+      invalidRoles: ((u.data().roles || []) as string[]).filter(
+        role => !ALL_ROLES.includes(role as any)
+      ),
+      validRoles: ((u.data().roles || []) as string[]).filter(
+        role => ALL_ROLES.includes(role as any)
+      ),
     }));
 
   return invalid;
+}
+
+export async function repairInvalidUserRoles(uid: string) {
+  await requireSystemManager();
+
+  if (!uid || typeof uid !== "string") {
+    throw new Error("Missing uid.");
+  }
+
+  const userRef = adminDb.collection("users").doc(uid);
+  const userSnap = await userRef.get();
+
+  if (!userSnap.exists) {
+    throw new Error("User not found.");
+  }
+
+  const data = userSnap.data() as { roles?: unknown };
+  const roles = Array.isArray(data.roles) ? data.roles : [];
+
+  const filteredRoles = Array.from(
+    new Set(
+      roles
+        .filter((role): role is string => typeof role === "string")
+        .filter((role) => ALL_ROLES.includes(role as any))
+    )
+  );
+
+  await userRef.update({ roles: filteredRoles });
+
+  return { success: true, uid, roles: filteredRoles };
 }
 
 export async function normalizeUserUids() {
