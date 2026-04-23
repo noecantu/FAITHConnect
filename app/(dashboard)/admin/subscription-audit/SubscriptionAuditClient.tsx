@@ -57,6 +57,30 @@ function StatusBadge({ status }: { status: AuditRecord["subscriptionStatus"] }) 
   );
 }
 
+function fmtAmount(cents: number | null, interval: string | null): string {
+  if (cents === null) return "—";
+  const dollars = (cents / 100).toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+  });
+  return interval ? `${dollars}/${interval}` : dollars;
+}
+
+function fmtDate(unix: number | null): string {
+  if (!unix) return "—";
+  return new Date(unix * 1000).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function isWithin7Days(unix: number | null): boolean {
+  if (!unix) return false;
+  const diff = unix * 1000 - Date.now();
+  return diff > 0 && diff < 7 * 24 * 60 * 60 * 1000;
+}
+
 export default function SubscriptionAuditClient({
   records,
 }: {
@@ -78,7 +102,7 @@ export default function SubscriptionAuditClient({
       />
 
       {/* Summary row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Total Churches Audited</CardDescription>
@@ -107,6 +131,28 @@ export default function SubscriptionAuditClient({
             </p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Renewing Within 7 Days</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold text-amber-400">
+              {records.filter((r) => isWithin7Days(r.currentPeriodEnd)).length}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Canceling at Period End</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className={`text-3xl font-bold ${records.filter((r) => r.cancelAtPeriodEnd).length > 0 ? "text-rose-400" : "text-muted-foreground"}`}>
+              {records.filter((r) => r.cancelAtPeriodEnd).length}
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Table */}
@@ -126,6 +172,9 @@ export default function SubscriptionAuditClient({
                   <th className="px-4 py-3 font-medium">Admin</th>
                   <th className="px-4 py-3 font-medium">Church</th>
                   <th className="px-4 py-3 font-medium">Plan</th>
+                  <th className="px-4 py-3 font-medium">Amount</th>
+                  <th className="px-4 py-3 font-medium">Renews / Ends</th>
+                  <th className="px-4 py-3 font-medium">Trial Ends</th>
                   <th className="px-4 py-3 font-medium">Subscription ID</th>
                   <th className="px-4 py-3 font-medium">Onboarding</th>
                   <th className="px-4 py-3 font-medium">Status</th>
@@ -166,6 +215,34 @@ export default function SubscriptionAuditClient({
                         {r.planId ?? <span className="text-muted-foreground italic">—</span>}
                       </td>
 
+                      {/* Amount */}
+                      <td className="px-4 py-3 text-white/70 text-xs whitespace-nowrap">
+                        {fmtAmount(r.amountCents, r.interval)}
+                      </td>
+
+                      {/* Current period end */}
+                      <td className="px-4 py-3 text-xs whitespace-nowrap">
+                        {r.currentPeriodEnd ? (
+                          <span className={isWithin7Days(r.currentPeriodEnd) ? "text-amber-400 font-medium" : "text-white/60"}>
+                            {fmtDate(r.currentPeriodEnd)}
+                            {r.cancelAtPeriodEnd && (
+                              <span className="ml-1 text-rose-400">(cancels)</span>
+                            )}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground italic">—</span>
+                        )}
+                      </td>
+
+                      {/* Trial end */}
+                      <td className="px-4 py-3 text-xs whitespace-nowrap">
+                        {r.trialEnd ? (
+                          <span className="text-sky-400">{fmtDate(r.trialEnd)}</span>
+                        ) : (
+                          <span className="text-muted-foreground italic">—</span>
+                        )}
+                      </td>
+
                       {/* Subscription ID */}
                       <td className="px-4 py-3">
                         {r.stripeSubscriptionId ? (
@@ -198,7 +275,7 @@ export default function SubscriptionAuditClient({
 
                 {records.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                    <td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">
                       No church owners found.
                     </td>
                   </tr>

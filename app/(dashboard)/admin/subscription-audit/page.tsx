@@ -22,6 +22,16 @@ export type AuditRecord = {
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
   onboardingComplete: boolean;
+  /** Monthly/annual amount in cents */
+  amountCents: number | null;
+  /** Billing interval: "month" | "year" etc. */
+  interval: string | null;
+  /** Current period end (Unix timestamp) */
+  currentPeriodEnd: number | null;
+  /** Trial end (Unix timestamp), null if not trialing */
+  trialEnd: number | null;
+  /** Whether subscription cancels at period end */
+  cancelAtPeriodEnd: boolean;
   subscriptionStatus:
     | "active"
     | "trialing"
@@ -120,10 +130,30 @@ export default async function SubscriptionAuditPage() {
           ? (churchBillingStatus as AuditRecord["subscriptionStatus"])
           : "no_subscription";
 
+      let amountCents: number | null = null;
+      let interval: string | null = null;
+      let currentPeriodEnd: number | null = null;
+      let trialEnd: number | null = null;
+      let cancelAtPeriodEnd = false;
+
       if (subscriptionId) {
         try {
-          const sub = await stripe.subscriptions.retrieve(subscriptionId);
+          const sub = await stripe.subscriptions.retrieve(subscriptionId, {
+            expand: ["items.data.price"],
+          }) as unknown as Stripe.Subscription & {
+            current_period_end: number;
+            trial_end: number | null;
+            cancel_at_period_end: boolean;
+          };
           subscriptionStatus = sub.status as AuditRecord["subscriptionStatus"];
+          currentPeriodEnd = sub.current_period_end ?? null;
+          trialEnd = sub.trial_end ?? null;
+          cancelAtPeriodEnd = sub.cancel_at_period_end ?? false;
+          const firstItem = sub.items?.data?.[0];
+          if (firstItem?.price) {
+            amountCents = firstItem.price.unit_amount ?? null;
+            interval = firstItem.price.recurring?.interval ?? null;
+          }
         } catch {
           subscriptionStatus = "error";
         }
@@ -152,6 +182,11 @@ export default async function SubscriptionAuditPage() {
             : null),
         stripeSubscriptionId: subscriptionId,
         onboardingComplete: owner?.onboardingComplete === true,
+        amountCents,
+        interval,
+        currentPeriodEnd,
+        trialEnd,
+        cancelAtPeriodEnd,
         subscriptionStatus,
       };
     })
