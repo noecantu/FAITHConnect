@@ -11,9 +11,16 @@ interface Props {
   path: string; // e.g. "branding/logo.png"
   onUploaded: (url: string) => void;
   onError?: (error: Error) => void;
+  uploadHandler?: (file: File) => Promise<string>;
 }
 
-export default function ImageDropzone({ label, path, onUploaded, onError }: Props) {
+export default function ImageDropzone({
+  label,
+  path,
+  onUploaded,
+  onError,
+  uploadHandler,
+}: Props) {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
@@ -86,6 +93,12 @@ export default function ImageDropzone({ label, path, onUploaded, onError }: Prop
       setUploading(true);
 
       try {
+        if (uploadHandler) {
+          const url = await uploadHandler(file);
+          onUploaded(url);
+          return;
+        }
+
         const buckets = getCandidateBuckets();
 
         if (buckets.length === 0) {
@@ -120,7 +133,7 @@ export default function ImageDropzone({ label, path, onUploaded, onError }: Prop
         setDragActive(false);
       }
     },
-    [path, onUploaded, onError]
+    [path, onUploaded, onError, uploadHandler]
   );
 
   const { getRootProps, getInputProps } = useDropzone({

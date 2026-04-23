@@ -61,7 +61,22 @@ export function useAuth() {
         // Force-refresh the ID token so custom claims (churchId, roles, etc.)
         // are up-to-date before any downstream hooks fire. This is especially
         // important when switching between users from different churches.
-        await firebaseUser.getIdToken(true);
+        // If Firebase Auth quota is temporarily exceeded, gracefully fall back
+        // to a non-forced token read so the app stays functional.
+        try {
+          await firebaseUser.getIdToken(true);
+        } catch (error: unknown) {
+          const code =
+            typeof error === "object" && error !== null && "code" in error
+              ? String((error as { code?: unknown }).code)
+              : "";
+
+          if (code === "auth/quota-exceeded") {
+            await firebaseUser.getIdToken();
+          } else {
+            throw error;
+          }
+        }
 
         let firestoreData: Record<string, unknown> = {};
         let firestoreExists = false;

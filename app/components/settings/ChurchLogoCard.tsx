@@ -30,6 +30,33 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
 
   const hasChanges = logoUrl !== originalLogoUrl;
 
+  const uploadLogoViaApi = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("churchId", churchId);
+    formData.append("file", file);
+
+    const res = await fetch("/api/church/logo/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = (await res.json().catch(() => ({}))) as {
+      url?: unknown;
+      error?: unknown;
+    };
+
+    if (!res.ok) {
+      const message = typeof data.error === "string" ? data.error : "Could not upload logo.";
+      throw new Error(`${message} (HTTP ${res.status})`);
+    }
+
+    if (typeof data.url !== "string" || data.url.length === 0) {
+      throw new Error("Upload succeeded but no URL was returned.");
+    }
+
+    return data.url;
+  };
+
   function getInitials(name: string | null | undefined) {
     if (!name) return "??";
     return name
@@ -92,23 +119,31 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
     setRemoving(true);
 
     try {
-      const decodedPath = decodeURIComponent(
-        logoUrl.split("/o/")[1].split("?")[0]
-      );
-
-      const storageRef = ref(storage, decodedPath);
-      await deleteObject(storageRef);
-
-      setLogoUrl(null);
-
       await updateDoc(doc(db, "churches", churchId), {
         logoUrl: null,
         updatedAt: new Date(),
       });
 
+      const removedLogoUrl = logoUrl;
+
+      setLogoUrl(null);
+      setOriginalLogoUrl(null);
+      setShowConfirmRemove(false);
+
+      try {
+        const decodedPath = decodeURIComponent(
+          removedLogoUrl.split("/o/")[1].split("?")[0]
+        );
+
+        const storageRef = ref(storage, decodedPath);
+        await deleteObject(storageRef);
+      } catch (storageError) {
+        console.warn("Logo file cleanup skipped:", storageError);
+      }
+
       toast({
         title: "Logo removed",
-        description: "The church logo has been deleted.",
+        description: "The church logo has been removed.",
       });
     } catch (err: unknown) {
       toast({
@@ -195,6 +230,7 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
         <ImageDropzone
           label="Upload Church Logo"
           path={uploadPath}
+          uploadHandler={uploadLogoViaApi}
           onUploaded={(url) => {
             setLogoUrl(url);
             setUploadPath(`churches/${churchId}/logo/logo-${Date.now()}.png`);
