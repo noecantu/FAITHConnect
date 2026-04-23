@@ -27,6 +27,11 @@ export default function ResetEmailSentPage() {
         </CardHeader>
 
         <CardContent className="space-y-4">
+          <div className="rounded-md border border-white/20 bg-white/5 p-3 text-sm text-slate-300">
+            <p className="font-medium text-white">Didn't get it?</p>
+            <p className="mt-1">Wait 1-2 minutes, check spam/junk, then try again.</p>
+          </div>
+
           <Button
             className="w-full"
             onClick={() => (window.location.href = "/login")}

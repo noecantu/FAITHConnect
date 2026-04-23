@@ -149,38 +149,20 @@ export default function AdminHomeClient({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-          <Link href="/admin/churches" className="group block">
-            <Card className="p-6 cursor-pointer interactive-card interactive-card-focus">
-              <CardTitle className="text-xl mb-2">Churches</CardTitle>
-              <CardDescription>
-                Create, edit, and manage all churches.
-              </CardDescription>
-            </Card>
-          </Link>
-
-          <Link href="/admin/users" className="group block">
-            <Card className="p-6 cursor-pointer interactive-card interactive-card-focus">
-              <CardTitle className="text-xl mb-2">System Users</CardTitle>
-              <CardDescription>
-                View and manage system-level users.
-              </CardDescription>
-            </Card>
-          </Link>
-
-          <Link href="/admin/settings" className="group block">
-            <Card className="p-6 cursor-pointer interactive-card interactive-card-focus">
-              <CardTitle className="text-xl mb-2">System Settings</CardTitle>
-              <CardDescription>
-                Global configuration and platform settings.
-              </CardDescription>
-            </Card>
-          </Link>
-
           <Link href="/admin/logs" className="group block">
             <Card className="p-6 cursor-pointer interactive-card interactive-card-focus">
               <CardTitle className="text-xl mb-2">Activity Logs</CardTitle>
               <CardDescription>
                 System-wide events and audit trails.
+              </CardDescription>
+            </Card>
+          </Link>
+
+          <Link href="/admin/churches" className="group block">
+            <Card className="p-6 cursor-pointer interactive-card interactive-card-focus">
+              <CardTitle className="text-xl mb-2">Churches</CardTitle>
+              <CardDescription>
+                Create, edit, and manage all churches.
               </CardDescription>
             </Card>
           </Link>
@@ -199,6 +181,24 @@ export default function AdminHomeClient({
               <CardTitle className="text-xl mb-2">Subscription Audit</CardTitle>
               <CardDescription>
                 Verify all valid active subscriptions.
+              </CardDescription>
+            </Card>
+          </Link>
+
+          <Link href="/admin/settings" className="group block">
+            <Card className="p-6 cursor-pointer interactive-card interactive-card-focus">
+              <CardTitle className="text-xl mb-2">System Settings</CardTitle>
+              <CardDescription>
+                Global configuration and platform settings.
+              </CardDescription>
+            </Card>
+          </Link>
+
+          <Link href="/admin/users" className="group block">
+            <Card className="p-6 cursor-pointer interactive-card interactive-card-focus">
+              <CardTitle className="text-xl mb-2">System Users</CardTitle>
+              <CardDescription>
+                View and manage system-level users.
               </CardDescription>
             </Card>
           </Link>
