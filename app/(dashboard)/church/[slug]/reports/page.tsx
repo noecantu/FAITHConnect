@@ -422,7 +422,7 @@ export default function ReportsPage() {
 
         {/* RIGHT PANEL */}
         <div className="space-y-6 w-full min-w-0">
-          {reportType === "contributions" && canReadContributions && (
+          {reportType === "contributions" && scopedContributionOnly && canReadContributions && (
             <div className="rounded-md border border-white/20 bg-black/50 p-4 text-sm text-white/90 backdrop-blur-xl">
               <div className="font-semibold mb-2">Report Scope Summary</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-white/80">
