@@ -207,6 +207,7 @@ export default function SectionMonitoring() {
   }, []);
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>System Logs & Monitoring</CardTitle>
@@ -292,6 +293,15 @@ export default function SectionMonitoring() {
           )}
         />
 
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>Stripe</CardTitle>
+      </CardHeader>
+
+      <CardContent className="space-y-6">
         <MonitoringCard
           title="Stripe Prices Configuration"
           action={getStripePricesHealth}
@@ -361,5 +371,6 @@ export default function SectionMonitoring() {
         />
       </CardContent>
     </Card>
+    </>
   );
 }
