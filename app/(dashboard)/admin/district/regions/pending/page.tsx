@@ -5,10 +5,9 @@ import { useEffect, useState } from "react";
 import { collection, query, where, onSnapshot, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
 import { usePermissions } from "@/app/hooks/usePermissions";
-import { Card } from "@/app/components/ui/card";
-import { Button } from "@/app/components/ui/button";
 import { useToast } from "@/app/hooks/use-toast";
 import { PageHeader } from "@/app/components/page-header";
+import { DashboardApprovalRequestCard } from "../../../../../components/ui/dashboard-cards";
 
 export default function PendingRegionsPage() {
   const { districtId, isDistrictAdmin, loading: permLoading } = usePermissions();
@@ -108,39 +107,23 @@ export default function PendingRegionsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {pending.map((region) => (
-          <Card
+          <DashboardApprovalRequestCard
             key={region.id}
-            className="p-4 bg-black/60 border-white/20 backdrop-blur-xl space-y-3"
-          >
-            <p className="text-lg font-semibold">{region.name}</p>
-
-            {(region.regionAdminTitle || region.regionAdminName) && (
-              <p className="text-sm text-muted-foreground">
-                {region.regionAdminTitle ? `${region.regionAdminTitle} ` : ""}
-                {region.regionAdminName ?? ""}
-              </p>
-            )}
-
-            {region.state && (
-              <p className="text-sm text-muted-foreground">{region.state}</p>
-            )}
-
-            <div className="flex gap-3">
-              <Button
-                className="bg-green-600 text-white"
-                onClick={() => handleApprove(region.id)}
-              >
-                Approve
-              </Button>
-
-              <Button
-                className="bg-red-600 text-white"
-                onClick={() => handleReject(region.id)}
-              >
-                Reject
-              </Button>
-            </div>
-          </Card>
+            name={region.name || "Unknown Region"}
+            logoUrl={region.logoUrl ?? null}
+            logoAlt={`${region.name || "Region"} logo`}
+            fallback={String(region.name || "RG")
+              .split(' ')
+              .map((word) => word[0]?.toUpperCase())
+              .join('')
+              .slice(0, 2)}
+            subtitle={region.regionAdminTitle || region.regionAdminName
+              ? `${region.regionAdminTitle ? `${region.regionAdminTitle} ` : ''}${region.regionAdminName ?? ''}`
+              : null}
+            meta={region.state ?? null}
+            onApprove={() => handleApprove(region.id)}
+            onReject={() => handleReject(region.id)}
+          />
         ))}
       </div>
     </div>

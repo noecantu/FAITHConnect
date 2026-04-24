@@ -4,10 +4,10 @@
 import { useEffect, useState } from 'react';
 import { db } from '@/app/lib/firebase/client';
 import { usePermissions } from '@/app/hooks/usePermissions';
-import { Card } from '@/app/components/ui/card';
-import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/app/hooks/use-toast';
 import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { PageHeader } from '@/app/components/page-header';
+import { DashboardApprovalRequestCard } from '@/app/components/ui/dashboard-cards';
 
 export default function PendingChurchesPage() {
   const { regionId, isRegionalAdmin, user, loading: permLoading } = usePermissions();
@@ -103,10 +103,10 @@ export default function PendingChurchesPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">Pending Church Approvals</h1>
-      <p className="text-muted-foreground">
-        These churches have selected your region and are awaiting your approval.
-      </p>
+      <PageHeader
+        title="Pending Church Approvals"
+        subtitle="These churches have selected your region and are awaiting your approval."
+      />
 
       {pending.length === 0 && (
         <p className="text-muted-foreground">No pending churches.</p>
@@ -114,28 +114,25 @@ export default function PendingChurchesPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {pending.map((church) => (
-          <Card
+          <DashboardApprovalRequestCard
             key={church.id}
-            className="p-4 bg-black/60 border-white/20 backdrop-blur-xl space-y-3"
-          >
-            <p className="text-lg font-semibold">{church.name}</p>
-
-            <div className="flex gap-3">
-              <Button
-                className="bg-green-600 text-white"
-                onClick={() => handleApprove(church.id)}
-              >
-                Approve
-              </Button>
-
-              <Button
-                className="bg-red-600 text-white"
-                onClick={() => handleReject(church.id)}
-              >
-                Reject
-              </Button>
-            </div>
-          </Card>
+            name={church.name || "Unknown Church"}
+            logoUrl={church.logoUrl ?? null}
+            logoAlt={`${church.name || "Church"} logo`}
+            fallback={String(church.name || "CH")
+              .split(' ')
+              .map((word) => word[0]?.toUpperCase())
+              .join('')
+              .slice(0, 2)}
+            subtitle={church.leaderTitle || church.leaderName
+              ? `${church.leaderTitle ? `${church.leaderTitle} ` : ''}${church.leaderName ?? ''}`
+              : null}
+            meta={church.city || church.state
+              ? [church.city, church.state].filter(Boolean).join(', ')
+              : null}
+            onApprove={() => handleApprove(church.id)}
+            onReject={() => handleReject(church.id)}
+          />
         ))}
       </div>
     </div>

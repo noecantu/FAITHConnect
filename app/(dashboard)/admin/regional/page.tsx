@@ -241,9 +241,6 @@ export default function RegionalDashboardPage() {
   const quickActions = [
     { href: '/admin/regional/churches', label: 'View Regional Churches', variant: 'outline' as const },
     { href: '/admin/regional/users', label: 'View Regional Users', variant: 'outline' as const },
-    ...(pendingCount > 0
-      ? [{ href: '/admin/regional/churches/pending', label: `Review Pending Churches (${pendingCount})`, variant: 'default' as const }]
-      : []),
   ];
 
   // Permission check

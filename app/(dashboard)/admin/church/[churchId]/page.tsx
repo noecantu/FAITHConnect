@@ -17,12 +17,12 @@ import {
 import { PageHeader } from "@/app/components/page-header";
 import {
   Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
   CardContent,
 } from "@/app/components/ui/card";
-import { Button } from "@/app/components/ui/button";
+import {
+  DashboardIconQuickActionsCard,
+  DashboardMetricCard,
+} from "@/app/components/ui/dashboard-cards";
 
 import {
   CalendarCheck,
@@ -38,7 +38,6 @@ import {
   Activity,
 } from "lucide-react";
 
-import Link from "next/link";
 import type { Church } from "@/app/lib/types";
 import { useAuth } from "@/app/hooks/useAuth";
 import { usePermissions } from "@/app/hooks/usePermissions";
@@ -306,6 +305,17 @@ export default function ChurchAdminDashboard() {
   const isChurchDisabled = church.status === "disabled";
   const statusLabel = isChurchDisabled ? "Disabled" : "Active";
   const accessModeLabel = isReadOnly ? "Read-Only" : "Full Access";
+  const quickActions = [
+    { href: `/church/${churchId}/attendance`, label: "Attendance", icon: <CalendarCheck className="h-5 w-5 text-amber-500" /> },
+    { href: `/church/${churchId}/attendance/history`, label: "Attendance History", icon: <Activity className="h-5 w-5 text-amber-500" /> },
+    { href: `/church/${churchId}/contributions`, label: "Contributions", icon: <DollarSign className="h-5 w-5 text-emerald-500" /> },
+    { href: `/church/${churchId}/calendar`, label: "Events", icon: <Calendar className="h-5 w-5 text-sky-500" /> },
+    { href: `/church/${churchId}/members`, label: "Members", icon: <UserPlus className="h-5 w-5 text-blue-500" /> },
+    { href: `/church/${churchId}/reports`, label: "Reports", icon: <FileText className="h-5 w-5 text-orange-500" /> },
+    { href: `/church/${churchId}/service-plan`, label: "Service Plans", icon: <CalendarHeart className="h-5 w-5 text-violet-500" /> },
+    { href: `/church/${churchId}/music/setlists`, label: "Set Lists", icon: <Music className="h-5 w-5 text-emerald-500" /> },
+    { href: `/church/${churchId}/music/songs`, label: "Songs", icon: <Music2 className="h-5 w-5 text-emerald-500" /> },
+  ];
 
   // ---------------------------
   // NORMAL RENDER
@@ -324,7 +334,8 @@ export default function ChurchAdminDashboard() {
         />
 
         {/* Identity Header */}
-        <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
+        <Card className="relative overflow-hidden border border-white/15 bg-gradient-to-br from-black/70 via-black/55 to-black/35 backdrop-blur-xl shadow-[0_14px_40px_rgba(0,0,0,0.28)]">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent" />
           <CardContent className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 md:p-6">
             {/* Left: Logo + Name */}
             <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:text-left">
@@ -399,129 +410,39 @@ export default function ChurchAdminDashboard() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <StatCard
+          <DashboardMetricCard
             title="Members"
-            description="Including Prospects"
+            description="Including prospects"
             value={memberCount}
-            icon={Users}
-            iconClassName="text-blue-500"
+            icon={<Users className="h-4 w-4 text-blue-500" />}
           />
-          <StatCard
+          <DashboardMetricCard
             title="Upcoming Services"
-            description="Scheduled From Today"
+            description="Scheduled from today"
             value={serviceCount}
-            icon={ChurchIcon}
-            iconClassName="text-violet-500"
+            icon={<ChurchIcon className="h-4 w-4 text-violet-500" />}
           />
-          <StatCard
+          <DashboardMetricCard
             title="Events This Week"
-            description="Monday - Sunday"
+            description="Monday through Sunday"
             value={eventCount}
-            icon={Calendar}
-            iconClassName="text-sky-500"
+            icon={<Calendar className="h-4 w-4 text-sky-500" />}
           />
-          <StatCard
+          <DashboardMetricCard
             title="Attendance This Week"
-            description="Monday – Sunday"
+            description="Monday through Sunday"
             value={attendanceThisWeek}
-            icon={Activity}
-            iconClassName="text-amber-500"
+            icon={<Activity className="h-4 w-4 text-amber-500" />}
           />
         </div>
 
         {/* Quick Actions */}
-        <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
-          <CardHeader className="pb-3">
-            <CardTitle>Quick Access</CardTitle>
-            <CardDescription>Main Areas</CardDescription>
-          </CardHeader>
-
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <QuickAction href={`/church/${churchId}/attendance`} icon={CalendarCheck} label="Attendance" iconClassName="text-amber-500" />
-            <QuickAction href={`/church/${churchId}/attendance/history`} icon={Activity} label="Attendance History" iconClassName="text-amber-500" />
-            <QuickAction href={`/church/${churchId}/contributions`} icon={DollarSign} label="Contributions" iconClassName="text-emerald-500" />
-            <QuickAction href={`/church/${churchId}/calendar`} icon={Calendar} label="Events" iconClassName="text-sky-500" />
-            <QuickAction href={`/church/${churchId}/members`} icon={UserPlus} label="Members" iconClassName="text-blue-500" />
-            <QuickAction href={`/church/${churchId}/reports`} icon={FileText} label="Reports" iconClassName="text-orange-500" />
-            <QuickAction href={`/church/${churchId}/service-plan`} icon={CalendarHeart} label="Service Plans" iconClassName="text-violet-500" />
-            <QuickAction href={`/church/${churchId}/music/setlists`} icon={Music} label="Set Lists" iconClassName="text-emerald-500" />
-            <QuickAction href={`/church/${churchId}/music/songs`} icon={Music2} label="Songs" iconClassName="text-emerald-500" />
-          </CardContent>
-        </Card>
+        <DashboardIconQuickActionsCard
+          title="Quick Access"
+          description="Main areas for day-to-day church management."
+          actions={quickActions}
+        />
       </main>
     </>
-  );
-}
-
-// ---------------------------
-// Small Components
-// ---------------------------
-type IconType = React.ComponentType<React.SVGProps<SVGSVGElement>>;
-
-function StatCard({
-  title,
-  description,
-  value,
-  icon: Icon,
-  iconClassName,
-}: {
-  title: string;
-  description: string;
-  value: number;
-  icon: IconType;
-  iconClassName?: string;
-}) {
-  return (
-    <Card className="relative overflow-hidden bg-black/80 border-white/20 backdrop-blur-xl transition hover:border-white/30">
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.04] to-transparent" />
-
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <CardTitle className="text-sm font-medium text-white/90">{title}</CardTitle>
-            <CardDescription className="text-xs text-white/60">{description}</CardDescription>
-          </div>
-
-          <div className="rounded-md border border-white/20 bg-white/5 p-2">
-            <Icon className={`h-4 w-4 ${iconClassName ?? "text-white/70"}`} />
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className="pt-1">
-        <div className="text-3xl font-semibold tracking-tight text-white">{value}</div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function QuickAction({
-  href,
-  icon: Icon,
-  label,
-  iconClassName,
-}: {
-  href: string;
-  icon: IconType;
-  label: string;
-  iconClassName?: string;
-}) {
-  return (
-    <Button
-      asChild
-      variant="ghost"
-      className="
-        w-full justify-start gap-3
-        bg-black/80 border border-white/20 backdrop-blur-xl
-        hover:bg-white/5 hover:border-white/20
-        text-white/80
-        transition
-      "
-    >
-      <Link href={href}>
-        <Icon className={`h-5 w-5 ${iconClassName ?? "text-white/70"}`} />
-        <span className="font-medium">{label}</span>
-      </Link>
-    </Button>
   );
 }

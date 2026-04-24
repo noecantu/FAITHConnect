@@ -235,9 +235,6 @@ export default function DistrictDashboardPage() {
   const quickActions = [
     { href: "/admin/district/regions", label: "View Regions", variant: "outline" as const },
     { href: "/admin/district/users", label: "View District Members", variant: "outline" as const },
-    ...(pendingCount > 0
-      ? [{ href: "/admin/district/regions/pending", label: `Review Pending Regions (${pendingCount})`, variant: "default" as const }]
-      : []),
   ];
 
   if (permLoading) return <div className="p-6 text-muted-foreground">Loading…</div>;
@@ -347,7 +344,7 @@ export default function DistrictDashboardPage() {
       {/* Quick Actions */}
       <DashboardQuickActionsCard
         title="Quick Actions"
-        description="Jump into district management tasks and approval workflows."
+        description="Jump into district management tasks and management workflows."
         actions={quickActions}
       />
     </div>
