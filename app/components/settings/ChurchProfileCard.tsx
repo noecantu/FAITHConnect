@@ -231,19 +231,18 @@ export default function ChurchProfileCard({ churchId }: Props) {
           </div>
         </div>
         
-        {/* Address */}
-        <div className="grid gap-2">
-          <Label className="text-sm font-medium">Street Address</Label>
-          <Input
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="123 Main St"
-            className="bg-black/40 border-white/20"
-          />
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div className="grid gap-2">
+            <Label className="text-sm font-medium">Street Address</Label>
+            <Input
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="123 Main St"
+              className="bg-black/40 border-white/20"
+            />
+          </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          <div className="col-span-2 grid gap-2">
+          <div className="grid gap-2">
             <Label className="text-sm font-medium">City</Label>
             <Input
               value={city}
@@ -252,6 +251,9 @@ export default function ChurchProfileCard({ churchId }: Props) {
               className="bg-black/40 border-white/20"
             />
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 
           <div className="grid gap-2">
             <Label className="text-sm font-medium">State</Label>

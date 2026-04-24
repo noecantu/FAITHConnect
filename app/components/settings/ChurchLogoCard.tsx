@@ -217,10 +217,10 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
             <img
               src={logoUrl}
               alt="Church Logo"
-              className="h-40 w-40 rounded-md object-cover border border-border bg-white shadow-md"
+              className="h-80 w-80 rounded-md object-cover border border-border bg-white shadow-md"
             />
           ) : (
-            <div className="h-40 w-40 rounded-md bg-muted flex items-center justify-center text-xl font-semibold text-muted-foreground border border-border">
+            <div className="h-80 w-80 rounded-md bg-muted flex items-center justify-center text-xl font-semibold text-muted-foreground border border-border">
               {getInitials(churchName)}
             </div>
           )}

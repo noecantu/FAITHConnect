@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { PageHeader } from "@/app/components/page-header";
 import {
   Card,
   CardContent,
 } from "@/app/components/ui/card";
 import { Separator } from "@/app/components/ui/separator";
+import { DashboardMetricCard } from "@/app/components/ui/dashboard-cards";
 import {
   Building2,
   Users,
@@ -29,18 +31,18 @@ interface StatCardProps {
   icon: React.ReactNode;
   label: string;
   value: number;
+  description: string;
 }
 
-function StatCard({ icon, label, value }: StatCardProps) {
-  const display = value === -1 ? "Error" : value.toLocaleString();
+function StatCard({ icon, label, value, description }: StatCardProps) {
+  const safeValue = value === -1 ? 0 : value;
   return (
-    <Card className="flex flex-col justify-between p-5 gap-4">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-muted-foreground">{label}</span>
-        <span className="text-muted-foreground/60">{icon}</span>
-      </div>
-      <p className="text-3xl font-bold tracking-tight">{display}</p>
-    </Card>
+    <DashboardMetricCard
+      title={label}
+      value={safeValue}
+      description={value === -1 ? "Unable to load this metric" : description}
+      icon={icon}
+    />
   );
 }
 
@@ -54,7 +56,7 @@ interface ToolCardProps {
 function ToolCard({ href, icon, title, description }: ToolCardProps) {
   return (
     <Link href={href} className="group block">
-      <Card className="cursor-pointer interactive-card interactive-card-focus transition-colors">
+      <Card className="cursor-pointer interactive-card interactive-card-focus transition-colors border-white/10 bg-black/45 backdrop-blur-xl shadow-[0_10px_24px_rgba(0,0,0,0.18)]">
         <CardContent className="flex items-center gap-4 p-5">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
             {icon}
@@ -97,17 +99,10 @@ export default function AdminHomeClient({
 }) {
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-3xl font-bold tracking-tight">FAITH Connect</h1>
-          </div>
-          <p className="text-muted-foreground">
-            System-wide overview and administrative controls.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="FAITH Connect"
+        subtitle="System-wide overview and administrative controls."
+      />
 
       <Separator />
 
@@ -119,13 +114,13 @@ export default function AdminHomeClient({
           </h2>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
-          <StatCard icon={<Building2 className="h-4 w-4" />} label="Churches" value={churchCount} />
-          <StatCard icon={<MapPinned className="h-4 w-4" />} label="Districts" value={districtCount} />
-          <StatCard icon={<Map className="h-4 w-4" />} label="Regions" value={regionCount} />
-          <StatCard icon={<Users className="h-4 w-4" />} label="Total Users" value={userCount} />
-          <StatCard icon={<ShieldCheck className="h-4 w-4" />} label="Church Administrators" value={adminCount} />
-          <StatCard icon={<UserCog className="h-4 w-4" />} label="Church Leaders" value={churchLeaderCount} />
-          <StatCard icon={<Banknote className="h-4 w-4" />} label="Finance Managers" value={financeCount} />
+          <StatCard icon={<Building2 className="h-4 w-4 text-emerald-500" />} label="Churches" value={churchCount} description="Churches across the platform" />
+          <StatCard icon={<MapPinned className="h-4 w-4 text-indigo-500" />} label="Districts" value={districtCount} description="Districts configured in the platform" />
+          <StatCard icon={<Map className="h-4 w-4 text-sky-500" />} label="Regions" value={regionCount} description="Regions configured in the platform" />
+          <StatCard icon={<Users className="h-4 w-4 text-blue-500" />} label="Total Users" value={userCount} description="All non-system and system users" />
+          <StatCard icon={<ShieldCheck className="h-4 w-4 text-fuchsia-500" />} label="Church Administrators" value={adminCount} description="Users with church admin access" />
+          <StatCard icon={<UserCog className="h-4 w-4 text-cyan-500" />} label="Church Leaders" value={churchLeaderCount} description="Churches with leader information" />
+          <StatCard icon={<Banknote className="h-4 w-4 text-teal-500" />} label="Finance Managers" value={financeCount} description="Users with finance access" />
         </div>
       </section>
 
@@ -137,10 +132,10 @@ export default function AdminHomeClient({
           </h2>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          <StatCard icon={<CalendarDays className="h-4 w-4" />} label="Events" value={eventCount} />
-          <StatCard icon={<ClipboardCheck className="h-4 w-4" />} label="Check-ins" value={checkinCount} />
-          <StatCard icon={<Music2 className="h-4 w-4" />} label="Songs" value={musicItemCount} />
-          <StatCard icon={<ListMusic className="h-4 w-4" />} label="Set Lists" value={setlistCount} />
+          <StatCard icon={<CalendarDays className="h-4 w-4 text-sky-500" />} label="Events" value={eventCount} description="Events across all churches" />
+          <StatCard icon={<ClipboardCheck className="h-4 w-4 text-amber-500" />} label="Check-ins" value={checkinCount} description="Attendance entries across churches" />
+          <StatCard icon={<Music2 className="h-4 w-4 text-emerald-500" />} label="Songs" value={musicItemCount} description="Songs stored across churches" />
+          <StatCard icon={<ListMusic className="h-4 w-4 text-emerald-500" />} label="Set Lists" value={setlistCount} description="Set lists created across churches" />
         </div>
       </section>
 

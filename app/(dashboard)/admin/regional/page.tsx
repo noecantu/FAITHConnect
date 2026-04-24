@@ -7,7 +7,13 @@ import { db } from '@/app/lib/firebase/client';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { countPresentAttendanceEntries } from '@/app/lib/attendance-count';
 import { getUsersByChurchIds } from '@/app/lib/regional-users';
-import Link from 'next/link';
+import { PageHeader } from '@/app/components/page-header';
+import {
+  DashboardApprovalBanner,
+  DashboardMetricCard,
+  DashboardQuickActionsCard,
+  DashboardSummaryCard,
+} from '@/app/components/ui/dashboard-cards';
 import {
   Activity,
   Building2,
@@ -231,6 +237,14 @@ export default function RegionalDashboardPage() {
 
     return hasLeaderName || hasLeaderTitle;
   }).length;
+  const regionChips = [regionId ? `ID ${regionId.slice(0, 8)}...` : 'No ID'];
+  const quickActions = [
+    { href: '/admin/regional/churches', label: 'View Regional Churches', variant: 'outline' as const },
+    { href: '/admin/regional/users', label: 'View Regional Users', variant: 'outline' as const },
+    ...(pendingCount > 0
+      ? [{ href: '/admin/regional/churches/pending', label: `Review Pending Churches (${pendingCount})`, variant: 'default' as const }]
+      : []),
+  ];
 
   // Permission check
   if (permLoading) {
@@ -260,193 +274,75 @@ export default function RegionalDashboardPage() {
 
   return (
     <div className="p-6 space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold">Regional Dashboard</h1>
-        <p className="text-muted-foreground">
-          Overview of churches in your region.
-        </p>
-      </div>
+      <PageHeader
+        title="Regional Dashboard"
+        subtitle="Overview of churches, users, and ministry activity in your region."
+      />
 
       {pendingCount > 0 && (
-        <div className="p-4 rounded-lg border border-yellow-500 bg-yellow-500/10">
-          <h2 className="text-lg font-semibold">Churches Pending Approval</h2>
-          <p className="text-xl font-bold mt-1.5">{pendingCount}</p>
-
-          <Link
-            href="/admin/regional/churches/pending"
-            className="text-sm underline mt-2 inline-block"
-          >
-            Review Pending Churches
-          </Link>
-        </div>
+        <DashboardApprovalBanner
+          eyebrow="Approval Queue"
+          title="Churches Pending Approval"
+          description={`${pendingCount} church${pendingCount === 1 ? ' is' : 'es are'} waiting for regional approval.`}
+          count={pendingCount}
+          countLabel="Pending"
+          href="/admin/regional/churches/pending"
+          actionLabel="Review Requests"
+        />
       )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
         
         {/* Region Card */}
-        <div className="p-5 rounded-xl border border-white/15 bg-gradient-to-br from-black/60 via-black/45 to-black/35 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.25)] space-y-3">
-          <p className="text-xs uppercase tracking-[0.16em] text-white/60">Region</p>
-
-          <div className="flex items-center gap-3">
-            {regionLogoUrl ? (
-              <img
-                src={regionLogoUrl}
-                alt={`${regionName} logo`}
-                className="h-16 w-16 rounded-lg object-cover border border-white/20 bg-black/30"
-              />
-            ) : (
-              <div className="h-16 w-16 rounded-lg bg-white/5 flex items-center justify-center text-sm font-semibold text-white/75 border border-white/20">
-                {regionName
-                  .split(' ')
-                  .map((word) => word[0]?.toUpperCase())
-                  .join('')
-                  .slice(0, 2)}
-              </div>
-            )}
-
-            <div className="min-w-0">
-              <p className="text-lg font-semibold leading-tight truncate">{regionName}</p>
-              <p className="text-sm text-muted-foreground truncate">{regionAdminName || 'Regional Admin'}</p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2 pt-1">
-            <span className="text-[11px] px-2.5 py-1 rounded-full border border-white/15 bg-white/5 text-white/70">
-              {regionId ? `ID ${regionId.slice(0, 8)}...` : 'No ID'}
-            </span>
-          </div>
-        </div>
+        <DashboardSummaryCard
+          eyebrow="Region"
+          name={regionName}
+          subtitle={regionAdminName || 'Regional Admin'}
+          logoUrl={regionLogoUrl}
+          logoAlt={`${regionName} logo`}
+          fallback={regionName
+            .split(' ')
+            .map((word) => word[0]?.toUpperCase())
+            .join('')
+            .slice(0, 2)}
+          chips={regionChips}
+        />
 
         {/* Active Churches */}
-        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold">Churches</h2>
-            <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Building2 className="h-4 w-4 text-emerald-500" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold mt-1.5">{approvedChurches.length}</p>
-          <p className="text-xs text-muted-foreground mt-1 opacity-70">Approved churches in this region</p>
-        </div>
+        <DashboardMetricCard title="Churches" value={approvedChurches.length} description="Approved churches in this region" icon={<Building2 className="h-4 w-4 text-emerald-500" />} />
 
         {/* Users */}
-        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold">Users</h2>
-            <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Users className="h-4 w-4 text-blue-500" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold mt-1.5">{users.length}</p>
-          <p className="text-xs text-muted-foreground mt-1 opacity-70">Users in churches within this region</p>
-        </div>
+        <DashboardMetricCard title="Users" value={users.length} description="Users in churches within this region" icon={<Users className="h-4 w-4 text-blue-500" />} />
 
         {/* Admins */}
-        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold">Admins</h2>
-            <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Shield className="h-4 w-4 text-fuchsia-500" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold mt-1.5">{adminCount}</p>
-          <p className="text-xs text-muted-foreground mt-1 opacity-70">Church admins in this region</p>
-        </div>
+        <DashboardMetricCard title="Admins" value={adminCount} description="Church admins in this region" icon={<Shield className="h-4 w-4 text-fuchsia-500" />} />
 
         {/* Events */}
-        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold">Events</h2>
-            <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Calendar className="h-4 w-4 text-sky-500" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold mt-1.5">{eventCount}</p>
-          <p className="text-xs text-muted-foreground mt-1 opacity-70">Events across region churches</p>
-        </div>
+        <DashboardMetricCard title="Events" value={eventCount} description="Events across region churches" icon={<Calendar className="h-4 w-4 text-sky-500" />} />
 
         {/* Check-ins */}
-        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold">Check-ins</h2>
-            <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Activity className="h-4 w-4 text-amber-500" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold mt-1.5">{checkinCount}</p>
-          <p className="text-xs text-muted-foreground mt-1 opacity-70">Attendance entries across region churches</p>
-        </div>
+        <DashboardMetricCard title="Check-ins" value={checkinCount} description="Attendance entries across region churches" icon={<Activity className="h-4 w-4 text-amber-500" />} />
 
         {/* Music Items */}
-        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold">Music Items</h2>
-            <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Music4 className="h-4 w-4 text-emerald-500" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold mt-1.5">{musicItemCount}</p>
-          <p className="text-xs text-muted-foreground mt-1 opacity-70">Songs across region churches</p>
-        </div>
+        <DashboardMetricCard title="Music Items" value={musicItemCount} description="Songs across region churches" icon={<Music4 className="h-4 w-4 text-emerald-500" />} />
 
         {/* Setlists */}
-        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold">Setlists</h2>
-            <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <ListMusic className="h-4 w-4 text-emerald-500" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold mt-1.5">{setlistCount}</p>
-          <p className="text-xs text-muted-foreground mt-1 opacity-70">Setlists across region churches</p>
-        </div>
+        <DashboardMetricCard title="Setlists" value={setlistCount} description="Setlists across region churches" icon={<ListMusic className="h-4 w-4 text-emerald-500" />} />
 
         {/* Church Leaders */}
-        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold">Church Leaders</h2>
-            <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Users className="h-4 w-4 text-blue-500" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold mt-1.5">{churchLeaderCount}</p>
-          <p className="text-xs text-muted-foreground mt-1 opacity-70">Approved churches with leader info</p>
-        </div>
+        <DashboardMetricCard title="Church Leaders" value={churchLeaderCount} description="Approved churches with leader info" icon={<Users className="h-4 w-4 text-blue-500" />} />
 
         {/* Finance Managers */}
-        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold">Finance Managers</h2>
-            <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <Wallet className="h-4 w-4 text-teal-500" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold mt-1.5">{financeCount}</p>
-          <p className="text-xs text-muted-foreground mt-1 opacity-70">Users with Finance role in region churches</p>
-        </div>
+        <DashboardMetricCard title="Finance Managers" value={financeCount} description="Users with Finance role in region churches" icon={<Wallet className="h-4 w-4 text-teal-500" />} />
       </div>
 
       {/* Quick Actions */}
-      <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
-        <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-
-        <div className="flex flex-col gap-3">
-          <Link
-            href="/admin/regional/churches"
-            className="px-4 py-2 rounded-md border bg-muted/20 hover:bg-muted transition"
-          >
-            View Regional Churches
-          </Link>
-          <Link
-            href="/admin/regional/users"
-            className="px-4 py-2 rounded-md border bg-muted/20 hover:bg-muted transition"
-          >
-            View Regional Users
-          </Link>
-        </div>
-      </div>
+      <DashboardQuickActionsCard
+        title="Quick Actions"
+        description="Jump into regional management tasks and approval workflows."
+        actions={quickActions}
+      />
     </div>
   );
 }
