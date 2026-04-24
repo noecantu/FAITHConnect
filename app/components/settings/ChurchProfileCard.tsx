@@ -6,11 +6,10 @@ import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { useToast } from '@/app/hooks/use-toast';
 import { db } from '@/app/lib/firebase/client';
-import { collection, doc, getDoc, getDocs, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import TimezoneSelect from '@/app/components/settings/TimezoneSelect';
 import { usePhoneInput } from '@/app/hooks/usePhoneInput';
-import { Check, ChevronDown } from "lucide-react";
-import Link from 'next/link';
+import { Check } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -59,11 +58,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
 
   const [saving, setSaving] = useState(false);
 
-  // Regional Settings
-  const [regions, setRegions] = useState<any[]>([]);
   const [regionId, setRegionId] = useState("");
-  const [regionSelectedId, setRegionSelectedId] = useState("");
-  const [regionStatus, setRegionStatus] = useState("");
 
   useEffect(() => {
     if (!churchId) return;
@@ -74,15 +69,8 @@ export default function ChurchProfileCard({ churchId }: Props) {
 
       const data = snap.data();
 
-      // Load regions
-      const regionSnap = await getDocs(collection(db, "regions"));
-      const regionList = regionSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setRegions(regionList);
-
       // Set region from church data
       setRegionId(data.regionId ?? "");
-      setRegionSelectedId(data.regionSelectedId ?? "");
-      setRegionStatus(data.regionStatus ?? "");
 
       // Identity
       setName(data.name ?? '');
@@ -185,15 +173,6 @@ export default function ChurchProfileCard({ churchId }: Props) {
       setSaving(false);
     }
   };
-
-  // Helper: Get region object
-  // Only resolve the full region (including leader info) when approved.
-  // Before approval, still resolve by regionSelectedId so the name shows,
-  // but leader info is suppressed via the regionStatus check.
-  const selectedRegion = regions.find(
-    (r) => r.id === regionId || r.id === regionSelectedId
-  );
-  const isRegionApproved = regionStatus === 'approved';
 
   return (
     <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl rounded-xl shadow-lg">
@@ -352,55 +331,23 @@ export default function ChurchProfileCard({ churchId }: Props) {
           </div>
         </div>
 
-        {/* Phone */}
-        <div className="grid gap-2">
-          <Label className="text-sm font-medium">Phone Number</Label>
-          <Input
-            value={phone.display}
-            onChange={(e) => phone.handleChange(e.target.value)}
-            placeholder="(555) 123‑4567"
-            className="bg-black/40 border-white/20"
-          />
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div className="grid gap-2">
+            <Label className="text-sm font-medium">Phone Number</Label>
+            <Input
+              value={phone.display}
+              onChange={(e) => phone.handleChange(e.target.value)}
+              placeholder="(555) 123‑4567"
+              className="bg-black/40 border-white/20"
+            />
+          </div>
 
-        <div className="border-t border-white/10" />
-
-        {/* Timezone + Region */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-start">
           <div className="grid gap-2">
             <Label className="text-sm font-medium">Timezone</Label>
             <TimezoneSelect
               value={timezone}
               onChange={setTimezone}
             />
-          </div>
-
-          {/* REGION SELECTOR */}
-          <div className="grid gap-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium">
-                Region
-                {isRegionApproved && selectedRegion?.regionAdminTitle && selectedRegion?.regionAdminName
-                  ? ` (Leader: ${selectedRegion.regionAdminTitle} ${selectedRegion.regionAdminName})`
-                  : regionStatus === 'pending' && regionSelectedId
-                  ? " (Pending)"
-                  : ""}
-              </Label>
-            </div>
-
-            <Link
-              href={`/admin/church/${churchId}/select-region`}
-              className="
-                w-full px-3 py-2 rounded-md border border-white/20
-                bg-black/40 hover:bg-black/60 transition text-sm
-                flex items-center justify-between
-              "
-            >
-              <span className="truncate">
-                {selectedRegion ? selectedRegion.name : "Select a Region"}
-              </span>
-              <ChevronDown className="h-4 w-4 text-white/50 shrink-0" />
-            </Link>
           </div>
         </div>
       </CardContent>

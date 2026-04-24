@@ -19,6 +19,7 @@ import UserFormCard from '@/app/components/settings/UserFormCard';
 import DeleteUserDialog from '@/app/components/settings/DeleteUserDialog';
 import ChurchLogoCard from '@/app/components/settings/ChurchLogoCard';
 import ChurchProfileCard from '@/app/components/settings/ChurchProfileCard';
+import RegionMembershipCard from '@/app/components/settings/RegionMembershipCard';
 
 export default function ChurchSettingsPage() {
   const { churchId } = useChurchId();
@@ -233,6 +234,8 @@ export default function ChurchSettingsPage() {
 
             <ChurchProfileCard churchId={churchId!} />
           </div>
+
+          <RegionMembershipCard churchId={churchId!} />
 
           <StorageUsageCard
             storageUsed={storageUsed}

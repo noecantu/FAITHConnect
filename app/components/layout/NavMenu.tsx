@@ -18,7 +18,6 @@ import {
   Home,
   CalendarCheck,
   Activity,
-  MapPin,
 } from "lucide-react";
 import { useState } from "react";
 import { signOut } from "firebase/auth";
@@ -134,7 +133,6 @@ export function NavMenu() {
   const regionalAdminMenu = [
     { href: "/admin/regional/churches", label: "Regional Churches", icon: Users },
     { href: "/admin/regional/users", label: "Regional Users", icon: Users },
-    { href: "/admin/regional/select-district", label: "My District", icon: MapPin },
     { href: "/admin/regional/settings", label: "Settings", icon: Settings },
   ];
 

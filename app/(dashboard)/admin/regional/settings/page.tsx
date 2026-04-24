@@ -10,6 +10,7 @@ import { ProfilePhotoCard } from "@/app/components/settings/ProfilePhotoCard";
 import { ChangePasswordCard } from "@/app/components/settings/ChangePasswordCard";
 import RegionProfileCard from "@/app/components/settings/RegionProfileCard";
 import RegionLogoCard from "@/app/components/settings/RegionLogoCard";
+import DistrictMembershipCard from "@/app/components/settings/DistrictMembershipCard";
 import { Fab } from "@/app/components/ui/fab";
 import { Save, Loader2, Check } from "lucide-react";
 
@@ -113,6 +114,8 @@ export default function RegionalSettingsPage() {
           registerSave={registerPasswordSave}
         />
       </div>
+
+      <DistrictMembershipCard regionId={regionId} />
 
       <Fab
         type="save"
