@@ -45,6 +45,7 @@ export default function RegionalDashboardPage() {
   const [users, setUsers] = useState<RegionalUser[]>([]);
   const [regionName, setRegionName] = useState('');
   const [regionAdminName, setRegionAdminName] = useState('');
+  const [regionAdminTitle, setRegionAdminTitle] = useState('');
   const [regionLogoUrl, setRegionLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(true);
@@ -148,6 +149,7 @@ export default function RegionalDashboardPage() {
           const data = snap.data();
           setRegionName(data.name || 'Unknown Region');
           setRegionAdminName(data.regionAdminName || 'Unknown Admin');
+          setRegionAdminTitle(data.regionAdminTitle || '');
           setRegionLogoUrl(data.logoUrl ?? null);
         }
       },
@@ -288,7 +290,7 @@ export default function RegionalDashboardPage() {
         logoAlt={`${regionName} logo`}
         fallback={regionName.split(' ').map((w) => w[0]?.toUpperCase()).join('').slice(0, 2) || 'R'}
         name={regionName}
-        subtitle={regionAdminName || 'Regional Admin'}
+        subtitle={regionAdminTitle ? `${regionAdminTitle}: ${regionAdminName || 'Regional Admin'}` : regionAdminName || 'Regional Admin'}
         panelTitle="Region Info"
         panelRows={[
           { label: 'Region ID', value: regionId ? `${regionId.slice(0, 8)}…` : '—' },

@@ -55,7 +55,7 @@ export default function FreeTrial() {
               Free Trial
             </span>
             <p className="text-xl text-white/70 mb-6">
-              Get 30 days of full access — completely free. No credit card needed to get started.
+              Get 30 days of full access — completely free. You won't be charged until the trial ends. Cancel any time.
             </p>
 
             <ul className="inline-flex flex-col items-start gap-3 text-white/80 mx-auto w-fit">
