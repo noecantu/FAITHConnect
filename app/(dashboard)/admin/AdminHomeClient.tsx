@@ -153,6 +153,11 @@ export default function AdminHomeClient({
             description="Create, edit, and manage all churches."
           />
           <ToolCard
+            href="/admin/all-users"
+            icon={<Users className="h-5 w-5" />}
+            title="All Users"
+            description="Manage all non-system users across churches."
+          />          <ToolCard
             href="/admin/users"
             icon={<Users className="h-5 w-5" />}
             title="System Users"

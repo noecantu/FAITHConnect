@@ -14,6 +14,7 @@ import {
   Music,
   ListMusic,
   CalendarHeart,
+  CreditCard,
   Home,
   CalendarCheck,
   Activity,
@@ -110,10 +111,12 @@ export function NavMenu() {
   // --- MENU CONFIGS ---
   const rootAdminMenu = [
     { href: "/admin", label: "Dashboard", icon: Home, exact: true },
-    { href: "/admin/logs", label: "Activity Logs", icon: FileText },
     { href: "/admin/churches", label: "Churches", icon: Users },
-    { href: "/admin/settings/health", label: "Platform Health", icon: CalendarHeart },
+    { href: "/admin/all-users", label: "All Users", icon: Users },
     { href: "/admin/users", label: "System Users", icon: Users },
+    { href: "/admin/logs", label: "Activity Logs", icon: FileText },
+    { href: "/admin/settings/health", label: "Platform Health", icon: CalendarHeart },
+    { href: "/admin/subscription-audit", label: "Subscription Audit", icon: CreditCard },
     { href: "/admin/settings", label: "System Settings", icon: Settings, exact: true },
   ];
 
