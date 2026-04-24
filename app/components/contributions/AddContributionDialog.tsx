@@ -36,6 +36,24 @@ import { addContribution } from '@/app/lib/contributions';
 import type { Contribution, Member } from '@/app/lib/types';
 import dayjs from 'dayjs';
 
+const usdFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+function parseCurrencyInput(value: string): number {
+  const cleaned = value.replace(/[^0-9.]/g, "");
+  const [whole, ...rest] = cleaned.split(".");
+  const normalized = rest.length > 0
+    ? `${whole}.${rest.join("")}`
+    : whole;
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 const contributionSchema = z.object({
   memberId: z.string().optional(),
   customContributorName: z.string().optional(),
@@ -68,6 +86,7 @@ export function AddContributionDialog({
   churchId,
 }: AddContributionDialogProps) {
   const { toast } = useToast();
+  const [amountInput, setAmountInput] = React.useState(usdFormatter.format(0));
 
   const form = useForm<ContributionFormValues>({
     resolver: zodResolver(contributionSchema),
@@ -81,6 +100,12 @@ export function AddContributionDialog({
       notes: "",
     },
   });
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const currentAmount = form.getValues("amount") ?? 0;
+    setAmountInput(usdFormatter.format(Number(currentAmount) || 0));
+  }, [isOpen, form]);
 
   async function onSubmit(values: ContributionFormValues) {
     if (!churchId) return;
@@ -132,6 +157,7 @@ export function AddContributionDialog({
         contributionType: "Digital Transfer",
         date: dayjs().format("YYYY-MM-DD"),
       });
+      setAmountInput(usdFormatter.format(0));
 
       onClose();
     } catch (error) {
@@ -185,15 +211,7 @@ export function AddContributionDialog({
                         type="date"
                         value={dayjs(field.value).format("YYYY-MM-DD")}
                         onChange={(e) => {
-                          const value = e.target.value // "YYYY-MM-DD"
-                          if (!value) {
-                            field.onChange(null as any)
-                            return
-                          }
-
-                          const [year, month, day] = value.split("-").map(Number)
-                          const newDate = new Date(year, month - 1, day) // local date, no timezone shift
-                          field.onChange(newDate)
+                          field.onChange(e.target.value);
                         }}
                         className="w-full"
                       />
@@ -252,20 +270,27 @@ export function AddContributionDialog({
                     <FormLabel>Amount</FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        {...field}
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="$0.00"
+                        value={amountInput}
                         onChange={(e) => {
-                          const value = e.target.value // "YYYY-MM-DD"
-                          if (!value) {
-                            field.onChange(null as any)
-                            return
+                          const raw = e.target.value;
+
+                          if (raw.trim() === "") {
+                            setAmountInput("");
+                            field.onChange(0);
+                            return;
                           }
 
-                          const [year, month, day] = value.split("-").map(Number)
-                          const newDate = new Date(year, month - 1, day) // local date, no timezone shift
-                          field.onChange(newDate)
+                          const parsed = parseCurrencyInput(raw);
+                          field.onChange(parsed);
+                          setAmountInput(usdFormatter.format(parsed));
+                        }}
+                        onBlur={() => {
+                          if (amountInput.trim() === "") {
+                            setAmountInput(usdFormatter.format(0));
+                          }
                         }}
                       />
                     </FormControl>
