@@ -5,44 +5,30 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
 import { Card } from "@/app/components/ui/card";
 import { ArrowLeft, CheckCircle } from "lucide-react";
-
-const plans = [
-  {
-    key: "starter",
-    name: "Starter",
-    price: "$9/mo",
-    features: ["Up to 50 Members", "All Core Features", "Email Support"],
-  },
-  {
-    key: "standard",
-    name: "Standard",
-    price: "$19/mo",
-    features: ["Up to 300 Members", "All Core Features", "Priority Email Support"],
-    highlight: true,
-  },
-  {
-    key: "pro",
-    name: "Pro",
-    price: "$49/mo",
-    features: ["Unlimited Members", "All Core Features", "Priority Support"],
-  },
-] as const;
+import {
+  formatPrice,
+  getPlanById,
+  normalizeBillingCycle,
+  normalizePlanId,
+} from "@/app/lib/pricing-plans";
 
 export default function ConfirmPlanPage() {
   const router = useRouter();
   const params = useSearchParams();
 
-  const selectedPlanKey = (params.get("plan") || "").toLowerCase();
-  const selectedPlan = plans.find((p) => p.key === selectedPlanKey);
-  const fallbackPrice = params.get("price") || "";
+  const selectedPlanKey = normalizePlanId(params.get("plan"));
+  const selectedPlan = getPlanById(selectedPlanKey);
+  const billingCycle = normalizeBillingCycle(params.get("cycle"));
 
   const planName = selectedPlan?.name || "Unknown Plan";
-  const planPrice = selectedPlan?.price || fallbackPrice;
+  const planPrice = selectedPlan ? formatPrice(selectedPlan, billingCycle) : "";
   const planFeatures = selectedPlan?.features || [];
-  const planHighlight = selectedPlan ? ("highlight" in selectedPlan && selectedPlan.highlight) : false;
+  const planHighlight = selectedPlan?.highlight ?? false;
 
   const handleConfirm = () => {
-    router.push(`/onboarding/admin-credentials?plan=${selectedPlanKey || "starter"}`);
+    router.push(
+      `/onboarding/admin-credentials?plan=${selectedPlanKey || "beginning"}&cycle=${billingCycle}`
+    );
   };
 
   const handleBack = () => {
@@ -119,7 +105,7 @@ export default function ConfirmPlanPage() {
             <div className="flex items-start gap-3 text-white/70 mb-8">
               <CheckCircle className="h-6 w-6 text-blue-500 mt-1" />
               <p>
-                This is the plan you selected. You can continue or go back to choose a different one.
+                This is the {billingCycle} subscription you selected. You can continue or go back to choose a different one.
               </p>
             </div>
 

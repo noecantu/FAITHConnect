@@ -14,6 +14,7 @@ import {
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/app/hooks/use-toast";
 import { Button } from "@/app/components/ui/button";
+import { normalizeBillingCycle } from "@/app/lib/pricing-plans";
 
 export default function AdminCredentialsPage() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function AdminCredentialsPage() {
   const searchParams = useSearchParams();
 
   const plan = searchParams.get("plan");
+  const cycle = normalizeBillingCycle(searchParams.get("cycle"));
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -100,7 +102,7 @@ export default function AdminCredentialsPage() {
         description: "Continue to billing.",
       });
 
-      router.replace(`/onboarding/billing?plan=${plan}`);
+      router.replace(`/onboarding/billing?plan=${plan}&cycle=${cycle}`);
     } catch (error: any) {
       console.error("Signup error:", error);
 
@@ -135,7 +137,7 @@ export default function AdminCredentialsPage() {
             description: "Continuing onboarding from billing.",
           });
 
-          router.replace(`/onboarding/billing?plan=${plan}`);
+          router.replace(`/onboarding/billing?plan=${plan}&cycle=${cycle}`);
         } catch {
           toast({
             title: "Account already exists",

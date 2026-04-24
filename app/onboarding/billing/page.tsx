@@ -5,20 +5,35 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/app/hooks/use-toast";
 import { Button } from "@/app/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import {
+  normalizeBillingCycle,
+  normalizePlanId,
+  type PlanId,
+} from "@/app/lib/pricing-plans";
 
 export default function BillingPage() {
   const router = useRouter();
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
-  const [resolvedPlan, setResolvedPlan] = useState<string | null>(null);
+  const [resolvedPlan, setResolvedPlan] = useState<PlanId | null>(null);
 
   const planParam = searchParams.get("plan");
+  const cycle = normalizeBillingCycle(searchParams.get("cycle"));
 
   useEffect(() => {
     // If the plan is in the URL (normal forward flow), use it directly.
     if (planParam) {
-      setResolvedPlan(planParam);
+      const normalizedPlan = normalizePlanId(planParam);
+      if (normalizedPlan) {
+        setResolvedPlan(normalizedPlan);
+      } else {
+        toast({
+          title: "Invalid Plan",
+          description: "Please choose a valid plan before billing.",
+        });
+        router.replace("/onboarding/choose-plan");
+      }
       return;
     }
 
@@ -29,8 +44,9 @@ export default function BillingPage() {
         const res = await fetch("/api/users/me");
         if (res.ok) {
           const data = await res.json();
-          if (data.planId) {
-            setResolvedPlan(data.planId);
+          const recoveredPlan = normalizePlanId(data.planId);
+          if (recoveredPlan) {
+            setResolvedPlan(recoveredPlan);
             return;
           }
         }
@@ -59,7 +75,7 @@ export default function BillingPage() {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan, cycle }),
       });
 
       if (!res.ok) throw new Error("Failed to start checkout");
@@ -118,6 +134,9 @@ export default function BillingPage() {
       <div className="max-w-md mx-auto bg-white/5 border border-white/20 backdrop-blur-sm rounded-xl p-8 shadow-lg shadow-blue-600/10">
         <p className="text-white/70 text-center mb-6">
           Complete your subscription to continue setting up your church.
+        </p>
+        <p className="text-white/60 text-center text-sm mb-6 capitalize">
+          Billing cycle selected: {cycle}
         </p>
 
         <Button

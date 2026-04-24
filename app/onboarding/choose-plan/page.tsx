@@ -1,34 +1,23 @@
 // app/onboarding/choose-plan/page.tsx
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/app/components/ui/card";
 import Link from "next/link";
 import { CheckCircle, ArrowLeft } from "lucide-react";
-
-const plans = [
-  {
-    name: "Starter",
-    price: "$9/mo",
-    features: ["Up to 50 Members", "All Core Features", "Email Support"],
-    plan: "starter",
-  },
-  {
-    name: "Standard",
-    price: "$19/mo",
-    features: ["Up to 300 Members", "All Core Features", "Priority Email Support"],
-    plan: "standard",
-    highlight: true,
-  },
-  {
-    name: "Pro",
-    price: "$49/mo",
-    features: ["Unlimited Members", "All Core Features", "Priority Support"],
-    plan: "pro",
-  },
-];
+import {
+  PRICING_PLANS,
+  formatPrice,
+  normalizeBillingCycle,
+  type BillingCycle,
+} from "@/app/lib/pricing-plans";
 
 export default function OnboardingChoosePlan() {
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>(
+    normalizeBillingCycle(null)
+  );
+
   return (
     <div className="min-h-screen px-6 py-20">
 
@@ -67,10 +56,33 @@ export default function OnboardingChoosePlan() {
 
       <h1 className="text-4xl font-bold text-center mb-12">Choose Your Plan</h1>
 
+      <div className="max-w-5xl mx-auto mb-8 flex justify-center">
+        <div className="inline-flex rounded-xl border border-white/20 bg-white/5 p-1">
+          <button
+            type="button"
+            onClick={() => setBillingCycle("monthly")}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+              billingCycle === "monthly" ? "bg-blue-600 text-white" : "text-white/70 hover:text-white"
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            type="button"
+            onClick={() => setBillingCycle("yearly")}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+              billingCycle === "yearly" ? "bg-blue-600 text-white" : "text-white/70 hover:text-white"
+            }`}
+          >
+            Yearly
+          </button>
+        </div>
+      </div>
+
       <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
-        {plans.map((p, i) => (
+        {PRICING_PLANS.map((p, i) => (
           <motion.div
-            key={i}
+            key={p.id}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: i * 0.1 }}
@@ -82,11 +94,16 @@ export default function OnboardingChoosePlan() {
                 p.highlight ? "border-blue-500 shadow-lg shadow-blue-500/20" : ""
               }`}
               onClick={() => {
-                window.location.href = `/onboarding/confirm-plan?plan=${p.plan}&price=${encodeURIComponent(p.price)}`;
+                window.location.href = `/onboarding/confirm-plan?plan=${p.id}&cycle=${billingCycle}`;
               }}
             >
               <h3 className="text-2xl font-semibold mb-2">{p.name}</h3>
-              <p className="text-4xl font-bold mb-6">{p.price}</p>
+              <p className="text-4xl font-bold mb-2">{formatPrice(p, billingCycle)}</p>
+              <p className="text-sm text-white/60 mb-6">
+                {billingCycle === "monthly"
+                  ? `or ${formatPrice(p, "yearly")} billed yearly`
+                  : `or ${formatPrice(p, "monthly")} billed monthly`}
+              </p>
 
               <ul className="space-y-2 mb-6 text-white/70">
                 {p.features.map((f, idx) => (

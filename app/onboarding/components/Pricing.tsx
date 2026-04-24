@@ -1,37 +1,25 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Card } from "@/app/components/ui/card";
 import { CheckCircle } from "lucide-react";
-
-const plans = [
-  {
-    name: "Starter",
-    price: "$9/mo",
-    features: ["Up to 50 Members", "All Core Features", "Email Support"],
-    plan: "starter",
-  },
-  {
-    name: "Standard",
-    price: "$19/mo",
-    features: ["Up to 300 Members", "All Core Features", "Priority Email Support"],
-    plan: "standard",
-    highlight: true,
-  },
-  {
-    name: "Pro",
-    price: "$49/mo",
-    features: ["Unlimited Members", "All Core Features", "Priority Support"],
-    plan: "pro",
-  },
-];
+import {
+  PRICING_PLANS,
+  formatPrice,
+  normalizeBillingCycle,
+  type BillingCycle,
+} from "@/app/lib/pricing-plans";
 
 export default function Pricing() {
   const router = useRouter();
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>(
+    normalizeBillingCycle(null)
+  );
 
-  const handlePlanSelect = (plan: string, price: string) => {
-    router.push(`/onboarding/confirm-plan?plan=${plan}&price=${encodeURIComponent(price)}`);
+  const handlePlanSelect = (plan: string) => {
+    router.push(`/onboarding/confirm-plan?plan=${plan}&cycle=${billingCycle}`);
   };
 
   return (
@@ -52,10 +40,33 @@ export default function Pricing() {
         <span className="mx-auto mt-3 block h-1 w-28 rounded-full bg-gradient-to-r from-blue-500 via-cyan-300 to-blue-500" />
       </motion.h2>
 
+      <div className="mb-8 flex justify-center">
+        <div className="inline-flex rounded-xl border border-white/20 bg-white/5 p-1">
+          <button
+            type="button"
+            onClick={() => setBillingCycle("monthly")}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+              billingCycle === "monthly" ? "bg-blue-600 text-white" : "text-white/70 hover:text-white"
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            type="button"
+            onClick={() => setBillingCycle("yearly")}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+              billingCycle === "yearly" ? "bg-blue-600 text-white" : "text-white/70 hover:text-white"
+            }`}
+          >
+            Yearly
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {plans.map((p, i) => (
+        {PRICING_PLANS.map((p, i) => (
           <motion.div
-            key={i}
+            key={p.id}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: i * 0.1 }}
@@ -66,10 +77,15 @@ export default function Pricing() {
               className={`bg-white/5 border-white/20 backdrop-blur-sm p-6 cursor-pointer interactive-card interactive-card-focus ${
                 p.highlight ? "border-blue-500 shadow-lg shadow-blue-500/20" : ""
               }`}
-              onClick={() => handlePlanSelect(p.plan, p.price)}
+              onClick={() => handlePlanSelect(p.id)}
             >
               <h3 className="text-2xl font-semibold mb-2">{p.name}</h3>
-              <p className="text-4xl font-bold mb-6">{p.price}</p>
+              <p className="text-4xl font-bold mb-2">{formatPrice(p, billingCycle)}</p>
+              <p className="text-sm text-white/60 mb-6">
+                {billingCycle === "monthly"
+                  ? `or ${formatPrice(p, "yearly")} billed yearly`
+                  : `or ${formatPrice(p, "monthly")} billed monthly`}
+              </p>
 
               <ul className="space-y-2 mb-6 text-white/70">
                 {p.features.map((f, idx) => (
