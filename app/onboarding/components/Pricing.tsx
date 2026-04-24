@@ -83,11 +83,11 @@ export default function Pricing() {
               <p className="text-4xl font-bold mb-2">{formatPrice(p, billingCycle)}</p>
               <p className="text-sm text-white/60 mb-6">
                 {billingCycle === "monthly"
-                  ? `or ${formatPrice(p, "yearly")} billed yearly`
-                  : `or ${formatPrice(p, "monthly")} billed monthly`}
+                  ? `or ${formatPrice(p, "yearly")} Billed Yearly (10% Savings)`
+                  : `or ${formatPrice(p, "monthly")} Billed Monthly`}
               </p>
 
-              <ul className="space-y-2 mb-6 text-white/70">
+              <ul className="space-y-2 text-white/70">
                 {p.features.map((f, idx) => (
                   <li key={idx} className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-blue-500" />
@@ -95,10 +95,6 @@ export default function Pricing() {
                   </li>
                 ))}
               </ul>
-
-              <div className="text-center text-sm font-semibold text-blue-400 hover:text-blue-300">
-                Choose {p.name}
-              </div>
             </Card>
           </motion.div>
         ))}

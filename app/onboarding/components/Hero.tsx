@@ -45,7 +45,7 @@ export default function Hero() {
         transition={{ duration: 1 }}
         className="text-lg text-white/70 max-w-2xl mx-auto mb-10"
       >
-        FAITH Connect helps ministries track attendance, manage members, and stay organized — all in one beautiful, intuitive platform.
+        FAITH Connect helps churches track attendance, manage members, and stay organized — all in one beautiful place.
       </motion.p>
 
       {/* Buttons */}

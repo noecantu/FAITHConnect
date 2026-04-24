@@ -6,10 +6,11 @@ export default function SpotlightIntro() {
   return (
     <section className="max-w-6xl mx-auto px-8 md:px-6 lg:px-2 pt-8 pb-2">
       <motion.div
-        initial={{ opacity: 0, y: 18 }}
+        initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55, ease: "easeOut" }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
         viewport={{ once: true }}
+        whileHover={{ scale: 1.05 }}
         className="rounded-2xl border border-blue-300/20 bg-gradient-to-r from-blue-900/35 via-slate-900/30 to-cyan-900/35 backdrop-blur-sm px-6 md:px-10 py-8 text-center"
       >
         <span className="inline-block rounded-full border border-cyan-300/35 bg-cyan-300/10 px-4 py-1 text-[11px] md:text-xs font-semibold tracking-[0.24em] uppercase text-cyan-100/90">
@@ -21,7 +22,7 @@ export default function SpotlightIntro() {
         </h2>
 
         <p className="mt-4 text-white/75 max-w-2xl mx-auto text-sm md:text-base">
-          See how FAITH Connect streamlines the day-to-day work of ministry teams, from check-ins to service planning.
+          See how FAITH Connect streamlines the day-to-day work of church teams, from check-ins to service planning.
         </p>
 
         <div className="mx-auto mt-6 h-1 w-32 rounded-full bg-gradient-to-r from-blue-500 via-cyan-300 to-blue-500" />

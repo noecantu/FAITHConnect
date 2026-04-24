@@ -40,7 +40,7 @@ export default function FreeTrial() {
           className="w-full"
         >
           <Card
-            className="rounded-2xl border border-blue-300/20 bg-gradient-to-r from-blue-900/35 via-slate-900/30 to-cyan-900/35 backdrop-blur-sm px-6 md:px-10 py-8 text-center interactive-card interactive-card-focus flex flex-col justify-center items-center min-h-[320px] cursor-pointer"
+            className="rounded-2xl border border-blue-300/20 bg-gradient-to-r from-blue-900/35 via-slate-900/30 to-cyan-900/35 backdrop-blur-sm px-16 md:px-10 py-8 text-center interactive-card interactive-card-focus flex flex-col justify-center items-center min-h-[320px] cursor-pointer"
             onClick={() => router.push("/onboarding/choose-plan?trial=true")}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
@@ -54,7 +54,7 @@ export default function FreeTrial() {
             <span className="inline-block rounded-full border border-cyan-300/35 bg-cyan-300/10 px-4 py-1 text-[11px] md:text-xs font-semibold tracking-[0.24em] uppercase text-cyan-100/90 mb-6 mx-auto">
               Free Trial
             </span>
-            <p className="text-white/70 mb-6">
+            <p className="text-xl text-white/70 mb-6">
               Get 30 days of full access — completely free. No credit card needed to get started.
             </p>
 
