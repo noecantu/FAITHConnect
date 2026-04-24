@@ -11,6 +11,7 @@ export function normalizeUser(raw: any, uid: string): AppUser {
     roles: (raw.roles ?? []) as Role[],
     churchId: raw.churchId ?? null,
     regionId: raw.regionId ?? null,
+    districtId: raw.districtId ?? null,
     firstName: raw.firstName ?? null,
     lastName: raw.lastName ?? null,
     profilePhotoUrl: raw.profilePhotoUrl ?? null,

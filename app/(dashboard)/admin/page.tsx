@@ -18,6 +18,8 @@ export default async function AdminHomePage() {
 
   // 3. Now it's safe to run Firestore Admin queries
   const churchesSnap = await adminDb.collection("churches").count().get();
+  const districtsSnap = await adminDb.collection("districts").count().get();
+  const regionsSnap = await adminDb.collection("regions").count().get();
   const usersSnap = await adminDb.collection("users").count().get();
 
   const adminsSnap = await adminDb
@@ -61,6 +63,8 @@ export default async function AdminHomePage() {
   return (
     <AdminHomeClient
       churchCount={churchesSnap.data().count ?? 0}
+      districtCount={districtsSnap.data().count ?? 0}
+      regionCount={regionsSnap.data().count ?? 0}
       userCount={usersSnap.data().count ?? 0}
       adminCount={adminsSnap.data().count ?? 0}
       eventCount={eventsSnap.data().count ?? 0}

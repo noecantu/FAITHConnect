@@ -34,6 +34,7 @@ const US_STATES = [
 const ACCOUNT_TYPES = [
   { value: "RootAdmin", label: "Root Administrator" },
   { value: "SystemAdmin", label: "System Administrator" },
+  { value: "DistrictAdmin", label: "District Administrator" },
   { value: "RegionalAdmin", label: "Regional Administrator" },
   { value: "Support", label: "Support Staff" },
   { value: "Auditor", label: "Auditor (Read-Only)" },
@@ -54,6 +55,11 @@ export default function CreateSystemUserClient() {
   const [regionName, setRegionName] = useState("");
   const [state, setState] = useState("");
   const [title, setTitle] = useState("");
+
+  // District Admin fields
+  const [districtName, setDistrictName] = useState("");
+  const [districtTitle, setDistrictTitle] = useState("");
+  const [districtState, setDistrictState] = useState("");
 
   const [loading, setLoading] = useState(false);
 
@@ -94,6 +100,31 @@ export default function CreateSystemUserClient() {
         }
       }
 
+      // District Admin validation
+      if (accountType === "DistrictAdmin") {
+        if (!districtName.trim()) {
+          toast({
+            title: "District Required",
+            description: "Please enter a district name.",
+          });
+          return;
+        }
+        if (!districtTitle.trim()) {
+          toast({
+            title: "Title Required",
+            description: "Please enter a title for this District Admin.",
+          });
+          return;
+        }
+        if (!districtState.trim()) {
+          toast({
+            title: "State Required",
+            description: "Please select a state.",
+          });
+          return;
+        }
+      }
+
       if (!currentUser) {
         toast({
           title: "Not Authorized",
@@ -121,6 +152,9 @@ export default function CreateSystemUserClient() {
           regionName: accountType === "RegionalAdmin" ? regionName : null,
           state: accountType === "RegionalAdmin" ? state : null,
           title: accountType === "RegionalAdmin" ? title : null,
+          districtName: accountType === "DistrictAdmin" ? districtName : null,
+          districtTitle: accountType === "DistrictAdmin" ? districtTitle : null,
+          districtState: accountType === "DistrictAdmin" ? districtState : null,
         }),
       });
 
@@ -254,6 +288,48 @@ export default function CreateSystemUserClient() {
               <div className="space-y-2">
                 <Label>State</Label>
                 <Select value={state} onValueChange={setState}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a state" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {US_STATES.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
+
+          {/* District Admin Fields */}
+          {accountType === "DistrictAdmin" && (
+            <>
+              {/* Title */}
+              <div className="space-y-2">
+                <Label>Title</Label>
+                <Input
+                  placeholder="e.g., Bishop, Apostle, President"
+                  value={districtTitle}
+                  onChange={(e) => setDistrictTitle(e.target.value)}
+                />
+              </div>
+
+              {/* District Name */}
+              <div className="space-y-2">
+                <Label>District Name</Label>
+                <Input
+                  placeholder="e.g., Central District"
+                  value={districtName}
+                  onChange={(e) => setDistrictName(e.target.value)}
+                />
+              </div>
+
+              {/* State */}
+              <div className="space-y-2">
+                <Label>State</Label>
+                <Select value={districtState} onValueChange={setDistrictState}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a state" />
                   </SelectTrigger>

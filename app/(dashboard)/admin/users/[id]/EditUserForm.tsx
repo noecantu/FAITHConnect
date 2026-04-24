@@ -10,6 +10,17 @@ import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Button } from "@/app/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/app/components/ui/alert-dialog";
+import {
   Select,
   SelectTrigger,
   SelectValue,
@@ -31,7 +42,29 @@ async function updateUser(input: any) {
     body: JSON.stringify(input),
   });
 
-  return res.json();
+  const data = await res.json().catch(() => ({ error: "Failed to update user." }));
+
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to update user.");
+  }
+
+  return data;
+}
+
+async function deleteUser(uid: string) {
+  const res = await fetch("/api/system-users/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ uid }),
+  });
+
+  const data = await res.json().catch(() => ({ error: "Failed to delete system user." }));
+
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to delete system user.");
+  }
+
+  return data;
 }
 
 export default function EditUserForm({
@@ -70,7 +103,13 @@ export default function EditUserForm({
   // ⭐ NEW: Region name for Regional Admin
   const [regionName, setRegionName] = useState("");
 
+  // ⭐ NEW: District name for District Admin
+  const [districtName, setDistrictName] = useState("");
+  const [districtTitle, setDistrictTitle] = useState("");
+  const [districtState, setDistrictState] = useState("");
+
   const [loading, setLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // ⭐ Load region name if user is already a Regional Admin
   useEffect(() => {
@@ -98,6 +137,32 @@ export default function EditUserForm({
 
     loadRegion();
   }, [systemRole, user?.regionId]);
+
+  // ⭐ Load district name if user is already a District Admin
+  useEffect(() => {
+    async function loadDistrict() {
+      if (systemRole !== "DistrictAdmin") return;
+
+      const did = (user as any)?.districtId;
+
+      if (typeof did !== "string" || did.trim().length < 10) return;
+
+      try {
+        const snap = await getDoc(doc(db, "districts", did));
+
+        if (snap.exists()) {
+          const data = snap.data();
+          setDistrictName(data.name || "");
+          setDistrictTitle(data.regionAdminTitle || "");
+          setDistrictState(data.state || "");
+        }
+      } catch (err) {
+        console.error("Failed to load district:", err);
+      }
+    }
+
+    loadDistrict();
+  }, [systemRole, (user as any)?.districtId]);
 
   function toggleRole(role: Role, checked: boolean) {
     if (checked) setRoles((prev) => [...prev, role]);
@@ -131,30 +196,80 @@ export default function EditUserForm({
         return;
       }
 
-      regionPayload = {
-        regionName,
-      };
+      regionPayload = { regionName };
     }
 
-    await updateUser({
-      userId,
-      firstName,
-      lastName,
-      email,
-      roles: isSystemUser ? [systemRole] : roles,
-      churchId: isSystemUser ? null : churchId,
-      actorUid,
-      actorName,
-      ...regionPayload,
-    });
+    // ⭐ If District Admin, district name is required
+    let districtPayload = null;
 
-    toast({
-      title: "User Updated",
-      description: "Changes saved successfully.",
-    });
+    if (systemRole === "DistrictAdmin") {
+      if (!districtName.trim()) {
+        toast({
+          title: "District Required",
+          description: "Please enter a district name for this District Admin.",
+        });
+        setLoading(false);
+        return;
+      }
 
-    router.refresh();
-    setLoading(false);
+      districtPayload = { districtName, districtTitle, districtState };
+    }
+
+    try {
+      await updateUser({
+        userId,
+        firstName,
+        lastName,
+        email,
+        roles: isSystemUser ? [systemRole] : roles,
+        churchId: isSystemUser ? null : churchId,
+        actorUid,
+        actorName,
+        ...regionPayload,
+        ...districtPayload,
+      });
+
+      toast({
+        title: "User Updated",
+        description: "Changes saved successfully.",
+      });
+
+      router.refresh();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to update user.";
+
+      toast({
+        title: "Update Failed",
+        description: message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDelete() {
+    setIsDeleting(true);
+
+    try {
+      await deleteUser(userId);
+
+      toast({
+        title: "User Deleted",
+        description: "The system user has been removed.",
+      });
+
+      router.push("/admin/users");
+      router.refresh();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to delete system user.";
+
+      toast({
+        title: "Delete Failed",
+        description: message,
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   return (
@@ -220,6 +335,38 @@ export default function EditUserForm({
               />
             </div>
           )}
+
+          {/* ⭐ District Name (only for District Admin) */}
+          {systemRole === "DistrictAdmin" && (
+            <>
+              <div className="space-y-2">
+                <Label>Title</Label>
+                <Input
+                  placeholder="e.g., Bishop, Apostle, President"
+                  value={districtTitle}
+                  onChange={(e) => setDistrictTitle(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>District Name</Label>
+                <Input
+                  placeholder="e.g., Central District"
+                  value={districtName}
+                  onChange={(e) => setDistrictName(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>State</Label>
+                <Input
+                  placeholder="e.g., Alabama"
+                  value={districtState}
+                  onChange={(e) => setDistrictState(e.target.value)}
+                />
+              </div>
+            </>
+          )}
         </>
       )}
 
@@ -255,6 +402,34 @@ export default function EditUserForm({
       <Button className="w-full" onClick={handleSave} disabled={loading}>
         {loading ? "Saving..." : "Save Changes"}
       </Button>
+
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="destructive"
+            className="w-full"
+            disabled={isDeleting || currentUser?.uid === userId}
+          >
+            {currentUser?.uid === userId
+              ? "Current User"
+              : isDeleting
+              ? "Deleting..."
+              : "Delete User"}
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this system user?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently deletes the login for {email}. Regional or district leaders with assigned entities must be reassigned first.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Confirm Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -18,6 +18,7 @@ import {
   Home,
   CalendarCheck,
   Activity,
+  MapPin,
 } from "lucide-react";
 import { useState } from "react";
 import { signOut } from "firebase/auth";
@@ -77,6 +78,7 @@ export function NavMenu() {
 
   // --- PERMISSIONS ---
   const isRootAdmin = can(typedRoles, "system.manage");
+  const isDistrictAdmin = typedRoles.includes("DistrictAdmin");
   const isRegionalAdmin = typedRoles.includes("RegionalAdmin");
   const isChurchAdmin = can(typedRoles, "church.manage") && !!churchId;
   const isChurchDisabled = church?.status === "disabled";
@@ -120,9 +122,17 @@ export function NavMenu() {
     { href: "/admin/settings", label: "System Settings", icon: Settings, exact: true },
   ];
 
+  const districtAdminMenu = [
+    { href: "/admin/district", label: "Dashboard", icon: Home, exact: true },
+    { href: "/admin/district/regions", label: "My Regions", icon: Users },
+    { href: "/admin/district/regions/pending", label: "Pending Regions", icon: FileText },
+    { href: "/admin/district/users", label: "District Users", icon: Users },
+  ];
+
   const regionalAdminMenu = [
     { href: "/admin/regional/churches", label: "Regional Churches", icon: Users },
     { href: "/admin/regional/users", label: "Regional Users", icon: Users },
+    { href: "/admin/regional/select-district", label: "My District", icon: MapPin },
   ];
 
   const churchAdminMenu = [
@@ -148,6 +158,8 @@ export function NavMenu() {
 
   const activeMenu = isRootAdmin
     ? rootAdminMenu
+    : isDistrictAdmin
+    ? districtAdminMenu
     : isRegionalAdmin
     ? regionalAdminMenu
     : isChurchAdmin
@@ -237,21 +249,19 @@ export function NavMenu() {
     startLogoutTransition();
 
     try {
+      await fetch("/api/auth/session/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
       await signOut(auth);
-      await fetch("/api/auth/logout", { method: "POST" });
-
+    } catch (error) {
+      console.error("logout error:", error);
       toast({
-        title: "Logged Out",
-        description: "You have been successfully logged out.",
+        title: "Logout failed",
+        description: "Please try again.",
       });
-
-      window.location.href = "/login";
-    } catch {
-      toast({
-        title: "Logout Failed",
-        description: "Could not log you out. Please try again.",
-      });
-
+    } finally {
       clearLogoutTransition();
     }
   };

@@ -26,12 +26,31 @@ service cloud.firestore {
       return request.auth.token.roles.hasAny(["RegionalAdmin"]);
     }
 
+    function isDistrictAdmin() {
+      return request.auth.token.roles.hasAny(["DistrictAdmin"]);
+    }
+
     function isSystemUser() {
       return request.auth.token.roles.hasAny([
         "RootAdmin",
         "SystemAdmin",
-        "RegionalAdmin"
+        "RegionalAdmin",
+        "DistrictAdmin"
       ]);
+    }
+
+    function managesRegion(regionId) {
+      let userDoc = getUserDoc();
+      return isRegionalAdmin()
+        && userDoc.data != null
+        && userDoc.data.regionId == regionId;
+    }
+
+    function managesDistrict(districtId) {
+      let userDoc = getUserDoc();
+      return isDistrictAdmin()
+        && userDoc.data != null
+        && userDoc.data.districtId == districtId;
     }
 
     // ============================================================
@@ -321,6 +340,42 @@ service cloud.firestore {
 
       // Allow reading any region (safe: no sensitive data)
       allow read: if request.auth != null;
+
+      // Regional Admin can request district assignment for their own region.
+      allow update: if managesRegion(regionId)
+        && request.resource.data.diff(resource.data)
+          .changedKeys().hasOnly([
+            "districtSelectedId",
+            "districtStatus",
+            "districtId",
+            "updatedAt"
+          ]);
+
+      // District Admin can reject pending requests targeting their own district.
+      allow update: if resource.data != null
+        && managesDistrict(resource.data.districtSelectedId)
+        && request.resource.data.diff(resource.data)
+          .changedKeys().hasOnly([
+            "districtStatus",
+            "updatedAt"
+          ]);
+
+      allow read, write: if isRootAdmin();
+    }
+
+    // ============================================================
+    // DISTRICTS COLLECTION
+    // ============================================================
+
+    match /districts/{districtId} {
+
+      // Allow browsing districts for Regional Admin district selection
+      allow list: if request.auth != null;
+
+      // Allow reading district metadata for selection and dashboards
+      allow read: if request.auth != null;
+
+      allow read, write: if isRootAdmin();
     }
   }
 }

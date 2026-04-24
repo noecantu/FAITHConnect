@@ -17,11 +17,13 @@ export function usePermissions() {
 
     isRootAdmin: hasRole("RootAdmin"),
     isSystemAdmin: hasRole("SystemAdmin"),
+    isDistrictAdmin: hasRole("DistrictAdmin"),
     isRegionalAdmin: hasRole("RegionalAdmin"),
     isSupport: hasRole("Support"),
     isAuditor: hasRole("Auditor"),
 
     regionId: user?.regionId ?? null,
+    districtId: user?.districtId ?? null,
     churchId: user?.churchId ?? null,
 
     // Permissions

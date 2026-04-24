@@ -22,6 +22,8 @@ export async function getCurrentUser(): Promise<AppUser | null> {
       lastName: data.lastName ?? null,
       profilePhotoUrl: data.profilePhotoUrl ?? null,
       churchId: data.churchId ?? null,
+      regionId: data.regionId ?? null,
+      districtId: data.districtId ?? null,
       roles: (data.roles ?? []) as Role[],
       settings: data.settings ?? {},
     };

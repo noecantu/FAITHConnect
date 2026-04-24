@@ -15,7 +15,10 @@ export async function POST(req: Request) {
       roles,
       regionName,
       state,
-      title, // NEW
+      title,
+      districtName,
+      districtTitle,
+      districtState,
     } = await req.json();
 
     // 1. Create Auth user
@@ -26,6 +29,7 @@ export async function POST(req: Request) {
     });
 
     let regionId = null;
+    let districtId = null;
 
     // 2. If Regional Admin, create region document using the new user's UID
     if (roles?.includes("RegionalAdmin") && regionName) {
@@ -36,7 +40,26 @@ export async function POST(req: Request) {
         state: state || null,
         regionAdminUid: userRecord.uid,
         regionAdminName: `${firstName} ${lastName}`.trim(),
-        regionAdminTitle: title || null, // NEW
+        regionAdminTitle: title || null,
+        createdBy: actorUid,
+        createdByName: actorName,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    }
+
+    // 2b. If District Admin, create district document using the new user's UID
+    if (roles?.includes("DistrictAdmin") && districtName) {
+      districtId = userRecord.uid;
+
+      await adminDb.collection("districts").doc(districtId).set({
+        name: districtName,
+        regionAdminId: userRecord.uid,
+        regionAdminUid: userRecord.uid,
+        regionAdminName: `${firstName} ${lastName}`.trim(),
+        regionAdminTitle: districtTitle || null,
+        state: districtState || null,
+        regionIds: [],
+        churchIds: [],
         createdBy: actorUid,
         createdByName: actorName,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -53,8 +76,12 @@ export async function POST(req: Request) {
       roles: roles || [],
       regionId: regionId,
       regionName: regionName || null,
-      regionAdminTitle: title || null, // NEW
+      regionAdminTitle: title || null,
       state: state || null,
+      districtId: districtId,
+      districtName: districtName || null,
+      districtTitle: districtTitle || null,
+      districtState: districtState || null,
       churchId: null,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
@@ -63,7 +90,8 @@ export async function POST(req: Request) {
     await adminAuth.setCustomUserClaims(userRecord.uid, {
       roles,
       regionId,
-      regionAdminTitle: title || null, // NEW
+      regionAdminTitle: title || null,
+      districtId,
     });
 
     // 5. Log system event
@@ -78,7 +106,9 @@ export async function POST(req: Request) {
         roles,
         regionId,
         regionName,
-        regionAdminTitle: title || null, // NEW
+        regionAdminTitle: title || null,
+        districtId,
+        districtName: districtName || null,
       },
     });
 
@@ -86,6 +116,7 @@ export async function POST(req: Request) {
       success: true,
       userId: userRecord.uid,
       regionId,
+      districtId,
     });
 
   } catch (err: any) {

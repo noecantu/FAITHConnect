@@ -2,6 +2,7 @@
 export const SYSTEM_ROLES = [
   "RootAdmin",
   "SystemAdmin",
+  "DistrictAdmin",
   "RegionalAdmin",
   "Support",
   "Auditor",
@@ -60,6 +61,7 @@ export const SYSTEM_ROLE_LIST: Role[] = [...SYSTEM_ROLES];
 export const ROLE_LABELS: Record<Role, string> = {
   RootAdmin: "Root Administrator",
   SystemAdmin: "System Administrator",
+  DistrictAdmin: "District Administrator",
   RegionalAdmin: "Regional Administrator",
   Support: "Support Staff",
   Auditor: "Auditor",

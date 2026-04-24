@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/hooks/useAuth";
+import { useToast } from "@/app/hooks/use-toast";
 
 import { PageHeader } from "@/app/components/page-header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
@@ -15,6 +17,17 @@ import {
   SelectItem,
 } from "@/app/components/ui/select";
 import { Button } from "@/app/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/app/components/ui/alert-dialog";
 
 import {
   SYSTEM_ROLES,
@@ -45,9 +58,52 @@ type UsersClientProps = {
 // -----------------------------
 export default function UsersClient({ users }: UsersClientProps) {
   const router = useRouter();
+  const { toast } = useToast();
+  const { user: currentUser } = useAuth();
 
   const [search, setSearch] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
+  const [deletingUid, setDeletingUid] = useState<string | null>(null);
+
+  async function deleteUser(uid: string) {
+    const res = await fetch("/api/system-users/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uid }),
+    });
+
+    const data = await res.json().catch(() => ({ error: "Failed to delete system user." }));
+
+    if (!res.ok) {
+      throw new Error(data.error || "Failed to delete system user.");
+    }
+
+    return data;
+  }
+
+  async function handleDelete(uid: string) {
+    setDeletingUid(uid);
+
+    try {
+      await deleteUser(uid);
+
+      toast({
+        title: "User Deleted",
+        description: "The system user has been removed.",
+      });
+
+      router.refresh();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to delete system user.";
+
+      toast({
+        title: "Delete Failed",
+        description: message,
+      });
+    } finally {
+      setDeletingUid(null);
+    }
+  }
 
   // Only system-level users
   const systemUsers = useMemo(
@@ -138,6 +194,7 @@ export default function UsersClient({ users }: UsersClientProps) {
                     <th className="text-left py-2 px-2">Email</th>
                     <th className="text-left py-2 px-2">Roles</th>
                     <th className="text-left py-2 px-2">Created</th>
+                    <th className="text-left py-2 px-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -160,6 +217,37 @@ export default function UsersClient({ users }: UsersClientProps) {
                         {u.createdAt
                           ? new Date(u.createdAt).toLocaleDateString()
                           : "—"}
+                      </td>
+                      <td className="py-2 px-2" onClick={(e) => e.stopPropagation()}>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              disabled={deletingUid === u.uid || currentUser?.uid === u.uid}
+                            >
+                              {currentUser?.uid === u.uid
+                                ? "Current User"
+                                : deletingUid === u.uid
+                                ? "Deleting..."
+                                : "Delete"}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete this system user?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This permanently deletes the login for {u.email}. Regional or district leaders with assigned entities must be reassigned first.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(u.uid)}>
+                                Confirm Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </td>
                     </tr>
                   ))}

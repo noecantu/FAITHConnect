@@ -15,6 +15,10 @@ export interface UpdateUserInput {
   churchId?: string | null;
   regionName?: string | null;
   regionId?: string | null;
+  districtName?: string | null;
+  districtId?: string | null;
+  districtTitle?: string | null;
+  districtState?: string | null;
   actorUid: string;
   actorName?: string | null;
 }
@@ -185,6 +189,71 @@ export async function updateUserAction(input: UpdateUserInput) {
   // Clear regionId if no longer RegionalAdmin
   if (newRoles && !newRoles.includes("RegionalAdmin")) {
     updates.regionId = null;
+  }
+
+  // DistrictAdmin district assignment
+  const hasDistrictAdmin = newRoles?.includes("DistrictAdmin");
+
+  if (newRoles && hasDistrictAdmin) {
+    const existingClaims = (await admin.auth().getUser(userId)).customClaims || {};
+    const existingRoles = existingClaims.roles || [];
+
+    await admin.auth().setCustomUserClaims(userId, {
+      ...existingClaims,
+      roles: Array.from(new Set([...existingRoles, "DistrictAdmin"]))
+    });
+
+    const districtName = input.districtName?.trim();
+
+    if (!districtName) {
+      throw new Error("District name required for District Admin.");
+    }
+
+    const districtSnap = await adminDb
+      .collection("districts")
+      .where("name", "==", districtName)
+      .limit(1)
+      .get();
+
+    let districtId: string;
+
+    if (!districtSnap.empty) {
+      const districtDoc = districtSnap.docs[0];
+      districtId = districtDoc.id;
+
+      await adminDb.collection("districts").doc(districtId).update({
+        regionAdminId: userId,
+        regionAdminUid: userId,
+        regionAdminName: `${before.firstName ?? ""} ${before.lastName ?? ""}`.trim(),
+        regionAdminTitle: input.districtTitle?.trim() ?? null,
+        state: input.districtState?.trim() ?? null,
+        regionIds: districtDoc.data().regionIds ?? [],
+        churchIds: districtDoc.data().churchIds ?? [],
+      });
+    } else {
+      const newDistrict = await adminDb.collection("districts").add({
+        name: districtName,
+        regionAdminId: userId,
+        regionAdminUid: userId,
+        regionAdminName: `${before.firstName ?? ""} ${before.lastName ?? ""}`.trim(),
+        regionAdminTitle: input.districtTitle?.trim() ?? null,
+        state: input.districtState?.trim() ?? null,
+        regionIds: [],
+        churchIds: [],
+        createdBy: actorUid,
+        createdByName: actorName ?? null,
+        createdAt: Date.now(),
+      });
+
+      districtId = newDistrict.id;
+    }
+
+    updates.districtId = districtId;
+  }
+
+  // Clear districtId if no longer DistrictAdmin
+  if (newRoles && !newRoles.includes("DistrictAdmin")) {
+    updates.districtId = null;
   }
 
   // ---------------------------------------

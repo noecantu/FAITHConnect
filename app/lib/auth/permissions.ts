@@ -16,6 +16,7 @@ export type Permission =
   | "attendance.manage"
   | "roles.assign"
   | "system.manage"
+  | "district.manage"
   | "region.manage"
   | "reports.read";
 
@@ -50,6 +51,19 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   ],
 
   RegionalAdmin: [
+    "region.manage",
+    "roles.assign",
+    "members.read",
+    "contributions.read",
+    "events.read",
+    "servicePlans.read",
+    "attendance.read",
+    "music.read",
+    "reports.read",
+  ],
+
+  DistrictAdmin: [
+    "district.manage",
     "region.manage",
     "roles.assign",
     "members.read",

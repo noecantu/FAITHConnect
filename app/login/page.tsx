@@ -82,6 +82,12 @@ export default function LoginPage() {
       }
 
       // Regional Admin
+      if (roles.includes("DistrictAdmin")) {
+        router.replace("/admin/district");
+        return;
+      }
+
+      // Regional Admin
       if (roles.includes("RegionalAdmin")) {
         router.replace("/admin/regional");
         return;

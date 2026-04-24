@@ -9,6 +9,8 @@ import { Separator } from "@/app/components/ui/separator";
 import {
   Building2,
   Users,
+  Map,
+  MapPinned,
   ShieldCheck,
   CalendarDays,
   ClipboardCheck,
@@ -70,6 +72,8 @@ function ToolCard({ href, icon, title, description }: ToolCardProps) {
 
 export default function AdminHomeClient({
   churchCount,
+  districtCount,
+  regionCount,
   userCount,
   adminCount,
   eventCount,
@@ -80,6 +84,8 @@ export default function AdminHomeClient({
   financeCount,
 }: {
   churchCount: number;
+  districtCount: number;
+  regionCount: number;
   userCount: number;
   adminCount: number;
   eventCount: number;
@@ -112,8 +118,10 @@ export default function AdminHomeClient({
             Platform
           </h2>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
           <StatCard icon={<Building2 className="h-4 w-4" />} label="Churches" value={churchCount} />
+          <StatCard icon={<MapPinned className="h-4 w-4" />} label="Districts" value={districtCount} />
+          <StatCard icon={<Map className="h-4 w-4" />} label="Regions" value={regionCount} />
           <StatCard icon={<Users className="h-4 w-4" />} label="Total Users" value={userCount} />
           <StatCard icon={<ShieldCheck className="h-4 w-4" />} label="Church Administrators" value={adminCount} />
           <StatCard icon={<UserCog className="h-4 w-4" />} label="Church Leaders" value={churchLeaderCount} />

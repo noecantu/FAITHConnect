@@ -329,6 +329,7 @@ export interface AppUser {
   email: string;
   churchId?: string | null;
   regionId?: string | null;
+  districtId?: string | null;
   roles?: Role[];
   rolesByChurch?: {
     [churchId: string]: Role[];
