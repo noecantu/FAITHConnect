@@ -245,12 +245,29 @@ export function generateContributionsPDF(
   rows: Record<string, any>[],     // <-- updated type
   selectedFields: string[],
   logoBase64?: string,
-  options?: { contextLines?: string[] }
+  options?: { contextLines?: string[]; fieldLabelOverrides?: Record<string, string> }
 ) {
+  const toNumber = (value: unknown): number => {
+    if (typeof value === "number") {
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    if (typeof value === "string") {
+      const normalized = value.replace(/[^0-9.-]/g, "");
+      const parsed = Number(normalized);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
   const datePrefix = format(new Date(), "yyyy-MM-dd");
 
   // Build column headers from selected fields
-  const tableColumn = selectedFields.map(f => contributionFieldLabelMap[f]);
+  const tableColumn = selectedFields.map(
+    (f) => options?.fieldLabelOverrides?.[f] ?? contributionFieldLabelMap[f] ?? capitalize(f)
+  );
 
   const orientation = tableColumn.length > 4 ? "landscape" : "portrait";
 
@@ -272,9 +289,9 @@ export function generateContributionsPDF(
   let tableStartY = 80;
 
   if (contextLines.length > 0) {
-    doc.setFontSize(9);
+    doc.setFontSize(10);
     contextLines.forEach((line, index) => {
-      doc.text(line, 40, 68 + index * 12);
+      doc.text(line, pageWidth / 2, 68 + index * 12, { align: "center" });
     });
     tableStartY = 68 + contextLines.length * 12 + 10;
   }
@@ -284,39 +301,81 @@ export function generateContributionsPDF(
     selectedFields.map(field => {
       const value = row[field];
 
-      if (field === "date") {
+      if (field === "date" && value) {
         return format(new Date(value), "MM/dd/yyyy");
       }
 
-      if (field === "amount") {
-        return `$${Number(value).toFixed(2)}`;
+      if (field === "amount" || field === "totalAmount" || field === "averageAmount") {
+        return `$${toNumber(value).toFixed(2)}`;
+      }
+
+      if (field === "contributionCount") {
+        return String(Number(value) || 0);
       }
 
       return value ?? "";
     })
   );
 
-  if (selectedFields.includes("amount")) {
+  const totalField = selectedFields.includes("amount")
+    ? "amount"
+    : selectedFields.includes("totalAmount")
+    ? "totalAmount"
+    : null;
+
+  if (totalField) {
     const totalAmount = rows.reduce((sum, row) => {
-      const value = Number(row.amount ?? 0);
-      return sum + (Number.isFinite(value) ? value : 0);
+      return sum + toNumber(row[totalField]);
     }, 0);
 
-    const totalRow = selectedFields.map((field) => {
-      if (field === "memberName") return "TOTAL";
-      if (field === "amount") return `$${totalAmount.toFixed(2)}`;
+    const totalRow = selectedFields.map((field, index) => {
+      if (field === totalField) return `$${totalAmount.toFixed(2)}`;
+      if (field === "memberName" || field === "group") return "TOTAL";
+      if (index === 0 && !selectedFields.includes("memberName") && !selectedFields.includes("group")) {
+        return "TOTAL";
+      }
       return "";
     });
 
     tableRows.push(totalRow);
   }
 
+  const totalRowIndex = totalField ? tableRows.length - 1 : -1;
+  const columnStyles: Record<number, { halign?: "left" | "center" | "right" }> = {};
+
+  selectedFields.forEach((field, index) => {
+    if (["amount", "totalAmount", "averageAmount"].includes(field)) {
+      columnStyles[index] = { halign: "right" };
+    } else if (field === "contributionCount") {
+      columnStyles[index] = { halign: "center" };
+    }
+  });
+
   autoTable(doc, {
     head: [tableColumn],
     body: tableRows,
     startY: tableStartY,
     styles: { fontSize: 10, cellWidth: "wrap" },
+    headStyles: { fontStyle: "bold", fillColor: [31, 41, 55] },
     alternateRowStyles: { fillColor: [245, 245, 245] },
+    columnStyles,
+    didParseCell: (hookData) => {
+      if (
+        totalRowIndex >= 0 &&
+        hookData.section === "body" &&
+        hookData.row.index === totalRowIndex
+      ) {
+        hookData.cell.styles.fontStyle = "bold";
+        hookData.cell.styles.fillColor = [255, 255, 255];
+        hookData.cell.styles.lineColor = [148, 163, 184];
+        (hookData.cell.styles as any).lineWidth = {
+          top: 1,
+          right: 0,
+          bottom: 0,
+          left: 0,
+        };
+      }
+    },
   });
 
   // Footer
@@ -350,8 +409,23 @@ export function generateContributionsPDF(
 export function generateContributionsExcel(
   rows: Record<string, any>[],      // <-- updated type
   selectedFields: string[],
-  options?: { contextLines?: string[] }
+  options?: { contextLines?: string[]; fieldLabelOverrides?: Record<string, string> }
 ) {
+  const toNumber = (value: unknown): number => {
+    if (typeof value === "number") {
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    if (typeof value === "string") {
+      const normalized = value.replace(/[^0-9.-]/g, "");
+      const parsed = Number(normalized);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
   const datePrefix = format(new Date(), "yyyy-MM-dd");
 
   const contextLines = options?.contextLines ?? [];
@@ -359,13 +433,16 @@ export function generateContributionsExcel(
     const excelRow: Record<string, string> = {};
 
     selectedFields.forEach(field => {
-      const label = contributionFieldLabelMap[field];
+      const label =
+        options?.fieldLabelOverrides?.[field] ?? contributionFieldLabelMap[field] ?? capitalize(field);
       const value = row[field];
 
-      if (field === "date") {
+      if (field === "date" && value) {
         excelRow[label] = format(new Date(value), "MM/dd/yyyy");
-      } else if (field === "amount") {
-        excelRow[label] = String(value);
+      } else if (field === "amount" || field === "totalAmount" || field === "averageAmount") {
+        excelRow[label] = `$${toNumber(value).toFixed(2)}`;
+      } else if (field === "contributionCount") {
+        excelRow[label] = String(toNumber(value));
       } else {
         excelRow[label] = value ?? "";
       }
@@ -373,6 +450,38 @@ export function generateContributionsExcel(
 
     return excelRow;
   });
+
+  const totalField = selectedFields.includes("amount")
+    ? "amount"
+    : selectedFields.includes("totalAmount")
+    ? "totalAmount"
+    : null;
+
+  if (totalField) {
+    const totalAmount = rows.reduce((sum, row) => {
+      return sum + toNumber(row[totalField]);
+    }, 0);
+
+    const totalRow: Record<string, string> = {};
+
+    selectedFields.forEach((field, index) => {
+      const label =
+        options?.fieldLabelOverrides?.[field] ?? contributionFieldLabelMap[field] ?? capitalize(field);
+      totalRow[label] = "";
+
+      if (field === totalField) {
+        totalRow[label] = `$${totalAmount.toFixed(2)}`;
+      }
+
+      if (field === "memberName" || field === "group") {
+        totalRow[label] = "TOTAL";
+      } else if (index === 0 && !selectedFields.includes("memberName") && !selectedFields.includes("group")) {
+        totalRow[label] = "TOTAL";
+      }
+    });
+
+    exportRows.push(totalRow);
+  }
 
   const worksheet = XLSX.utils.aoa_to_sheet([]);
 

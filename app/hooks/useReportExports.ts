@@ -2,6 +2,10 @@
 
 import { useCallback, useMemo } from 'react';
 import { Member, Contribution, AttendanceRecord } from '@/app/lib/types';
+import type {
+  ContributionBreakdown,
+  ContributionBreakdownRow,
+} from '@/app/hooks/useContributionReport';
 
 import {
   generateMembersPDF,
@@ -26,7 +30,11 @@ interface UseReportExportsProps {
   members: Member[];
   contributionExportContext?: {
     contextLines: string[];
+    fieldLabelOverrides?: Record<string, string>;
   };
+  contributionUseGroupedView?: boolean;
+  contributionBreakdownRows?: ContributionBreakdownRow[];
+  contributionBreakdown?: ContributionBreakdown;
 }
 
 export function useReportExports({
@@ -37,6 +45,9 @@ export function useReportExports({
   selectedFields,
   members,
   contributionExportContext,
+  contributionUseGroupedView = false,
+  contributionBreakdownRows = [],
+  contributionBreakdown = "member",
 }: UseReportExportsProps) {
 
   // -----------------------------------------
@@ -63,13 +74,63 @@ export function useReportExports({
   }, [filteredContributions, members]);
 
   const contributionExportRows = useMemo(() => {
+    if (contributionUseGroupedView) {
+      return contributionBreakdownRows.map((row) => ({
+        group: row.label,
+        totalAmount: row.totalAmount,
+        contributionCount: row.contributionCount,
+        averageAmount: row.averageAmount,
+      }));
+    }
+
+    if (selectedFields.length === 0) {
+      return contributionRows.map((row) => ({
+        memberName: row.memberName,
+        amount: row.amount,
+        date: row.date,
+        category: row.category,
+        contributionType: row.contributionType,
+        notes: row.notes,
+      }));
+    }
+
     return reduceContributionRowsForExport(contributionRows, selectedFields);
-  }, [contributionRows, selectedFields]);
+  }, [
+    contributionUseGroupedView,
+    contributionBreakdownRows,
+    contributionRows,
+    selectedFields,
+  ]);
 
   const contributionFieldsForExport = useMemo(() => {
+    if (contributionUseGroupedView) {
+      return ["group", "totalAmount", "contributionCount", "averageAmount"];
+    }
+
     if (selectedFields.length > 0) return selectedFields;
-    return ["memberName", "date", "amount", "category", "contributionType", "notes"];
-  }, [selectedFields]);
+    return ["memberName", "amount", "date", "category", "contributionType", "notes"];
+  }, [contributionUseGroupedView, selectedFields]);
+
+  const contributionFieldLabelOverrides = useMemo(() => {
+    if (contributionUseGroupedView) {
+      const breakdownLabel =
+        contributionBreakdown.charAt(0).toUpperCase() + contributionBreakdown.slice(1);
+
+      return {
+        ...(contributionExportContext?.fieldLabelOverrides ?? {}),
+        group: breakdownLabel,
+        totalAmount: "Total Amount",
+        contributionCount: "Contributions",
+        averageAmount: "Average Gift",
+      };
+    }
+
+    return contributionExportContext?.fieldLabelOverrides;
+  }, [
+    contributionUseGroupedView,
+    contributionBreakdown,
+    contributionExportContext?.fieldLabelOverrides,
+  ]);
 
   // -----------------------------------------
   // EXPORT PDF
@@ -87,7 +148,10 @@ export function useReportExports({
         contributionExportRows,
         contributionFieldsForExport,
         logoBase64,
-        contributionExportContext
+        {
+          contextLines: contributionExportContext?.contextLines,
+          fieldLabelOverrides: contributionFieldLabelOverrides,
+        }
       );
       return;
     }
@@ -104,6 +168,7 @@ export function useReportExports({
     contributionExportRows,
     contributionFieldsForExport,
     contributionExportContext,
+    contributionFieldLabelOverrides,
   ]);
 
   // -----------------------------------------
@@ -119,7 +184,10 @@ export function useReportExports({
       generateContributionsExcel(
         contributionExportRows,
         contributionFieldsForExport,
-        contributionExportContext
+        {
+          contextLines: contributionExportContext?.contextLines,
+          fieldLabelOverrides: contributionFieldLabelOverrides,
+        }
       );
       return;
     }
@@ -135,6 +203,7 @@ export function useReportExports({
     contributionExportRows,
     contributionFieldsForExport,
     contributionExportContext,
+    contributionFieldLabelOverrides,
   ]);
 
   return {

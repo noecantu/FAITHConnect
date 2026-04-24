@@ -220,40 +220,79 @@ export default function ReportsPage() {
     return filteredContributions.reduce((sum, contribution) => sum + contribution.amount, 0);
   }, [filteredContributions]);
 
-  const contributionExportContext = useMemo(() => {
-    const monthLabel =
-      timeFrame === "month" && selectedYear && selectedMonth
-        ? `${selectedYear}-${selectedMonth}`
-        : selectedYear ?? "All Years";
+  const reportSubtitle = useMemo(() => {
+    if (reportType === "contributions") {
+      const periodLabel =
+        timeFrame === "month"
+          ? selectedYear && selectedMonth
+            ? `${new Date(`${selectedYear}-${selectedMonth}-01`).toLocaleString("default", {
+                month: "long",
+              })} ${selectedYear}`
+            : "All Months"
+          : selectedYear
+          ? `Year ${selectedYear}`
+          : "All Years";
 
-    const scopedLabel = needsScopedContributions
-      ? isDistrictAdmin
-        ? "District Scope"
-        : "Regional Scope"
-      : "Church Scope";
+      const churchLabel =
+        needsScopedContributions
+          ? selectedChurches.length > 0
+            ? `${selectedChurches.length} church${selectedChurches.length === 1 ? "" : "es"}`
+            : "All churches"
+          : "Current church";
+
+      const memberLabel =
+        selectedMembers.length > 0
+          ? `${selectedMembers.length} member${selectedMembers.length === 1 ? "" : "s"}`
+          : "All members";
+
+      return `Contributions • ${periodLabel} • ${churchLabel} • ${memberLabel}`;
+    }
+
+    if (reportType === "attendance") {
+      const periodLabel =
+        timeFrame === "month"
+          ? selectedYear && selectedMonth
+            ? `${new Date(`${selectedYear}-${selectedMonth}-01`).toLocaleString("default", {
+                month: "long",
+              })} ${selectedYear}`
+            : "All Months"
+          : selectedYear
+          ? `Year ${selectedYear}`
+          : "All Years";
+
+      return `Attendance • ${periodLabel}`;
+    }
+
+    return "Members • Filter and export your directory data.";
+  }, [
+    reportType,
+    timeFrame,
+    selectedYear,
+    selectedMonth,
+    needsScopedContributions,
+    selectedChurches.length,
+    selectedMembers.length,
+  ]);
+
+  const contributionExportContext = useMemo(() => {
+    const timeframe =
+      timeFrame === "month"
+        ? selectedYear && selectedMonth
+          ? `${new Date(`${selectedYear}-${selectedMonth}-01`).toLocaleString("default", {
+              month: "long",
+            })} ${selectedYear}`
+          : "All Months"
+        : selectedYear
+        ? selectedYear
+        : "All Years";
 
     return {
-      contextLines: [
-        `Scope: ${scopedLabel}`,
-        `Breakdown: ${contributionBreakdown.charAt(0).toUpperCase()}${contributionBreakdown.slice(1)}`,
-        `Period: ${monthLabel}`,
-        `Churches: ${selectedChurchLabels.length > 0 ? selectedChurchLabels.join(", ") : "All"}`,
-        `Members: ${selectedMemberLabels.length > 0 ? selectedMemberLabels.join(", ") : "All"}`,
-        `Rows: ${contributionBreakdownRows.length}`,
-        `Total: $${contributionTotalAmount.toFixed(2)}`,
-      ],
+      contextLines: [`Timeframe: ${timeframe}`],
     };
   }, [
     timeFrame,
     selectedYear,
     selectedMonth,
-    needsScopedContributions,
-    isDistrictAdmin,
-    contributionBreakdown,
-    selectedChurchLabels,
-    selectedMemberLabels,
-    contributionBreakdownRows.length,
-    contributionTotalAmount,
   ]);
 
   // -------------------------------------------------------
@@ -267,6 +306,9 @@ export default function ReportsPage() {
     selectedFields,
     members,
     contributionExportContext,
+    contributionUseGroupedView: scopedContributionOnly,
+    contributionBreakdownRows,
+    contributionBreakdown,
   });
 
   // -------------------------------------------------------
@@ -286,16 +328,17 @@ export default function ReportsPage() {
   // 7. AUTO-SELECT YEAR/MONTH/WEEK
   // -------------------------------------------------------
   useEffect(() => {
-    if (availableYears.length > 0 && !selectedYear) {
-      setSelectedYear(availableYears[0]);
+    if (selectedYear && !availableYears.includes(selectedYear)) {
+      setSelectedYear(null);
+      setSelectedMonth(null);
     }
-  }, [timeFrame, availableYears]);
+  }, [selectedYear, availableYears]);
 
   useEffect(() => {
-    if (timeFrame === "month" && selectedYear && availableMonths.length > 0 && !selectedMonth) {
-      setSelectedMonth(availableMonths[availableMonths.length - 1]);
+    if (selectedMonth && !availableMonths.includes(selectedMonth)) {
+      setSelectedMonth(null);
     }
-  }, [timeFrame, selectedYear, availableMonths]);
+  }, [selectedMonth, availableMonths]);
 
   // -------------------------------------------------------
   // 8. EXPORT BUTTON VISIBILITY
@@ -335,7 +378,7 @@ export default function ReportsPage() {
     <>
       <PageHeader
         title="Reports"
-        subtitle="Select a report type below."
+        subtitle={reportSubtitle}
       >
         {canExport && (
           <div className="flex items-center gap-2">
