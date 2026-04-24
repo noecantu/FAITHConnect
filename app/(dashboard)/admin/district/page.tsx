@@ -8,9 +8,9 @@ import { usePermissions } from "@/app/hooks/usePermissions";
 import { PageHeader } from "@/app/components/page-header";
 import {
   DashboardApprovalBanner,
+  DashboardIdentityCard,
   DashboardMetricCard,
   DashboardQuickActionsCard,
-  DashboardSummaryCard,
 } from "@/app/components/ui/dashboard-cards";
 import {
   Activity,
@@ -20,6 +20,8 @@ import {
   MapPinned,
   Music4,
   Shield,
+  UserCheck,
+  UserCog,
   Users,
   Wallet,
 } from "lucide-react";
@@ -191,7 +193,6 @@ export default function DistrictDashboardPage() {
     return () => { active = false; };
   }, [districtId]);
 
-  const districtChips = [districtState, districtId ? `ID ${districtId.slice(0, 8)}...` : "No ID"].filter(Boolean) as string[];
   const quickActions = [
     { href: "/admin/district/regions", label: "View Regions", variant: "outline" as const },
     { href: "/admin/district/users", label: "View Regional Users", variant: "outline" as const },
@@ -232,23 +233,25 @@ export default function DistrictDashboardPage() {
         />
       )}
 
+      {/* Identity Header */}
+      <DashboardIdentityCard
+        eyebrow="District"
+        logoUrl={districtLogoUrl}
+        logoAlt={`${districtName} logo`}
+        fallback={districtName.split(" ").map((w) => w[0]?.toUpperCase()).join("").slice(0, 2) || "D"}
+        name={districtName}
+        subtitle={`${districtTitle ? `${districtTitle}: ` : "Admin: "}${districtAdminName || "District Admin"}`}
+        details={districtState ? [districtState] : []}
+        panelTitle="District Info"
+        panelRows={[
+          { label: "District ID", value: districtId ? `${districtId.slice(0, 8)}…` : "—" },
+          { label: "Approved Regions", value: String(regions.length) },
+          { label: "Pending", value: String(pendingCount), statusDot: pendingCount > 0 ? "amber" : null },
+        ]}
+      />
+
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
-
-        {/* District Info Card */}
-        <DashboardSummaryCard
-          eyebrow="District"
-          name={districtName}
-          subtitle={`${districtTitle ? `${districtTitle}: ` : "Admin: "}${districtAdminName || "District Admin"}`}
-          logoUrl={districtLogoUrl}
-          logoAlt={`${districtName} logo`}
-          fallback={districtName
-            .split(" ")
-            .map((word) => word[0]?.toUpperCase())
-            .join("")
-            .slice(0, 2)}
-          chips={districtChips}
-        />
 
         {/* Regions */}
         <DashboardMetricCard
@@ -270,23 +273,23 @@ export default function DistrictDashboardPage() {
         <DashboardMetricCard
           title="Members"
           value={metrics.memberCount}
-          description="Members across district churches"
-          icon={<Users className="h-4 w-4 text-cyan-500" />}
+          description="Active members across district churches"
+          icon={<UserCheck className="h-4 w-4 text-cyan-500" />}
         />
 
         {/* Users */}
         <DashboardMetricCard
           title="Users"
           value={metrics.userCount}
-          description="Users in churches within this district"
-          icon={<Users className="h-4 w-4 text-blue-500" />}
+          description="User accounts tied to district churches"
+          icon={<UserCog className="h-4 w-4 text-blue-500" />}
         />
 
         {/* Admins */}
         <DashboardMetricCard
           title="Admins"
           value={metrics.adminCount}
-          description="Church admins in this district"
+          description="User accounts with Admin access"
           icon={<Shield className="h-4 w-4 text-fuchsia-500" />}
         />
 
@@ -303,10 +306,10 @@ export default function DistrictDashboardPage() {
         <DashboardMetricCard title="Setlists" value={metrics.setlistCount} description="Setlists across district churches" icon={<ListMusic className="h-4 w-4 text-emerald-500" />} />
 
         {/* Church Leaders */}
-        <DashboardMetricCard title="Church Leaders" value={metrics.churchLeaderCount} description="Approved churches with leader info" icon={<Users className="h-4 w-4 text-blue-500" />} />
+        <DashboardMetricCard title="Church Leaders" value={metrics.churchLeaderCount} description="Approved churches with leadership assigned" icon={<Users className="h-4 w-4 text-blue-500" />} />
 
         {/* Finance Managers */}
-        <DashboardMetricCard title="Finance Managers" value={metrics.financeCount} description="Users with Finance role in district churches" icon={<Wallet className="h-4 w-4 text-teal-500" />} />
+        <DashboardMetricCard title="Finance Managers" value={metrics.financeCount} description="User accounts with Finance access" icon={<Wallet className="h-4 w-4 text-teal-500" />} />
       </div>
 
       {/* Quick Actions */}

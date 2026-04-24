@@ -1,6 +1,99 @@
 import Link from "next/link";
-import { Card } from "@/app/components/ui/card";
+import { Card, CardContent } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
+
+interface DashboardIdentityCardPanelRow {
+  label: string;
+  value: string;
+  statusDot?: "green" | "rose" | "amber" | null;
+}
+
+interface DashboardIdentityCardProps {
+  eyebrow: string;
+  logoUrl?: string | null;
+  logoAlt: string;
+  fallback: string;
+  name: string;
+  subtitle?: string | null;
+  details?: Array<string | null | undefined>;
+  panelTitle: string;
+  panelRows: DashboardIdentityCardPanelRow[];
+}
+
+export function DashboardIdentityCard({
+  eyebrow,
+  logoUrl,
+  logoAlt,
+  fallback,
+  name,
+  subtitle,
+  details = [],
+  panelTitle,
+  panelRows,
+}: DashboardIdentityCardProps) {
+  return (
+    <Card className="relative overflow-hidden border border-white/15 bg-gradient-to-br from-black/70 via-black/55 to-black/35 backdrop-blur-xl shadow-[0_14px_40px_rgba(0,0,0,0.28)]">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent" />
+      <CardContent className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 md:p-6">
+        {/* Left: Logo + Name */}
+        <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:text-left">
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logoUrl}
+              alt={logoAlt}
+              className="h-32 w-32 rounded-md object-cover border border-border bg-white ring-2 ring-primary/20 shadow-md"
+            />
+          ) : (
+            <div className="h-32 w-32 rounded-md bg-muted flex items-center justify-center text-2xl font-semibold text-muted-foreground border border-border">
+              {fallback}
+            </div>
+          )}
+
+          <div>
+            <p className="text-xs uppercase tracking-[0.16em] text-white/60 mb-1">{eyebrow}</p>
+            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">{name}</h2>
+            {subtitle && (
+              <p className="text-lg font-medium text-muted-foreground">{subtitle}</p>
+            )}
+            {details.filter(Boolean).map((detail, i) => (
+              <p key={i} className="text-sm text-muted-foreground">{detail}</p>
+            ))}
+          </div>
+        </div>
+
+        {/* Right: Info Panel */}
+        <div className="w-full md:w-auto md:min-w-[240px] rounded-xl border border-white/15 bg-white/[0.03] p-3 backdrop-blur-sm">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-white/60">{panelTitle}</p>
+          <div className="mt-2 space-y-2">
+            {panelRows.map((row, i) => (
+              <div
+                key={i}
+                className={`flex items-center justify-between gap-4${i > 0 ? " border-t border-white/10 pt-2" : ""}`}
+              >
+                <span className="text-xs text-white/65">{row.label}</span>
+                <span className={`inline-flex items-center gap-2 text-xs font-medium text-white/85`}>
+                  {row.statusDot && (
+                    <span
+                      className={`h-2 w-2 rounded-full ${
+                        row.statusDot === "green"
+                          ? "bg-emerald-300"
+                          : row.statusDot === "rose"
+                          ? "bg-rose-300"
+                          : "bg-amber-300"
+                      }`}
+                    />
+                  )}
+                  {row.value}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 interface DashboardSummaryCardProps {
   eyebrow: string;

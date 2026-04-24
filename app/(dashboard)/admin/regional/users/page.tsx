@@ -6,6 +6,7 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { getUsersByChurchIds } from '@/app/lib/regional-users';
+import { PageHeader } from '@/app/components/page-header';
 import Link from 'next/link';
 
 type RegionalChurch = {
@@ -107,12 +108,10 @@ export default function RegionalUsersPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Regional Users</h1>
-        <p className="text-muted-foreground">
-          Users belonging to churches in your region.
-        </p>
-      </div>
+      <PageHeader
+        title="Regional Users"
+        subtitle="User accounts belonging to churches in your region."
+      />
 
       {(churchesLoading || usersLoading) && (
         <div className="text-muted-foreground">Loading users…</div>

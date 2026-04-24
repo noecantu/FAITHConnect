@@ -7,7 +7,7 @@ import {
   CardContent,
 } from "@/app/components/ui/card";
 import { Separator } from "@/app/components/ui/separator";
-import { DashboardMetricCard } from "@/app/components/ui/dashboard-cards";
+import { DashboardIdentityCard, DashboardMetricCard } from "@/app/components/ui/dashboard-cards";
 import {
   Building2,
   Users,
@@ -104,7 +104,20 @@ export default function AdminHomeClient({
         subtitle="System-wide overview and administrative controls."
       />
 
-      <Separator />
+      {/* Platform Identity */}
+      <DashboardIdentityCard
+        eyebrow="Platform"
+        logoUrl={null}
+        logoAlt="FAITH Connect"
+        fallback="FC"
+        name="FAITH Connect"
+        subtitle="System Administration"
+        panelTitle="System Access"
+        panelRows={[
+          { label: "Access Level", value: "Root Admin", statusDot: "green" },
+          { label: "Permissions", value: "Full Platform" },
+        ]}
+      />
 
       {/* Platform Stats */}
       <section className="space-y-4">

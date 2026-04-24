@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
+import { collection, doc, query, where, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase/client';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { countPresentAttendanceEntries } from '@/app/lib/attendance-count';
@@ -10,9 +10,9 @@ import { getUsersByChurchIds } from '@/app/lib/regional-users';
 import { PageHeader } from '@/app/components/page-header';
 import {
   DashboardApprovalBanner,
+  DashboardIdentityCard,
   DashboardMetricCard,
   DashboardQuickActionsCard,
-  DashboardSummaryCard,
 } from '@/app/components/ui/dashboard-cards';
 import {
   Activity,
@@ -21,6 +21,8 @@ import {
   ListMusic,
   Music4,
   Shield,
+  UserCheck,
+  UserCog,
   Users,
   Wallet,
 } from 'lucide-react';
@@ -141,17 +143,16 @@ export default function RegionalDashboardPage() {
     if (!regionId) return;
 
     const unsub = onSnapshot(
-      collection(db, 'regions'),
+      doc(db, 'regions', regionId),
       (snap) => {
-        const regionDoc = snap.docs.find((d) => d.id === regionId);
-        if (regionDoc) {
-          const data = regionDoc.data();
+        if (snap.exists()) {
+          const data = snap.data();
           setRegionName(data.name || 'Unknown Region');
           setRegionAdminName(data.regionAdminName || 'Unknown Admin');
           setRegionLogoUrl(data.logoUrl ?? null);
         }
       },
-      (error) => { if ((error as { code?: string }).code !== 'permission-denied') console.error('regions snapshot error:', error); }
+      (error) => { if ((error as { code?: string }).code !== 'permission-denied') console.error('region details snapshot error:', error); }
     );
 
     return () => unsub();
@@ -243,7 +244,6 @@ export default function RegionalDashboardPage() {
 
     return hasLeaderName || hasLeaderTitle;
   }).length;
-  const regionChips = [regionId ? `ID ${regionId.slice(0, 8)}...` : 'No ID'];
   const quickActions = [
     { href: '/admin/regional/churches', label: 'View Regional Churches', variant: 'outline' as const },
     { href: '/admin/regional/users', label: 'View Regional Users', variant: 'outline' as const },
@@ -294,35 +294,36 @@ export default function RegionalDashboardPage() {
         />
       )}
 
+      {/* Identity Header */}
+      <DashboardIdentityCard
+        eyebrow="Region"
+        logoUrl={regionLogoUrl}
+        logoAlt={`${regionName} logo`}
+        fallback={regionName.split(' ').map((w) => w[0]?.toUpperCase()).join('').slice(0, 2) || 'R'}
+        name={regionName}
+        subtitle={regionAdminName || 'Regional Admin'}
+        panelTitle="Region Info"
+        panelRows={[
+          { label: 'Region ID', value: regionId ? `${regionId.slice(0, 8)}…` : '—' },
+          { label: 'Approved Churches', value: String(approvedChurches.length) },
+          { label: 'Pending', value: String(pendingCount), statusDot: pendingCount > 0 ? 'amber' : null },
+        ]}
+      />
+
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
         
-        {/* Region Card */}
-        <DashboardSummaryCard
-          eyebrow="Region"
-          name={regionName}
-          subtitle={regionAdminName || 'Regional Admin'}
-          logoUrl={regionLogoUrl}
-          logoAlt={`${regionName} logo`}
-          fallback={regionName
-            .split(' ')
-            .map((word) => word[0]?.toUpperCase())
-            .join('')
-            .slice(0, 2)}
-          chips={regionChips}
-        />
-
         {/* Active Churches */}
         <DashboardMetricCard title="Churches" value={approvedChurches.length} description="Approved churches in this region" icon={<Building2 className="h-4 w-4 text-emerald-500" />} />
 
         {/* Members */}
-        <DashboardMetricCard title="Members" value={memberCount} description="Members across region churches" icon={<Users className="h-4 w-4 text-cyan-500" />} />
+        <DashboardMetricCard title="Members" value={memberCount} description="Active members across region churches" icon={<UserCheck className="h-4 w-4 text-cyan-500" />} />
 
         {/* Users */}
-        <DashboardMetricCard title="Users" value={users.length} description="Users in churches within this region" icon={<Users className="h-4 w-4 text-blue-500" />} />
+        <DashboardMetricCard title="Users" value={users.length} description="User accounts tied to region churches" icon={<UserCog className="h-4 w-4 text-blue-500" />} />
 
         {/* Admins */}
-        <DashboardMetricCard title="Admins" value={adminCount} description="Church admins in this region" icon={<Shield className="h-4 w-4 text-fuchsia-500" />} />
+        <DashboardMetricCard title="Admins" value={adminCount} description="User accounts with Admin access" icon={<Shield className="h-4 w-4 text-fuchsia-500" />} />
 
         {/* Events */}
         <DashboardMetricCard title="Events" value={eventCount} description="Events across region churches" icon={<Calendar className="h-4 w-4 text-sky-500" />} />
@@ -337,10 +338,10 @@ export default function RegionalDashboardPage() {
         <DashboardMetricCard title="Setlists" value={setlistCount} description="Setlists across region churches" icon={<ListMusic className="h-4 w-4 text-emerald-500" />} />
 
         {/* Church Leaders */}
-        <DashboardMetricCard title="Church Leaders" value={churchLeaderCount} description="Approved churches with leader info" icon={<Users className="h-4 w-4 text-blue-500" />} />
+        <DashboardMetricCard title="Church Leaders" value={churchLeaderCount} description="Approved churches with leadership assigned" icon={<Users className="h-4 w-4 text-blue-500" />} />
 
         {/* Finance Managers */}
-        <DashboardMetricCard title="Finance Managers" value={financeCount} description="Users with Finance role in region churches" icon={<Wallet className="h-4 w-4 text-teal-500" />} />
+        <DashboardMetricCard title="Finance Managers" value={financeCount} description="User accounts with Finance access" icon={<Wallet className="h-4 w-4 text-teal-500" />} />
       </div>
 
       {/* Quick Actions */}
