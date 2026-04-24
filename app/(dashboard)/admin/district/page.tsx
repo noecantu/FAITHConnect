@@ -7,7 +7,6 @@ import { db } from "@/app/lib/firebase/client";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { PageHeader } from "@/app/components/page-header";
 import {
-  DashboardApprovalBanner,
   DashboardIdentityCard,
   DashboardMetricCard,
   DashboardQuickActionsCard,
@@ -220,19 +219,6 @@ export default function DistrictDashboardPage() {
         subtitle="Overview of regions, churches, users, and activity across your district."
       />
 
-      {/* Pending Regions Alert */}
-      {pendingCount > 0 && (
-        <DashboardApprovalBanner
-          eyebrow="Approval Queue"
-          title="Regions Pending Approval"
-          description={`${pendingCount} region${pendingCount === 1 ? " is" : "s are"} waiting for district approval.`}
-          count={pendingCount}
-          countLabel="Pending"
-          href="/admin/district/regions/pending"
-          actionLabel="Review Requests"
-        />
-      )}
-
       {/* Identity Header */}
       <DashboardIdentityCard
         eyebrow="District"
@@ -246,7 +232,7 @@ export default function DistrictDashboardPage() {
         panelRows={[
           { label: "District ID", value: districtId ? `${districtId.slice(0, 8)}…` : "—" },
           { label: "Approved Regions", value: String(regions.length) },
-          { label: "Pending", value: String(pendingCount), statusDot: pendingCount > 0 ? "amber" : null },
+          { label: "Pending", value: String(pendingCount), highlighted: pendingCount > 0, href: pendingCount > 0 ? "/admin/district/regions/pending" : undefined },
         ]}
       />
 

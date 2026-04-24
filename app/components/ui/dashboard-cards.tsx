@@ -6,6 +6,8 @@ interface DashboardIdentityCardPanelRow {
   label: string;
   value: string;
   statusDot?: "green" | "rose" | "amber" | null;
+  highlighted?: boolean;
+  href?: string;
 }
 
 interface DashboardIdentityCardProps {
@@ -66,28 +68,47 @@ export function DashboardIdentityCard({
         <div className="w-full md:w-auto md:min-w-[240px] rounded-xl border border-white/15 bg-white/[0.03] p-3 backdrop-blur-sm">
           <p className="text-[11px] uppercase tracking-[0.16em] text-white/60">{panelTitle}</p>
           <div className="mt-2 space-y-2">
-            {panelRows.map((row, i) => (
-              <div
-                key={i}
-                className={`flex items-center justify-between gap-4${i > 0 ? " border-t border-white/10 pt-2" : ""}`}
-              >
-                <span className="text-xs text-white/65">{row.label}</span>
-                <span className={`inline-flex items-center gap-2 text-xs font-medium text-white/85`}>
-                  {row.statusDot && (
-                    <span
-                      className={`h-2 w-2 rounded-full ${
-                        row.statusDot === "green"
-                          ? "bg-emerald-300"
-                          : row.statusDot === "rose"
-                          ? "bg-rose-300"
-                          : "bg-amber-300"
-                      }`}
-                    />
-                  )}
-                  {row.value}
-                </span>
-              </div>
-            ))}
+            {panelRows.map((row, i) => {
+              const rowContent = (
+                <>
+                  <span className={`text-xs ${row.highlighted ? "text-yellow-200/80" : "text-white/65"}`}>{row.label}</span>
+                  <span className={`inline-flex items-center gap-2 text-xs font-semibold ${row.highlighted ? "text-yellow-300" : "text-white/85"}`}>
+                    {row.statusDot && (
+                      <span
+                        className={`h-2 w-2 rounded-full ${
+                          row.statusDot === "green"
+                            ? "bg-emerald-300"
+                            : row.statusDot === "rose"
+                            ? "bg-rose-300"
+                            : "bg-amber-300"
+                        }`}
+                      />
+                    )}
+                    {row.value}
+                  </span>
+                </>
+              );
+
+              if (row.highlighted) {
+                const cls = `flex items-center justify-between gap-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-2.5 py-1.5${i > 0 ? " mt-2" : ""}`;
+                return row.href ? (
+                  <Link key={i} href={row.href} className={`${cls} hover:bg-yellow-500/20 transition-colors`}>
+                    {rowContent}
+                  </Link>
+                ) : (
+                  <div key={i} className={cls}>{rowContent}</div>
+                );
+              }
+
+              return (
+                <div
+                  key={i}
+                  className={`flex items-center justify-between gap-4${i > 0 ? " border-t border-white/10 pt-2" : ""}`}
+                >
+                  {rowContent}
+                </div>
+              );
+            })}
           </div>
         </div>
       </CardContent>

@@ -9,7 +9,6 @@ import { countPresentAttendanceEntries } from '@/app/lib/attendance-count';
 import { getUsersByChurchIds } from '@/app/lib/regional-users';
 import { PageHeader } from '@/app/components/page-header';
 import {
-  DashboardApprovalBanner,
   DashboardIdentityCard,
   DashboardMetricCard,
   DashboardQuickActionsCard,
@@ -282,18 +281,6 @@ export default function RegionalDashboardPage() {
         subtitle="Overview of churches, users, and ministry activity in your region."
       />
 
-      {pendingCount > 0 && (
-        <DashboardApprovalBanner
-          eyebrow="Approval Queue"
-          title="Churches Pending Approval"
-          description={`${pendingCount} church${pendingCount === 1 ? ' is' : 'es are'} waiting for regional approval.`}
-          count={pendingCount}
-          countLabel="Pending"
-          href="/admin/regional/churches/pending"
-          actionLabel="Review Requests"
-        />
-      )}
-
       {/* Identity Header */}
       <DashboardIdentityCard
         eyebrow="Region"
@@ -306,7 +293,7 @@ export default function RegionalDashboardPage() {
         panelRows={[
           { label: 'Region ID', value: regionId ? `${regionId.slice(0, 8)}…` : '—' },
           { label: 'Approved Churches', value: String(approvedChurches.length) },
-          { label: 'Pending', value: String(pendingCount), statusDot: pendingCount > 0 ? 'amber' : null },
+          { label: 'Pending', value: String(pendingCount), highlighted: pendingCount > 0, href: pendingCount > 0 ? '/admin/regional/churches/pending' : undefined },
         ]}
       />
 
