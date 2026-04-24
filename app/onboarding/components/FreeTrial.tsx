@@ -7,8 +7,8 @@ import { Card } from "@/app/components/ui/card";
 
 const perks = [
   "Full access to all features",
-  "No credit card required",
   "Set up your church in minutes",
+  "Charged after the trial ends",
   "Cancel anytime",
 ];
 
@@ -24,8 +24,8 @@ export default function FreeTrial() {
         viewport={{ once: true }}
         className="text-center mb-8"
       >
-        <span className="block mt-4 text-3xl md:text-5xl font-extrabold leading-tight bg-gradient-to-r from-cyan-200 via-white to-blue-300 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(56,189,248,0.35)]">
-          Try FAITH Connect Free
+        <span className="block mt-4 pb-1 text-3xl md:text-5xl font-extrabold leading-[1.1] bg-gradient-to-r from-cyan-200 via-white to-blue-300 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(56,189,248,0.35)]">
+          Try Before You Buy
         </span>
         <span className="mx-auto mt-3 block h-1 w-28 rounded-full bg-gradient-to-r from-blue-500 via-cyan-300 to-blue-500" />
       </motion.h2>
@@ -54,8 +54,8 @@ export default function FreeTrial() {
             <span className="inline-block rounded-full border border-cyan-300/35 bg-cyan-300/10 px-4 py-1 text-[11px] md:text-xs font-semibold tracking-[0.24em] uppercase text-cyan-100/90 mb-6 mx-auto">
               Free Trial
             </span>
-            <p className="text-xl text-white/70 mb-6">
-              Get 30 days of full access — completely free. You won't be charged until the trial ends. Cancel any time.
+            <p className="text-2xl text-white/70 mb-6">
+              Get 30 days of full access — completely free.
             </p>
 
             <ul className="inline-flex flex-col items-start gap-3 text-white/80 mx-auto w-fit">
