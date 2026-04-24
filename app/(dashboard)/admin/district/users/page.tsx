@@ -2,10 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
 import { usePermissions } from "@/app/hooks/usePermissions";
-import { getUsersByChurchIds } from "@/app/lib/regional-users";
 import { PageHeader } from "@/app/components/page-header";
 import { Input } from "@/app/components/ui/input";
 import {
@@ -42,49 +39,20 @@ export default function DistrictUsersPage() {
     const loadUsers = async () => {
       setLoading(true);
       try {
-        // 1. Load regions in this district
-        const regionsSnap = await getDocs(
-          query(collection(db, "regions"), where("districtId", "==", districtId))
-        );
-        const regionIds = regionsSnap.docs.map((d) => d.id);
+        const res = await fetch(`/api/district/users?districtId=${encodeURIComponent(districtId)}`, {
+          credentials: "include",
+          cache: "no-store",
+        });
 
-        if (regionIds.length === 0) {
-          if (active) { setUsers([]); setLoading(false); }
-          return;
+        if (!res.ok) {
+          throw new Error(`Failed to load district users (${res.status})`);
         }
 
-        // 2. Load churches in those regions
-        const churchIds: string[] = [];
-        const churchNameMap: Record<string, string> = {};
-
-        await Promise.all(
-          regionIds.map(async (rid) => {
-            const churchSnap = await getDocs(
-              query(collection(db, "churches"), where("regionId", "==", rid))
-            );
-            churchSnap.docs.forEach((d) => {
-              churchIds.push(d.id);
-              churchNameMap[d.id] = d.data().name || d.id;
-            });
-          })
-        );
-
-        if (churchIds.length === 0) {
-          if (active) { setUsers([]); setLoading(false); }
-          return;
-        }
-
-        // 3. Load users in those churches
-        const rawUsers = await getUsersByChurchIds(churchIds);
+        const data = (await res.json()) as { users?: DistrictUser[] };
 
         if (!active) return;
 
-        const enriched: DistrictUser[] = rawUsers.map((u) => ({
-          ...u,
-          churchName: u.churchId ? (churchNameMap[u.churchId] ?? u.churchId) : undefined,
-        }));
-
-        setUsers(enriched);
+        setUsers(Array.isArray(data.users) ? data.users : []);
       } catch (err) {
         console.error("Error loading district users:", err);
         if (active) setUsers([]);
@@ -123,8 +91,8 @@ export default function DistrictUsersPage() {
   return (
     <>
       <PageHeader
-        title="District Members"
-        subtitle="All users across churches in your district."
+        title="Regional Users"
+        subtitle="All user accounts across churches in your district's regions."
       />
 
       <div className="mb-4">
@@ -137,9 +105,9 @@ export default function DistrictUsersPage() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground">Loading members…</p>
+        <p className="text-sm text-muted-foreground">Loading users…</p>
       ) : filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No members found.</p>
+        <p className="text-sm text-muted-foreground">No users found.</p>
       ) : (
         <Table>
           <TableHeader>

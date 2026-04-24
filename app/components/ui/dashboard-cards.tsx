@@ -238,32 +238,36 @@ export function DashboardApprovalRequestCard({
   rejectLabel = "Reject",
 }: DashboardApprovalRequestCardProps) {
   return (
-    <Card className="p-5 bg-black/60 border-white/15 backdrop-blur-xl shadow-[0_10px_24px_rgba(0,0,0,0.18)] space-y-4">
-      <div className="flex items-center gap-4">
+    <Card className="relative flex flex-col overflow-hidden bg-black/80 backdrop-blur-xl border border-white/10 shadow-[0_10px_24px_rgba(0,0,0,0.22)]">
+      {/* Top logo / image section */}
+      <div className="relative aspect-[4/3] w-full flex items-center justify-center bg-white/5 border-b border-white/10">
         {logoUrl ? (
           <img
             src={logoUrl}
             alt={logoAlt}
-            className="h-16 w-16 shrink-0 rounded-lg object-cover border border-white/20 bg-black/30"
+            className="w-full h-full object-cover"
           />
         ) : (
-          <div className="h-16 w-16 shrink-0 rounded-lg bg-white/5 flex items-center justify-center text-sm font-semibold text-white/75 border border-white/20">
-            {fallback}
+          <div className="flex flex-col items-center gap-2 text-white/30">
+            <span className="text-5xl font-bold tracking-wide">{fallback}</span>
+            <span className="text-xs uppercase tracking-widest">No Logo Added</span>
           </div>
         )}
-
-        <div className="min-w-0">
-          <p className="text-lg font-semibold truncate">{name}</p>
-          {subtitle ? <p className="text-sm text-muted-foreground truncate">{subtitle}</p> : null}
-          {meta ? <p className="text-sm text-muted-foreground">{meta}</p> : null}
-        </div>
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <Button className="bg-green-600 text-white hover:bg-green-500" onClick={onApprove}>
+      {/* Name and details */}
+      <div className="px-5 pt-4 pb-1 min-w-0">
+        <p className="text-lg font-semibold truncate">{name}</p>
+        {subtitle ? <p className="text-sm text-muted-foreground truncate mt-0.5">{subtitle}</p> : null}
+        {meta ? <p className="text-sm text-muted-foreground mt-0.5">{meta}</p> : null}
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex gap-3 px-5 pt-3 pb-5">
+        <Button className="flex-1 bg-green-600 text-white hover:bg-green-500" onClick={onApprove}>
           {approveLabel}
         </Button>
-        <Button className="bg-red-600 text-white hover:bg-red-500" onClick={onReject}>
+        <Button className="flex-1 bg-red-600 text-white hover:bg-red-500" onClick={onReject}>
           {rejectLabel}
         </Button>
       </div>

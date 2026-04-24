@@ -49,6 +49,7 @@ export default function RegionalDashboardPage() {
   const [usersLoading, setUsersLoading] = useState(true);
   const [metricsLoading, setMetricsLoading] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
+  const [memberCount, setMemberCount] = useState(0);
   const [eventCount, setEventCount] = useState(0);
   const [checkinCount, setCheckinCount] = useState(0);
   const [musicItemCount, setMusicItemCount] = useState(0);
@@ -163,6 +164,7 @@ export default function RegionalDashboardPage() {
     const approvedChurches = churches.filter((church) => church.regionStatus === 'approved');
 
     if (approvedChurches.length === 0) {
+      setMemberCount(0);
       setEventCount(0);
       setCheckinCount(0);
       setMusicItemCount(0);
@@ -181,11 +183,12 @@ export default function RegionalDashboardPage() {
           approvedChurches.map(async (church) => {
             const churchId = church.id as string;
 
-            const [eventsSnap, attendanceSnap, musicItemsSnap, setlistsSnap] = await Promise.all([
+            const [eventsSnap, attendanceSnap, musicItemsSnap, setlistsSnap, membersSnap] = await Promise.all([
               getDocs(collection(db, 'churches', churchId, 'events')),
               getDocs(collection(db, 'churches', churchId, 'attendance')),
               getDocs(collection(db, 'churches', churchId, 'songs')),
               getDocs(collection(db, 'churches', churchId, 'setlists')),
+              getDocs(query(collection(db, 'churches', churchId, 'members'), where('status', '==', 'Active'))),
             ]);
 
             const attendanceTotal = attendanceSnap.docs.reduce(
@@ -198,12 +201,14 @@ export default function RegionalDashboardPage() {
               checkins: attendanceTotal,
               musicItems: musicItemsSnap.size,
               setlists: setlistsSnap.size,
+              members: membersSnap.size,
             };
           })
         );
 
         if (!active) return;
 
+        setMemberCount(metricsPerChurch.reduce((sum, metric) => sum + metric.members, 0));
         setEventCount(metricsPerChurch.reduce((sum, metric) => sum + metric.events, 0));
         setCheckinCount(metricsPerChurch.reduce((sum, metric) => sum + metric.checkins, 0));
         setMusicItemCount(metricsPerChurch.reduce((sum, metric) => sum + metric.musicItems, 0));
@@ -211,6 +216,7 @@ export default function RegionalDashboardPage() {
       } catch (error) {
         console.error('Error loading regional dashboard metrics:', error);
         if (active) {
+          setMemberCount(0);
           setEventCount(0);
           setCheckinCount(0);
           setMusicItemCount(0);
@@ -308,6 +314,9 @@ export default function RegionalDashboardPage() {
 
         {/* Active Churches */}
         <DashboardMetricCard title="Churches" value={approvedChurches.length} description="Approved churches in this region" icon={<Building2 className="h-4 w-4 text-emerald-500" />} />
+
+        {/* Members */}
+        <DashboardMetricCard title="Members" value={memberCount} description="Members across region churches" icon={<Users className="h-4 w-4 text-cyan-500" />} />
 
         {/* Users */}
         <DashboardMetricCard title="Users" value={users.length} description="Users in churches within this region" icon={<Users className="h-4 w-4 text-blue-500" />} />

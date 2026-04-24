@@ -2,11 +2,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, where, onSnapshot, getDocs } from "firebase/firestore";
+import { collection, doc, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/app/lib/firebase/client";
 import { usePermissions } from "@/app/hooks/usePermissions";
-import { countPresentAttendanceEntries } from "@/app/lib/attendance-count";
-import { getUsersByChurchIds } from "@/app/lib/regional-users";
 import { PageHeader } from "@/app/components/page-header";
 import {
   DashboardApprovalBanner,
@@ -27,8 +25,18 @@ import {
 } from "lucide-react";
 
 type DistrictRegion = { id: string; name: string };
-type DistrictChurch = { id: string; regionId?: string; regionStatus?: string; leaderName?: string | null; leaderTitle?: string | null };
-type DistrictUser = { uid: string; roles?: string[] };
+type DistrictDashboardMetrics = {
+  churchCount: number;
+  memberCount: number;
+  userCount: number;
+  adminCount: number;
+  financeCount: number;
+  churchLeaderCount: number;
+  eventCount: number;
+  checkinCount: number;
+  musicItemCount: number;
+  setlistCount: number;
+};
 
 export default function DistrictDashboardPage() {
   const { isDistrictAdmin, districtId, loading: permLoading } = usePermissions();
@@ -39,27 +47,31 @@ export default function DistrictDashboardPage() {
   const [districtTitle, setDistrictTitle] = useState("");
   const [districtLogoUrl, setDistrictLogoUrl] = useState<string | null>(null);
   const [regions, setRegions] = useState<DistrictRegion[]>([]);
-  const [churches, setChurches] = useState<DistrictChurch[]>([]);
-  const [users, setUsers] = useState<DistrictUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [usersLoading, setUsersLoading] = useState(true);
-  const [metricsLoading, setMetricsLoading] = useState(true);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
-  const [eventCount, setEventCount] = useState(0);
-  const [checkinCount, setCheckinCount] = useState(0);
-  const [musicItemCount, setMusicItemCount] = useState(0);
-  const [setlistCount, setSetlistCount] = useState(0);
+  const [metrics, setMetrics] = useState<DistrictDashboardMetrics>({
+    churchCount: 0,
+    memberCount: 0,
+    userCount: 0,
+    adminCount: 0,
+    financeCount: 0,
+    churchLeaderCount: 0,
+    eventCount: 0,
+    checkinCount: 0,
+    musicItemCount: 0,
+    setlistCount: 0,
+  });
 
   // Load district details
   useEffect(() => {
     if (!districtId) return;
 
     const unsub = onSnapshot(
-      collection(db, "districts"),
+      doc(db, "districts", districtId),
       (snap) => {
-        const d = snap.docs.find((doc) => doc.id === districtId);
-        if (d) {
-          const data = d.data();
+        if (snap.exists()) {
+          const data = snap.data();
           setDistrictName(data.name || "Your District");
           setDistrictAdminName(data.regionAdminName || "");
           setDistrictTitle(data.regionAdminTitle || "");
@@ -115,126 +127,74 @@ export default function DistrictDashboardPage() {
     return () => unsub();
   }, [districtId]);
 
-  // Load churches across all regions
+  // Load district-only aggregates through an admin-backed API because
+  // district admins cannot list churches/users/subcollections client-side.
   useEffect(() => {
-    if (loading) return;
-
-    if (regions.length === 0) {
-      setChurches([]);
-      return;
-    }
-
     let active = true;
 
     const load = async () => {
-      try {
-        const allChurches: DistrictChurch[] = [];
-
-        await Promise.all(
-          regions.map(async (region) => {
-            const snap = await getDocs(
-              query(collection(db, "churches"), where("regionId", "==", region.id))
-            );
-            snap.docs.forEach((d) => allChurches.push({ id: d.id, ...d.data() } as DistrictChurch));
-          })
-        );
-
-        if (active) setChurches(allChurches);
-      } catch (err) {
-        console.error("Error loading district churches:", err);
-        if (active) setChurches([]);
+      if (!districtId) {
+        if (active) setDashboardLoading(false);
+        return;
       }
-    };
 
-    load();
-    return () => { active = false; };
-  }, [regions, loading]);
+      setDashboardLoading(true);
 
-  // Load users
-  useEffect(() => {
-    if (churches.length === 0) {
-      setUsers([]);
-      setUsersLoading(false);
-      return;
-    }
-
-    let active = true;
-
-    const load = async () => {
-      setUsersLoading(true);
       try {
-        const result = await getUsersByChurchIds(churches.map((c) => c.id));
-        if (active) setUsers(result as DistrictUser[]);
-      } catch {
-        if (active) setUsers([]);
+        const res = await fetch(`/api/district/dashboard?districtId=${encodeURIComponent(districtId)}`, {
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to load district dashboard metrics (${res.status})`);
+        }
+
+        const data = (await res.json()) as Partial<DistrictDashboardMetrics>;
+
+        if (active) {
+          setMetrics({
+            churchCount: data.churchCount ?? 0,
+            memberCount: data.memberCount ?? 0,
+            userCount: data.userCount ?? 0,
+            adminCount: data.adminCount ?? 0,
+            financeCount: data.financeCount ?? 0,
+            churchLeaderCount: data.churchLeaderCount ?? 0,
+            eventCount: data.eventCount ?? 0,
+            checkinCount: data.checkinCount ?? 0,
+            musicItemCount: data.musicItemCount ?? 0,
+            setlistCount: data.setlistCount ?? 0,
+          });
+        }
+      } catch (error) {
+        console.error("Error loading district dashboard metrics:", error);
+        if (active) {
+          setMetrics({
+            churchCount: 0,
+            memberCount: 0,
+            userCount: 0,
+            adminCount: 0,
+            financeCount: 0,
+            churchLeaderCount: 0,
+            eventCount: 0,
+            checkinCount: 0,
+            musicItemCount: 0,
+            setlistCount: 0,
+          });
+        }
       } finally {
-        if (active) setUsersLoading(false);
+        if (active) setDashboardLoading(false);
       }
     };
 
     load();
     return () => { active = false; };
-  }, [churches]);
+  }, [districtId]);
 
-  // Load aggregate metrics
-  useEffect(() => {
-    if (loading) return;
-
-    const approved = churches.filter((c) => c.regionStatus === "approved");
-
-    if (approved.length === 0) {
-      setEventCount(0); setCheckinCount(0); setMusicItemCount(0); setSetlistCount(0);
-      setMetricsLoading(false);
-      return;
-    }
-
-    let active = true;
-
-    const load = async () => {
-      setMetricsLoading(true);
-      try {
-        const metrics = await Promise.all(
-          approved.map(async (church) => {
-            const [eventsSnap, attendanceSnap, musicSnap, setlistSnap] = await Promise.all([
-              getDocs(collection(db, "churches", church.id, "events")),
-              getDocs(collection(db, "churches", church.id, "attendance")),
-              getDocs(collection(db, "churches", church.id, "songs")),
-              getDocs(collection(db, "churches", church.id, "setlists")),
-            ]);
-
-            const checkins = attendanceSnap.docs.reduce(
-              (t, d) => t + countPresentAttendanceEntries(d.data()),
-              0
-            );
-
-            return { events: eventsSnap.size, checkins, music: musicSnap.size, setlists: setlistSnap.size };
-          })
-        );
-
-        if (!active) return;
-        setEventCount(metrics.reduce((s, m) => s + m.events, 0));
-        setCheckinCount(metrics.reduce((s, m) => s + m.checkins, 0));
-        setMusicItemCount(metrics.reduce((s, m) => s + m.music, 0));
-        setSetlistCount(metrics.reduce((s, m) => s + m.setlists, 0));
-      } catch (err) {
-        console.error("Error loading district metrics:", err);
-      } finally {
-        if (active) setMetricsLoading(false);
-      }
-    };
-
-    load();
-    return () => { active = false; };
-  }, [churches, loading]);
-
-  const approvedChurches = churches.filter((c) => c.regionStatus === "approved");
-  const adminCount = users.filter((u) => Array.isArray(u.roles) && u.roles.includes("Admin")).length;
-  const financeCount = users.filter((u) => Array.isArray(u.roles) && u.roles.includes("Finance")).length;
-  const churchLeaderCount = approvedChurches.filter((c) => (c.leaderName || c.leaderTitle)).length;
   const districtChips = [districtState, districtId ? `ID ${districtId.slice(0, 8)}...` : "No ID"].filter(Boolean) as string[];
   const quickActions = [
     { href: "/admin/district/regions", label: "View Regions", variant: "outline" as const },
-    { href: "/admin/district/users", label: "View District Members", variant: "outline" as const },
+    { href: "/admin/district/users", label: "View Regional Users", variant: "outline" as const },
   ];
 
   if (permLoading) return <div className="p-6 text-muted-foreground">Loading…</div>;
@@ -248,7 +208,7 @@ export default function DistrictDashboardPage() {
     );
   }
 
-  if (loading || usersLoading || metricsLoading) {
+  if (loading || dashboardLoading) {
     return <div className="p-6 text-muted-foreground">Loading district data…</div>;
   }
 
@@ -301,15 +261,23 @@ export default function DistrictDashboardPage() {
         {/* Churches */}
         <DashboardMetricCard
           title="Churches"
-          value={approvedChurches.length}
+          value={metrics.churchCount}
           description="Approved churches across regions"
           icon={<Building2 className="h-4 w-4 text-emerald-500" />}
+        />
+
+        {/* Members */}
+        <DashboardMetricCard
+          title="Members"
+          value={metrics.memberCount}
+          description="Members across district churches"
+          icon={<Users className="h-4 w-4 text-cyan-500" />}
         />
 
         {/* Users */}
         <DashboardMetricCard
           title="Users"
-          value={users.length}
+          value={metrics.userCount}
           description="Users in churches within this district"
           icon={<Users className="h-4 w-4 text-blue-500" />}
         />
@@ -317,28 +285,28 @@ export default function DistrictDashboardPage() {
         {/* Admins */}
         <DashboardMetricCard
           title="Admins"
-          value={adminCount}
+          value={metrics.adminCount}
           description="Church admins in this district"
           icon={<Shield className="h-4 w-4 text-fuchsia-500" />}
         />
 
         {/* Events */}
-        <DashboardMetricCard title="Events" value={eventCount} description="Events across district churches" icon={<Calendar className="h-4 w-4 text-sky-500" />} />
+        <DashboardMetricCard title="Events" value={metrics.eventCount} description="Events across district churches" icon={<Calendar className="h-4 w-4 text-sky-500" />} />
 
         {/* Check-ins */}
-        <DashboardMetricCard title="Check-ins" value={checkinCount} description="Attendance entries across district churches" icon={<Activity className="h-4 w-4 text-amber-500" />} />
+        <DashboardMetricCard title="Check-ins" value={metrics.checkinCount} description="Attendance entries across district churches" icon={<Activity className="h-4 w-4 text-amber-500" />} />
 
         {/* Music Items */}
-        <DashboardMetricCard title="Music Items" value={musicItemCount} description="Songs across district churches" icon={<Music4 className="h-4 w-4 text-emerald-500" />} />
+        <DashboardMetricCard title="Music Items" value={metrics.musicItemCount} description="Songs across district churches" icon={<Music4 className="h-4 w-4 text-emerald-500" />} />
 
         {/* Setlists */}
-        <DashboardMetricCard title="Setlists" value={setlistCount} description="Setlists across district churches" icon={<ListMusic className="h-4 w-4 text-emerald-500" />} />
+        <DashboardMetricCard title="Setlists" value={metrics.setlistCount} description="Setlists across district churches" icon={<ListMusic className="h-4 w-4 text-emerald-500" />} />
 
         {/* Church Leaders */}
-        <DashboardMetricCard title="Church Leaders" value={churchLeaderCount} description="Approved churches with leader info" icon={<Users className="h-4 w-4 text-blue-500" />} />
+        <DashboardMetricCard title="Church Leaders" value={metrics.churchLeaderCount} description="Approved churches with leader info" icon={<Users className="h-4 w-4 text-blue-500" />} />
 
         {/* Finance Managers */}
-        <DashboardMetricCard title="Finance Managers" value={financeCount} description="Users with Finance role in district churches" icon={<Wallet className="h-4 w-4 text-teal-500" />} />
+        <DashboardMetricCard title="Finance Managers" value={metrics.financeCount} description="Users with Finance role in district churches" icon={<Wallet className="h-4 w-4 text-teal-500" />} />
       </div>
 
       {/* Quick Actions */}
