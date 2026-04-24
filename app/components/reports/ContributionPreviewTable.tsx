@@ -33,6 +33,15 @@ export function ContributionPreviewTable({
   useGroupedView = false,
 }: Props) {
   const sourceRows = useGroupedView ? breakdownRows : contributions;
+  const totalAmount = useGroupedView
+    ? (sourceRows as ContributionBreakdownRow[]).reduce(
+        (sum, row) => sum + row.totalAmount,
+        0
+      )
+    : (sourceRows as Contribution[]).reduce(
+        (sum, contribution) => sum + contribution.amount,
+        0
+      );
 
   const {
     page,
@@ -126,6 +135,26 @@ export function ContributionPreviewTable({
                   );
                 })}
           </tbody>
+
+          <tfoot>
+            {useGroupedView ? (
+              <tr className="border-t border-white/40 bg-white/5">
+                <td className="p-3 font-semibold text-white">TOTAL</td>
+                <td className="p-3 font-semibold text-white">${totalAmount.toFixed(2)}</td>
+                <td className="p-3" />
+                <td className="p-3" />
+              </tr>
+            ) : (
+              <tr className="border-t border-white/40 bg-white/5">
+                <td className="p-3 font-semibold text-white">TOTAL</td>
+                <td className="p-3 font-semibold text-white">${totalAmount.toFixed(2)}</td>
+                <td className="p-3" />
+                <td className="p-3" />
+                <td className="p-3" />
+                <td className="p-3" />
+              </tr>
+            )}
+          </tfoot>
         </table>
       </div>
     </ReportContainer>

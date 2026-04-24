@@ -296,6 +296,21 @@ export function generateContributionsPDF(
     })
   );
 
+  if (selectedFields.includes("amount")) {
+    const totalAmount = rows.reduce((sum, row) => {
+      const value = Number(row.amount ?? 0);
+      return sum + (Number.isFinite(value) ? value : 0);
+    }, 0);
+
+    const totalRow = selectedFields.map((field) => {
+      if (field === "memberName") return "TOTAL";
+      if (field === "amount") return `$${totalAmount.toFixed(2)}`;
+      return "";
+    });
+
+    tableRows.push(totalRow);
+  }
+
   autoTable(doc, {
     head: [tableColumn],
     body: tableRows,
