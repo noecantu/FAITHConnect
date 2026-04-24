@@ -58,8 +58,8 @@ export function getPlanById(raw: string | null | undefined): PlanDefinition | nu
 
 export function formatPrice(plan: PlanDefinition, cycle: BillingCycle): string {
   if (cycle === "yearly") {
-    return `$${plan.yearlyPrice}/yr`;
+    return `$${plan.yearlyPrice}`;
   }
 
-  return `$${plan.monthlyPrice}/mo`;
+  return `$${plan.monthlyPrice}`;
 }
