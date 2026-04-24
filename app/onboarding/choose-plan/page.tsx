@@ -104,8 +104,8 @@ export default function OnboardingChoosePlan() {
               <p className="text-4xl font-bold mb-2">{formatPrice(p, billingCycle)}</p>
               <p className="text-sm text-white/60 mb-6">
                 {billingCycle === "monthly"
-                  ? `or ${formatPrice(p, "yearly")} billed yearly`
-                  : `or ${formatPrice(p, "monthly")} billed monthly`}
+                  ? `or ${formatPrice(p, "yearly")} Billed Yearly (10% Savings)`
+                  : `or ${formatPrice(p, "monthly")} Billed Monthly`}
               </p>
 
               <ul className="space-y-2 mb-6 text-white/70">
