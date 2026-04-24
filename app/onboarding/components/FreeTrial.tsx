@@ -41,11 +41,11 @@ export default function FreeTrial() {
         >
           <Card
             className="rounded-2xl border border-blue-300/20 bg-gradient-to-r from-blue-900/35 via-slate-900/30 to-cyan-900/35 backdrop-blur-sm px-6 md:px-10 py-8 text-center interactive-card interactive-card-focus flex flex-col justify-center items-center min-h-[320px] cursor-pointer"
-            onClick={() => router.push("/onboarding")}
+            onClick={() => router.push("/onboarding/choose-plan?trial=true")}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
-                router.push("/onboarding");
+                router.push("/onboarding/choose-plan?trial=true");
               }
             }}
             role="button"

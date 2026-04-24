@@ -20,6 +20,7 @@ export default function BillingPage() {
 
   const planParam = searchParams.get("plan");
   const cycle = normalizeBillingCycle(searchParams.get("cycle"));
+  const trial = searchParams.get("trial") === "true";
 
   useEffect(() => {
     // If the plan is in the URL (normal forward flow), use it directly.
@@ -75,7 +76,7 @@ export default function BillingPage() {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan, cycle }),
+        body: JSON.stringify({ plan, cycle, trial }),
       });
 
       if (!res.ok) throw new Error("Failed to start checkout");
@@ -133,7 +134,9 @@ export default function BillingPage() {
 
       <div className="max-w-md mx-auto bg-white/5 border border-white/20 backdrop-blur-sm rounded-xl p-8 shadow-lg shadow-blue-600/10">
         <p className="text-white/70 text-center mb-6">
-          Complete your subscription to continue setting up your church.
+          {trial
+            ? "Start your 30-day free trial — no charge until the trial ends."
+            : "Complete your subscription to continue setting up your church."}
         </p>
         <p className="text-white/60 text-center text-sm mb-6 capitalize">
           Billing cycle selected: {cycle}
@@ -144,7 +147,7 @@ export default function BillingPage() {
           disabled={isLoading || !plan}
           className="w-full bg-blue-600 hover:bg-blue-700 py-6 text-lg rounded-xl shadow-lg shadow-blue-600/20"
         >
-          {isLoading ? "Redirecting..." : "Proceed to Checkout"}
+          {isLoading ? "Redirecting..." : trial ? "Start Free Trial" : "Proceed to Checkout"}
         </Button>
       </div>
     </div>

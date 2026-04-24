@@ -78,7 +78,21 @@ export async function GET(req: Request) {
       onboardingComplete,
     });
 
-  } catch (err) {
+  } catch (err: any) {
+    // If the session cookie points to a deleted Firebase Auth user,
+    // clear the stale cookie to stop repeated auth/user-not-found errors.
+    if (err?.errorInfo?.code === "auth/user-not-found") {
+      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      response.cookies.set("session", "", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 0,
+      });
+      return response;
+    }
+
     console.error("Error in /api/users/me:", err);
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

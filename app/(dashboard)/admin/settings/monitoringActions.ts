@@ -11,7 +11,8 @@ type MonitoringCheckKey =
   | "storageUsage"
   | "systemLogsHealth"
   | "emailProviderHealth"
-  | "stripeSyncStatus";
+  | "stripeSyncStatus"
+  | "stripePricesValid";
 
 type MonitoringResult = Record<string, unknown>;
 
@@ -303,6 +304,95 @@ export async function getStripeSyncStatus() {
         status: "error",
         message: error instanceof Error ? error.message : "Unknown Stripe error",
         lastSync: now,
+        durationMs: Date.now() - startedAt,
+      };
+    }
+  });
+}
+
+export async function getStripePricesHealth() {
+  await requireSystemManager();
+
+  const startedAt = Date.now();
+  const stripeKey = process.env.STRIPE_SECRET_KEY;
+
+  return withMonitoringCache("stripePricesValid", async () => {
+    if (!stripeKey || stripeKey.trim().length === 0) {
+      return {
+        status: "misconfigured",
+        message: "Missing STRIPE_SECRET_KEY.",
+        checkedPrices: [],
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    const stripe = new Stripe(stripeKey, {
+      apiVersion: "2023-10-16",
+    });
+
+    const priceEnvVars = [
+      "STRIPE_PRICE_BEGINNING_MONTHLY",
+      "STRIPE_PRICE_BEGINNING_YEARLY",
+      "STRIPE_PRICE_GROWING_MONTHLY",
+      "STRIPE_PRICE_GROWING_YEARLY",
+      "STRIPE_PRICE_ABOUNDING_MONTHLY",
+      "STRIPE_PRICE_ABOUNDING_YEARLY",
+    ];
+
+    const checkedPrices: Array<{
+      envVar: string;
+      priceId: string | undefined;
+      valid: boolean;
+      error?: string;
+    }> = [];
+
+    try {
+      for (const envVar of priceEnvVars) {
+        const priceId = process.env[envVar];
+
+        if (!priceId || priceId.trim().length === 0) {
+          checkedPrices.push({
+            envVar,
+            priceId: undefined,
+            valid: false,
+            error: "Missing env var",
+          });
+          continue;
+        }
+
+        try {
+          await stripe.prices.retrieve(priceId);
+          checkedPrices.push({
+            envVar,
+            priceId,
+            valid: true,
+          });
+        } catch (error: any) {
+          checkedPrices.push({
+            envVar,
+            priceId,
+            valid: false,
+            error: error?.message || "Failed to retrieve",
+          });
+        }
+      }
+
+      const allValid = checkedPrices.every((p) => p.valid);
+      const invalidCount = checkedPrices.filter((p) => !p.valid).length;
+
+      return {
+        status: allValid ? "ok" : "misconfigured",
+        message: allValid
+          ? "All configured Stripe prices are valid."
+          : `${invalidCount} of ${priceEnvVars.length} prices are misconfigured or missing.`,
+        checkedPrices,
+        durationMs: Date.now() - startedAt,
+      };
+    } catch (error) {
+      return {
+        status: "error",
+        message: error instanceof Error ? error.message : "Failed to validate prices",
+        checkedPrices,
         durationMs: Date.now() - startedAt,
       };
     }

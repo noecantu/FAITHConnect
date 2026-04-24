@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Card } from "@/app/components/ui/card";
 import Link from "next/link";
 import { CheckCircle, ArrowLeft } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import {
   PRICING_PLANS,
   formatPrice,
@@ -14,6 +15,8 @@ import {
 } from "@/app/lib/pricing-plans";
 
 export default function OnboardingChoosePlan() {
+  const searchParams = useSearchParams();
+  const trial = searchParams.get("trial") === "true";
   const [billingCycle, setBillingCycle] = useState<BillingCycle>(
     normalizeBillingCycle(null)
   );
@@ -94,7 +97,7 @@ export default function OnboardingChoosePlan() {
                 p.highlight ? "border-blue-500 shadow-lg shadow-blue-500/20" : ""
               }`}
               onClick={() => {
-                window.location.href = `/onboarding/confirm-plan?plan=${p.id}&cycle=${billingCycle}`;
+                window.location.href = `/onboarding/confirm-plan?plan=${p.id}&cycle=${billingCycle}${trial ? "&trial=true" : ""}`;
               }}
             >
               <h3 className="text-2xl font-semibold mb-2">{p.name}</h3>

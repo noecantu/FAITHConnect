@@ -23,6 +23,7 @@ export default function AdminCredentialsPage() {
 
   const plan = searchParams.get("plan");
   const cycle = normalizeBillingCycle(searchParams.get("cycle"));
+  const trial = searchParams.get("trial") === "true";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -70,11 +71,15 @@ export default function AdminCredentialsPage() {
 
       const idToken = await user.getIdToken(true);
 
-      await fetch("/api/auth/session", {
+      const sessionRes = await fetch("/api/auth/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken }),
       });
+
+      if (!sessionRes.ok) {
+        throw new Error("Failed to establish authenticated session.");
+      }
 
       const createProfileRes = await fetch("/api/users/create", {
         method: "POST",
@@ -102,7 +107,7 @@ export default function AdminCredentialsPage() {
         description: "Continue to billing.",
       });
 
-      router.replace(`/onboarding/billing?plan=${plan}&cycle=${cycle}`);
+      router.replace(`/onboarding/billing?plan=${plan}&cycle=${cycle}${trial ? "&trial=true" : ""}`);
     } catch (error: any) {
       console.error("Signup error:", error);
 
@@ -116,28 +121,43 @@ export default function AdminCredentialsPage() {
 
           const idToken = await user.getIdToken(true);
 
-          await fetch("/api/auth/session", {
+          const sessionRes = await fetch("/api/auth/session", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ idToken }),
           });
 
-          await fetch("/api/users/update-onboarding-step", {
+          if (!sessionRes.ok) {
+            throw new Error("Failed to establish authenticated session.");
+          }
+
+          const createProfileRes = await fetch("/api/users/create", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
+              uid: user.uid,
+              email: normalizedEmail,
+              firstName,
+              lastName,
+              roles: ["Admin"],
+              churchId: null,
               onboardingStep: "billing",
               onboardingComplete: false,
-              planId: plan,
+              plan,
             }),
           });
+
+          if (!createProfileRes.ok) {
+            const data = await createProfileRes.json().catch(() => ({}));
+            throw new Error(data.error || "Failed to initialize onboarding profile.");
+          }
 
           toast({
             title: "Account Found",
             description: "Continuing onboarding from billing.",
           });
 
-          router.replace(`/onboarding/billing?plan=${plan}&cycle=${cycle}`);
+          router.replace(`/onboarding/billing?plan=${plan}&cycle=${cycle}${trial ? "&trial=true" : ""}`);
         } catch {
           toast({
             title: "Account already exists",

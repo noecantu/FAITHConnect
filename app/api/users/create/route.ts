@@ -20,9 +20,9 @@ export async function POST(req: Request) {
       onboardingComplete,
     } = body;
 
-    if (!uid || !email || !token) {
+    if (!uid || !email) {
       return NextResponse.json(
-        { error: "Missing required fields: uid, email, or token" },
+        { error: "Missing required fields: uid or email" },
         { status: 400 }
       );
     }
@@ -65,58 +65,70 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true });
     }
 
-    // 1. Validate signup token
+    // Prefer signup token flow when a matching signup token exists.
     const tokenRef = adminDb.collection("signupTokens").doc(token);
     const tokenSnap = await tokenRef.get();
 
-    if (!tokenSnap.exists) {
+    if (tokenSnap.exists) {
+      const tokenData = tokenSnap.data();
+
+      if (!tokenData) {
+        return NextResponse.json(
+          { error: "Invalid signup token data" },
+          { status: 403 }
+        );
+      }
+
+      if (tokenData.expiresAt.toMillis() < Date.now()) {
+        return NextResponse.json(
+          { error: "Signup token expired" },
+          { status: 403 }
+        );
+      }
+
+      if (tokenData.used) {
+        return NextResponse.json(
+          { error: "Signup token already used" },
+          { status: 403 }
+        );
+      }
+
+      await adminDb.collection("users").doc(uid).set(
+        {
+          ...baseProfile,
+          planId: tokenData.planId ?? null,
+          stripeCustomerId: tokenData.customerId ?? null,
+          stripeSubscriptionId: tokenData.subscriptionId ?? null,
+        },
+        { merge: true }
+      );
+
+      await tokenRef.update({
+        used: true,
+        usedAt: admin.firestore.FieldValue.serverTimestamp(),
+        usedBy: uid,
+      });
+
+      return NextResponse.json({ success: true });
+    }
+
+    // Fallback: treat token as Firebase ID token for direct onboarding signup.
+    try {
+      const decoded = await adminAuth.verifyIdToken(token, true);
+      if (decoded.uid !== uid) {
+        return NextResponse.json(
+          { error: "Authenticated user mismatch." },
+          { status: 403 }
+        );
+      }
+    } catch {
       return NextResponse.json(
-        { error: "Invalid signup token" },
+        { error: "Invalid authentication token" },
         { status: 403 }
       );
     }
 
-    const tokenData = tokenSnap.data();
-
-    if (!tokenData) {
-      return NextResponse.json(
-        { error: "Invalid signup token data" },
-        { status: 403 }
-      );
-    }
-
-    if (tokenData.expiresAt.toMillis() < Date.now()) {
-      return NextResponse.json(
-        { error: "Signup token expired" },
-        { status: 403 }
-      );
-    }
-
-    if (tokenData.used) {
-      return NextResponse.json(
-        { error: "Signup token already used" },
-        { status: 403 }
-      );
-    }
-
-    // 2. Create user profile
-    await adminDb.collection("users").doc(uid).set(
-      {
-        ...baseProfile,
-        planId: tokenData.planId ?? null,
-        stripeCustomerId: tokenData.customerId ?? null,
-        stripeSubscriptionId: tokenData.subscriptionId ?? null,
-      },
-      { merge: true }
-    );
-
-    // 3. Mark token as used
-    await tokenRef.update({
-      used: true,
-      usedAt: admin.firestore.FieldValue.serverTimestamp(),
-      usedBy: uid,
-    });
-
+    await adminDb.collection("users").doc(uid).set(baseProfile, { merge: true });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error creating user:", error);

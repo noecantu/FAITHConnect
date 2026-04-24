@@ -19,6 +19,7 @@ export default function ConfirmPlanPage() {
   const selectedPlanKey = normalizePlanId(params.get("plan"));
   const selectedPlan = getPlanById(selectedPlanKey);
   const billingCycle = normalizeBillingCycle(params.get("cycle"));
+  const trial = params.get("trial") === "true";
 
   const planName = selectedPlan?.name || "Unknown Plan";
   const planPrice = selectedPlan ? formatPrice(selectedPlan, billingCycle) : "";
@@ -27,7 +28,7 @@ export default function ConfirmPlanPage() {
 
   const handleConfirm = () => {
     router.push(
-      `/onboarding/admin-credentials?plan=${selectedPlanKey || "beginning"}&cycle=${billingCycle}`
+      `/onboarding/admin-credentials?plan=${selectedPlanKey || "beginning"}&cycle=${billingCycle}${trial ? "&trial=true" : ""}`
     );
   };
 

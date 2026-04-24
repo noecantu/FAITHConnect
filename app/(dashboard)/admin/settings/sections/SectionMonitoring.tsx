@@ -11,6 +11,7 @@ import {
   // getDatabaseStats,
   getEmailProviderHealth,
   getStripeSyncStatus,
+  getStripePricesHealth,
   getSystemLogsHealth,
 } from "../monitoringActions";
 import { useToast } from "@/app/hooks/use-toast";
@@ -289,6 +290,53 @@ export default function SectionMonitoring() {
               raw={data}
             />
           )}
+        />
+
+        <MonitoringCard
+          title="Stripe Prices Configuration"
+          action={getStripePricesHealth}
+          initialResult={cachedChecks.stripePricesValid}
+          formatter={(data) => {
+            const priceList = Array.isArray(data.checkedPrices)
+              ? data.checkedPrices.map((p: any) => (
+                  <div key={p.envVar} className="text-[10px] space-y-0.5">
+                    <div className="font-semibold">{p.envVar}</div>
+                    <div className="text-muted-foreground">
+                      {p.valid ? (
+                        <span className="text-emerald-300">✓ Valid: {p.priceId}</span>
+                      ) : (
+                        <span className="text-rose-300">
+                          ✗ {p.error} {p.priceId && `(${p.priceId})`}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              : "No prices checked";
+
+            return (
+              <>
+                <div className="space-y-1.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="text-muted-foreground">Checked Prices</span>
+                    <span className="font-medium">
+                      {Array.isArray(data.checkedPrices)
+                        ? data.checkedPrices.filter((p: any) => p.valid).length
+                        : 0}
+                      /{Array.isArray(data.checkedPrices) ? data.checkedPrices.length : 0}
+                    </span>
+                  </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="text-muted-foreground">Duration</span>
+                    <span className="font-medium">
+                      {data.durationMs ? `${data.durationMs} ms` : "Unknown"}
+                    </span>
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-white/10 space-y-1">{priceList}</div>
+              </>
+            );
+          }}
         />
 
         <MonitoringCard

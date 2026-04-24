@@ -17,9 +17,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(req: Request) {
   try {
-    const { plan, cycle } = await req.json();
+    const { plan, cycle, trial } = await req.json();
     const normalizedPlan = normalizePlanId(plan);
     const normalizedCycle = normalizeBillingCycle(cycle);
+    const isTrialing = trial === true;
 
     if (!normalizedPlan) {
       console.error("Invalid plan received:", plan);
@@ -64,6 +65,7 @@ export async function POST(req: Request) {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
+      subscription_data: isTrialing ? { trial_period_days: 30 } : undefined,
       metadata: {
         planId: normalizedPlan,
         billingCycle: normalizedCycle,
@@ -75,6 +77,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ url: session.url });
   } catch (err: any) {
     console.error("STRIPE CHECKOUT ERROR:", err);
+
+    if (
+      err?.type === "StripeInvalidRequestError" &&
+      err?.code === "resource_missing" &&
+      err?.param === "line_items[0][price]"
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Stripe price ID not found for the current Stripe account/mode. Verify STRIPE_PRICE_* values match the same account and test/live mode as STRIPE_SECRET_KEY.",
+        },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(
       { error: "Unable to create checkout session" },
       { status: 500 }
