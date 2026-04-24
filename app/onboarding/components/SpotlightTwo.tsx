@@ -32,9 +32,9 @@ export default function SpotlightTwo() {
           viewport={{ once: true }}
           className="order-1 md:order-2"
         >
-          <h2 className="text-4xl font-bold">Manage Usher Teams</h2>
+          <h2 className="text-4xl font-bold">Manage Church Teams</h2>
           <p className="text-white/70">
-            Keep your congregation organized and up to date with usher team calendar rotations.
+            Keep your church organized and up to date with team calendar rotations.
           </p>
         </motion.div>
 

@@ -15,7 +15,7 @@ const features = [
     icon: Users,
     iconClassName: "text-blue-500",
     title: "Member Management",
-    desc: "Keep your congregation organized and up to date.",
+    desc: "Keep your church organized and up to date.",
   },
   {
     icon: Shield,

@@ -34,7 +34,7 @@ export default function SpotlightFour() {
         >
           <h2 className="text-4xl font-bold">Musician Set Lists</h2>
           <p className="text-white/70">
-            Keep your music team organized with easy-to-manage set lists.
+            Keep your music team organized with easy-to-manage set lists and song arrangements.
           </p>
         </motion.div>
 
