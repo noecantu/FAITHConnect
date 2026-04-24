@@ -21,13 +21,16 @@ export default function Header() {
   if (!isLoggedIn) return null;
 
   const isRootAdmin = can(typedRoles, "system.manage");
-  const isRegionalAdmin = can(typedRoles, "region.manage");
+  const isDistrictAdmin = typedRoles.includes("DistrictAdmin");
+  const isRegionalAdmin = typedRoles.includes("RegionalAdmin");
   const isChurchAdmin = can(typedRoles, "church.manage") && churchId;
 
   let dashboardHref = "/";
 
   if (isRootAdmin) {
     dashboardHref = "/admin";
+  } else if (isDistrictAdmin) {
+    dashboardHref = "/admin/district";
   } else if (isRegionalAdmin) {
     dashboardHref = "/admin/regional";
   } else if (isChurchAdmin) {

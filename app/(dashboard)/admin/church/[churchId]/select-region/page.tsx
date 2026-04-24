@@ -70,14 +70,34 @@ export default function SelectRegionPage() {
                   )
                 }
               >
-                <p className="text-lg font-semibold">{region.name}</p>
+                <div className="flex items-center gap-4">
+                  {region.logoUrl ? (
+                    <img
+                      src={region.logoUrl}
+                      alt={`${region.name} logo`}
+                      className="h-16 w-16 shrink-0 rounded-md object-cover border border-white/20"
+                    />
+                  ) : (
+                    <div className="h-16 w-16 shrink-0 rounded-md bg-muted flex items-center justify-center text-xs text-muted-foreground border border-white/20">
+                      {String(region.name || "RG")
+                        .split(" ")
+                        .map((word) => word[0]?.toUpperCase())
+                        .join("")
+                        .slice(0, 2)}
+                    </div>
+                  )}
 
-                {/* Title + Admin Name */}
-                {region.regionAdminTitle && region.regionAdminName && (
-                  <p className="text-sm text-muted-foreground">
-                    {region.regionAdminTitle}: {region.regionAdminName}
-                  </p>
-                )}
+                  <div className="min-w-0">
+                    <p className="text-lg font-semibold truncate">{region.name}</p>
+
+                    {/* Title + Admin Name */}
+                    {region.regionAdminTitle && region.regionAdminName && (
+                      <p className="text-sm text-muted-foreground truncate">
+                        {region.regionAdminTitle}: {region.regionAdminName}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </Card>
             ))}
           </div>

@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Users,
   Calendar,
@@ -65,6 +65,7 @@ type MenuItem = {
 
 export function NavMenu() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false);
   const { toast } = useToast();
   const { churchId } = useChurchId();
@@ -127,12 +128,14 @@ export function NavMenu() {
     { href: "/admin/district/regions", label: "My Regions", icon: Users },
     { href: "/admin/district/regions/pending", label: "Pending Regions", icon: FileText },
     { href: "/admin/district/users", label: "District Users", icon: Users },
+    { href: "/admin/district/settings", label: "Settings", icon: Settings },
   ];
 
   const regionalAdminMenu = [
     { href: "/admin/regional/churches", label: "Regional Churches", icon: Users },
     { href: "/admin/regional/users", label: "Regional Users", icon: Users },
     { href: "/admin/regional/select-district", label: "My District", icon: MapPin },
+    { href: "/admin/regional/settings", label: "Settings", icon: Settings },
   ];
 
   const churchAdminMenu = [
@@ -255,6 +258,7 @@ export function NavMenu() {
       });
 
       await signOut(auth);
+      router.replace("/login");
     } catch (error) {
       console.error("logout error:", error);
       toast({

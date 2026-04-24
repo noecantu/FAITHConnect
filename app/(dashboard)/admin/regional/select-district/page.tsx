@@ -7,11 +7,13 @@ import { db } from "@/app/lib/firebase/client";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { PageHeader } from "@/app/components/page-header";
 import { Input } from "@/app/components/ui/input";
+import { Card } from "@/app/components/ui/card";
 import Link from "next/link";
 
 type District = {
   id: string;
   name: string;
+  logoUrl?: string | null;
   regionAdminName?: string | null;
   regionAdminTitle?: string | null;
   state?: string | null;
@@ -35,6 +37,7 @@ export default function SelectDistrictPage() {
           snap.docs.map((d) => ({
             id: d.id,
             name: d.data().name || "Unknown District",
+            logoUrl: d.data().logoUrl ?? null,
             regionAdminName: d.data().regionAdminName ?? null,
             regionAdminTitle: d.data().regionAdminTitle ?? null,
             state: d.data().state ?? null,
@@ -142,24 +145,46 @@ export default function SelectDistrictPage() {
             <Link
               key={district.id}
               href={`/admin/regional/select-district/${district.id}`}
-              className="group block"
+              className="block"
             >
-              <div className="h-full p-5 rounded-xl bg-black/40 backdrop-blur-xl shadow-lg interactive-card space-y-2">
-                <p className="text-lg font-semibold">{district.name}</p>
+              <Card
+                className="
+                  p-4 bg-black/40 backdrop-blur-xl
+                  hover:bg-black/60 cursor-pointer interactive-card interactive-card-focus
+                "
+              >
+                <div className="flex items-center gap-4">
+                  {district.logoUrl ? (
+                    <img
+                      src={district.logoUrl}
+                      alt={`${district.name} logo`}
+                      className="h-16 w-16 shrink-0 rounded-md object-cover border border-white/20"
+                    />
+                  ) : (
+                    <div className="h-16 w-16 shrink-0 rounded-md bg-muted flex items-center justify-center text-xs text-muted-foreground border border-white/20">
+                      {district.name
+                        .split(" ")
+                        .map((word) => word[0]?.toUpperCase())
+                        .join("")
+                        .slice(0, 2)}
+                    </div>
+                  )}
 
-                {(district.regionAdminTitle || district.regionAdminName) && (
-                  <p className="text-sm text-muted-foreground">
-                    {district.regionAdminTitle ? `${district.regionAdminTitle} ` : ""}
-                    {district.regionAdminName ?? ""}
-                  </p>
-                )}
+                  <div className="min-w-0">
+                    <p className="text-lg font-semibold truncate">{district.name}</p>
 
-                {district.state && (
-                  <p className="text-sm text-muted-foreground">{district.state}</p>
-                )}
+                    {district.regionAdminTitle && district.regionAdminName && (
+                      <p className="text-sm text-muted-foreground truncate">
+                        {district.regionAdminTitle}: {district.regionAdminName}
+                      </p>
+                    )}
 
-                <p className="text-sm text-amber-500 mt-2">Submit a request to join...</p>
-              </div>
+                    {district.state && (
+                      <p className="text-sm text-muted-foreground">{district.state}</p>
+                    )}
+                  </div>
+                </div>
+              </Card>
             </Link>
           ))}
         </div>

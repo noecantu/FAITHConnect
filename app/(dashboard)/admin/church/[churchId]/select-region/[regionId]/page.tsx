@@ -87,6 +87,14 @@ export default function ConfirmRegionPage() {
       </p>
 
       <Card className="p-6 bg-black/60 border-white/20 backdrop-blur-xl space-y-3">
+        {region.logoUrl ? (
+          <img
+            src={region.logoUrl}
+            alt={`${region.name} logo`}
+            className="h-16 w-16 rounded-md object-cover border border-white/20"
+          />
+        ) : null}
+
         <p className="text-xl font-semibold">{region.name}</p>
 
         {/* Title + Admin Name */}

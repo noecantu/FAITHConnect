@@ -63,8 +63,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
           router.replace("/admin");
           break;
 
+        case "DistrictAdmin":
+          router.replace("/admin/district");
+          break;
+
         case "RegionalAdmin":
-          router.replace("/regional-admin");
+          router.replace("/admin/regional");
           break;
 
         case "Support":

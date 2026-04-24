@@ -13,7 +13,6 @@ import {
   Building2,
   Calendar,
   ListMusic,
-  MapPinned,
   Music4,
   Shield,
   Users,
@@ -39,6 +38,7 @@ export default function RegionalDashboardPage() {
   const [users, setUsers] = useState<RegionalUser[]>([]);
   const [regionName, setRegionName] = useState('');
   const [regionAdminName, setRegionAdminName] = useState('');
+  const [regionLogoUrl, setRegionLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(true);
   const [metricsLoading, setMetricsLoading] = useState(true);
@@ -141,6 +141,7 @@ export default function RegionalDashboardPage() {
           const data = regionDoc.data();
           setRegionName(data.name || 'Unknown Region');
           setRegionAdminName(data.regionAdminName || 'Unknown Admin');
+          setRegionLogoUrl(data.logoUrl ?? null);
         }
       },
       (error) => { if ((error as { code?: string }).code !== 'permission-denied') console.error('regions snapshot error:', error); }
@@ -285,23 +286,37 @@ export default function RegionalDashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
         
         {/* Region Card */}
-        <div className="p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold">Region</h2>
-            <div className="rounded-md border border-white/20 bg-white/5 p-2">
-              <MapPinned className="h-4 w-4 text-blue-500" />
+        <div className="p-5 rounded-xl border border-white/15 bg-gradient-to-br from-black/60 via-black/45 to-black/35 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.25)] space-y-3">
+          <p className="text-xs uppercase tracking-[0.16em] text-white/60">Region</p>
+
+          <div className="flex items-center gap-3">
+            {regionLogoUrl ? (
+              <img
+                src={regionLogoUrl}
+                alt={`${regionName} logo`}
+                className="h-16 w-16 rounded-lg object-cover border border-white/20 bg-black/30"
+              />
+            ) : (
+              <div className="h-16 w-16 rounded-lg bg-white/5 flex items-center justify-center text-sm font-semibold text-white/75 border border-white/20">
+                {regionName
+                  .split(' ')
+                  .map((word) => word[0]?.toUpperCase())
+                  .join('')
+                  .slice(0, 2)}
+              </div>
+            )}
+
+            <div className="min-w-0">
+              <p className="text-lg font-semibold leading-tight truncate">{regionName}</p>
+              <p className="text-sm text-muted-foreground truncate">{regionAdminName || 'Regional Admin'}</p>
             </div>
           </div>
 
-          <p className="text-xl font-bold mt-1.5">{regionName}</p>
-
-          <p className="text-sm text-muted-foreground mt-1">
-            Admin: {regionAdminName}
-          </p>
-
-          <p className="text-xs text-muted-foreground mt-1 opacity-60">
-            ID: {regionId}
-          </p>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <span className="text-[11px] px-2.5 py-1 rounded-full border border-white/15 bg-white/5 text-white/70">
+              {regionId ? `ID ${regionId.slice(0, 8)}...` : 'No ID'}
+            </span>
+          </div>
         </div>
 
         {/* Active Churches */}
