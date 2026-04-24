@@ -17,6 +17,7 @@ import { can } from "@/app/lib/auth/permissions";
 import { PageHeader } from "@/app/components/page-header";
 import { formatPhone } from "@/app/lib/formatters";
 import { ChurchDisabledNotice } from "@/app/components/layout/ChurchDisabledNotice";
+import { BillingLapsedNotice } from "@/app/components/layout/BillingLapsedNotice";
 
 export default function UserDashboardPage({
   params,
@@ -57,6 +58,20 @@ export default function UserDashboardPage({
 
   if (!user) return <div className="p-6">No user found.</div>;
   if (!church) return <div className="p-6">No church found.</div>;
+
+  if (church.billingDelinquent) {
+    return (
+      <main className="flex-1 flex flex-col">
+        <PageHeader
+          title="My Dashboard"
+          subtitle="Your church's subscription requires attention."
+        />
+        <div className="flex-1 py-6 space-y-6">
+          <BillingLapsedNotice churchName={church.name} isAdmin={false} />
+        </div>
+      </main>
+    );
+  }
 
   if (church.status === "disabled") {
     return (

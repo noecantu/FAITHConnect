@@ -4,6 +4,7 @@ export const preferredRegion = "iad1";
 
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
+import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
 import {
   normalizeBillingCycle,
   normalizePlanId,
@@ -15,9 +16,27 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2023-10-16",
 });
 
+async function getSessionEmail(req: Request): Promise<string | undefined> {
+  try {
+    const cookie = req.headers.get("cookie") || "";
+    const session = cookie
+      .split("; ")
+      .find((c) => c.startsWith("session="))
+      ?.split("=")[1];
+    if (!session) return undefined;
+    const decoded = await adminAuth.verifySessionCookie(session, true);
+    const snap = await adminDb.collection("users").doc(decoded.uid).get();
+    const email = snap.data()?.email;
+    return typeof email === "string" && email ? email : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function POST(req: Request) {
   try {
-    const { plan, cycle, trial } = await req.json();
+    const body = await req.json();
+    const { plan, cycle, trial } = body;
     const normalizedPlan = normalizePlanId(plan);
     const normalizedCycle = normalizeBillingCycle(cycle);
     const isTrialing = trial === true;
@@ -62,8 +81,11 @@ export async function POST(req: Request) {
     console.log("BILLING CYCLE:", normalizedCycle);
     console.log("PRICE FOUND:", priceId);
 
+    const customerEmail = await getSessionEmail(req);
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      ...(customerEmail ? { customer_email: customerEmail } : {}),
       line_items: [{ price: priceId, quantity: 1 }],
       subscription_data: isTrialing ? { trial_period_days: 30 } : undefined,
       metadata: {

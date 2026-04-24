@@ -48,6 +48,14 @@ export interface Church {
   phone?: string | null;
   leaderName?: string | null;
   leaderTitle?: string | null;
+  // Billing
+  billingStatus?: string | null;
+  billingDelinquent?: boolean | null;
+  billingCurrentPeriodEnd?: number | null;
+  stripeCustomerId?: string | null;
+  stripeSubscriptionId?: string | null;
+  planId?: string | null;
+  billingOwnerUid?: string | null;
 }
 
 export type Contribution = {

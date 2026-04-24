@@ -44,6 +44,7 @@ import { useAuth } from "@/app/hooks/useAuth";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { formatPhone } from "@/app/lib/formatters";
 import { ChurchDisabledNotice } from "@/app/components/layout/ChurchDisabledNotice";
+import { BillingLapsedNotice } from "@/app/components/layout/BillingLapsedNotice";
 
 export default function ChurchAdminDashboard() {
   const { churchId } = useParams();
@@ -286,6 +287,18 @@ export default function ChurchAdminDashboard() {
           subtitle="System-level church details"
         />
         <ChurchDisabledNotice churchName={church.name} />
+      </main>
+    );
+  }
+
+  if (church.billingDelinquent) {
+    return (
+      <main className="flex-1 flex flex-col space-y-6">
+        <PageHeader
+          title="Church Dashboard"
+          subtitle="Subscription payment required"
+        />
+        <BillingLapsedNotice churchName={church.name} isAdmin={true} />
       </main>
     );
   }
