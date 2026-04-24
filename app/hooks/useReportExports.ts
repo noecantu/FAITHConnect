@@ -24,6 +24,9 @@ interface UseReportExportsProps {
   filteredAttendance: AttendanceRecord[];
   selectedFields: string[];
   members: Member[];
+  contributionExportContext?: {
+    contextLines: string[];
+  };
 }
 
 export function useReportExports({
@@ -33,6 +36,7 @@ export function useReportExports({
   filteredAttendance,
   selectedFields,
   members,
+  contributionExportContext,
 }: UseReportExportsProps) {
 
   // -----------------------------------------
@@ -62,6 +66,11 @@ export function useReportExports({
     return reduceContributionRowsForExport(contributionRows, selectedFields);
   }, [contributionRows, selectedFields]);
 
+  const contributionFieldsForExport = useMemo(() => {
+    if (selectedFields.length > 0) return selectedFields;
+    return ["memberName", "date", "amount", "category", "contributionType", "notes"];
+  }, [selectedFields]);
+
   // -----------------------------------------
   // EXPORT PDF
   // -----------------------------------------
@@ -74,7 +83,12 @@ export function useReportExports({
     }
 
     if (reportType === "contributions") {
-      generateContributionsPDF(contributionExportRows, selectedFields, logoBase64);
+      generateContributionsPDF(
+        contributionExportRows,
+        contributionFieldsForExport,
+        logoBase64,
+        contributionExportContext
+      );
       return;
     }
 
@@ -88,6 +102,8 @@ export function useReportExports({
     selectedFields,
     loadPngAsBase64,
     contributionExportRows,
+    contributionFieldsForExport,
+    contributionExportContext,
   ]);
 
   // -----------------------------------------
@@ -100,7 +116,11 @@ export function useReportExports({
     }
 
     if (reportType === "contributions") {
-      generateContributionsExcel(contributionExportRows, selectedFields);
+      generateContributionsExcel(
+        contributionExportRows,
+        contributionFieldsForExport,
+        contributionExportContext
+      );
       return;
     }
 
@@ -113,6 +133,8 @@ export function useReportExports({
     filteredAttendance,
     selectedFields,
     contributionExportRows,
+    contributionFieldsForExport,
+    contributionExportContext,
   ]);
 
   return {

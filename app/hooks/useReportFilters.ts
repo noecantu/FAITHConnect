@@ -1,4 +1,5 @@
 import { useContributionReport } from "./useContributionReport";
+import type { ContributionBreakdown, ContributionBreakdownRow } from "./useContributionReport";
 import { useAttendanceReport } from "./useAttendanceReport";
 import { useMemberReport } from "./useMemberReport";
 import { Member, Contribution } from "../lib/types";
@@ -10,12 +11,14 @@ export type ReportRouterProps = {
   // Shared
   members: Member[];
   selectedMembers: string[];
+  selectedChurches: string[];
   selectedStatus: string[];
 
   // Contributions
   contributions: Contribution[];
   selectedCategories: string[];
   selectedContributionTypes: string[];
+  contributionBreakdown: ContributionBreakdown;
 
   // Attendance
   attendance: AttendanceRecord[];
@@ -33,6 +36,7 @@ export type ReportFiltersResult = {
 
   filteredMembers: Member[];
   filteredContributions: Contribution[];
+  contributionBreakdownRows: ContributionBreakdownRow[];
   filteredAttendance: AttendanceRecord[];
 };
 
@@ -44,9 +48,11 @@ export function useReportFilters(props: ReportRouterProps): ReportFiltersResult 
     members,
     includeVisitors,
     selectedMembers,
+    selectedChurches,
     selectedStatus,
     selectedCategories,
     selectedContributionTypes,
+    contributionBreakdown,
     timeFrame,
     selectedYear,
     selectedMonth,
@@ -56,9 +62,11 @@ export function useReportFilters(props: ReportRouterProps): ReportFiltersResult 
     contributions,
     members,
     selectedMembers,
+    selectedChurches,
     selectedStatus,
     selectedCategories,
     selectedContributionTypes,
+    contributionBreakdown,
     timeFrame,
     selectedYear,
     selectedMonth,
@@ -102,6 +110,11 @@ export function useReportFilters(props: ReportRouterProps): ReportFiltersResult 
       ? contributionResult.filteredContributions
       : [];
 
+  const contributionBreakdownRows =
+    reportType === "contributions"
+      ? contributionResult.breakdownRows
+      : [];
+
   const filteredAttendance =
     reportType === "attendance"
       ? attendanceResult.filteredAttendance
@@ -112,6 +125,7 @@ export function useReportFilters(props: ReportRouterProps): ReportFiltersResult 
     availableMonths,
     filteredMembers,
     filteredContributions,
+    contributionBreakdownRows,
     filteredAttendance,
   };
 }

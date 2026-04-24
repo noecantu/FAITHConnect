@@ -127,12 +127,15 @@ export function NavMenu() {
     { href: "/admin/district/regions", label: "My Regions", icon: Users },
     { href: "/admin/district/regions/pending", label: "Pending Regions", icon: FileText },
     { href: "/admin/district/users", label: "District Users", icon: Users },
+    { href: "/admin/reports", label: "Reports", icon: FileText, permission: canSeeReports },
     { href: "/admin/district/settings", label: "Settings", icon: Settings },
   ];
 
   const regionalAdminMenu = [
+    { href: "/admin/regional", label: "Dashboard", icon: Home, exact: true },
     { href: "/admin/regional/churches", label: "Regional Churches", icon: Users },
     { href: "/admin/regional/users", label: "Regional Users", icon: Users },
+    { href: "/admin/reports", label: "Reports", icon: FileText, permission: canSeeReports },
     { href: "/admin/regional/settings", label: "Settings", icon: Settings },
   ];
 
@@ -144,8 +147,8 @@ export function NavMenu() {
     { href: `/church/${churchId}/members`, label: "Members", icon: Users },
     { href: `/church/${churchId}/music`, label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
     { href: `/church/${churchId}/service-plan`, label: "Service Plans", icon: CalendarHeart, permission: canAccessServicePlan },
-    { href: `/admin/church/${churchId}/settings`, label: "Settings", icon: Settings },
     { href: `/church/${churchId}/reports`, label: "Reports", icon: FileText, permission: canSeeReports },
+    { href: `/admin/church/${churchId}/settings`, label: "Settings", icon: Settings },
   ];
 
   const userMenu = [

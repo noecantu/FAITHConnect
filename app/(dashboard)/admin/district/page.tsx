@@ -195,6 +195,7 @@ export default function DistrictDashboardPage() {
   const quickActions = [
     { href: "/admin/district/regions", label: "View Regions", variant: "outline" as const },
     { href: "/admin/district/users", label: "View Regional Users", variant: "outline" as const },
+    { href: "/admin/reports", label: "View Reports", variant: "outline" as const },
   ];
 
   if (permLoading) return <div className="p-6 text-muted-foreground">Loading…</div>;

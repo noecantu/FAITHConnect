@@ -8,6 +8,7 @@ import {
 } from "@/app/components/ui/card";
 
 import { Button } from "@/app/components/ui/button";
+import { MultiSelect } from "@/app/components/ui/multi-select";
 
 import { ReportTypeSelect } from "./ReportTypeSelect";
 import { MemberSelect } from "./MemberSelect";
@@ -15,17 +16,32 @@ import { MemberFieldSelect } from "./MemberFieldSelect";
 import { StatusSelect } from "./StatusSelect";
 
 import { statusOptions, memberFieldOptions } from "@/app/lib/constants/reportOptions";
+import type { ContributionBreakdown } from "@/app/hooks/useContributionReport";
+
+type ContributionBreakdownOption = {
+  label: string;
+  value: ContributionBreakdown;
+};
 
 interface ReportFiltersPanelProps {
   reportType: "members" | "contributions" | "attendance";
   setReportType: (v: any) => void;
 
   members: any[];
+  memberOptions?: Array<{ label: string; value: string }>;
   selectedMembers: string[];
   setSelectedMembers: (v: string[]) => void;
 
+  selectedChurches: string[];
+  setSelectedChurches: (v: string[]) => void;
+  churchOptions: Array<{ label: string; value: string }>;
+
   selectedStatus: string[];
   setSelectedStatus: (v: string[]) => void;
+
+  contributionBreakdown: ContributionBreakdown;
+  setContributionBreakdown: (v: ContributionBreakdown) => void;
+  contributionBreakdownOptions: ContributionBreakdownOption[];
 
   selectedFields: string[];
   setSelectedFields: (v: string[]) => void;
@@ -55,11 +71,20 @@ export function ReportFiltersPanel({
   setReportType,
 
   members,
+  memberOptions,
   selectedMembers,
   setSelectedMembers,
 
+  selectedChurches,
+  setSelectedChurches,
+  churchOptions,
+
   selectedStatus,
   setSelectedStatus,
+
+  contributionBreakdown,
+  setContributionBreakdown,
+  contributionBreakdownOptions,
 
   selectedFields,
   setSelectedFields,
@@ -97,13 +122,6 @@ export function ReportFiltersPanel({
           canReadAttendance={canReadAttendance}
         />
 
-        {/* MEMBER SELECT */}
-        <MemberSelect
-          members={members}
-          value={selectedMembers}
-          onChange={setSelectedMembers}
-        />
-
         {/* STATUS (Members Report Only) */}
         {reportType === "members" && (
           <StatusSelect
@@ -111,6 +129,83 @@ export function ReportFiltersPanel({
             value={selectedStatus}
             onChange={setSelectedStatus}
           />
+        )}
+
+        {reportType === "contributions" && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Breakdown</label>
+            <select
+              className="
+                w-full
+                h-10
+                rounded-md
+                border border-white/20
+                bg-black/80
+                text-white text-sm
+                px-3
+                focus:outline-none
+                focus:ring-2
+                focus:ring-white/30
+              "
+              value={contributionBreakdown}
+              onChange={(e) =>
+                setContributionBreakdown(e.target.value as ContributionBreakdown)
+              }
+            >
+              {contributionBreakdownOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {reportType === "contributions" && churchOptions.length > 1 && (
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-medium">Churches</label>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  setSelectedChurches(
+                    selectedChurches.length > 0
+                      ? []
+                      : churchOptions.map((option) => option.value)
+                  )
+                }
+              >
+                {selectedChurches.length > 0 ? "Clear All" : "Select All"}
+              </Button>
+            </div>
+            <MultiSelect
+              options={churchOptions}
+              value={selectedChurches}
+              onChange={setSelectedChurches}
+              placeholder="All Churches"
+            />
+            <p className="text-xs text-muted-foreground">
+              {selectedChurches.length === 0
+                ? "All churches in scope are included."
+                : `${selectedChurches.length} church${selectedChurches.length === 1 ? "" : "es"} selected.`}
+            </p>
+          </div>
+        )}
+
+        {/* MEMBER SELECT */}
+        <MemberSelect
+          members={members}
+          options={memberOptions}
+          value={selectedMembers}
+          onChange={setSelectedMembers}
+        />
+        {memberOptions && (
+          <p className="text-xs text-muted-foreground -mt-4">
+            {selectedMembers.length === 0
+              ? "All members in scope are included."
+              : `${selectedMembers.length} member${selectedMembers.length === 1 ? "" : "s"} selected.`}
+          </p>
         )}
 
         {/* MEMBER FIELD SELECT (Members Report Only) */}

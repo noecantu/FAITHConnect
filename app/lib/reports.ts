@@ -244,7 +244,8 @@ export function generateMembersExcel(
 export function generateContributionsPDF(
   rows: Record<string, any>[],     // <-- updated type
   selectedFields: string[],
-  logoBase64?: string
+  logoBase64?: string,
+  options?: { contextLines?: string[] }
 ) {
   const datePrefix = format(new Date(), "yyyy-MM-dd");
 
@@ -267,6 +268,17 @@ export function generateContributionsPDF(
   doc.setFontSize(18);
   doc.text("Contributions Report", pageWidth / 2, 50, { align: "center" });
 
+  const contextLines = options?.contextLines ?? [];
+  let tableStartY = 80;
+
+  if (contextLines.length > 0) {
+    doc.setFontSize(9);
+    contextLines.forEach((line, index) => {
+      doc.text(line, 40, 68 + index * 12);
+    });
+    tableStartY = 68 + contextLines.length * 12 + 10;
+  }
+
   // Build table rows from export-ready rows
   const tableRows = rows.map(row =>
     selectedFields.map(field => {
@@ -287,7 +299,7 @@ export function generateContributionsPDF(
   autoTable(doc, {
     head: [tableColumn],
     body: tableRows,
-    startY: 80,
+    startY: tableStartY,
     styles: { fontSize: 10, cellWidth: "wrap" },
     alternateRowStyles: { fillColor: [245, 245, 245] },
   });
@@ -322,30 +334,44 @@ export function generateContributionsPDF(
 
 export function generateContributionsExcel(
   rows: Record<string, any>[],      // <-- updated type
-  selectedFields: string[]
+  selectedFields: string[],
+  options?: { contextLines?: string[] }
 ) {
   const datePrefix = format(new Date(), "yyyy-MM-dd");
 
-  const worksheet = XLSX.utils.json_to_sheet(
-    rows.map(row => {
-      const excelRow: Record<string, string> = {};
+  const contextLines = options?.contextLines ?? [];
+  const exportRows = rows.map(row => {
+    const excelRow: Record<string, string> = {};
 
-      selectedFields.forEach(field => {
-        const label = contributionFieldLabelMap[field];
-        const value = row[field];
+    selectedFields.forEach(field => {
+      const label = contributionFieldLabelMap[field];
+      const value = row[field];
 
-        if (field === "date") {
-          excelRow[label] = format(new Date(value), "MM/dd/yyyy");
-        } else if (field === "amount") {
-          excelRow[label] = String(value);
-        } else {
-          excelRow[label] = value ?? "";
-        }
-      });
+      if (field === "date") {
+        excelRow[label] = format(new Date(value), "MM/dd/yyyy");
+      } else if (field === "amount") {
+        excelRow[label] = String(value);
+      } else {
+        excelRow[label] = value ?? "";
+      }
+    });
 
-      return excelRow;
-    })
-  );
+    return excelRow;
+  });
+
+  const worksheet = XLSX.utils.aoa_to_sheet([]);
+
+  if (contextLines.length > 0) {
+    XLSX.utils.sheet_add_aoa(
+      worksheet,
+      [["Report Context"], ...contextLines.map((line) => [line]), [""]],
+      { origin: "A1" }
+    );
+  }
+
+  XLSX.utils.sheet_add_json(worksheet, exportRows, {
+    origin: contextLines.length > 0 ? `A${contextLines.length + 3}` : "A1",
+  });
 
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Contributions");

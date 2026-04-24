@@ -248,6 +248,7 @@ export default function RegionalDashboardPage() {
   const quickActions = [
     { href: '/admin/regional/churches', label: 'View Regional Churches', variant: 'outline' as const },
     { href: '/admin/regional/users', label: 'View Regional Users', variant: 'outline' as const },
+    { href: '/admin/reports', label: 'View Reports', variant: 'outline' as const },
   ];
 
   // Permission check

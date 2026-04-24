@@ -8,30 +8,40 @@ import React from "react";
 
 interface Props {
   members: Member[];
+  options?: Array<{ label: string; value: string }>;
   value: string[];
   onChange: (v: string[]) => void;
 }
 
-export function MemberSelect({ members, value, onChange }: Props) {
-  const allIds = members.map((m) => m.id);
+export function MemberSelect({ members, options, value, onChange }: Props) {
+  const computedOptions = React.useMemo(() => {
+    if (options && options.length > 0) {
+      return options;
+    }
 
-  const sortedMembers = React.useMemo(() => {
-    return [...members].sort((a, b) => {
-      const lastA = a.lastName.toLowerCase();
-      const lastB = b.lastName.toLowerCase();
+    return [...members]
+      .sort((a, b) => {
+        const lastA = a.lastName.toLowerCase();
+        const lastB = b.lastName.toLowerCase();
 
-      if (lastA < lastB) return -1;
-      if (lastA > lastB) return 1;
+        if (lastA < lastB) return -1;
+        if (lastA > lastB) return 1;
 
-      const firstA = a.firstName.toLowerCase();
-      const firstB = b.firstName.toLowerCase();
+        const firstA = a.firstName.toLowerCase();
+        const firstB = b.firstName.toLowerCase();
 
-      if (firstA < firstB) return -1;
-      if (firstA > firstB) return 1;
+        if (firstA < firstB) return -1;
+        if (firstA > firstB) return 1;
 
-      return 0;
-    });
-  }, [members]);
+        return 0;
+      })
+      .map((m) => ({
+        label: `${m.firstName} ${m.lastName}`,
+        value: m.id,
+      }));
+  }, [members, options]);
+
+  const allIds = computedOptions.map((option) => option.value);
 
   return (
     <div className="space-y-0">
@@ -47,10 +57,7 @@ export function MemberSelect({ members, value, onChange }: Props) {
       </div>
 
       <MultiSelect
-        options={sortedMembers.map((m) => ({
-          label: `${m.firstName} ${m.lastName}`,
-          value: m.id,
-        }))}
+        options={computedOptions}
         value={value}
         onChange={onChange}
         placeholder="No Members Selected"

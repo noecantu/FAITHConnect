@@ -67,6 +67,12 @@ export type Contribution = {
   contributionType: 'Digital Transfer' | 'Cash' | 'Check' | 'Other';
   date: string;
   notes?: string;
+  churchId?: string;
+  churchName?: string;
+  regionId?: string;
+  regionName?: string;
+  districtId?: string;
+  districtName?: string;
 };
 
 export type ContributionRecord = {

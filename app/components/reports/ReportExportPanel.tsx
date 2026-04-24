@@ -1,4 +1,5 @@
 // components/reports/ReportExportPanel.tsx
+import { useMemo } from "react";
 import {
   Card,
   CardHeader,
@@ -9,6 +10,7 @@ import {
 import { Button } from "@/app/components/ui/button";
 import { AttendancePreviewTable } from "./AttendancePreviewTable";
 import { ContributionPreviewTable } from "./ContributionPreviewTable";
+import type { ContributionBreakdownRow } from "@/app/hooks/useContributionReport";
 
 import {
   sortAttendance,
@@ -48,6 +50,37 @@ export function ReportExportPanel({
   members,
   selectedContributionFields,
 }: ReportExportPanelProps) {
+  const contributionBreakdownRows = useMemo<ContributionBreakdownRow[]>(() => {
+    const grouped = new Map<string, { totalAmount: number; contributionCount: number }>();
+
+    filteredContributions.forEach((contribution) => {
+      const key = contribution.memberName || "Unknown Member";
+      const existing = grouped.get(key);
+
+      if (!existing) {
+        grouped.set(key, {
+          totalAmount: contribution.amount,
+          contributionCount: 1,
+        });
+        return;
+      }
+
+      existing.totalAmount += contribution.amount;
+      existing.contributionCount += 1;
+    });
+
+    return [...grouped.entries()].map(([label, value]) => ({
+      key: `member:${label.toLowerCase()}`,
+      label,
+      totalAmount: value.totalAmount,
+      contributionCount: value.contributionCount,
+      averageAmount:
+        value.contributionCount > 0
+          ? value.totalAmount / value.contributionCount
+          : 0,
+    }));
+  }, [filteredContributions]);
+
   console.log("selectedContributionFields", selectedContributionFields)
   return (
     <Card className="flex-1 w-full">
@@ -98,6 +131,8 @@ export function ReportExportPanel({
                 contributions={filteredContributions}
                 members={members}
                 selectedFields={selectedContributionFields}
+                breakdown="member"
+                breakdownRows={contributionBreakdownRows}
               />
             )}
           </div>
