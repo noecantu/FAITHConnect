@@ -21,14 +21,13 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'firebasestorage.googleapis.com',
+        hostname: '*.supabase.co',
         port: '',
         pathname: '/**',
       },
     ],
   },
 
-  // Required for Firebase Studio preview
   allowedDevOrigins: ["https://*.cloudworkstations.dev"],
 };
 
