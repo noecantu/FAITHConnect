@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-;
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
@@ -14,7 +13,9 @@ interface Props {
 }
 
 export default function RegionProfileCard({
-  const supabase = getSupabaseClient(); region_id }: Props) {
+  region_id,
+}: Props) {
+  const supabase = getSupabaseClient();
   const { toast } = useToast();
 
   const [name, setName] = useState("");

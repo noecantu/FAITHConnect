@@ -6,7 +6,6 @@ import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { useToast } from '@/app/hooks/use-toast';
 import { getSupabaseClient } from "@/app/lib/supabase/client";
-;
 import TimezoneSelect from '@/app/components/settings/TimezoneSelect';
 import { usePhoneInput } from '@/app/hooks/usePhoneInput';
 import { Check } from "lucide-react";
@@ -23,7 +22,9 @@ interface Props {
 }
 
 export default function ChurchProfileCard({
-  const supabase = getSupabaseClient(); church_id }: Props) {
+  church_id,
+}: Props) {
+  const supabase = getSupabaseClient();
   const { toast } = useToast();
 
   // Display-only name

@@ -116,12 +116,13 @@ export default function CreateChurchPage() {
         description: "Your church has been successfully created.",
       });
 
-      router.replace(`/admin/church/${data.churchId}`);
-    } catch (err) {
+      router.replace(`/admin/church/${data.churchId ?? data.slug}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Could not create church. Please try again.";
       console.error(err);
       toast({
         title: "Error",
-        description: "Could not create church. Please try again.",
+        description: message,
       });
     } finally {
       setLoading(false);

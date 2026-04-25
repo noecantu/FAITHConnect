@@ -41,81 +41,18 @@ export async function recoverRootAdmin() {
     created_at: new Date().toISOString(),
   }, { onConflict: "id" });
 
-  // Generate a password reset link via Supabase admin API
-  const resetLink = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/verify?type=recovery&token=MANUAL_RESET_REQUIRED`;
+  // Generate a real password reset link
+  const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+    type: "recovery",
+    email: ROOT_EMAIL,
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"}/reset-password`,
+    },
+  });
+  const resetLink = linkError ? "(visit Supabase dashboard to reset password)" : linkData.properties.action_link;
 
   return {
     uid: user.id,
-    email: ROOT_EMAIL,
-    resetLink,
-  };
-}
-
-function getAdminApp() {
-  if (getApps().length > 0) return getApps()[0];
-
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
-
-  if (!projectId || !clientEmail || !privateKey) {
-    throw new Error("Missing Firebase Admin environment variables");
-  }
-
-  return initializeApp({
-    credential: cert({
-      projectId,
-      clientEmail,
-      privateKey: privateKey.replace(/\\n/g, "\n"),
-    }),
-  });
-}
-
-const ROOT_EMAIL = "root@faithconnect.app";
-const ROOT_CHURCH_ID = "system";
-
-export async function recoverRootAdmin() {
-  // Initialize lazily — only when the function is called
-  const app = getAdminApp();
-
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  let user;
-
-  try {
-    user = await auth.getUserByEmail(ROOT_EMAIL);
-  } catch {
-    user = await auth.createUser({
-      email: ROOT_EMAIL,
-      password: "TempRoot123!",
-      emailVerified: true,
-    });
-  }
-
-  await auth.setCustomUserClaims(user.uid, {
-    roles: ["RootAdmin"],
-    church_id: ROOT_CHURCH_ID,
-  });
-
-  await db.collection("users").doc(user.uid).set(
-    {
-      uid: user.uid,
-      email: ROOT_EMAIL,
-      roles: ["RootAdmin"],
-      church_id: ROOT_CHURCH_ID,
-      first_name: "Root",
-      last_name: "Admin",
-      updated_at: new Date(),
-      created_at: new Date(),
-    },
-    { merge: true }
-  );
-
-  const resetLink = await auth.generatePasswordResetLink(ROOT_EMAIL);
-
-  return {
-    uid: user.uid,
     email: ROOT_EMAIL,
     resetLink,
   };

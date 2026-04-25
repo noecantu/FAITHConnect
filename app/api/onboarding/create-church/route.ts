@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { getServerUser } from "@/app/lib/supabase/server";
 import { adminDb } from "@/app/lib/supabase/admin";
+import { isMissingTableError, schemaNotInitializedResponse } from "@/app/lib/supabase/schema-errors";
 
 export async function POST(req: Request) {
   try {
@@ -25,7 +26,17 @@ export async function POST(req: Request) {
       .eq("id", uid)
       .single();
 
-    if (userError || !userData) {
+    if (userError) {
+      if (isMissingTableError(userError)) {
+        return NextResponse.json(schemaNotInitializedResponse("users"), { status: 503 });
+      }
+      return NextResponse.json(
+        { error: "Unable to load user profile. Please try again." },
+        { status: 500 }
+      );
+    }
+
+    if (!userData) {
       return NextResponse.json(
         { error: "User profile not found. Please restart onboarding." },
         { status: 403 }
@@ -97,7 +108,12 @@ export async function POST(req: Request) {
       created_by: uid,
     });
 
-    if (churchError) throw churchError;
+    if (churchError) {
+      if (isMissingTableError(churchError)) {
+        return NextResponse.json(schemaNotInitializedResponse("churches"), { status: 503 });
+      }
+      throw churchError;
+    }
 
     // Update user with churchId and final onboarding step
     const { error: userUpdateError } = await adminDb
@@ -111,11 +127,25 @@ export async function POST(req: Request) {
       })
       .eq("id", uid);
 
-    if (userUpdateError) throw userUpdateError;
+    if (userUpdateError) {
+      if (isMissingTableError(userUpdateError)) {
+        return NextResponse.json(schemaNotInitializedResponse("users"), { status: 503 });
+      }
+      throw userUpdateError;
+    }
 
-    return NextResponse.json({ success: true, slug: finalSlug });
-  } catch (error) {
-    console.error("Error creating church:", error);
-    return NextResponse.json({ error: "Failed to create church" }, { status: 500 });
+    return NextResponse.json({ success: true, churchId: finalSlug, slug: finalSlug });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message: unknown }).message)
+        : "Failed to create church";
+    console.error("Error creating church:", message);
+    if (isMissingTableError(error)) {
+      return NextResponse.json(schemaNotInitializedResponse("churches"), { status: 503 });
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

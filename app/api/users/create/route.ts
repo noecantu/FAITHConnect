@@ -3,6 +3,12 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { getServerUser } from "@/app/lib/supabase/server";
 import { adminDb } from "@/app/lib/supabase/admin";
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(req: Request) {
   try {
@@ -13,6 +19,7 @@ export async function POST(req: Request) {
       firstName,
       lastName,
       token,
+      accessToken,
       roles,
       plan,
       onboardingStep,
@@ -39,9 +46,17 @@ export async function POST(req: Request) {
     };
 
     if (!token) {
-      // Signup flow — verify the caller is the same user being created
-      const authUser = await getServerUser();
-      if (!authUser || authUser.id !== uid) {
+      // Signup flow — verify the caller is the same user being created.
+      // Use the access_token from the signup response since cookies may not be set yet.
+      let verifiedUid: string | null = null;
+      if (accessToken) {
+        const { data: { user: tokenUser } } = await supabaseAdmin.auth.getUser(accessToken);
+        verifiedUid = tokenUser?.id ?? null;
+      } else {
+        const authUser = await getServerUser();
+        verifiedUid = authUser?.id ?? null;
+      }
+      if (!verifiedUid || verifiedUid !== uid) {
         return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
       }
 

@@ -30,7 +30,11 @@ export function useAttendanceHistorySettings(churchId: string | undefined) {
 
   const updateSettings = async (newSettings: any) => {
     if (!churchId) return;
-    const { data: current } = await supabase.from("churches").select("settings").eq("id", churchId).single();
+    const { data: current } = await supabase
+      .from("churches")
+      .select("settings")
+      .eq("id", churchId)
+      .maybeSingle();
     const updated = { ...current?.settings, attendanceHistory: newSettings };
     const { error } = await supabase.from("churches").update({ settings: updated }).eq("id", churchId);
     if (!error) setSettings(newSettings);

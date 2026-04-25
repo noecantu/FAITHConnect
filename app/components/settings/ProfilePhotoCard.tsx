@@ -2,16 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-;
 import { getSupabaseClient } from "@/app/lib/supabase/client";
-;
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import ImageDropzone from "@/app/components/settings/ImageDropzone";
 import type { AppUser } from "@/app/lib/types";
 
 export function ProfilePhotoCard({
-  const supabase = getSupabaseClient();
   user,
   onDirtyChange,
   registerSave,
@@ -20,6 +17,7 @@ export function ProfilePhotoCard({
   onDirtyChange?: (dirty: boolean) => void;
   registerSave?: (fn: () => Promise<void>) => void;
 }) {
+  const supabase = getSupabaseClient();
   const [previewUrl, setPreviewUrl] = useState<string | null>(user.profile_photo_url ?? null);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [removeRequested, setRemoveRequested] = useState(false);

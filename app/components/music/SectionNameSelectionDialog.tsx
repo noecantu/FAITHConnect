@@ -12,7 +12,6 @@ import { Input } from "@/app/components/ui/input";
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Loader2, Trash2 } from 'lucide-react';
 import { getSupabaseClient } from "@/app/lib/supabase/client";
-;
 
 interface SectionName {
   id: string;
@@ -28,13 +27,13 @@ interface SectionNameDialogProps {
 }
 
 export default function SectionNameDialog({
-  const supabase = getSupabaseClient();
   isOpen,
   onOpenChange,
   onSelect,
   currentTitle,
   church_id
 }: SectionNameDialogProps) {
+  const supabase = getSupabaseClient();
   const [items, setItems] = useState<SectionName[]>([]);
   const [newTitle, setNewTitle] = useState('');
   const [searchTerm, setSearchTerm] = useState('');

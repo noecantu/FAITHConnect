@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { getSupabaseClient } from "@/app/lib/supabase/client";
 
 export function useChurch(churchId: string | undefined) {
   const [church, setChurch] = useState<any>(null);
@@ -11,16 +10,15 @@ export function useChurch(churchId: string | undefined) {
       return;
     }
 
-    const supabase = getSupabaseClient();
     async function fetchChurch() {
-      const { data, error } = await supabase
-        .from("churches")
-        .select("*")
-        .eq("id", churchId)
-        .single();
-
-      if (!error) {
-        setChurch(data);
+      try {
+        const res = await fetch(`/api/church/${encodeURIComponent(churchId!)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setChurch(data);
+        }
+      } catch (err) {
+        console.error("Error fetching church:", err);
       }
       setLoading(false);
     }

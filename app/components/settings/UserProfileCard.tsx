@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-;
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
@@ -9,7 +8,6 @@ import { Input } from "@/app/components/ui/input";
 import type { AppUser } from "@/app/lib/types";
 
 export default function UserProfileCard({
-  const supabase = getSupabaseClient();
   user,
   onDirtyChange,
   registerSave,
@@ -18,6 +16,7 @@ export default function UserProfileCard({
   onDirtyChange?: (dirty: boolean) => void;
   registerSave?: (fn: () => Promise<void>) => void;
 }) {
+  const supabase = getSupabaseClient();
   const [first_name, setFirstName] = useState(user.first_name ?? "");
   const [last_name, setLastName] = useState(user.last_name ?? "");
   const [email, setEmail] = useState(user.email ?? "");

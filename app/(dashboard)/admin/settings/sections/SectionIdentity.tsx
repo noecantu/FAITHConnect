@@ -11,7 +11,6 @@ import TimezoneSelect from "@/app/components/settings/TimezoneSelect";
 import LocaleSelect from "@/app/components/settings/LocaleSelect";
 
 import { getSupabaseClient } from "@/app/lib/supabase/client";
-;
 
 import type { SystemSettings } from "@/app/lib/types";
 
@@ -23,12 +22,13 @@ type IdentityFields = {
 };
 
 export default function SectionIdentity({
-  const supabase = getSupabaseClient();
   settings,
+  updateSettings,
 }: {
   settings: SystemSettings;
   updateSettings: (s: Partial<SystemSettings>) => void;
 }) {
+  const supabase = getSupabaseClient();
   const { toast } = useToast();
 
   // Local editable state

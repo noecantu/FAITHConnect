@@ -37,23 +37,26 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       try {
         const { data: userData } = await getSupabaseClient()
           .from("users")
-          .select("settings")
+          .select("*")
           .eq("id", user.uid)
           .single();
 
         if (!isActive) return;
 
         if (userData) {
-          const data = userData;
+          const settings =
+            typeof userData.settings === "object" && userData.settings !== null
+              ? (userData.settings as Record<string, unknown>)
+              : {};
 
-          if (data.settings?.calendarView) {
-            const view = data.settings.calendarView;
+          if (typeof settings.calendarView === "string") {
+            const view = settings.calendarView as 'calendar' | 'list';
             setCalendarView(view);
             localStorage.setItem("calendarView", view);
           }
 
-          if (data.settings?.fiscalYear) {
-            const year = data.settings.fiscalYear;
+          if (typeof settings.fiscalYear === "string") {
+            const year = settings.fiscalYear;
             setFiscalYear(year);
             localStorage.setItem("fiscalYear", year);
           }

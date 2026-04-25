@@ -31,7 +31,6 @@ import {
 import { SYSTEM_ROLES, ROLE_LABELS, type Role, SystemRole } from "@/app/lib/auth/roles";
 import type { AppUser } from "@/app/lib/types";
 import RoleSelector from "@/app/components/settings/RoleSelector";
-;
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 
 // Firestore admin API
@@ -68,13 +67,13 @@ async function deleteUser(uid: string) {
 }
 
 export default function EditUserForm({
-  const supabase = getSupabaseClient();
   userId,
   user,
 }: {
   userId: string;
   user: AppUser;
 }) {
+  const supabase = getSupabaseClient();
   const router = useRouter();
   const { toast } = useToast();
   const { user: currentUser } = useAuth();

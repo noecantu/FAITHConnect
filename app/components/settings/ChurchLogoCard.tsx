@@ -81,7 +81,6 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
         setLogoUrl(url);
         setOriginalLogoUrl(url);
       }
-      }
     };
 
     load();

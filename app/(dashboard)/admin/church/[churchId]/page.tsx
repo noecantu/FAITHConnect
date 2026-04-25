@@ -38,12 +38,14 @@ import { BillingLapsedNotice } from "@/app/components/layout/BillingLapsedNotice
 
 export default function ChurchAdminDashboard() {
   const supabase = getSupabaseClient();
-  const { church_id } = useParams();
+  const params = useParams();
+  const churchId = typeof params?.churchId === "string" ? params.churchId : null;
   const { user, loading: userLoading } = useAuth();
   const { isRegionalAdmin, isRootAdmin } = usePermissions();
   const isReadOnly = isRegionalAdmin && !isRootAdmin;
   const [church, setChurch] = useState<Church | null>(null);
   const [loading, setLoading] = useState(true);
+  const [churchNotFound, setChurchNotFound] = useState(false);
 
   const [memberCount, setMemberCount] = useState(0);
   const [serviceCount, setServiceCount] = useState(0);
@@ -63,18 +65,17 @@ export default function ChurchAdminDashboard() {
       return;
     }
 
-    // 3. Wait for church_id to be available
+    // 3. Wait for churchId to be available
     //    - undefined → still loading
     //    - null → user has no church
-    if (church_id === undefined) return;
-
-    if (church_id === null) {
+    if (churchId === null) {
       setLoading(false);
       return;
     }
 
     async function load() {
       setLoading(true);
+      setChurchNotFound(false);
       try {
         // ---------------------------
         // Compute week range FIRST
@@ -92,17 +93,18 @@ export default function ChurchAdminDashboard() {
         endOfWeek.setHours(23, 59, 59, 999);
 
         // ---------------------------
-        // 1. Load church document
+        // 1. Load church document (via API route to bypass RLS)
         // ---------------------------
-        const { data: churchData, error: churchError } = await supabase
-          .from("churches")
-          .select("*")
-          .eq("id", church_id as string)
-          .single();
-
-        if (churchError || !churchData) {
+        const churchRes = await fetch(`/api/church/${encodeURIComponent(churchId!)}`);
+        if (!churchRes.ok) {
+          if (churchRes.status === 404) {
+            setChurchNotFound(true);
+          } else {
+            console.error("Error loading church record:", churchRes.status);
+          }
           return;
         }
+        const churchData = await churchRes.json();
 
         setChurch(churchData as Church);
 
@@ -116,7 +118,7 @@ export default function ChurchAdminDashboard() {
         const { count: membersCount } = await supabase
           .from("members")
           .select("id", { count: "exact", head: true })
-          .eq("church_id", church_id as string)
+          .eq("church_id", churchId)
           .neq("status", "Archived");
         setMemberCount(membersCount ?? 0);
 
@@ -129,7 +131,7 @@ export default function ChurchAdminDashboard() {
         const { count: servicesCount } = await supabase
           .from("service_plans")
           .select("id", { count: "exact", head: true })
-          .eq("church_id", church_id as string)
+          .eq("church_id", churchId)
           .gte("date_string", todayIso);
         setServiceCount(servicesCount ?? 0);
 
@@ -139,7 +141,7 @@ export default function ChurchAdminDashboard() {
         const { count: eventsCount } = await supabase
           .from("events")
           .select("id", { count: "exact", head: true })
-          .eq("church_id", church_id as string)
+          .eq("church_id", churchId)
           .gte("date", startOfWeek.toISOString())
           .lte("date", endOfWeek.toISOString());
         setEventCount(eventsCount ?? 0);
@@ -153,7 +155,7 @@ export default function ChurchAdminDashboard() {
         const { data: attendanceRows } = await supabase
           .from("attendance")
           .select("records, visitors")
-          .eq("church_id", church_id as string)
+          .eq("church_id", churchId)
           .gte("date", startIso)
           .lte("date", endIso);
 
@@ -192,7 +194,7 @@ export default function ChurchAdminDashboard() {
     }
 
     load();
-  }, [user, userLoading, church_id]);
+  }, [user, userLoading, churchId]);
 
   // ---------------------------
   // RENDER STATES
@@ -222,10 +224,18 @@ export default function ChurchAdminDashboard() {
     );
   }
 
+  if (churchNotFound) {
+    return (
+      <>
+        Church not found or unavailable.
+      </>
+    );
+  }
+
   if (!church) {
     return (
       <>
-        Loading Church Dashboard…
+        Unable to load church dashboard.
       </>
     );
   }
@@ -258,15 +268,15 @@ export default function ChurchAdminDashboard() {
   const statusLabel = isChurchDisabled ? "Disabled" : "Active";
   const accessModeLabel = isReadOnly ? "Read-Only" : "Full Access";
   const quickActions = [
-    { href: `/church/${church_id}/attendance`, label: "Attendance", icon: <CalendarCheck className="h-5 w-5 text-amber-500" /> },
-    { href: `/church/${church_id}/attendance/history`, label: "Attendance History", icon: <Activity className="h-5 w-5 text-amber-500" /> },
-    { href: `/church/${church_id}/contributions`, label: "Contributions", icon: <DollarSign className="h-5 w-5 text-emerald-500" /> },
-    { href: `/church/${church_id}/calendar`, label: "Events", icon: <Calendar className="h-5 w-5 text-sky-500" /> },
-    { href: `/church/${church_id}/members`, label: "Members", icon: <UserPlus className="h-5 w-5 text-blue-500" /> },
-    { href: `/church/${church_id}/reports`, label: "Reports", icon: <FileText className="h-5 w-5 text-orange-500" /> },
-    { href: `/church/${church_id}/service-plan`, label: "Service Plans", icon: <CalendarHeart className="h-5 w-5 text-violet-500" /> },
-    { href: `/church/${church_id}/music/setlists`, label: "Set Lists", icon: <Music className="h-5 w-5 text-emerald-500" /> },
-    { href: `/church/${church_id}/music/songs`, label: "Songs", icon: <Music2 className="h-5 w-5 text-emerald-500" /> },
+    { href: `/church/${churchId}/attendance`, label: "Attendance", icon: <CalendarCheck className="h-5 w-5 text-amber-500" /> },
+    { href: `/church/${churchId}/attendance/history`, label: "Attendance History", icon: <Activity className="h-5 w-5 text-amber-500" /> },
+    { href: `/church/${churchId}/contributions`, label: "Contributions", icon: <DollarSign className="h-5 w-5 text-emerald-500" /> },
+    { href: `/church/${churchId}/calendar`, label: "Events", icon: <Calendar className="h-5 w-5 text-sky-500" /> },
+    { href: `/church/${churchId}/members`, label: "Members", icon: <UserPlus className="h-5 w-5 text-blue-500" /> },
+    { href: `/church/${churchId}/reports`, label: "Reports", icon: <FileText className="h-5 w-5 text-orange-500" /> },
+    { href: `/church/${churchId}/service-plan`, label: "Service Plans", icon: <CalendarHeart className="h-5 w-5 text-violet-500" /> },
+    { href: `/church/${churchId}/music/setlists`, label: "Set Lists", icon: <Music className="h-5 w-5 text-emerald-500" /> },
+    { href: `/church/${churchId}/music/songs`, label: "Songs", icon: <Music2 className="h-5 w-5 text-emerald-500" /> },
   ];
 
   // ---------------------------

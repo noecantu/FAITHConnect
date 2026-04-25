@@ -3,7 +3,6 @@
 
 import { use, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-;
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 import { useChurchId } from "@/app/hooks/useChurchId";
@@ -21,11 +20,11 @@ import {
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 export default function EditEventPage({
-  const supabase = getSupabaseClient();
   params,
 }: {
   params: Promise<{ eventId: string }>;
 }) {
+  const supabase = getSupabaseClient();
   const router = useRouter();
   const routeParams = useParams();
   const routeSlug = String(routeParams?.slug ?? "");

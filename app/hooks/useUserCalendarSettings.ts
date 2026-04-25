@@ -15,12 +15,24 @@ export function useUserCalendarSettings(userId: string | undefined) {
     async function fetchSettings() {
       const { data, error } = await supabase
         .from("users")
-        .select("calendar_settings")
+        .select("*")
         .eq("id", userId)
         .single();
 
       if (!error && data) {
-        setSettings(data.calendar_settings || {});
+        const settingsBlob =
+          typeof data.settings === "object" && data.settings !== null
+            ? data.settings
+            : {};
+
+        // Backward compatible read: prefer new JSON settings, fall back to legacy key if present.
+        const calendarSettings =
+          typeof (settingsBlob as Record<string, unknown>).calendarSettings === "object" &&
+          (settingsBlob as Record<string, unknown>).calendarSettings !== null
+            ? (settingsBlob as Record<string, unknown>).calendarSettings
+            : (data as Record<string, unknown>).calendar_settings ?? {};
+
+        setSettings(calendarSettings);
       }
       setLoading(false);
     }
@@ -30,9 +42,26 @@ export function useUserCalendarSettings(userId: string | undefined) {
 
   const updateSettings = async (newSettings: any) => {
     if (!userId) return;
+
+    const { data: current } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    const existing =
+      current && typeof current.settings === "object" && current.settings !== null
+        ? current.settings
+        : {};
+
+    const mergedSettings = {
+      ...(existing as Record<string, unknown>),
+      calendarSettings: newSettings,
+    };
+
     const { error } = await supabase
       .from("users")
-      .update({ calendar_settings: newSettings })
+      .update({ settings: mergedSettings })
       .eq("id", userId);
     
     if (!error) setSettings(newSettings);

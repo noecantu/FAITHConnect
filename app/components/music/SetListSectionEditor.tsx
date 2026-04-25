@@ -27,7 +27,6 @@ import { getSectionColor, SECTION_COLOR_PALETTE } from '@/app/lib/sectionColors'
 import { useChurchId } from '@/app/hooks/useChurchId';
 
 import { getSupabaseClient } from "@/app/lib/supabase/client";
-;
 
 import SectionNameSelectionDialog from '@/app/components/music/SectionNameSelectionDialog';
 import SongSelectionDialog from '@/app/components/music/SongSelectionDialog';
@@ -46,7 +45,11 @@ interface SectionName {
 }
 
 export function SetListSectionEditor({
-  const supabase = getSupabaseClient(); sections, onChange, allSongs }: Props) {
+  sections,
+  onChange,
+  allSongs,
+}: Props) {
+  const supabase = getSupabaseClient();
   const { church_id, loading: churchLoading } = useChurchId();
 
   const [sectionNames, setSectionNames] = useState<SectionName[]>([]);
