@@ -2,8 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { PageHeader } from "@/app/components/page-header";
 import { Card, CardContent } from "@/app/components/ui/card";
@@ -29,67 +28,63 @@ export default function DistrictRegionsPage() {
   // Load approved regions in this district
   useEffect(() => {
     if (!districtId) return;
+    let active = true;
 
-    const q = query(
-      collection(db, "regions"),
-      where("districtId", "==", districtId)
-    );
+    const supabase = getSupabaseClient();
 
-    const unsub = onSnapshot(
-      q,
-      async (snap) => {
-        const regionList = snap.docs.map((d) => ({
+    supabase
+      .from("regions")
+      .select("id, name, region_admin_name, region_admin_title, state")
+      .eq("district_id", districtId)
+      .then(async ({ data }) => {
+        if (!active) return;
+
+        const regionList = (data ?? []).map((d) => ({
           id: d.id,
-          name: d.data().name || "Unknown Region",
-          regionAdminName: d.data().regionAdminName ?? null,
-          regionAdminTitle: d.data().regionAdminTitle ?? null,
-          state: d.data().state ?? null,
+          name: d.name || "Unknown Region",
+          regionAdminName: d.region_admin_name ?? null,
+          regionAdminTitle: d.region_admin_title ?? null,
+          state: d.state ?? null,
         }));
 
         const enriched = await Promise.all(
           regionList.map(async (region) => {
             try {
-              const churchSnap = await getDocs(
-                query(collection(db, "churches"), where("regionId", "==", region.id))
-              );
-              return { ...region, churchCount: churchSnap.size };
+              const { count } = await supabase
+                .from("churches")
+                .select("id", { count: "exact", head: true })
+                .eq("region_id", region.id);
+              return { ...region, churchCount: count ?? 0 };
             } catch {
               return { ...region, churchCount: 0 };
             }
           })
         );
 
-        setRegions(enriched);
-        setLoading(false);
-      },
-      (error) => {
-        if ((error as { code?: string }).code !== "permission-denied") {
-          console.error("district regions snapshot error:", error);
+        if (active) {
+          setRegions(enriched);
+          setLoading(false);
         }
-        setLoading(false);
-      }
-    );
+      });
 
-    return () => unsub();
+    return () => { active = false; };
   }, [districtId]);
 
   // Load pending count
   useEffect(() => {
     if (!districtId) return;
+    let active = true;
 
-    const q = query(
-      collection(db, "regions"),
-      where("districtSelectedId", "==", districtId),
-      where("districtStatus", "==", "pending")
-    );
+    getSupabaseClient()
+      .from("regions")
+      .select("id", { count: "exact", head: true })
+      .eq("district_selected_id", districtId)
+      .eq("district_status", "pending")
+      .then(({ count }) => {
+        if (active) setPendingCount(count ?? 0);
+      });
 
-    const unsub = onSnapshot(
-      q,
-      (snap) => setPendingCount(snap.size),
-      (error) => { if ((error as { code?: string }).code !== "permission-denied") console.error("pending regions count error:", error); }
-    );
-
-    return () => unsub();
+    return () => { active = false; };
   }, [districtId]);
 
   if (permLoading) {

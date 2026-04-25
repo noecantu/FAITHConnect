@@ -2,8 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, where, onSnapshot, doc, updateDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { useToast } from "@/app/hooks/use-toast";
 import { PageHeader } from "@/app/components/page-header";
@@ -19,27 +18,20 @@ export default function PendingRegionsPage() {
   useEffect(() => {
     if (!districtId) return;
 
-    const q = query(
-      collection(db, "regions"),
-      where("districtSelectedId", "==", districtId),
-      where("districtStatus", "==", "pending")
-    );
+    let active = true;
 
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        setPending(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    getSupabaseClient()
+      .from("regions")
+      .select("*")
+      .eq("district_selected_id", districtId)
+      .eq("district_status", "pending")
+      .then(({ data }) => {
+        if (!active) return;
+        setPending((data ?? []).map((d) => ({ id: d.id, ...d })));
         setLoading(false);
-      },
-      (error) => {
-        if ((error as { code?: string }).code !== "permission-denied") {
-          console.error("pending regions snapshot error:", error);
-        }
-        setLoading(false);
-      }
-    );
+      });
 
-    return () => unsub();
+    return () => { active = false; };
   }, [districtId]);
 
   async function handleApprove(regionId: string) {
@@ -66,10 +58,10 @@ export default function PendingRegionsPage() {
   }
 
   async function handleReject(regionId: string) {
-    await updateDoc(doc(db, "regions", regionId), {
-      districtStatus: "rejected",
-      updatedAt: new Date(),
-    });
+    await getSupabaseClient()
+      .from("regions")
+      .update({ district_status: "rejected", updated_at: new Date().toISOString() })
+      .eq("id", regionId);
 
     toast({
       title: "Region Rejected",

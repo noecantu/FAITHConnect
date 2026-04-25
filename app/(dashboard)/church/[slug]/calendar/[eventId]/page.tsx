@@ -3,8 +3,8 @@
 
 import { use, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 import { useChurchId } from "@/app/hooks/useChurchId";
 import EventEditor from "@/app/components/calendar/EventEditor";
@@ -21,6 +21,7 @@ import {
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 export default function EditEventPage({
+  const supabase = getSupabaseClient();
   params,
 }: {
   params: Promise<{ eventId: string }>;
@@ -30,7 +31,7 @@ export default function EditEventPage({
   const routeSlug = String(routeParams?.slug ?? "");
   const calendarPath = `/church/${routeSlug}/calendar`;
   const { user } = useCurrentUser();
-  const { churchId } = useChurchId();
+  const { church_id } = useChurchId();
 
   const { eventId } = use(params);
 
@@ -51,9 +52,9 @@ export default function EditEventPage({
   // Load event from Firestore
   useEffect(() => {
     async function load() {
-      if (!churchId) return;
+      if (!church_id) return;
 
-      const ref = doc(db, "churches", churchId, "events", eventId);
+      const ref = doc(db, "churches", church_id, "events", eventId);
       const snap = await getDoc(ref);
 
       if (snap.exists()) {
@@ -71,7 +72,7 @@ export default function EditEventPage({
     }
 
     load();
-  }, [churchId, eventId]);
+  }, [church_id, eventId]);
 
   // Permission logic
   function canEditEvent(event: any): boolean {

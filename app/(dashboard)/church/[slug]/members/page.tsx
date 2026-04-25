@@ -18,13 +18,14 @@ import type { Member } from '@/app/lib/types';
 
 import MemberCard from '@/app/components/members/MemberCard';
 
-import { updateDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase/client';
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { SearchBar } from '@/app/components/ui/search-bar';
 
 export default function MembersPage() {
+  const supabase = getSupabaseClient();
   const router = useRouter();
-  const { churchId } = useChurchId();
+  const { church_id } = useChurchId();
 
   const { canManageMembers, isAuditor, isRegionalAdmin } = usePermissions();
 
@@ -42,18 +43,18 @@ export default function MembersPage() {
 
   // Real-time listener
   useEffect(() => {
-    if (!churchId || !user) return;
+    if (!church_id || !user) return;
 
-    const unsubscribe = listenToMembers(churchId, setMembers);
+    const unsubscribe = listenToMembers(church_id, setMembers);
     return () => unsubscribe();
-  }, [churchId, user]);
+  }, [church_id, user]);
 
   // Filtering
   const filteredMembers = useMemo(() => {
     const term = search.toLowerCase();
 
     return members.filter((m) => {
-      const name = `${m.firstName} ${m.lastName}`.toLowerCase();
+      const name = `${m.first_name} ${m.last_name}`.toLowerCase();
       const email = m.email?.toLowerCase() ?? '';
       const phone = m.phoneNumber ?? '';
       return (
@@ -67,8 +68,8 @@ export default function MembersPage() {
   // Sorting
   const sortedMembers = useMemo(() => {
     return [...filteredMembers].sort((a, b) => {
-      const nameA = `${a.lastName}, ${a.firstName}`.toLowerCase();
-      const nameB = `${b.lastName}, ${b.firstName}`.toLowerCase();
+      const nameA = `${a.last_name}, ${a.first_name}`.toLowerCase();
+      const nameB = `${b.last_name}, ${b.first_name}`.toLowerCase();
       return nameA.localeCompare(nameB);
     });
   }, [filteredMembers]);
@@ -99,7 +100,7 @@ export default function MembersPage() {
 
                 await updateDoc(doc(db, 'users', user.uid), {
                   'settings.cardView': v,
-                  updatedAt: serverTimestamp(),
+                  updated_at: serverTimestamp(),
                 });
               }}
               className="flex items-center gap-4"
@@ -144,7 +145,7 @@ export default function MembersPage() {
       {canEdit && (
         <Fab
           type="add"
-          onClick={() => router.push(`/church/${churchId}/members/new`)}
+          onClick={() => router.push(`/church/${church_id}/members/new`)}
         />
       )}
     </>

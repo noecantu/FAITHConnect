@@ -13,7 +13,7 @@ import {
 } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
 import { useToast } from "@/app/hooks/use-toast";
-import { getAuth } from "firebase/auth";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { ArrowLeft } from "lucide-react";
 
 export default function CreateChurchPage() {
@@ -96,13 +96,10 @@ export default function CreateChurchPage() {
     setLoading(true);
 
     try {
-      const auth = getAuth();
-      const token = await auth.currentUser?.getIdToken(true);
-
       const res = await fetch("/api/onboarding/create-church", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ churchName, token }),
+        body: JSON.stringify({ churchName }),
       });
 
       const data = await res.json();
@@ -111,7 +108,8 @@ export default function CreateChurchPage() {
         throw new Error(data.error || "Failed to create church");
       }
 
-      await auth.currentUser?.getIdToken(true);
+      // Refresh Supabase session to get updated claims
+      await getSupabaseClient().auth.refreshSession();
 
       toast({
         title: "Church Created",

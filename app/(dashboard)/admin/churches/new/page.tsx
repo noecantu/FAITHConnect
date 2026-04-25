@@ -2,18 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { auth, db } from "@/app/lib/firebase/client";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { slugify } from "@/app/lib/slugify";
-import {
-  doc,
-  getDoc,
-  serverTimestamp,
-  setDoc,
-} from "firebase/firestore";
-import {
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-} from "firebase/auth";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Input } from "@/app/components/ui/input";
@@ -21,12 +11,13 @@ import { Label } from "@/app/components/ui/label";
 import { Button } from "@/app/components/ui/button";
 
 export default function NewChurchPage() {
+  const supabase = getSupabaseClient();
   const router = useRouter();
 
   const [name, setName] = useState("");
   const [timezone, setTimezone] = useState("");
   const [address, setAddress] = useState("");
-  const [logoUrl, setLogoUrl] = useState("");
+  const [logo_url, setLogoUrl] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -35,10 +26,13 @@ export default function NewChurchPage() {
     let counter = 1;
 
     while (true) {
-      const ref = doc(db, "churches", slug);
-      const snap = await getDoc(ref);
+      const { data } = await supabase
+        .from("churches")
+        .select("id")
+        .eq("id", slug)
+        .maybeSingle();
 
-      if (!snap.exists()) return slug;
+      if (!data) return slug;
 
       counter++;
       slug = `${base}-${counter}`;
@@ -53,35 +47,40 @@ export default function NewChurchPage() {
       const baseSlug = slugify(name);
       const slug = await generateUniqueSlug(baseSlug);
 
-      await setDoc(doc(db, "churches", slug), {
+      const currentUser = (await supabase.auth.getUser()).data.user;
+
+      const { error: churchError } = await supabase.from("churches").insert({
+        id: slug,
         name,
         slug,
         timezone,
         address: address || null,
-        logoUrl: logoUrl || null,
-        createdAt: serverTimestamp(),
-        createdBy: auth.currentUser?.uid ?? null,
+        logo_url: logo_url || null,
+        created_at: new Date().toISOString(),
+        created_by: currentUser?.id ?? null,
         settings: {},
       });
 
-      const tempPassword = Math.random().toString(36).slice(2, 10);
-      const userCred = await createUserWithEmailAndPassword(
-        auth,
-        adminEmail,
-        tempPassword
-      );
+      if (churchError) throw churchError;
 
-      const uid = userCred.user.uid;
-
-      await setDoc(doc(db, "users", uid), {
-        uid,
-        email: adminEmail,
-        roles: ["Admin"],
-        churchId: slug,
-        createdAt: serverTimestamp(),
+      // Create admin user via API route (server-side auth creation)
+      const res = await fetch("/api/church-users/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: adminEmail,
+          firstName: "",
+          lastName: "",
+          roles: ["Admin"],
+          churchId: slug,
+          sendInvite: true,
+        }),
       });
 
-      await sendPasswordResetEmail(auth, adminEmail);
+      if (!res.ok) {
+        const { error } = await res.json();
+        throw new Error(error ?? "Failed to create admin user");
+      }
 
       router.push(`/admin/churches/${slug}`);
     } catch (err) {
@@ -132,10 +131,10 @@ export default function NewChurchPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="logoUrl">Logo URL (optional)</Label>
+              <Label htmlFor="logo_url">Logo URL (optional)</Label>
               <Input
-                id="logoUrl"
-                value={logoUrl}
+                id="logo_url"
+                value={logo_url}
                 onChange={(e) => setLogoUrl(e.target.value)}
               />
             </div>

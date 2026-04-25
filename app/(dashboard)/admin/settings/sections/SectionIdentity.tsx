@@ -10,8 +10,8 @@ import { useToast } from "@/app/hooks/use-toast";
 import TimezoneSelect from "@/app/components/settings/TimezoneSelect";
 import LocaleSelect from "@/app/components/settings/LocaleSelect";
 
-import { db } from "@/app/lib/firebase/client";
-import { doc, updateDoc } from "firebase/firestore";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
+;
 
 import type { SystemSettings } from "@/app/lib/types";
 
@@ -23,6 +23,7 @@ type IdentityFields = {
 };
 
 export default function SectionIdentity({
+  const supabase = getSupabaseClient();
   settings,
 }: {
   settings: SystemSettings;
@@ -84,7 +85,7 @@ export default function SectionIdentity({
         supportEmail,
         defaultTimezone,
         defaultLocale,
-        updatedAt: new Date(),
+        updated_at: new Date(),
       });
 
       // Update originals

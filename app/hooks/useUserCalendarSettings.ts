@@ -1,56 +1,43 @@
-'use client';
+import { useState, useEffect } from 'react';
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 
-import { useEffect, useState } from "react";
-import { doc, onSnapshot, setDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
-
-export function useUserCalendarSettings(uid: string | null) {
-  const [view, setViewState] = useState<"calendar" | "list">("calendar");
+export function useUserCalendarSettings(userId: string | undefined) {
+  const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const supabase = getSupabaseClient();
 
   useEffect(() => {
-    if (!uid) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
 
-    const ref = doc(db, "users", uid, "settings", "calendar");
+    async function fetchSettings() {
+      const { data, error } = await supabase
+        .from("users")
+        .select("calendar_settings")
+        .eq("id", userId)
+        .single();
 
-    const unsub = onSnapshot(
-      ref,
-      (snap) => {
-        if (snap.exists()) {
-          const data = snap.data();
-          setViewState(data.view || "calendar");
-        } else {
-          // No settings doc yet → default to calendar
-          setViewState("calendar");
-        }
-        setLoading(false);
-      },
-      (error) => {
-        const code = (error as { code?: string }).code;
-        if (code !== "permission-denied") {
-          console.error("useUserCalendarSettings snapshot error:", error);
-        }
-        setLoading(false);
+      if (!error && data) {
+        setSettings(data.calendar_settings || {});
       }
-    );
+      setLoading(false);
+    }
 
-    return () => unsub();
-  }, [uid]);
+    fetchSettings();
+  }, [userId]);
 
-  const setView = async (v: "calendar" | "list") => {
-    if (!uid) return;
-
-    const ref = doc(db, "users", uid, "settings", "calendar");
-
-    await setDoc(
-      ref,
-      {
-        view: v,
-        updatedAt: serverTimestamp(),
-      },
-      { merge: true }
-    );
+  const updateSettings = async (newSettings: any) => {
+    if (!userId) return;
+    const { error } = await supabase
+      .from("users")
+      .update({ calendar_settings: newSettings })
+      .eq("id", userId);
+    
+    if (!error) setSettings(newSettings);
+    return { error };
   };
 
-  return { view, setView, loading };
+  return { settings, loading, updateSettings };
 }

@@ -5,8 +5,8 @@ import { PageHeader } from '@/app/components/page-header';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useAuth } from '@/app/hooks/useAuth';
 
-import { collection, query, where, onSnapshot, doc } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase/client';
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { can } from '@/app/lib/auth/permissions';
 import type { Role } from '@/app/lib/auth/roles';
 
@@ -22,7 +22,8 @@ import ChurchProfileCard from '@/app/components/settings/ChurchProfileCard';
 import RegionMembershipCard from '@/app/components/settings/RegionMembershipCard';
 
 export default function ChurchSettingsPage() {
-  const { churchId } = useChurchId();
+  const supabase = getSupabaseClient();
+  const { church_id } = useChurchId();
   const { user, loading: authLoading } = useAuth();
 
   const [churchName] = useState('');
@@ -38,8 +39,8 @@ export default function ChurchSettingsPage() {
   const {
     mode,
     selectedUser,
-    firstName,
-    lastName,
+    first_name,
+    last_name,
     email,
     password,
     selectedRoles,
@@ -73,14 +74,14 @@ export default function ChurchSettingsPage() {
   // ---------- USERS LIST SUBSCRIPTION ----------
 
   useEffect(() => {
-    if (!churchId || !user?.uid) {
+    if (!church_id || !user?.uid) {
       setUsers([]);
       setLoadingUsers(false);
       return;
     }
 
     const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('churchId', '==', churchId));
+    const q = query(usersRef, where('church_id', '==', church_id));
 
     const unsub = onSnapshot(
       q,
@@ -101,15 +102,15 @@ export default function ChurchSettingsPage() {
     );
 
     return () => unsub();
-  }, [churchId, user?.uid]);
+  }, [church_id, user?.uid]);
 
   useEffect(() => {
-    if (!churchId) {
+    if (!church_id) {
       setBillingOwnerUid(null);
       return;
     }
 
-    const churchRef = doc(db, 'churches', churchId);
+    const churchRef = doc(db, 'churches', church_id);
     const unsub = onSnapshot(
       churchRef,
       (snap) => {
@@ -136,7 +137,7 @@ export default function ChurchSettingsPage() {
     );
 
     return () => unsub();
-  }, [churchId]);
+  }, [church_id]);
 
   // ---------- STORAGE USAGE ----------
 
@@ -230,12 +231,12 @@ export default function ChurchSettingsPage() {
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
-            <ChurchLogoCard churchId={churchId!} churchName={churchName} />
+            <ChurchLogoCard church_id={church_id!} churchName={churchName} />
 
-            <ChurchProfileCard churchId={churchId!} />
+            <ChurchProfileCard church_id={church_id!} />
           </div>
 
-          <RegionMembershipCard churchId={churchId!} />
+          <RegionMembershipCard church_id={church_id!} />
 
           <StorageUsageCard
             storageUsed={storageUsed}
@@ -249,8 +250,8 @@ export default function ChurchSettingsPage() {
       {(mode === 'create' || mode === 'edit') && (
         <UserFormCard
           mode={mode}
-          firstName={firstName}
-          lastName={lastName}
+          first_name={first_name}
+          last_name={last_name}
           email={email}
           password={password}
           selectedRoles={selectedRoles}

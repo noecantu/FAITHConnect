@@ -1,12 +1,5 @@
-import { Timestamp } from "firebase-admin/firestore";
-
 export function normalizeFirestore(obj: any): any {
   if (obj === null || obj === undefined) return obj;
-
-  // Convert Firestore Timestamp → ISO string
-  if (obj instanceof Timestamp) {
-    return obj.toDate().toISOString();
-  }
 
   // Convert arrays
   if (Array.isArray(obj)) {

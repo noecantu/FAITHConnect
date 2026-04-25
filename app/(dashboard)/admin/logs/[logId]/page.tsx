@@ -1,8 +1,5 @@
-// app/admin/logs/[logId]/page.tsx
-
-import { adminDb } from "@/app/lib/firebase/admin";
+import { adminDb } from "@/app/lib/supabase/admin";
 import LogDetailView from "./LogDetailView";
-import { normalizeFirestore } from "@/app/lib/normalize";
 
 export default async function LogDetailPage({
   params,
@@ -10,27 +7,26 @@ export default async function LogDetailPage({
   params: Promise<{ logId: string }>;
 }) {
   const resolved = await params;
-  console.log("PARAMS RECEIVED:", resolved);
-
   const { logId } = resolved;
 
-  // Guard against invalid IDs
   if (!logId || logId === "undefined" || logId === "null") {
     return <div className="p-6">Invalid log ID.</div>;
   }
 
-  const snap = await adminDb.collection("systemLogs").doc(logId).get();
+  const { data: log } = await adminDb
+    .from("logs")
+    .select("*")
+    .eq("id", logId)
+    .single();
 
-  if (!snap.exists) {
+  if (!log) {
     return <div className="p-6">Log entry not found.</div>;
   }
 
-  const log = normalizeFirestore(snap.data());
-
   return (
-    <>
-      <h1 className="text-2xl font-bold">Log Details</h1>
-      <LogDetailView logId={logId} log={log} />
-    </>
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Log Detail</h1>
+      <LogDetailView log={{ id: logId, ...log }} />
+    </div>
   );
 }

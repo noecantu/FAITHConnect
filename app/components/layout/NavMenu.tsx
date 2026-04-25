@@ -20,8 +20,7 @@ import {
   Activity,
 } from "lucide-react";
 import { useState } from "react";
-import { signOut } from "firebase/auth";
-import { auth } from "@/app/lib/firebase/client";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 
 import {
   DropdownMenu,
@@ -258,7 +257,7 @@ export function NavMenu() {
         credentials: "include",
       });
 
-      await signOut(auth);
+      await getSupabaseClient().auth.signOut();
       router.replace("/login");
     } catch (error) {
       console.error("logout error:", error);

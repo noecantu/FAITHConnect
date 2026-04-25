@@ -13,16 +13,17 @@ import { useRouter } from "next/navigation";
 import { Fab } from '@/app/components/ui/fab';
 import { ChevronRight, FileText, Music2 } from "lucide-react";
 import { useSettings } from '@/app/hooks/use-settings';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase/client';
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { useAuth } from '@/app/hooks/useAuth';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { SearchBar } from '@/app/components/ui/search-bar';
 import { Button } from '@/app/components/ui/button';
 
 export default function SongsPage() {
-  const { churchId } = useChurchId();
-  const { songs, loading } = useSongs(churchId);
+  const supabase = getSupabaseClient();
+  const { church_id } = useChurchId();
+  const { songs, loading } = useSongs(church_id);
   const { canManageMusic, canReadMusic, loading: rolesLoading } = usePermissions();
   const canManage = canManageMusic;
   const canView = canReadMusic;
@@ -114,7 +115,7 @@ export default function SongsPage() {
       : sortBy.charAt(0).toUpperCase() + sortBy.slice(1)
   }`;
 
-  if (!churchId || loading || rolesLoading) {
+  if (!church_id || loading || rolesLoading) {
     return (
       <>
         <PageHeader title="Songs" />
@@ -212,7 +213,7 @@ export default function SongsPage() {
               {canManage && (
                 <Button
                   type="button"
-                  onClick={() => router.push(`/church/${churchId}/music/songs/new`)}
+                  onClick={() => router.push(`/church/${church_id}/music/songs/new`)}
                 >
                   Add Song
                 </Button>
@@ -247,7 +248,7 @@ export default function SongsPage() {
                     .sort((a, b) => a.title.localeCompare(b.title))
                     .map((song) => (
                       <li key={song.id}>
-                        <Link href={`/church/${churchId}/music/songs/${song.id}`}>
+                        <Link href={`/church/${church_id}/music/songs/${song.id}`}>
                           <Card
                             className="group relative p-4 cursor-pointer bg-black/60 backdrop-blur-xl interactive-card interactive-card-focus hover:bg-white/[0.10]"
                           >
@@ -285,7 +286,7 @@ export default function SongsPage() {
       {canManage && (
         <Fab
           type="add"
-          onClick={() => router.push(`/church/${churchId}/music/songs/new`)}
+          onClick={() => router.push(`/church/${church_id}/music/songs/new`)}
         />
       )}
 

@@ -1,12 +1,19 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { getStorage } from "firebase-admin/storage";
-import { adminDb } from "@/app/lib/firebase/admin";
-import { getCurrentUser } from "@/app/lib/auth/server/getCurrentUser";
+import { adminDb } from "@/app/lib/supabase/admin";
+import { createClient } from "@supabase/supabase-js";
+import { getServerUser } from "@/app/lib/supabase/server";
 import { can } from "@/app/lib/auth/permissions";
 
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
+
 const MAX_LOGO_SIZE_BYTES = 5 * 1024 * 1024;
+const BUCKET = "logos";
 
 function getSafeExtension(fileName: string): string {
   const parts = fileName.split(".");
@@ -14,63 +21,22 @@ function getSafeExtension(fileName: string): string {
   return candidate.replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || "png";
 }
 
-function normalizeBucketName(bucket?: string): string | null {
-  if (!bucket) return null;
-  const normalized = bucket.replace(/^gs:\/\//, "").trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function resolveBucketCandidates(): string[] {
-  const candidates: string[] = [
-    process.env.FIREBASE_STORAGE_BUCKET,
-    process.env.FIREBASE_ADMIN_STORAGE_BUCKET,
-    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  ]
-    .map((value) => normalizeBucketName(value))
-    .filter((value): value is string => Boolean(value));
-
-  const expandedCandidates = new Set<string>();
-
-  for (const candidate of candidates) {
-    expandedCandidates.add(candidate);
-
-    if (candidate.endsWith(".appspot.com")) {
-      expandedCandidates.add(candidate.replace(".appspot.com", ".firebasestorage.app"));
-    }
-
-    if (candidate.endsWith(".firebasestorage.app")) {
-      expandedCandidates.add(candidate.replace(".firebasestorage.app", ".appspot.com"));
-    }
-  }
-
-  const projectId =
-    process.env.FIREBASE_ADMIN_PROJECT_ID ||
-    process.env.FIREBASE_PROJECT_ID ||
-    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-
-  if (projectId) {
-    expandedCandidates.add(`${projectId}.appspot.com`);
-    expandedCandidates.add(`${projectId}.firebasestorage.app`);
-  }
-
-  return Array.from(expandedCandidates);
-}
-
-function isBucketMissingError(error: unknown): boolean {
-  if (!(error instanceof Error)) return false;
-  const message = error.message.toLowerCase();
-  return message.includes("bucket") && message.includes("does not exist");
-}
-
 export async function POST(req: Request) {
   try {
-    const user = await getCurrentUser();
+    const user = await getServerUser();
 
     if (!user) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
     }
 
-    const roles = user.roles ?? [];
+    // Load user profile for roles/districtId
+    const { data: profile } = await adminDb
+      .from("users")
+      .select("roles, district_id")
+      .eq("id", user.id)
+      .single();
+
+    const roles = profile?.roles ?? [];
     const canManageSystem = can(roles, "system.manage");
     const canManageDistrict = can(roles, "district.manage");
 
@@ -98,74 +64,41 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Logo must be 5MB or smaller." }, { status: 400 });
     }
 
-    if (!canManageSystem && user.districtId !== districtId) {
+    if (!canManageSystem && profile?.district_id !== districtId) {
       return NextResponse.json({ error: "Forbidden." }, { status: 403 });
     }
 
-    const districtSnap = await adminDb.collection("districts").doc(districtId).get();
-    if (!districtSnap.exists) {
-      return NextResponse.json({ error: "District not found." }, { status: 404 });
-    }
+    const { data: district } = await adminDb
+      .from("districts")
+      .select("id")
+      .eq("id", districtId)
+      .single();
 
-    const bucketCandidates = resolveBucketCandidates();
-    if (bucketCandidates.length === 0) {
-      return NextResponse.json(
-        { error: "Storage bucket is not configured on the server." },
-        { status: 500 }
-      );
+    if (!district) {
+      return NextResponse.json({ error: "District not found." }, { status: 404 });
     }
 
     const ext = getSafeExtension(file.name);
     const objectPath = `districts/${districtId}/logo/logo-${Date.now()}.${ext}`;
-    const token = crypto.randomUUID();
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    let successfulBucketName: string | null = null;
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from(BUCKET)
+      .upload(objectPath, buffer, {
+        contentType: file.type,
+        upsert: true,
+      });
 
-    for (const bucketName of bucketCandidates) {
-      try {
-        const bucket = getStorage().bucket(bucketName);
-        const object = bucket.file(objectPath);
+    if (uploadError) throw uploadError;
 
-        await object.save(buffer, {
-          resumable: false,
-          contentType: file.type,
-          metadata: {
-            contentType: file.type,
-            metadata: {
-              firebaseStorageDownloadTokens: token,
-            },
-          },
-        });
+    const { data: urlData } = supabaseAdmin.storage
+      .from(BUCKET)
+      .getPublicUrl(objectPath);
 
-        successfulBucketName = bucket.name;
-        break;
-      } catch (error) {
-        if (isBucketMissingError(error)) {
-          continue;
-        }
-
-        throw error;
-      }
-    }
-
-    if (!successfulBucketName) {
-      return NextResponse.json(
-        {
-          error:
-            "No configured storage bucket exists. Set FIREBASE_STORAGE_BUCKET to a valid bucket name.",
-        },
-        { status: 500 }
-      );
-    }
-
-    const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${successfulBucketName}/o/${encodeURIComponent(objectPath)}?alt=media&token=${token}`;
-
-    return NextResponse.json({ url: downloadUrl, path: objectPath });
+    return NextResponse.json({ url: urlData.publicUrl, path: objectPath });
   } catch (error) {
     console.error("district/logo/upload error:", error);
-    const message =
-      error instanceof Error ? error.message : "Failed to upload logo.";
+    const message = error instanceof Error ? error.message : "Failed to upload logo.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

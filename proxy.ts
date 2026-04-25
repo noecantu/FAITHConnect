@@ -1,9 +1,36 @@
 //proxy.ts
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Refresh the Supabase session on every request so it stays alive.
+  let proxyResponse = NextResponse.next({ request: req });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            req.cookies.set(name, value)
+          );
+          proxyResponse = NextResponse.next({ request: req });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            proxyResponse.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
+
+  await supabase.auth.getUser();
 
   // Ignore prefetch and internal Next.js router requests
   if (
@@ -32,11 +59,12 @@ export async function proxy(req: NextRequest) {
   ];
 
   if (publicPatterns.some((pattern) => pattern.test(pathname))) {
-    return NextResponse.next();
+    return proxyResponse;
   }
 
-  return NextResponse.next();
+  return proxyResponse;
 }
+
 
 export const config = {
   matcher: [

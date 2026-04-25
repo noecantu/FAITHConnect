@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
+import { adminDb } from "@/app/lib/supabase/admin";
+import { getServerUser } from "@/app/lib/supabase/server";
 import { logSystemEvent } from "@/app/lib/system/logging";
-import admin from "firebase-admin";
 
 export async function POST(req: Request) {
   try {
@@ -21,77 +21,101 @@ export async function POST(req: Request) {
       districtState,
     } = await req.json();
 
-    // 1. Create Auth user
-    const userRecord = await adminAuth.createUser({
+    // 1. Create Supabase Auth user via admin API
+    const { data: authData, error: authError } = await adminDb.auth.admin.createUser({
       email,
       password,
-      displayName: `${firstName} ${lastName}`.trim(),
+      email_confirm: true,
+      user_metadata: {
+        first_name: firstName,
+        last_name: lastName,
+        full_name: `${firstName} ${lastName}`.trim(),
+      },
     });
 
+    if (authError || !authData.user) {
+      throw new Error(authError?.message || "Failed to create auth user.");
+    }
+
+    const userId = authData.user.id;
     let regionId = null;
     let districtId = null;
 
-    // 2. If Regional Admin, create region document using the new user's UID
+    // 2. If Regional Admin
     if (roles?.includes("RegionalAdmin") && regionName) {
-      regionId = userRecord.uid;
+      regionId = userId;
+      const { error: regionError } = await adminDb
+        .from("regions")
+        .insert({
+          id: regionId,
+          name: regionName,
+          state: state || null,
+          region_admin_uid: userId,
+          region_admin_name: `${firstName} ${lastName}`.trim(),
+          region_admin_title: title || null,
+          created_by: actorUid,
+          created_by_name: actorName,
+          created_at: new Date().toISOString(),
+        });
 
-      await adminDb.collection("regions").doc(regionId).set({
-        name: regionName,
-        state: state || null,
-        regionAdminUid: userRecord.uid,
-        regionAdminName: `${firstName} ${lastName}`.trim(),
-        regionAdminTitle: title || null,
-        createdBy: actorUid,
-        createdByName: actorName,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
+      if (regionError) throw regionError;
     }
 
-    // 2b. If District Admin, create district document using the new user's UID
+    // 2b. If District Admin
     if (roles?.includes("DistrictAdmin") && districtName) {
-      districtId = userRecord.uid;
+      districtId = userId;
+      const { error: districtError } = await adminDb
+        .from("districts")
+        .insert({
+          id: districtId,
+          name: districtName,
+          region_admin_id: userId,
+          region_admin_uid: userId,
+          region_admin_name: `${firstName} ${lastName}`.trim(),
+          region_admin_title: districtTitle || null,
+          state: districtState || null,
+          region_ids: [],
+          church_ids: [],
+          created_by: actorUid,
+          created_by_name: actorName,
+          created_at: new Date().toISOString(),
+        });
 
-      await adminDb.collection("districts").doc(districtId).set({
-        name: districtName,
-        regionAdminId: userRecord.uid,
-        regionAdminUid: userRecord.uid,
-        regionAdminName: `${firstName} ${lastName}`.trim(),
-        regionAdminTitle: districtTitle || null,
-        state: districtState || null,
-        regionIds: [],
-        churchIds: [],
-        createdBy: actorUid,
-        createdByName: actorName,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
+      if (districtError) throw districtError;
     }
 
-    // 3. Create Firestore user document
-    await adminDb.collection("users").doc(userRecord.uid).set({
-      uid: userRecord.uid,
-      firstName,
-      lastName,
-      displayName: `${firstName} ${lastName}`.trim(),
-      email,
-      roles: roles || [],
-      regionId: regionId,
-      regionName: regionName || null,
-      regionAdminTitle: title || null,
-      state: state || null,
-      districtId: districtId,
-      districtName: districtName || null,
-      districtTitle: districtTitle || null,
-      districtState: districtState || null,
-      churchId: null,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    // 3. Create Supabase user profile
+    const { error: userError } = await adminDb
+      .from("users")
+      .insert({
+        id: userId,
+        first_name: firstName,
+        last_name: lastName,
+        display_name: `${firstName} ${lastName}`.trim(),
+        email,
+        roles: roles || [],
+        region_id: regionId,
+        region_name: regionName || null,
+        region_admin_title: title || null,
+        state: state || null,
+        district_id: districtId,
+        district_name: districtName || null,
+        district_title: districtTitle || null,
+        district_state: districtState || null,
+        church_id: null,
+        created_at: new Date().toISOString(),
+      });
 
-    // 4. Set custom claims
-    await adminAuth.setCustomUserClaims(userRecord.uid, {
-      roles,
-      regionId,
-      regionAdminTitle: title || null,
-      districtId,
+    if (userError) throw userError;
+
+    // 4. Update Auth user app_metadata (equivalent to custom claims)
+    await adminDb.auth.admin.updateUserById(userId, {
+      app_metadata: {
+        roles,
+        regionId,
+        regionAdminTitle: title || null,
+        districtId,
+      },
     });
 
     // 5. Log system event
@@ -99,7 +123,7 @@ export async function POST(req: Request) {
       type: "SYSTEM_USER_CREATED",
       actorUid,
       actorName,
-      targetId: userRecord.uid,
+      targetId: userId,
       targetType: "SYSTEM_USER",
       message: `Created system-level user: ${email}`,
       metadata: {
@@ -114,21 +138,15 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      userId: userRecord.uid,
+      userId,
       regionId,
       districtId,
     });
 
   } catch (err: any) {
     console.error("API error:", err);
-
-    const firebaseMessage =
-      err?.errorInfo?.message ||
-      err?.message ||
-      "Failed to create system user.";
-
     return NextResponse.json(
-      { success: false, error: firebaseMessage },
+      { success: false, error: err.message || "Failed to create system user." },
       { status: 400 }
     );
   }

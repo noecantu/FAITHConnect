@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getDoc, updateDoc, doc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
@@ -35,24 +34,31 @@ export default function RegionMembershipCard({ churchId }: Props) {
   useEffect(() => {
     async function load() {
       try {
-        const snap = await getDoc(doc(db, "churches", churchId));
-        if (!snap.exists()) return;
+        const supabase = getSupabaseClient();
+        const { data: church } = await supabase
+          .from("churches")
+          .select("region_status, region_id, region_selected_id")
+          .eq("id", churchId)
+          .single();
+        if (!church) return;
 
-        const data = snap.data();
-        const regionStatus: string | null = data.regionStatus ?? null;
+        const regionStatus: string | null = church.region_status ?? null;
         setStatus(regionStatus);
 
-        const regionDocId = data.regionId || data.regionSelectedId;
+        const regionDocId = church.region_id || church.region_selected_id;
         if (regionDocId) {
-          const regionSnap = await getDoc(doc(db, "regions", regionDocId));
-          if (regionSnap.exists()) {
-            const regionData = regionSnap.data();
+          const { data: regionData } = await supabase
+            .from("regions")
+            .select("id, name, logo_url, region_admin_name, region_admin_title, state")
+            .eq("id", regionDocId)
+            .single();
+          if (regionData) {
             setRegion({
-              id: regionSnap.id,
+              id: regionData.id,
               name: regionData.name || "Unknown Region",
-              logoUrl: regionData.logoUrl ?? null,
-              regionAdminName: regionData.regionAdminName ?? null,
-              regionAdminTitle: regionData.regionAdminTitle ?? null,
+              logoUrl: regionData.logo_url ?? null,
+              regionAdminName: regionData.region_admin_name ?? null,
+              regionAdminTitle: regionData.region_admin_title ?? null,
               state: regionData.state ?? null,
             });
           }
@@ -71,12 +77,13 @@ export default function RegionMembershipCard({ churchId }: Props) {
     setRemoving(true);
 
     try {
-      await updateDoc(doc(db, "churches", churchId), {
-        regionId: null,
-        regionSelectedId: null,
-        regionStatus: null,
-        updatedAt: new Date(),
-      });
+      const supabase = getSupabaseClient();
+      await supabase.from("churches").update({
+        region_id: null,
+        region_selected_id: null,
+        region_status: null,
+        updated_at: new Date().toISOString(),
+      }).eq("id", churchId);
 
       setRegion(null);
       setStatus(null);

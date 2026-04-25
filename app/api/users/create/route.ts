@@ -1,13 +1,12 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
-import admin from "firebase-admin";
+import { getServerUser } from "@/app/lib/supabase/server";
+import { adminDb } from "@/app/lib/supabase/admin";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-
     const {
       uid,
       email,
@@ -27,114 +26,82 @@ export async function POST(req: Request) {
       );
     }
 
-    const baseProfile: Record<string, any> = {
-      uid,
+    const baseProfile: Record<string, unknown> = {
+      id: uid,
       email,
-      firstName: firstName || "",
-      lastName: lastName || "",
-      churchId: null,
-      createdAt: new Date(),
-      onboardingStep: onboardingStep ?? "billing",
-      onboardingComplete:
-        typeof onboardingComplete === "boolean" ? onboardingComplete : false,
+      first_name: firstName || "",
+      last_name: lastName || "",
+      church_id: null,
+      onboarding_step: onboardingStep ?? "billing",
+      onboarding_complete: typeof onboardingComplete === "boolean" ? onboardingComplete : false,
       roles: Array.isArray(roles) && roles.length > 0 ? roles : ["Admin"],
-      planId: plan ?? null,
+      plan_id: plan ?? null,
     };
 
     if (!token) {
-      const cookieHeader = req.headers.get("cookie") || "";
-      const match = cookieHeader.match(/session=([^;]+)/);
-      const sessionCookie = match?.[1];
-
-      if (!sessionCookie) {
-        return NextResponse.json(
-          { error: "Not authenticated" },
-          { status: 401 }
-        );
+      // Signup flow — verify the caller is the same user being created
+      const authUser = await getServerUser();
+      if (!authUser || authUser.id !== uid) {
+        return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
       }
 
-      const decoded = await adminAuth.verifySessionCookie(sessionCookie, true);
-      if (decoded.uid !== uid) {
-        return NextResponse.json(
-          { error: "Authenticated user mismatch." },
-          { status: 403 }
-        );
-      }
+      const { error } = await adminDb
+        .from("users")
+        .upsert(baseProfile, { onConflict: "id" });
 
-      await adminDb.collection("users").doc(uid).set(baseProfile, { merge: true });
+      if (error) throw error;
       return NextResponse.json({ success: true });
     }
 
-    // Prefer signup token flow when a matching signup token exists.
-    const tokenRef = adminDb.collection("signupTokens").doc(token);
-    const tokenSnap = await tokenRef.get();
+    // Token-based flow (invite member signup)
+    const { data: tokenData, error: tokenError } = await adminDb
+      .from("signup_tokens")
+      .select("*")
+      .eq("token", token)
+      .single();
 
-    if (tokenSnap.exists) {
-      const tokenData = tokenSnap.data();
-
-      if (!tokenData) {
-        return NextResponse.json(
-          { error: "Invalid signup token data" },
-          { status: 403 }
-        );
+    if (!tokenError && tokenData) {
+      if (tokenData.expires_at && new Date(tokenData.expires_at) < new Date()) {
+        return NextResponse.json({ error: "Signup token expired" }, { status: 403 });
       }
-
-      if (tokenData.expiresAt.toMillis() < Date.now()) {
-        return NextResponse.json(
-          { error: "Signup token expired" },
-          { status: 403 }
-        );
-      }
-
       if (tokenData.used) {
-        return NextResponse.json(
-          { error: "Signup token already used" },
-          { status: 403 }
-        );
+        return NextResponse.json({ error: "Signup token already used" }, { status: 403 });
       }
 
-      await adminDb.collection("users").doc(uid).set(
+      const { error: upsertError } = await adminDb.from("users").upsert(
         {
           ...baseProfile,
-          planId: tokenData.planId ?? null,
-          stripeCustomerId: tokenData.customerId ?? null,
-          stripeSubscriptionId: tokenData.subscriptionId ?? null,
+          plan_id: tokenData.plan_id ?? null,
+          stripe_customer_id: tokenData.customer_id ?? null,
+          stripe_subscription_id: tokenData.subscription_id ?? null,
         },
-        { merge: true }
+        { onConflict: "id" }
       );
 
-      await tokenRef.update({
-        used: true,
-        usedAt: admin.firestore.FieldValue.serverTimestamp(),
-        usedBy: uid,
-      });
+      if (upsertError) throw upsertError;
+
+      await adminDb
+        .from("signup_tokens")
+        .update({ used: true, used_at: new Date().toISOString(), used_by: uid })
+        .eq("token", token);
 
       return NextResponse.json({ success: true });
     }
 
-    // Fallback: treat token as Firebase ID token for direct onboarding signup.
-    try {
-      const decoded = await adminAuth.verifyIdToken(token, true);
-      if (decoded.uid !== uid) {
-        return NextResponse.json(
-          { error: "Authenticated user mismatch." },
-          { status: 403 }
-        );
-      }
-    } catch {
-      return NextResponse.json(
-        { error: "Invalid authentication token" },
-        { status: 403 }
-      );
+    // Fallback: service-role direct creation (admin-initiated invites)
+    const authUser = await getServerUser();
+    if (!authUser) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    await adminDb.collection("users").doc(uid).set(baseProfile, { merge: true });
+    const { error: fallbackError } = await adminDb
+      .from("users")
+      .upsert(baseProfile, { onConflict: "id" });
+
+    if (fallbackError) throw fallbackError;
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error creating user:", error);
-    return NextResponse.json(
-      { error: "Failed to create user" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
   }
 }

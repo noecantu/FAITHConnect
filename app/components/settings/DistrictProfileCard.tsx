@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
 import { Input } from "@/app/components/ui/input";
@@ -10,10 +10,11 @@ import { Button } from "@/app/components/ui/button";
 import { useToast } from "@/app/hooks/use-toast";
 
 interface Props {
-  districtId: string;
+  district_id: string;
 }
 
-export default function DistrictProfileCard({ districtId }: Props) {
+export default function DistrictProfileCard({
+  const supabase = getSupabaseClient(); district_id }: Props) {
   const { toast } = useToast();
 
   const [name, setName] = useState("");
@@ -28,17 +29,17 @@ export default function DistrictProfileCard({ districtId }: Props) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!districtId) return;
+    if (!district_id) return;
 
     const load = async () => {
       setLoading(true);
       try {
-        const snap = await getDoc(doc(db, "districts", districtId));
+        const snap = await supabase.from("districts").select('*').eq('id', district_id).single();
         if (!snap.exists()) return;
 
         const data = snap.data();
         const nextName = (data.name as string | undefined) ?? "";
-        const nextTitle = (data.regionAdminTitle as string | undefined) ?? "";
+        const nextTitle = (data.region_admin_title as string | undefined) ?? "";
         const nextState = (data.state as string | undefined) ?? "";
 
         setName(nextName);
@@ -56,7 +57,7 @@ export default function DistrictProfileCard({ districtId }: Props) {
     };
 
     load();
-  }, [districtId]);
+  }, [district_id]);
 
   const hasChanges =
     name !== initialName ||
@@ -64,7 +65,7 @@ export default function DistrictProfileCard({ districtId }: Props) {
     state !== initialState;
 
   async function handleSave() {
-    if (!districtId || !hasChanges) return;
+    if (!district_id || !hasChanges) return;
 
     setSaving(true);
 
@@ -73,9 +74,9 @@ export default function DistrictProfileCard({ districtId }: Props) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          districtId,
+          district_id,
           name,
-          regionAdminTitle: title,
+          region_admin_title: title,
           state,
         }),
       });

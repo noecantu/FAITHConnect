@@ -2,16 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { doc, getDoc, Timestamp } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { useChurchId } from "@/app/hooks/useChurchId";
 import MemberForm from "@/app/components/members/MemberForm";
 import type { Member } from "@/app/lib/types";
 
 export default function EditMemberPage() {
+  const supabase = getSupabaseClient();
   const router = useRouter();
   const params = useParams();
-  const { churchId } = useChurchId();
+  const { church_id } = useChurchId();
 
   const memberId = params?.id as string;
 
@@ -20,10 +21,10 @@ export default function EditMemberPage() {
 
   // Load member data
   useEffect(() => {
-    if (!churchId || !memberId) return;
+    if (!church_id || !memberId) return;
 
     async function loadMember() {
-      const ref = doc(db, "churches", churchId!, "members", memberId);
+      const ref = doc(db, "churches", church_id!, "members", memberId);
       const snap = await getDoc(ref);
       if (snap.exists()) {
         const data = snap.data();
@@ -63,9 +64,9 @@ export default function EditMemberPage() {
     }
 
     loadMember();
-  }, [churchId, memberId]);
+  }, [church_id, memberId]);
 
-  if (!churchId) {
+  if (!church_id) {
     return <p className="text-muted-foreground">Loading…</p>;
   }
 
@@ -80,14 +81,14 @@ export default function EditMemberPage() {
   return (
     <>
       <h1 className="text-2xl font-bold">
-        Edit {member.firstName} {member.lastName}
+        Edit {member.first_name} {member.last_name}
       </h1>
 
       <MemberForm
-        churchId={churchId}
+        church_id={church_id}
         member={member}
         onSuccess={() => {
-          router.push(`/church/${churchId}/members`);
+          router.push(`/church/${church_id}/members`);
         }}
       />
     </>

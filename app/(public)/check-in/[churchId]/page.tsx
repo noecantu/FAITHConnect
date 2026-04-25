@@ -1,23 +1,24 @@
 import SelfCheckIn from "./SelfCheckIn";
 import type { Church } from "@/app/lib/types";
-import { adminDb } from "@/app/lib/firebase/admin";
+import { adminDb } from "@/app/lib/supabase/admin";
 
 interface CheckInPageProps {
-  params: Promise<{ churchId: string }>;
+  params: Promise<{ church_id: string }>;
   searchParams: Promise<{ d?: string }>;
 }
 
 export default async function CheckInPage({ params, searchParams }: CheckInPageProps) {
-  const { churchId } = await params;
+  const { church_id } = await params;
   const { d: date } = await searchParams;
 
-  // Fetch church on the server using Admin SDK (ignores Firestore rules)
-  const churchSnap = await adminDb
-    .collection("churches")
-    .where("slug", "==", churchId)
-    .get();
+  // Fetch church on the server
+  const { data: raw, error: churchError } = await adminDb
+    .from("churches")
+    .select("*")
+    .eq("slug", church_id)
+    .maybeSingle();
 
-  if (churchSnap.empty) {
+  if (churchError || !raw) {
     return (
       <div className="min-h-screen flex items-center justify-center text-slate-200">
         Church not found.
@@ -25,20 +26,18 @@ export default async function CheckInPage({ params, searchParams }: CheckInPageP
     );
   }
 
-  const raw = churchSnap.docs[0].data();
-
   const church: Church = {
-    id: churchSnap.docs[0].id,
+    id: raw.id,
     name: raw.name,
     slug: raw.slug,
     timezone: raw.timezone,
-    logoUrl: raw.logoUrl ?? null,
+    logo_url: raw.logo_url ?? null,
     description: raw.description ?? null,
     status: raw.status ?? null,
-    createdAt: raw.createdAt?.toDate?.().toISOString() ?? null,
-    updatedAt: raw.updatedAt?.toDate?.().toISOString() ?? null,
-    enabledAt: raw.enabledAt ?? null,
-    disabledAt: raw.disabledAt ?? null,
+    created_at: raw.created_at ?? null,
+    updated_at: raw.updated_at ?? null,
+    enabledAt: raw.enabled_at ?? null,
+    disabledAt: raw.disabled_at ?? null,
     address: raw.address ?? null,
     phone: raw.phone ?? null,
   };

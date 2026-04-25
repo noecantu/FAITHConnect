@@ -1,8 +1,8 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import admin from "firebase-admin";
-import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
+import { getServerUser } from "@/app/lib/supabase/server";
+import { adminDb } from "@/app/lib/supabase/admin";
 import { can } from "@/app/lib/auth/permissions";
 import type { Role } from "@/app/lib/auth/roles";
 
@@ -28,31 +28,31 @@ export async function POST(req: Request) {
     const decoded = await adminAuth.verifySessionCookie(sessionCookie, true);
     const actorUid = decoded.uid;
 
-    const actorSnap = await adminDb.collection("users").doc(actorUid).get();
-    if (!actorSnap.exists) {
+    const actorSnap = await adminDb.from("users").select("*").eq("id", actorUid).single();
+    if (!actorSnap !== null) {
       return NextResponse.json({ error: "Actor profile not found." }, { status: 403 });
     }
 
-    const actor = actorSnap.data() as { roles?: unknown; churchId?: unknown };
+    const actor = actorSnap as { roles?: unknown; church_id?: unknown };
     const actorRoles = (Array.isArray(actor.roles) ? actor.roles : []) as Role[];
-    const actorChurchId = typeof actor.churchId === "string" ? actor.churchId : null;
+    const actorChurchId = typeof actor.church_id === "string" ? actor.church_id : null;
 
     if (!can(actorRoles, "church.manage") && !can(actorRoles, "system.manage")) {
       return NextResponse.json({ error: "Forbidden." }, { status: 403 });
     }
 
-    const targetSnap = await adminDb.collection("users").doc(uid).get();
-    if (!targetSnap.exists) {
+    const targetSnap = await adminDb.from("users").select("*").eq("id", uid).single();
+    if (!targetSnap !== null) {
       return NextResponse.json({ error: "Target user not found." }, { status: 404 });
     }
 
-    const target = targetSnap.data() as {
-      churchId?: unknown;
+    const target = targetSnap as {
+      church_id?: unknown;
       roles?: unknown;
       email?: unknown;
     };
 
-    const targetChurchId = typeof target.churchId === "string" ? target.churchId : null;
+    const targetChurchId = typeof target.church_id === "string" ? target.church_id : null;
     const targetRoles = Array.isArray(target.roles) ? target.roles : [];
     const isChurchAdmin = targetRoles.includes("Admin");
 

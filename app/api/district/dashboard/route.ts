@@ -2,7 +2,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
-import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
+import { getServerUser } from "@/app/lib/supabase/server";
+import { adminDb } from "@/app/lib/supabase/admin";
 import { countPresentAttendanceEntries } from "@/app/lib/attendance-count";
 
 function getSessionCookie(req: Request) {
@@ -22,7 +23,7 @@ export async function GET(req: Request) {
     }
 
     const decoded = await adminAuth.verifySessionCookie(session, true);
-    const callerUid = decoded.uid;
+    
     const { searchParams } = new URL(req.url);
     const districtId = searchParams.get("districtId")?.trim() ?? "";
 
@@ -30,8 +31,8 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Missing districtId" }, { status: 400 });
     }
 
-    const userSnap = await adminDb.collection("users").doc(callerUid).get();
-    const user = userSnap.data();
+    const userSnap = await adminDb.from("users").select("*").eq("id", callerUid).single();
+    const user = userSnap;
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -71,7 +72,7 @@ export async function GET(req: Request) {
     );
 
     const churches = churchSnapshots.flatMap((snapshot) =>
-      snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+      snapshot.docs.map((doc) => ({ id: doc.id, ...doc }))
     ) as Array<{
       id: string;
       regionStatus?: string;
@@ -82,14 +83,14 @@ export async function GET(req: Request) {
     const approvedChurches = churches.filter((church) => church.regionStatus === "approved");
 
     const userSnapshots = await Promise.all(
-      churches.map((church) => adminDb.collection("users").where("churchId", "==", church.id).get())
+      churches.map((church) => adminDb.collection("users").where("church_id", "==", church.id).get())
     );
 
     const users = new Map<string, { roles?: string[] }>();
 
     userSnapshots.forEach((snapshot) => {
       snapshot.docs.forEach((doc) => {
-        users.set(doc.id, doc.data() as { roles?: string[] });
+        users.set(doc.id, doc as { roles?: string[] });
       });
     });
 
@@ -105,7 +106,7 @@ export async function GET(req: Request) {
         ]);
 
         const checkins = attendanceSnap.docs.reduce(
-          (total, attendanceDoc) => total + countPresentAttendanceEntries(attendanceDoc.data()),
+          (total, attendanceDoc) => total + countPresentAttendanceEntries(attendanceDoc),
           0
         );
 

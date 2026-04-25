@@ -1,9 +1,8 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import admin from "firebase-admin";
-import { adminDb } from "@/app/lib/firebase/admin";
-import { getCurrentUser } from "@/app/lib/auth/server/getCurrentUser";
+import { adminDb } from "@/app/lib/supabase/admin";
+import { getServerUser } from "@/app/lib/supabase/server";
 import { can } from "@/app/lib/auth/permissions";
 
 type UpdatePayload = {
@@ -16,7 +15,7 @@ type UpdatePayload = {
 
 export async function POST(req: Request) {
   try {
-    const user = await getCurrentUser();
+    const user = await getServerUser();
 
     if (!user) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
@@ -29,7 +28,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing regionId." }, { status: 400 });
     }
 
-    const roles = user.roles ?? [];
+    const roles = user.user_metadata?.roles ?? [];
     const canManageSystem = can(roles, "system.manage");
     const canManageRegion = can(roles, "region.manage");
 
@@ -37,19 +36,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Forbidden." }, { status: 403 });
     }
 
-    if (!canManageSystem && user.regionId !== regionId) {
+    if (!canManageSystem && user.user_metadata?.regionId !== regionId) {
       return NextResponse.json({ error: "Forbidden." }, { status: 403 });
     }
 
-    const regionRef = adminDb.collection("regions").doc(regionId);
-    const regionSnap = await regionRef.get();
+    const { data: region, error: fetchError } = await adminDb
+      .from("regions")
+      .select("*")
+      .eq("id", regionId)
+      .single();
 
-    if (!regionSnap.exists) {
+    if (fetchError || !region) {
       return NextResponse.json({ error: "Region not found." }, { status: 404 });
     }
 
-    const updates: Record<string, unknown> = {
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    const updates: Record<string, any> = {
+      updated_at: new Date().toISOString(),
     };
 
     if (typeof body.name === "string") {
@@ -57,7 +59,7 @@ export async function POST(req: Request) {
     }
 
     if (typeof body.regionAdminTitle === "string") {
-      updates.regionAdminTitle = body.regionAdminTitle.trim() || null;
+      updates.region_admin_title = body.regionAdminTitle.trim() || null;
     }
 
     if (typeof body.state === "string") {
@@ -65,10 +67,15 @@ export async function POST(req: Request) {
     }
 
     if (typeof body.logoUrl === "string" || body.logoUrl === null) {
-      updates.logoUrl = body.logoUrl;
+      updates.logo_url = body.logoUrl;
     }
 
-    await regionRef.update(updates);
+    const { error: updateError } = await adminDb
+      .from("regions")
+      .update(updates)
+      .eq("id", regionId);
+
+    if (updateError) throw updateError;
 
     return NextResponse.json({ success: true });
   } catch (error) {

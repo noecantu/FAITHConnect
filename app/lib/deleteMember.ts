@@ -1,35 +1,36 @@
 "use client";
 
-import { db, storage } from "@/app/lib/firebase/client";
-import { doc, deleteDoc } from "firebase/firestore";
-import { ref, deleteObject } from "firebase/storage";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 
 export async function deleteMember(
   churchId: string,
   memberId: string,
-  router: any,
-  toast: any
+  router: { push: (path: string) => void },
+  toast: (opts: { title: string; description?: string; variant?: string }) => void
 ) {
   try {
-    // 1. Delete Firestore document
-    await deleteDoc(doc(db, "churches", churchId, "members", memberId));
+    const supabase = getSupabaseClient();
 
-    // 2. Delete Storage files (photo + QR)
-    const photoRef = ref(
-      storage,
-      `churches/${churchId}/members/${memberId}/photo.jpg`
+    // 1. Delete member row (RLS or cascade handles related data)
+    const { error } = await supabase
+      .from("members")
+      .delete()
+      .eq("id", memberId)
+      .eq("church_id", churchId);
+
+    if (error) throw error;
+
+    // 2. Delete Storage files (photo + QR) — ignore errors for missing files
+    const photoPaths = [
+      `churches/${churchId}/members/${memberId}/photo.jpg`,
+      `churches/${churchId}/members/${memberId}/qr.png`,
+    ];
+
+    await Promise.allSettled(
+      photoPaths.map((path) =>
+        supabase.storage.from("member-photos").remove([path])
+      )
     );
-
-    const qrRef = ref(
-      storage,
-      `churches/${churchId}/members/${memberId}/qr.png`
-    );
-
-    // Use Promise.allSettled so missing files don't break the flow
-    await Promise.allSettled([
-      deleteObject(photoRef),
-      deleteObject(qrRef),
-    ]);
 
     // 3. Toast + redirect
     toast({

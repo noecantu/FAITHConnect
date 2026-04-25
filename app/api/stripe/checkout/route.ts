@@ -4,7 +4,8 @@ export const preferredRegion = "iad1";
 
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
-import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
+import { getServerUser } from "@/app/lib/supabase/server";
+import { adminDb } from "@/app/lib/supabase/admin";
 import {
   normalizeBillingCycle,
   normalizePlanId,
@@ -89,7 +90,7 @@ export async function POST(req: Request) {
       line_items: [{ price: priceId, quantity: 1 }],
       subscription_data: isTrialing ? { trial_period_days: 30 } : undefined,
       metadata: {
-        planId: normalizedPlan,
+        plan_id: normalizedPlan,
         billingCycle: normalizedCycle,
       },
       success_url: `${process.env.NEXT_PUBLIC_URL}/onboarding/billing/success?plan=${normalizedPlan}&cycle=${normalizedCycle}&session_id={CHECKOUT_SESSION_ID}`,

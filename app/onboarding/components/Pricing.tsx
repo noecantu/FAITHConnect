@@ -63,7 +63,7 @@ export default function Pricing() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {PRICING_PLANS.map((p, i) => (
           <motion.div
             key={p.id}
@@ -72,6 +72,7 @@ export default function Pricing() {
             transition={{ duration: 0.6, delay: i * 0.1 }}
             viewport={{ once: true }}
             whileHover={{ scale: 1.05 }}
+            className={i === PRICING_PLANS.length - 1 ? "md:col-span-full" : ""}
           >
             <Card
               className={`bg-white/5 border-white/20 backdrop-blur-sm p-6 cursor-pointer interactive-card interactive-card-focus ${
@@ -83,7 +84,7 @@ export default function Pricing() {
               <p className="text-4xl font-bold mb-2">{formatPrice(p, billingCycle)}</p>
               <p className="text-sm text-white/60 mb-6">
                 {billingCycle === "monthly"
-                  ? `or ${formatPrice(p, "yearly")} Billed Yearly (10% Savings)`
+                  ? `or ${formatPrice(p, "yearly")} Billed Yearly (More Than 10% Savings)`
                   : `or ${formatPrice(p, "monthly")} Billed Monthly`}
               </p>
 

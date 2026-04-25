@@ -1,22 +1,16 @@
-import { adminDb } from "@/app/lib/firebase/admin";
+import { adminDb } from "@/app/lib/supabase/admin";
 import UsersClient from "./UsersClient";
-import { normalizeFirestore } from "@/app/lib/normalize";
-import type { QueryDocumentSnapshot, DocumentData } from "firebase-admin/firestore";
-
-function normalizeUser(doc: QueryDocumentSnapshot<DocumentData>) {
-  return {
-    uid: doc.id,
-    ...normalizeFirestore(doc.data()),
-  };
-}
 
 export default async function UsersPage() {
-  const usersSnap = await adminDb
-    .collection("users")
-    .orderBy("createdAt", "desc")
-    .get();
+  const { data: users } = await adminDb
+    .from("users")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-  const users = usersSnap.docs.map(normalizeUser);
+  const normalized = (users ?? []).map((u) => ({
+    uid: u.id,
+    ...u,
+  }));
 
-  return <UsersClient users={users} />;
+  return <UsersClient users={normalized} />;
 }

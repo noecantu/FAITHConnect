@@ -1,7 +1,7 @@
 //app/(dashboard)/admin/settings/actions.ts
 "use server";
 
-import { adminDb } from "@/app/lib/firebase/admin";
+import { adminDb } from "@/app/lib/supabase/admin";
 import type { SystemSettings } from "@/app/lib/types";
 
 const DEFAULT_SETTINGS: SystemSettings = {
@@ -54,29 +54,27 @@ const DEFAULT_SETTINGS: SystemSettings = {
 };
 
 export async function loadSystemSettings(): Promise<SystemSettings> {
-  const snap = await adminDb.doc("system/settings").get();
-  const data = snap.data() || {};
+  const { data } = await adminDb.from("system_settings").select("*").eq("id", "global").single();
+  const settings = data?.settings || {};
 
   return {
     ...DEFAULT_SETTINGS,
-    ...data,
+    ...settings,
     branding: {
       ...DEFAULT_SETTINGS.branding,
-      ...(data.branding || {})
+      ...(settings.branding || {})
     },
     emailTemplates: {
       ...DEFAULT_SETTINGS.emailTemplates,
-      ...(data.emailTemplates || {})
+      ...(settings.emailTemplates || {})
     }
   };
 }
 
 export async function saveSystemSettings(settings: SystemSettings) {
-  await adminDb.doc("system/settings").set(
-    {
-      ...settings,
-      updatedAt: new Date()
-    },
-    { merge: true }
-  );
+  await adminDb.from("system_settings").upsert({
+    id: "global",
+    settings: { ...settings, updatedAt: new Date().toISOString() },
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "id" });
 }

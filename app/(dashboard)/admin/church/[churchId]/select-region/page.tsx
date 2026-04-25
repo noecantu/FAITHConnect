@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase/client';
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { Card } from '@/app/components/ui/card';
 
 export default function SelectRegionPage() {
-  const { churchId } = useParams();
+  const supabase = getSupabaseClient();
+  const { church_id } = useParams();
   const router = useRouter();
 
   const [regions, setRegions] = useState<any[]>([]);
@@ -66,14 +67,14 @@ export default function SelectRegionPage() {
                 "
                 onClick={() =>
                   router.push(
-                    `/admin/church/${churchId}/select-region/${region.id}`
+                    `/admin/church/${church_id}/select-region/${region.id}`
                   )
                 }
               >
                 <div className="flex items-center gap-4">
-                  {region.logoUrl ? (
+                  {region.logo_url ? (
                     <img
-                      src={region.logoUrl}
+                      src={region.logo_url}
                       alt={`${region.name} logo`}
                       className="h-16 w-16 shrink-0 rounded-md object-cover border border-white/20"
                     />
@@ -91,9 +92,9 @@ export default function SelectRegionPage() {
                     <p className="text-lg font-semibold truncate">{region.name}</p>
 
                     {/* Title + Admin Name */}
-                    {region.regionAdminTitle && region.regionAdminName && (
+                    {region.region_admin_title && region.region_admin_name && (
                       <p className="text-sm text-muted-foreground truncate">
-                        {region.regionAdminTitle}: {region.regionAdminName}
+                        {region.region_admin_title}: {region.region_admin_name}
                       </p>
                     )}
                   </div>

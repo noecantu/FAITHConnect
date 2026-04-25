@@ -26,8 +26,8 @@ import {
 import { getSectionColor, SECTION_COLOR_PALETTE } from '@/app/lib/sectionColors';
 import { useChurchId } from '@/app/hooks/useChurchId';
 
-import { db } from '@/app/lib/firebase/client';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { getSupabaseClient } from "@/app/lib/supabase/client";
+;
 
 import SectionNameSelectionDialog from '@/app/components/music/SectionNameSelectionDialog';
 import SongSelectionDialog from '@/app/components/music/SongSelectionDialog';
@@ -45,8 +45,9 @@ interface SectionName {
   title: string;
 }
 
-export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
-  const { churchId, loading: churchLoading } = useChurchId();
+export function SetListSectionEditor({
+  const supabase = getSupabaseClient(); sections, onChange, allSongs }: Props) {
+  const { church_id, loading: churchLoading } = useChurchId();
 
   const [sectionNames, setSectionNames] = useState<SectionName[]>([]);
   const [isSectionNameDialogOpen, setIsSectionNameDialogOpen] = useState(false);
@@ -58,10 +59,10 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
      Fetch Section Names
   ---------------------------------------------- */
   const fetchSectionNames = useCallback(async () => {
-    if (!db || !churchId) return;
+    if (!db || !church_id) return;
 
     try {
-      const ref = collection(db, 'churches', churchId, 'sectionNames');
+      const ref = collection(db, 'churches', church_id, 'sectionNames');
       const q = query(ref, orderBy('title'));
       const snap = await getDocs(q);
 
@@ -74,11 +75,11 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
     } catch (err) {
       console.error('Error fetching section names:', err);
     }
-  }, [churchId]);
+  }, [church_id]);
 
   useEffect(() => {
-    if (churchId) fetchSectionNames();
-  }, [churchId, fetchSectionNames]);
+    if (church_id) fetchSectionNames();
+  }, [church_id, fetchSectionNames]);
 
   /* ---------------------------------------------
      Section Helpers
@@ -99,7 +100,7 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
     onChange(updated);
   };
 
-  if (churchLoading || !churchId) return null;
+  if (churchLoading || !church_id) return null;
 
   return (
     <div className="space-y-4">
@@ -288,7 +289,7 @@ export function SetListSectionEditor({ sections, onChange, allSongs }: Props) {
 
           onChange([...sections, newSection]);
         }}
-        churchId={churchId}
+        church_id={church_id}
       />
 
       {/* Song Selection Dialog */}

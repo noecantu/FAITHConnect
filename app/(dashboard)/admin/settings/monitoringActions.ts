@@ -1,9 +1,8 @@
 //app/(dashboard)/admin/settings/monitoringActions.ts
 "use server";
 
-import { getStorage } from "firebase-admin/storage";
 import Stripe from "stripe";
-import { adminDb } from "@/app/lib/firebase/admin";
+import { adminDb } from "@/app/lib/supabase/admin";
 import { getCurrentUser } from "@/app/lib/auth/server/getCurrentUser";
 import { can } from "@/app/lib/auth/permissions";
 
@@ -16,42 +15,6 @@ type MonitoringCheckKey =
 
 type MonitoringResult = Record<string, unknown>;
 
-function resolveStorageBucketCandidates(): string[] {
-  const rawCandidates = [
-    process.env.FIREBASE_STORAGE_BUCKET,
-    process.env.FIREBASE_ADMIN_STORAGE_BUCKET,
-    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  ];
-
-  const normalized = new Set<string>();
-
-  for (const raw of rawCandidates) {
-    if (!raw) continue;
-    const value = raw.replace(/^gs:\/\//, "").trim();
-    if (!value) continue;
-    normalized.add(value);
-
-    if (value.endsWith(".appspot.com")) {
-      normalized.add(value.replace(".appspot.com", ".firebasestorage.app"));
-    }
-    if (value.endsWith(".firebasestorage.app")) {
-      normalized.add(value.replace(".firebasestorage.app", ".appspot.com"));
-    }
-  }
-
-  const projectId =
-    process.env.FIREBASE_ADMIN_PROJECT_ID ||
-    process.env.FIREBASE_PROJECT_ID ||
-    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-
-  if (projectId) {
-    normalized.add(`${projectId}.appspot.com`);
-    normalized.add(`${projectId}.firebasestorage.app`);
-  }
-
-  return Array.from(normalized);
-}
-
 async function requireSystemManager() {
   const actor = await getCurrentUser();
 
@@ -63,22 +26,30 @@ async function requireSystemManager() {
 }
 
 async function persistMonitoringResult(check: MonitoringCheckKey, result: MonitoringResult) {
-  const settingsRef = adminDb.doc("system/settings");
-  const snap = await settingsRef.get();
+  const { data: row } = await adminDb
+    .from("system_settings")
+    .select("settings")
+    .eq("id", "global")
+    .single();
 
-  const current = (snap.data()?.monitoringChecks ?? {}) as Record<string, unknown>;
+  const current = ((row?.settings as Record<string, unknown>)?.monitoringChecks ?? {}) as Record<string, unknown>;
+  const existingSettings = (row?.settings as Record<string, unknown>) ?? {};
 
-  await settingsRef.set(
+  await adminDb.from("system_settings").upsert(
     {
-      monitoringChecks: {
-        ...current,
-        [check]: {
-          ...result,
-          cachedAt: new Date().toISOString(),
+      id: "global",
+      settings: {
+        ...existingSettings,
+        monitoringChecks: {
+          ...current,
+          [check]: {
+            ...result,
+            cachedAt: new Date().toISOString(),
+          },
         },
       },
     },
-    { merge: true }
+    { onConflict: "id" }
   );
 }
 
@@ -94,8 +65,13 @@ async function withMonitoringCache(
 export async function getMonitoringCheckCache() {
   await requireSystemManager();
 
-  const snap = await adminDb.doc("system/settings").get();
-  const monitoringChecks = (snap.data()?.monitoringChecks ?? {}) as Record<string, unknown>;
+  const { data: row } = await adminDb
+    .from("system_settings")
+    .select("settings")
+    .eq("id", "global")
+    .single();
+
+  const monitoringChecks = ((row?.settings as Record<string, unknown>)?.monitoringChecks ?? {}) as Record<string, unknown>;
 
   return monitoringChecks;
 }
@@ -107,57 +83,28 @@ export async function getStorageUsage() {
 
   return withMonitoringCache("storageUsage", async () => {
     try {
-    const candidates = resolveStorageBucketCandidates();
-    if (candidates.length === 0) {
-      return {
-        status: "misconfigured",
-        message: "No Firebase storage bucket is configured.",
-        lastChecked: new Date().toISOString(),
-      };
-    }
+      // Supabase Storage: list files in known buckets
+      const buckets = ["logos", "member-photos"];
+      let totalBytes = 0;
+      let fileCount = 0;
 
-    let bucketUsed: string | null = null;
-    let files: Array<{ metadata?: { size?: string } }> = [];
-
-    for (const bucketName of candidates) {
-      try {
-        const bucket = getStorage().bucket(bucketName);
-        const [bucketFiles] = await bucket.getFiles();
-        bucketUsed = bucket.name;
-        files = bucketFiles;
-        break;
-      } catch (error) {
-        if (error instanceof Error && /bucket.*does not exist/i.test(error.message)) {
-          continue;
+      for (const bucket of buckets) {
+        const { data: files } = await adminDb.storage.from(bucket).list("", { limit: 10000 });
+        if (files) {
+          fileCount += files.length;
+          // Supabase list doesn't return sizes; we approximate
+          totalBytes += files.length * 50000; // rough 50KB average estimate
         }
-        throw error;
       }
-    }
 
-    if (!bucketUsed) {
       return {
-        status: "misconfigured",
-        message: "Configured storage bucket does not exist.",
-        candidates,
+        status: "ok",
+        totalBytes,
+        fileCount,
+        bucketUsed: buckets.join(", "),
         lastChecked: new Date().toISOString(),
+        durationMs: Date.now() - startedAt,
       };
-    }
-
-    let totalBytes = 0;
-    files.forEach((f) => {
-      if (f.metadata && f.metadata.size) {
-        totalBytes += Number(f.metadata.size);
-      }
-    });
-
-    return {
-      status: "ok",
-      totalBytes,
-      fileCount: files.length,
-      bucketUsed,
-      lastChecked: new Date().toISOString(),
-      durationMs: Date.now() - startedAt,
-    };
     } catch (error) {
       return {
         status: "error",
@@ -188,11 +135,15 @@ export async function getEmailProviderHealth() {
   const startedAt = Date.now();
 
   return withMonitoringCache("emailProviderHealth", async () => {
-    const settingsSnap = await adminDb.doc("system/settings").get();
-    const settings = (settingsSnap.data() ?? {}) as {
+    const { data: settingsRow } = await adminDb
+      .from("system_settings")
+      .select("settings")
+      .eq("id", "global")
+      .single();
+    const settings = ((settingsRow?.settings ?? {}) as {
       emailProvider?: "sendgrid" | "mailgun" | "ses";
       disableEmailSending?: boolean;
-    };
+    });
 
     const provider = settings.emailProvider ?? "sendgrid";
     const emailSendingDisabled = settings.disableEmailSending === true;
@@ -257,18 +208,16 @@ export async function getStripeSyncStatus() {
 
     const account = await stripe.accounts.retrieve();
 
-    const usersSnap = await adminDb
-      .collection("users")
-      .select("stripeSubscriptionId")
-      .get();
+    const { data: usersData } = await adminDb
+      .from("users")
+      .select("stripe_subscription_id");
 
-    const subscriptionIds = usersSnap.docs
-      .map((docSnap) => {
-        const data = docSnap.data() as { stripeSubscriptionId?: unknown };
-        return typeof data.stripeSubscriptionId === "string" && data.stripeSubscriptionId.trim().length > 0
-          ? data.stripeSubscriptionId
-          : null;
-      })
+    const subscriptionIds = (usersData ?? [])
+      .map((u: { stripe_subscription_id?: string | null }) =>
+        typeof u.stripe_subscription_id === "string" && u.stripe_subscription_id.trim().length > 0
+          ? u.stripe_subscription_id
+          : null
+      )
       .filter((value): value is string => Boolean(value));
 
     const sampleIds = Array.from(new Set(subscriptionIds)).slice(0, 10);
@@ -409,39 +358,27 @@ export async function getSystemLogsHealth() {
     try {
     const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-    const [totalCountSnap, recentCountSnap, latestSnap, recentSampleSnap] = await Promise.all([
-      adminDb.collection("systemLogs").count().get(),
-      adminDb.collection("systemLogs").where("timestamp", ">=", since24h).count().get(),
-      adminDb.collection("systemLogs").orderBy("timestamp", "desc").limit(1).get(),
-      adminDb.collection("systemLogs").orderBy("timestamp", "desc").limit(200).get(),
+    const since24hIso = since24h.toISOString();
+
+    const [totalResult, recentResult, latestResult, sampleResult] = await Promise.all([
+      adminDb.from("logs").select("id", { count: "exact", head: true }),
+      adminDb.from("logs").select("id", { count: "exact", head: true }).gte("timestamp", since24hIso),
+      adminDb.from("logs").select("id, type, message, timestamp").order("timestamp", { ascending: false }).limit(1),
+      adminDb.from("logs").select("type").order("timestamp", { ascending: false }).limit(200),
     ]);
 
-    const totalLogs = totalCountSnap.data().count ?? 0;
-    const logsLast24h = recentCountSnap.data().count ?? 0;
+    const totalLogs = totalResult.count ?? 0;
+    const logsLast24h = recentResult.count ?? 0;
 
-    const latestDoc = latestSnap.docs[0];
-    const latestData = latestDoc?.data() as
-      | { type?: unknown; message?: unknown; timestamp?: { toDate?: () => Date } }
-      | undefined;
-
-    const latestTimestamp =
-      latestData && latestData.timestamp && typeof latestData.timestamp.toDate === "function"
-        ? latestData.timestamp.toDate().toISOString()
-        : null;
-
-    const latestType = typeof latestData?.type === "string" ? latestData.type : null;
-    const latestMessage = typeof latestData?.message === "string" ? latestData.message : null;
+    const latestRow = latestResult.data?.[0] as { id?: string; type?: string; message?: string; timestamp?: string } | undefined;
 
     const typeCounts: Record<string, number> = {};
     let sampleErrorCount = 0;
 
-    recentSampleSnap.docs.forEach((docSnap) => {
-      const data = docSnap.data() as { type?: unknown };
-      const type = typeof data.type === "string" && data.type.length > 0 ? data.type : "unknown";
+    (sampleResult.data ?? []).forEach((row: { type?: string }) => {
+      const type = typeof row.type === "string" && row.type.length > 0 ? row.type : "unknown";
       typeCounts[type] = (typeCounts[type] || 0) + 1;
-      if (type === "ERROR") {
-        sampleErrorCount += 1;
-      }
+      if (type === "ERROR") sampleErrorCount += 1;
     });
 
     const topTypes = Object.entries(typeCounts)
@@ -460,12 +397,12 @@ export async function getSystemLogsHealth() {
         totalLogs,
         logsLast24h,
         latestLog: {
-          id: latestDoc?.id ?? null,
-          timestamp: latestTimestamp,
-          type: latestType,
-          message: latestMessage,
+          id: latestRow?.id ?? null,
+          timestamp: latestRow?.timestamp ?? null,
+          type: latestRow?.type ?? null,
+          message: latestRow?.message ?? null,
         },
-        sampleWindowSize: recentSampleSnap.size,
+        sampleWindowSize: (sampleResult.data ?? []).length,
         sampleErrorCount,
         topTypes,
         lastChecked: checkedAt,

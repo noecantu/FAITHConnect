@@ -1,9 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { useAuth } from '../hooks/useAuth';
-import { db } from "@/app/lib/firebase/client";
 
 interface SettingsContextType {
   calendarView: 'calendar' | 'list';
@@ -36,13 +35,16 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
+        const { data: userData } = await getSupabaseClient()
+          .from("users")
+          .select("settings")
+          .eq("id", user.uid)
+          .single();
 
         if (!isActive) return;
 
-        if (userDoc.exists()) {
-          const data = userDoc.data();
+        if (userData) {
+          const data = userData;
 
           if (data.settings?.calendarView) {
             const view = data.settings.calendarView;

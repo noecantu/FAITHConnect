@@ -5,8 +5,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/app
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { useToast } from '@/app/hooks/use-toast';
-import { db } from '@/app/lib/firebase/client';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { getSupabaseClient } from "@/app/lib/supabase/client";
+;
 import TimezoneSelect from '@/app/components/settings/TimezoneSelect';
 import { usePhoneInput } from '@/app/hooks/usePhoneInput';
 import { Check } from "lucide-react";
@@ -19,10 +19,11 @@ import {
 } from '@/app/components/ui/select';
 
 interface Props {
-  churchId: string;
+  church_id: string;
 }
 
-export default function ChurchProfileCard({ churchId }: Props) {
+export default function ChurchProfileCard({
+  const supabase = getSupabaseClient(); church_id }: Props) {
   const { toast } = useToast();
 
   // Display-only name
@@ -58,19 +59,19 @@ export default function ChurchProfileCard({ churchId }: Props) {
 
   const [saving, setSaving] = useState(false);
 
-  const [regionId, setRegionId] = useState("");
+  const [region_id, setRegionId] = useState("");
 
   useEffect(() => {
-    if (!churchId) return;
+    if (!church_id) return;
 
     const load = async () => {
-      const snap = await getDoc(doc(db, 'churches', churchId));
+      const snap = await supabase.from('churches').select('*').eq('id', church_id).single();
       if (!snap.exists()) return;
 
       const data = snap.data();
 
       // Set region from church data
-      setRegionId(data.regionId ?? "");
+      setRegionId(data.region_id ?? "");
 
       // Identity
       setName(data.name ?? '');
@@ -105,7 +106,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
     };
 
     load();
-  }, [churchId]);
+  }, [church_id]);
 
   // Detect unsaved changes
   const hasChanges =
@@ -127,7 +128,7 @@ export default function ChurchProfileCard({ churchId }: Props) {
     setSaving(true);
 
     try {
-      await updateDoc(doc(db, "churches", churchId), {
+      await updateDoc(doc(db, "churches", church_id), {
         timezone,
         address,
         city,
@@ -138,8 +139,8 @@ export default function ChurchProfileCard({ churchId }: Props) {
         phone: phone.digits,
         leaderName,
         leaderTitle,
-        regionId: regionId || null,
-        updatedAt: new Date(),
+        region_id: region_id || null,
+        updated_at: new Date(),
       });
 
       // Update originals

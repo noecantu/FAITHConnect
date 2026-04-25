@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 import { PageHeader } from "@/app/components/page-header";
@@ -66,10 +65,14 @@ export default function DistrictSettingsPage() {
     if (!districtId) return;
 
     const load = async () => {
-      const snap = await getDoc(doc(db, "districts", districtId));
-      if (!snap.exists()) return;
+      const { data } = await getSupabaseClient()
+        .from("districts")
+        .select("name")
+        .eq("id", districtId)
+        .single();
+      if (!data) return;
 
-      const name = (snap.data().name as string | undefined) ?? "District";
+      const name = (data.name as string | undefined) ?? "District";
       setDistrictName(name);
     };
 

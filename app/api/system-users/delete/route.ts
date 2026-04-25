@@ -1,36 +1,20 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import admin from "firebase-admin";
-import type { DocumentReference } from "firebase-admin/firestore";
-import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
+import { getServerUser } from "@/app/lib/supabase/server";
+import { adminDb } from "@/app/lib/supabase/admin";
 import { can } from "@/app/lib/auth/permissions";
 import { SYSTEM_ROLE_LIST, type Role } from "@/app/lib/auth/roles";
+import { createClient } from "@supabase/supabase-js";
 
-function readSessionCookie(req: Request): string | null {
-  const cookieHeader = req.headers.get("cookie") || "";
-  const match = cookieHeader.match(/session=([^;]+)/);
-  return match?.[1] ?? null;
-}
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
-async function deleteDocumentTree(ref: DocumentReference) {
-  const subcollections = await ref.listCollections();
-
-  for (const subcollection of subcollections) {
-    const childRefs = await subcollection.listDocuments();
-
-    for (const childRef of childRefs) {
-      await deleteDocumentTree(childRef);
-    }
-  }
-
-  await ref.delete();
-}
-
-function readEntityName(data: Record<string, unknown> | undefined, fallback: string) {
-  if (!data) return fallback;
-
-  const name = data.name;
+function readEntityName(row: Record<string, unknown> | null, fallback: string) {
+  if (!row) return fallback;
+  const name = row.name;
   return typeof name === "string" && name.trim().length > 0 ? name : fallback;
 }
 
@@ -42,24 +26,124 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing uid." }, { status: 400 });
     }
 
-    const sessionCookie = readSessionCookie(req);
-    if (!sessionCookie) {
+    const actor = await getServerUser();
+    if (!actor) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
     }
 
-    const decoded = await adminAuth.verifySessionCookie(sessionCookie, true);
-    const actorUid = decoded.uid;
+    const actorUid = actor.id;
 
     if (actorUid === uid) {
       return NextResponse.json({ error: "You cannot delete your own account." }, { status: 400 });
     }
 
-    const actorSnap = await adminDb.collection("users").doc(actorUid).get();
-    if (!actorSnap.exists) {
+    const { data: actorData } = await adminDb.from("users").select("roles").eq("id", actorUid).single();
+    if (!actorData) {
       return NextResponse.json({ error: "Actor profile not found." }, { status: 403 });
     }
 
-    const actor = actorSnap.data() as { roles?: unknown };
+    const actorRoles = (Array.isArray(actorData.roles) ? actorData.roles : []) as Role[];
+
+    if (!can(actorRoles, "system.manage")) {
+      return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+    }
+
+    const { data: userData } = await adminDb.from("users").select("*").eq("id", uid).single();
+    if (!userData) {
+      return NextResponse.json({ error: "User not found." }, { status: 404 });
+    }
+
+    const targetRoles = (Array.isArray(userData.roles) ? userData.roles : []) as Role[];
+    const isSystemUser = targetRoles.some((role) => SYSTEM_ROLE_LIST.includes(role));
+
+    if (!isSystemUser) {
+      return NextResponse.json({ error: "This endpoint only deletes system users." }, { status: 400 });
+    }
+
+    const regionId = typeof userData.region_id === "string" ? userData.region_id : null;
+    const districtId = typeof userData.district_id === "string" ? userData.district_id : null;
+
+    if (regionId) {
+      const [{ data: assignedChurches }, { data: pendingChurches }, { data: regionData }] = await Promise.all([
+        adminDb.from("churches").select("id, name").eq("region_id", regionId).limit(1),
+        adminDb.from("churches").select("id, name").eq("region_selected_id", regionId).limit(1),
+        adminDb.from("regions").select("*").eq("id", regionId).single(),
+      ]);
+
+      const assignedChurch = assignedChurches?.[0] ? readEntityName(assignedChurches[0] as Record<string, unknown>, assignedChurches[0].id) : null;
+      const pendingChurch = pendingChurches?.[0] ? readEntityName(pendingChurches[0] as Record<string, unknown>, pendingChurches[0].id) : null;
+
+      if (assignedChurch || pendingChurch) {
+        const blocker = assignedChurch
+          ? `assigned church "${assignedChurch}"`
+          : `pending church request "${pendingChurch}"`;
+        return NextResponse.json(
+          { error: `This regional leader cannot be deleted yet because of ${blocker}. Reassign or clear that church relationship first.` },
+          { status: 409 }
+        );
+      }
+
+      if (regionData) {
+        const parentDistrictId = typeof regionData.district_id === "string" ? regionData.district_id : null;
+        if (parentDistrictId) {
+          const { data: districtRow } = await adminDb.from("districts").select("region_ids").eq("id", parentDistrictId).single();
+          if (districtRow) {
+            const regionIds = Array.isArray(districtRow.region_ids) ? districtRow.region_ids.filter((id: string) => id !== regionId) : [];
+            await adminDb.from("districts").update({ region_ids: regionIds }).eq("id", parentDistrictId);
+          }
+        }
+        await adminDb.from("regions").delete().eq("id", regionId);
+      }
+    }
+
+    if (districtId) {
+      const [{ data: approvedRegions }, { data: pendingRegions }] = await Promise.all([
+        adminDb.from("regions").select("id, name").eq("district_id", districtId).limit(1),
+        adminDb.from("regions").select("id, name").eq("district_selected_id", districtId).limit(1),
+      ]);
+
+      const approvedRegion = approvedRegions?.[0] ? readEntityName(approvedRegions[0] as Record<string, unknown>, approvedRegions[0].id) : null;
+      const pendingRegion = pendingRegions?.[0] ? readEntityName(pendingRegions[0] as Record<string, unknown>, pendingRegions[0].id) : null;
+
+      if (approvedRegion || pendingRegion) {
+        const blocker = approvedRegion
+          ? `assigned region "${approvedRegion}"`
+          : `pending region request "${pendingRegion}"`;
+        return NextResponse.json(
+          { error: `This district leader cannot be deleted yet because of ${blocker}. Reassign or clear that region relationship first.` },
+          { status: 409 }
+        );
+      }
+
+      await adminDb.from("districts").delete().eq("id", districtId);
+    }
+
+    // Delete the auth user
+    const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(uid);
+    if (deleteAuthError && !deleteAuthError.message.includes("not found")) {
+      throw deleteAuthError;
+    }
+
+    // Delete the user profile
+    await adminDb.from("users").delete().eq("id", uid);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("system-users/delete error:", error);
+    return NextResponse.json({ error: "Failed to delete system user." }, { status: 500 });
+  }
+}
+
+    if (actorUid === uid) {
+      return NextResponse.json({ error: "You cannot delete your own account." }, { status: 400 });
+    }
+
+    const actorSnap = await adminDb.from("users").select("*").eq("id", actorUid).single();
+    if (!actorSnap !== null) {
+      return NextResponse.json({ error: "Actor profile not found." }, { status: 403 });
+    }
+
+    const actor = actorSnap as { roles?: unknown };
     const actorRoles = (Array.isArray(actor.roles) ? actor.roles : []) as Role[];
 
     if (!can(actorRoles, "system.manage")) {
@@ -69,11 +153,11 @@ export async function POST(req: Request) {
     const userRef = adminDb.collection("users").doc(uid);
     const userSnap = await userRef.get();
 
-    if (!userSnap.exists) {
+    if (!userSnap !== null) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
 
-    const userData = userSnap.data() as {
+    const userData = userSnap as {
       roles?: unknown;
       regionId?: unknown;
       districtId?: unknown;
@@ -93,15 +177,15 @@ export async function POST(req: Request) {
       const [churchesSnap, pendingChurchesSnap, regionSnap] = await Promise.all([
         adminDb.collection("churches").where("regionId", "==", regionId).limit(1).get(),
         adminDb.collection("churches").where("regionSelectedId", "==", regionId).limit(1).get(),
-        adminDb.collection("regions").doc(regionId).get(),
+        adminDb.from("regions").select("*").eq("id", regionId).single(),
       ]);
 
       const assignedChurch = churchesSnap.empty
         ? null
-        : readEntityName(churchesSnap.docs[0].data() as Record<string, unknown>, churchesSnap.docs[0].id);
+        : readEntityName(churchesSnap.docs[0] as Record<string, unknown>, churchesSnap.docs[0].id);
       const pendingChurch = pendingChurchesSnap.empty
         ? null
-        : readEntityName(pendingChurchesSnap.docs[0].data() as Record<string, unknown>, pendingChurchesSnap.docs[0].id);
+        : readEntityName(pendingChurchesSnap.docs[0] as Record<string, unknown>, pendingChurchesSnap.docs[0].id);
 
       if (assignedChurch || pendingChurch) {
         const blocker = assignedChurch
@@ -114,8 +198,8 @@ export async function POST(req: Request) {
         );
       }
 
-      if (regionSnap.exists) {
-        const regionData = regionSnap.data() as { districtId?: unknown };
+      if (regionSnap !== null) {
+        const regionData = regionSnap as { districtId?: unknown };
         const parentDistrictId = typeof regionData.districtId === "string" ? regionData.districtId : null;
 
         if (parentDistrictId) {
@@ -132,15 +216,15 @@ export async function POST(req: Request) {
       const [approvedRegionsSnap, pendingRegionsSnap, districtSnap] = await Promise.all([
         adminDb.collection("regions").where("districtId", "==", districtId).limit(1).get(),
         adminDb.collection("regions").where("districtSelectedId", "==", districtId).limit(1).get(),
-        adminDb.collection("districts").doc(districtId).get(),
+        adminDb.from("districts").select("*").eq("id", districtId).single(),
       ]);
 
       const approvedRegion = approvedRegionsSnap.empty
         ? null
-        : readEntityName(approvedRegionsSnap.docs[0].data() as Record<string, unknown>, approvedRegionsSnap.docs[0].id);
+        : readEntityName(approvedRegionsSnap.docs[0] as Record<string, unknown>, approvedRegionsSnap.docs[0].id);
       const pendingRegion = pendingRegionsSnap.empty
         ? null
-        : readEntityName(pendingRegionsSnap.docs[0].data() as Record<string, unknown>, pendingRegionsSnap.docs[0].id);
+        : readEntityName(pendingRegionsSnap.docs[0] as Record<string, unknown>, pendingRegionsSnap.docs[0].id);
 
       if (approvedRegion || pendingRegion) {
         const blocker = approvedRegion
@@ -153,7 +237,7 @@ export async function POST(req: Request) {
         );
       }
 
-      if (districtSnap.exists) {
+      if (districtSnap !== null) {
         await deleteDocumentTree(districtSnap.ref);
       }
     }

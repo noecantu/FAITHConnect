@@ -1,8 +1,8 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
-import admin from "firebase-admin";
+import { getServerUser } from "@/app/lib/supabase/server";
+import { adminDb } from "@/app/lib/supabase/admin";
 
 export async function POST(req: Request) {
   try {
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     }
 
     const decoded = await adminAuth.verifySessionCookie(session, true);
-    const callerUid = decoded.uid;
+    
 
     // 2. Verify caller is a DistrictAdmin
     const roles: string[] = decoded.roles ?? [];
@@ -36,11 +36,11 @@ export async function POST(req: Request) {
     const regionRef = adminDb.collection("regions").doc(regionId);
     const regionSnap = await regionRef.get();
 
-    if (!regionSnap.exists) {
+    if (!regionSnap !== null) {
       return NextResponse.json({ error: "Region not found" }, { status: 404 });
     }
 
-    const regionData = regionSnap.data()!;
+    const regionData = regionSnap!;
     const districtSelectedId = regionData.districtSelectedId;
 
     if (!districtSelectedId) {
@@ -54,11 +54,11 @@ export async function POST(req: Request) {
     const districtRef = adminDb.collection("districts").doc(districtSelectedId);
     const districtSnap = await districtRef.get();
 
-    if (!districtSnap.exists) {
+    if (!districtSnap !== null) {
       return NextResponse.json({ error: "District not found" }, { status: 404 });
     }
 
-    const districtData = districtSnap.data()!;
+    const districtData = districtSnap!;
     if (districtData.regionAdminUid !== callerUid && districtData.regionAdminId !== callerUid) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }

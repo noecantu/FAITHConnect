@@ -2,8 +2,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, getDocs, getDoc, doc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { PageHeader } from "@/app/components/page-header";
 import { Input } from "@/app/components/ui/input";
@@ -13,14 +13,15 @@ import Link from "next/link";
 type District = {
   id: string;
   name: string;
-  logoUrl?: string | null;
-  regionAdminName?: string | null;
-  regionAdminTitle?: string | null;
+  logo_url?: string | null;
+  region_admin_name?: string | null;
+  region_admin_title?: string | null;
   state?: string | null;
 };
 
 export default function SelectDistrictPage() {
-  const { isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
+  const supabase = getSupabaseClient();
+  const { isRegionalAdmin, region_id, loading: permLoading } = usePermissions();
 
   const [districts, setDistricts] = useState<District[]>([]);
   const [search, setSearch] = useState("");
@@ -37,9 +38,9 @@ export default function SelectDistrictPage() {
           snap.docs.map((d) => ({
             id: d.id,
             name: d.data().name || "Unknown District",
-            logoUrl: d.data().logoUrl ?? null,
-            regionAdminName: d.data().regionAdminName ?? null,
-            regionAdminTitle: d.data().regionAdminTitle ?? null,
+            logo_url: d.data().logo_url ?? null,
+            region_admin_name: d.data().region_admin_name ?? null,
+            region_admin_title: d.data().region_admin_title ?? null,
             state: d.data().state ?? null,
           }))
         );
@@ -54,18 +55,18 @@ export default function SelectDistrictPage() {
 
   // Load current region's district status
   useEffect(() => {
-    if (!regionId) return;
+    if (!region_id) return;
 
     async function loadRegion() {
       try {
-        const snap = await getDoc(doc(db, "regions", regionId!));
+        const snap = await getDoc(doc(db, "regions", region_id!));
         if (snap.exists()) {
           const data = snap.data();
-          setCurrentDistrictStatus(data.districtStatus ?? null);
+          setCurrentDistrictStatus(data.district_status ?? null);
 
-          if (data.districtId || data.districtSelectedId) {
-            const did = data.districtId || data.districtSelectedId;
-            const dSnap = await getDoc(doc(db, "districts", did));
+          if (data.district_id || data.district_selected_id) {
+            const did = data.district_id || data.district_selected_id;
+            const dSnap = await supabase.from("districts").select('*').eq('id', did).single();
             if (dSnap.exists()) setCurrentDistrictName(dSnap.data().name || null);
           }
         }
@@ -75,13 +76,13 @@ export default function SelectDistrictPage() {
     }
 
     loadRegion();
-  }, [regionId]);
+  }, [region_id]);
 
   const filtered = districts.filter((d) => {
     const term = search.toLowerCase();
     return (
       d.name.toLowerCase().includes(term) ||
-      (d.regionAdminName ?? "").toLowerCase().includes(term) ||
+      (d.region_admin_name ?? "").toLowerCase().includes(term) ||
       (d.state ?? "").toLowerCase().includes(term)
     );
   });
@@ -154,9 +155,9 @@ export default function SelectDistrictPage() {
                 "
               >
                 <div className="flex items-center gap-4">
-                  {district.logoUrl ? (
+                  {district.logo_url ? (
                     <img
-                      src={district.logoUrl}
+                      src={district.logo_url}
                       alt={`${district.name} logo`}
                       className="h-16 w-16 shrink-0 rounded-md object-cover border border-white/20"
                     />
@@ -173,9 +174,9 @@ export default function SelectDistrictPage() {
                   <div className="min-w-0">
                     <p className="text-lg font-semibold truncate">{district.name}</p>
 
-                    {district.regionAdminTitle && district.regionAdminName && (
+                    {district.region_admin_title && district.region_admin_name && (
                       <p className="text-sm text-muted-foreground truncate">
-                        {district.regionAdminTitle}: {district.regionAdminName}
+                        {district.region_admin_title}: {district.region_admin_name}
                       </p>
                     )}
 

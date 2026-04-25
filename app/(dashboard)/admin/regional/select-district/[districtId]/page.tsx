@@ -1,20 +1,21 @@
-//app/(dashboard)/admin/regional/select-district/[districtId]/page.tsx
+//app/(dashboard)/admin/regional/select-district/[district_id]/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { Card } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import { useToast } from "@/app/hooks/use-toast";
 
 export default function ConfirmDistrictPage() {
-  const { districtId } = useParams() as { districtId: string };
+  const supabase = getSupabaseClient();
+  const { district_id } = useParams() as { district_id: string };
   const router = useRouter();
   const { toast } = useToast();
-  const { isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
+  const { isRegionalAdmin, region_id, loading: permLoading } = usePermissions();
 
   const [district, setDistrict] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -22,26 +23,26 @@ export default function ConfirmDistrictPage() {
 
   useEffect(() => {
     async function load() {
-      const snap = await getDoc(doc(db, "districts", districtId));
+      const snap = await supabase.from("districts").select('*').eq('id', district_id).single();
       if (snap.exists()) {
         setDistrict({ id: snap.id, ...snap.data() });
       }
       setLoading(false);
     }
     load();
-  }, [districtId]);
+  }, [district_id]);
 
   async function handleConfirm() {
-    if (!regionId || !districtId) return;
+    if (!region_id || !district_id) return;
 
     setSaving(true);
 
     try {
-      await updateDoc(doc(db, "regions", regionId), {
-        districtSelectedId: districtId,
-        districtStatus: "pending",
-        districtId: null,
-        updatedAt: new Date(),
+      await updateDoc(doc(db, "regions", region_id), {
+        district_selected_id: district_id,
+        district_status: "pending",
+        district_id: null,
+        updated_at: new Date(),
       });
 
       toast({
@@ -86,9 +87,9 @@ export default function ConfirmDistrictPage() {
       </p>
 
       <Card className="p-6 bg-black/60 border-white/20 backdrop-blur-xl space-y-3">
-        {district.logoUrl ? (
+        {district.logo_url ? (
           <img
-            src={district.logoUrl}
+            src={district.logo_url}
             alt={`${district.name} logo`}
             className="h-16 w-16 rounded-md object-cover border border-white/20"
           />
@@ -96,10 +97,10 @@ export default function ConfirmDistrictPage() {
 
         <p className="text-xl font-semibold">{district.name}</p>
 
-        {(district.regionAdminTitle || district.regionAdminName) && (
+        {(district.region_admin_title || district.region_admin_name) && (
           <p className="text-sm text-muted-foreground">
-            {district.regionAdminTitle ? `${district.regionAdminTitle}: ` : "Admin: "}
-            {district.regionAdminName ?? ""}
+            {district.region_admin_title ? `${district.region_admin_title}: ` : "Admin: "}
+            {district.region_admin_name ?? ""}
           </p>
         )}
 

@@ -3,7 +3,8 @@ export const dynamic = "force-dynamic";
 
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
-import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
+import { getServerUser } from "@/app/lib/supabase/server";
+import { adminDb } from "@/app/lib/supabase/admin";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2023-10-16",
@@ -22,27 +23,27 @@ export async function POST(req: Request) {
     }
 
     const decoded = await adminAuth.verifySessionCookie(session, true);
-    const uid = decoded.uid;
+    
 
-    const userSnap = await adminDb.collection("users").doc(uid).get();
-    if (!userSnap.exists) {
+    const userSnap = await adminDb.from("users").select("*").eq("id", uid).single();
+    if (!userSnap !== null) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const userData = userSnap.data() ?? {};
+    const userData = userSnap ?? {};
 
-    // Try to find stripeCustomerId on user first, then on the church document
-    let stripeCustomerId: string | null =
-      typeof userData.stripeCustomerId === "string" ? userData.stripeCustomerId : null;
+    // Try to find stripe_customer_id on user first, then on the church document
+    let stripe_customer_id: string | null =
+      typeof userData.stripe_customer_id === "string" ? userData.stripe_customer_id : null;
 
-    if (!stripeCustomerId && typeof userData.churchId === "string") {
-      const churchSnap = await adminDb.collection("churches").doc(userData.churchId).get();
-      const churchData = churchSnap.data() ?? {};
-      stripeCustomerId =
-        typeof churchData.stripeCustomerId === "string" ? churchData.stripeCustomerId : null;
+    if (!stripe_customer_id && typeof userData.church_id === "string") {
+      const churchSnap = await adminDb.from("churches").select("*").eq("id", userData.church_id).single();
+      const churchData = churchSnap ?? {};
+      stripe_customer_id =
+        typeof churchData.stripe_customer_id === "string" ? churchData.stripe_customer_id : null;
     }
 
-    if (!stripeCustomerId) {
+    if (!stripe_customer_id) {
       return NextResponse.json(
         { error: "No billing account found. Please contact support." },
         { status: 404 }
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
     const resolvedReturnUrl = typeof returnUrl === "string" ? returnUrl : baseUrl;
 
     const portalSession = await stripe.billingPortal.sessions.create({
-      customer: stripeCustomerId,
+      customer: stripe_customer_id,
       return_url: resolvedReturnUrl,
     });
 

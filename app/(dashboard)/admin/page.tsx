@@ -1,78 +1,36 @@
 // app/admin/page.tsx
-import { adminDb } from "@/app/lib/firebase/admin";
+import { adminDb } from "@/app/lib/supabase/admin";
 import AdminHomeClient from "./AdminHomeClient";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/app/lib/auth/server/getCurrentUser";
 import { can } from "@/app/lib/auth/permissions";
-import { countPresentAttendanceEntries } from "@/app/lib/attendance-count";
 
 export default async function AdminHomePage() {
-  // 1. Get the logged-in user
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  // 2. Only RootAdmin can access this page
   if (!can(user.roles ?? [], "system.manage")) {
-    redirect(`/church/${user.churchId}/user`);
+    redirect(`/church/${user.church_id}/user`);
   }
 
-  // 3. Now it's safe to run Firestore Admin queries
-  const churchesSnap = await adminDb.collection("churches").count().get();
-  const districtsSnap = await adminDb.collection("districts").count().get();
-  const regionsSnap = await adminDb.collection("regions").count().get();
-  const usersSnap = await adminDb.collection("users").count().get();
-
-  const adminsSnap = await adminDb
-    .collection("users")
-    .where("roles", "array-contains", "Admin")
-    .count()
-    .get();
-
-  const eventsSnap = await adminDb.collectionGroup("events").count().get();
-  const attendanceSnap = await adminDb
-    .collectionGroup("attendance")
-    .select("records", "visitors")
-    .get();
-  const musicItemsSnap = await adminDb.collectionGroup("songs").count().get();
-  const setlistsSnap = await adminDb.collectionGroup("setlists").count().get();
-
-  const checkinCount = attendanceSnap.docs.reduce(
-    (total, docSnap) => total + countPresentAttendanceEntries(docSnap.data()),
-    0
-  );
-
-  const churchesLeaderDataSnap = await adminDb
-    .collection("churches")
-    .select("leaderName", "leaderTitle")
-    .get();
-
-  const churchLeaderCount = churchesLeaderDataSnap.docs.reduce((count, docSnap) => {
-    const data = docSnap.data() as { leaderName?: unknown; leaderTitle?: unknown };
-    const hasLeaderName = typeof data.leaderName === "string" && data.leaderName.trim().length > 0;
-    const hasLeaderTitle = typeof data.leaderTitle === "string" && data.leaderTitle.trim().length > 0;
-
-    return hasLeaderName || hasLeaderTitle ? count + 1 : count;
-  }, 0);
-
-  const financeSnap = await adminDb
-    .collection("users")
-    .where("roles", "array-contains", "Finance")
-    .count()
-    .get();
+  const [
+    { count: churchesCount },
+    { count: districtsCount },
+    { count: regionsCount },
+    { count: usersCount },
+  ] = await Promise.all([
+    adminDb.from("churches").select("id", { count: "exact", head: true }),
+    adminDb.from("districts").select("id", { count: "exact", head: true }),
+    adminDb.from("regions").select("id", { count: "exact", head: true }),
+    adminDb.from("users").select("id", { count: "exact", head: true }),
+  ]);
 
   return (
     <AdminHomeClient
-      churchCount={churchesSnap.data().count ?? 0}
-      districtCount={districtsSnap.data().count ?? 0}
-      regionCount={regionsSnap.data().count ?? 0}
-      userCount={usersSnap.data().count ?? 0}
-      adminCount={adminsSnap.data().count ?? 0}
-      eventCount={eventsSnap.data().count ?? 0}
-      checkinCount={checkinCount}
-      musicItemCount={musicItemsSnap.data().count ?? 0}
-      setlistCount={setlistsSnap.data().count ?? 0}
-      churchLeaderCount={churchLeaderCount}
-      financeCount={financeSnap.data().count ?? 0}
+      churches={churchesCount ?? 0}
+      districts={districtsCount ?? 0}
+      regions={regionsCount ?? 0}
+      users={usersCount ?? 0}
     />
   );
 }

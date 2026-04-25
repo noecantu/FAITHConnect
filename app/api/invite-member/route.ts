@@ -1,7 +1,8 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { adminDb, adminAuth } from "@/app/lib/firebase/admin";
+import { adminDb } from "@/app/lib/supabase/admin";
+import { getServerUser } from "@/app/lib/supabase/server";
 import { can } from "@/app/lib/auth/permissions";
 import type { Role } from "@/app/lib/auth/roles";
 
@@ -11,94 +12,75 @@ export async function POST(req: Request) {
     const { email, firstName, lastName } = body;
 
     if (!email) {
-      return NextResponse.json(
-        { error: "Email is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
     // 1. Verify the caller is authenticated
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    const inviterUser = await getServerUser();
+    if (!inviterUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const idToken = authHeader.split("Bearer ")[1];
-    const decoded = await adminAuth.verifyIdToken(idToken);
-
-    const inviterUid = decoded.uid;
+    const inviterUid = inviterUser.id;
 
     // 2. Fetch inviter's user profile
-    const inviterSnap = await adminDb.collection("users").doc(inviterUid).get();
-    const inviter = inviterSnap.data();
+    const { data: inviter } = await adminDb
+      .from("users")
+      .select("roles, church_id")
+      .eq("id", inviterUid)
+      .single();
 
     if (!inviter) {
-      return NextResponse.json(
-        { error: "Inviter profile not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Inviter profile not found" }, { status: 404 });
     }
 
     const inviterRoles = (inviter.roles ?? []) as Role[];
-    const inviterChurchId: string | null = inviter.churchId || null;
+    const inviterChurchId: string | null = inviter.church_id || null;
 
     // 3. Only users with members.manage can invite members
     const canInvite = can(inviterRoles, "members.manage");
 
     if (!canInvite) {
-      return NextResponse.json(
-        { error: "You do not have permission to invite members" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "You do not have permission to invite members" }, { status: 403 });
     }
 
     if (!inviterChurchId) {
-      return NextResponse.json(
-        { error: "Inviter does not belong to a church" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Inviter does not belong to a church" }, { status: 400 });
     }
 
-    // 4. Check if a user already exists with this email
-    let invitedUid: string | null = null;
+    // 4. Check if user already exists with this email
+    const { data: existingUser } = await adminDb
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .single();
 
-    try {
-      const existingUser = await adminAuth.getUserByEmail(email);
-      invitedUid = existingUser.uid;
-    } catch {
-      invitedUid = null; // User does not exist yet
-    }
+    let invitedUid = existingUser?.id ?? null;
 
-    // 5. If user does not exist, create a placeholder Firestore profile
+    // 5. Upsert the invited user profile
     if (!invitedUid) {
-      invitedUid = adminDb.collection("users").doc().id;
+      invitedUid = crypto.randomUUID();
     }
 
-    // 6. Create or update Firestore user profile
-    await adminDb.collection("users").doc(invitedUid).set(
-      {
-        uid: invitedUid,
-        email,
-        firstName: firstName || "",
-        lastName: lastName || "",
-        roles: [] as Role[],
-        churchId: inviterChurchId,
-        invitedAt: new Date(),
-        status: "invited",
-      },
-      { merge: true }
-    );
+    await adminDb
+      .from("users")
+      .upsert(
+        {
+          id: invitedUid,
+          email,
+          first_name: firstName || "",
+          last_name: lastName || "",
+          roles: [] as Role[],
+          church_id: inviterChurchId,
+          invited_at: new Date().toISOString(),
+          status: "invited",
+        },
+        { onConflict: "id" }
+      );
 
     return NextResponse.json({ success: true, invitedUid });
-
   } catch (error) {
     console.error("Invite Member Error:", error);
-    return NextResponse.json(
-      { error: "Failed to invite member" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to invite member" }, { status: 500 });
   }
 }

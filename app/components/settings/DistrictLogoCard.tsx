@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
-import { ref, deleteObject } from "firebase/storage";
-import { db, storage } from "@/app/lib/firebase/client";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import { useToast } from "@/app/hooks/use-toast";
@@ -34,10 +32,11 @@ export default function DistrictLogoCard({ districtId, districtName }: Props) {
     setUploadPath(`districts/${districtId}/logo/logo-${Date.now()}.png`);
 
     const load = async () => {
-      const snap = await getDoc(doc(db, "districts", districtId));
-      if (!snap.exists()) return;
+      const supabase = getSupabaseClient();
+      const { data } = await supabase.from("districts").select("logo_url").eq("id", districtId).single();
+      if (!data) return;
 
-      const url = (snap.data().logoUrl as string | null | undefined) ?? null;
+      const url = (data.logo_url as string | null | undefined) ?? null;
       setLogoUrl(url);
       setOriginalLogoUrl(url);
     };
@@ -119,8 +118,13 @@ export default function DistrictLogoCard({ districtId, districtName }: Props) {
       setShowConfirmRemove(false);
 
       try {
-        const decodedPath = decodeURIComponent(removedLogoUrl.split("/o/")[1].split("?")[0]);
-        await deleteObject(ref(storage, decodedPath));
+        const supabase = getSupabaseClient();
+        // Extract path from Supabase public URL: .../storage/v1/object/public/logos/path
+        const urlParts = removedLogoUrl.split("/storage/v1/object/public/logos/");
+        if (urlParts[1]) {
+          const storagePath = decodeURIComponent(urlParts[1].split("?")[0]);
+          await supabase.storage.from("logos").remove([storagePath]);
+        }
       } catch (storageError) {
         console.warn("Logo file cleanup skipped:", storageError);
       }

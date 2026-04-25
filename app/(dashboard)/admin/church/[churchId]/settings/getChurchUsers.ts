@@ -1,28 +1,24 @@
 "use server";
 
-import { adminDb } from "@/app/lib/firebase/admin";
+import { adminDb } from "@/app/lib/supabase/admin";
 
-export async function getChurchUsers(churchId: string) {
-  const snap = await adminDb
-    .collection("users")
-    .where("churchId", "==", churchId)
-    .get();
+export async function getChurchUsers(church_id: string) {
+  const { data, error } = await adminDb
+    .from("users")
+    .select("*")
+    .eq("church_id", church_id);
 
-  return snap.docs.map((d) => {
-    const data = d.data();
+  if (error) throw error;
 
-    return {
-      uid: d.id,
-      firstName: data.firstName ?? "",
-      lastName: data.lastName ?? "",
-      displayName: data.displayName ?? "",
-      email: data.email ?? "",
-      roles: data.roles ?? [],
-      churchId: data.churchId ?? null,
-
-      // Convert Firestore timestamps → numbers
-      createdAt: data.createdAt ? data.createdAt.toMillis() : null,
-      updatedAt: data.updatedAt ? data.updatedAt.toMillis() : null,
-    };
-  });
+  return (data ?? []).map((u) => ({
+    uid: u.id,
+    first_name: u.first_name ?? "",
+    last_name: u.last_name ?? "",
+    displayName: u.display_name ?? "",
+    email: u.email ?? "",
+    roles: u.roles ?? [],
+    church_id: u.church_id ?? null,
+    created_at: u.created_at ? new Date(u.created_at).getTime() : null,
+    updated_at: u.updated_at ? new Date(u.updated_at).getTime() : null,
+  }));
 }

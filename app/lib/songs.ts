@@ -1,164 +1,108 @@
-import {
-  collection,
-  doc,
-  addDoc,
-  getDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  query,
-  orderBy,
-  serverTimestamp,
-  onSnapshot,
-  Timestamp,
-} from "firebase/firestore";
-
-import { db } from "./firebase/client";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import type { Song } from "./types";
 
-// Collection reference
-export function songsCollection(churchId: string) {
-  return collection(db, "churches", churchId, "songs");
+function rowToSong(row: Record<string, unknown>): Song {
+  return {
+    id: row.id as string,
+    churchId: row.church_id as string,
+    title: row.title as string,
+    artist: (row.artist as string) ?? "",
+    key: (row.key as string) ?? "",
+    tempo: (row.tempo as string | number) ?? "",
+    notes: (row.notes as string) ?? "",
+    lyrics: (row.lyrics as string) ?? "",
+    tags: (row.tags as string[]) ?? [],
+    createdAt: row.created_at ? new Date(row.created_at as string) : new Date(),
+    updatedAt: row.updated_at ? new Date(row.updated_at as string) : new Date(),
+  } as Song;
 }
 
-// Real-time listener (kept for backwards compatibility)
 export function listenToSongs(
   churchId: string | null,
   callback: (songs: Song[]) => void,
   userId?: string
-) {
+): () => void {
   if (!churchId || !userId) return () => {};
 
-  const q = query(songsCollection(churchId), orderBy("title"));
+  getSupabaseClient()
+    .from("songs")
+    .select("*")
+    .eq("church_id", churchId)
+    .order("title", { ascending: true })
+    .then(({ data }) => {
+      if (!data) return;
+      callback(data.map(rowToSong));
+    });
 
-  return onSnapshot(
-    q,
-    (snapshot) => {
-      const songs: Song[] = snapshot.docs.map((docSnap) => {
-        const data = docSnap.data() as Record<string, unknown>;
-
-        return {
-          id: docSnap.id,
-          ...data,
-          createdAt:
-            data.createdAt instanceof Timestamp
-              ? data.createdAt.toDate()
-              : new Date(),
-          updatedAt:
-            data.updatedAt instanceof Timestamp
-              ? data.updatedAt.toDate()
-              : new Date(),
-        } as Song;
-      });
-
-      callback(songs);
-    },
-    (error) => {
-      if (error.code !== "permission-denied") {
-        console.error("listenToSongs error:", error);
-      }
-    }
-  );
+  return () => {};
 }
 
-// Create Song
 export async function createSong(
   churchId: string,
   data: Omit<Song, "id" | "churchId" | "createdAt" | "updatedAt">
-) {
+): Promise<Song> {
+  const supabase = getSupabaseClient();
+
   const cleaned = Object.fromEntries(
-    Object.entries(data).filter(([_, v]) => v !== undefined)
+    Object.entries(data).filter(([, v]) => v !== undefined)
   );
 
-  const ref = await addDoc(songsCollection(churchId), {
-    ...cleaned,
-    churchId,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
+  const { data: row, error } = await supabase
+    .from("songs")
+    .insert({ ...cleaned, church_id: churchId })
+    .select()
+    .single();
 
-  const snap = await getDoc(ref);
-  const docData = snap.data() ?? {};
-
-  return {
-    id: ref.id,
-    ...docData,
-    createdAt:
-      docData.createdAt instanceof Timestamp
-        ? docData.createdAt.toDate()
-        : new Date(),
-    updatedAt:
-      docData.updatedAt instanceof Timestamp
-        ? docData.updatedAt.toDate()
-        : new Date(),
-  } as Song;
+  if (error || !row) throw error ?? new Error("Failed to create song");
+  return rowToSong(row);
 }
 
-// Get all songs (non-realtime)
 export async function getSongs(churchId: string): Promise<Song[]> {
-  const q = query(songsCollection(churchId), orderBy("title"));
-  const snap = await getDocs(q);
+  const { data, error } = await getSupabaseClient()
+    .from("songs")
+    .select("*")
+    .eq("church_id", churchId)
+    .order("title", { ascending: true });
 
-  return snap.docs.map((docSnap) => {
-    const data = docSnap.data() as Record<string, unknown>;
-
-    return {
-      id: docSnap.id,
-      ...data,
-      createdAt:
-        data.createdAt instanceof Timestamp
-          ? data.createdAt.toDate()
-          : new Date(),
-      updatedAt:
-        data.updatedAt instanceof Timestamp
-          ? data.updatedAt.toDate()
-          : new Date(),
-    } as Song;
-  });
+  if (error) throw error;
+  return (data ?? []).map(rowToSong);
 }
 
-// Update Song
 export async function updateSong(
   churchId: string,
   songId: string,
   data: Partial<Omit<Song, "id" | "churchId" | "createdAt" | "updatedAt">>
-) {
-  const ref = doc(db, "churches", churchId, "songs", songId);
+): Promise<void> {
+  const { error } = await getSupabaseClient()
+    .from("songs")
+    .update({ ...data })
+    .eq("id", songId)
+    .eq("church_id", churchId);
 
-  await updateDoc(ref, {
-    ...data,
-    updatedAt: serverTimestamp(),
-  });
+  if (error) throw error;
 }
 
-// Delete Song
-export async function deleteSong(churchId: string, songId: string) {
-  const ref = doc(db, "churches", churchId, "songs", songId);
-  await deleteDoc(ref);
+export async function deleteSong(churchId: string, songId: string): Promise<void> {
+  const { error } = await getSupabaseClient()
+    .from("songs")
+    .delete()
+    .eq("id", songId)
+    .eq("church_id", churchId);
+
+  if (error) throw error;
 }
 
-// Get Song by ID
 export async function getSongById(
   churchId: string,
   songId: string
 ): Promise<Song | null> {
-  const ref = doc(db, `churches/${churchId}/songs/${songId}`);
-  const snap = await getDoc(ref);
+  const { data, error } = await getSupabaseClient()
+    .from("songs")
+    .select("*")
+    .eq("id", songId)
+    .eq("church_id", churchId)
+    .single();
 
-  if (!snap.exists()) return null;
-
-  const data = snap.data() as Record<string, unknown>;
-
-  return {
-    id: snap.id,
-    ...data,
-    createdAt:
-      data.createdAt instanceof Timestamp
-        ? data.createdAt.toDate()
-        : new Date(),
-    updatedAt:
-      data.updatedAt instanceof Timestamp
-        ? data.updatedAt.toDate()
-        : new Date(),
-  } as Song;
+  if (error || !data) return null;
+  return rowToSong(data);
 }

@@ -1,27 +1,6 @@
-import {
-  collection,
-  doc,
-  addDoc,
-  getDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  query,
-  orderBy,
-} from 'firebase/firestore';
+import { getSupabaseClient } from "@/app/lib/supabase/client";
+import type { ServicePlan, ServicePlanSection } from "./types";
 
-import { db } from './firebase/client';
-import type { ServicePlan, ServicePlanFirestore, ServicePlanSection } from './types';
-
-// -----------------------------------------------------
-// Collection reference
-// -----------------------------------------------------
-const servicePlansCollection = (churchId: string) =>
-  collection(db, 'churches', churchId, 'servicePlans');
-
-// -----------------------------------------------------
-// Helpers for derived fields
-// -----------------------------------------------------
 function toDate(dateString: string): Date {
   return new Date(`${dateString}T00:00:00`);
 }
@@ -30,79 +9,57 @@ function toDateTime(dateString: string, timeString: string): Date {
   return new Date(`${dateString}T${timeString}:00`);
 }
 
-// -----------------------------------------------------
-// Get all service plans
-// -----------------------------------------------------
-export async function getServicePlans(churchId: string): Promise<ServicePlan[]> {
-  const q = query(servicePlansCollection(churchId), orderBy('dateString', 'desc'));
-  const snap = await getDocs(q);
+function rowToServicePlan(row: Record<string, unknown>): ServicePlan {
+  const dateString = row.date_string as string;
+  const timeString = row.time_string as string;
+  const isPublic = (row.is_public as boolean) ?? false;
 
-  return snap.docs.map((d) => {
-    const data = d.data() as ServicePlanFirestore;
-
-    return {
-      id: d.id,
-      title: data.title,
-
-      dateString: data.dateString,
-      timeString: data.timeString,
-
-      date: toDate(data.dateString),
-      dateTime: toDateTime(data.dateString, data.timeString),
-
-      notes: data.notes ?? '',
-      sections: data.sections ?? [],
-
-      createdBy: data.createdBy,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
-    } as ServicePlan;
-  });
+  return {
+    id: row.id as string,
+    title: row.title as string,
+    dateString,
+    timeString,
+    notes: (row.notes as string) ?? "",
+    isPublic,
+    groups: (row.groups as string[]) ?? [],
+    sections: (row.sections as ServicePlanSection[]) ?? [],
+    createdBy: row.created_by as string,
+    createdAt: row.created_at as number,
+    updatedAt: row.updated_at as number,
+    date: toDate(dateString),
+    dateTime: toDateTime(dateString, timeString),
+    visibility: isPublic ? "public" : "private",
+  };
 }
 
-// -----------------------------------------------------
-// Get single service plan
-// -----------------------------------------------------
+export async function getServicePlans(churchId: string): Promise<ServicePlan[]> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("service_plans")
+    .select("*")
+    .eq("church_id", churchId)
+    .order("date_string", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []).map(rowToServicePlan);
+}
+
 export async function getServicePlanById(
   churchId: string,
   id: string
 ): Promise<ServicePlan | null> {
-  const ref = doc(servicePlansCollection(churchId), id);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return null;
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("service_plans")
+    .select("*")
+    .eq("church_id", churchId)
+    .eq("id", id)
+    .single();
 
-  const data = snap.data() as ServicePlanFirestore;
-
-  return {
-    id: snap.id,
-    title: data.title,
-
-    dateString: data.dateString,
-    timeString: data.timeString,
-
-    date: toDate(data.dateString),
-    dateTime: toDateTime(data.dateString, data.timeString),
-
-    notes: data.notes ?? '',
-    sections: data.sections ?? [],
-
-    createdBy: data.createdBy,
-    createdAt: data.createdAt,
-    updatedAt: data.updatedAt,
-
-    // Required fields from ServicePlanFirestore
-    isPublic: data.isPublic ?? false,
-    groups: data.groups ?? [],
-
-    // Derived field required by ServicePlan
-    visibility: data.isPublic ? "public" : "private",
-  };
-
+  if (error || !data) return null;
+  return rowToServicePlan(data);
 }
 
-// -----------------------------------------------------
-// Create service plan
-// -----------------------------------------------------
 export async function createServicePlan(
   churchId: string,
   data: {
@@ -114,33 +71,31 @@ export async function createServicePlan(
     createdBy: string;
   }
 ): Promise<ServicePlan> {
+  const supabase = getSupabaseClient();
   const now = Date.now();
 
-  // Must include all Firestore fields
-  const payload: ServicePlanFirestore = {
-    ...data,
-    isPublic: false,     // default or choose your logic
-    groups: [],          // default or choose your logic
-    createdAt: now,
-    updatedAt: now,
-  };
+  const { data: row, error } = await supabase
+    .from("service_plans")
+    .insert({
+      church_id: churchId,
+      title: data.title,
+      date_string: data.dateString,
+      time_string: data.timeString,
+      notes: data.notes,
+      sections: data.sections,
+      is_public: false,
+      groups: [],
+      created_by: data.createdBy,
+      created_at: now,
+      updated_at: now,
+    })
+    .select()
+    .single();
 
-  const ref = await addDoc(servicePlansCollection(churchId), payload);
-
-  return {
-    id: ref.id,
-    ...payload,
-
-    date: toDate(payload.dateString),
-    dateTime: toDateTime(payload.dateString, payload.timeString),
-
-    visibility: payload.isPublic ? "public" : "private",
-  };
+  if (error || !row) throw error ?? new Error("Failed to create service plan");
+  return rowToServicePlan(row);
 }
 
-// -----------------------------------------------------
-// Update service plan
-// -----------------------------------------------------
 export async function updateServicePlan(
   churchId: string,
   id: string,
@@ -152,32 +107,39 @@ export async function updateServicePlan(
     sections: ServicePlanSection[];
   }>
 ): Promise<void> {
-  const ref = doc(servicePlansCollection(churchId), id);
+  const supabase = getSupabaseClient();
+  const updatePayload: Record<string, unknown> = { updated_at: Date.now() };
 
-  await updateDoc(ref, {
-    ...data,
-    updatedAt: Date.now(),
-  });
+  if (data.title !== undefined) updatePayload.title = data.title;
+  if (data.dateString !== undefined) updatePayload.date_string = data.dateString;
+  if (data.timeString !== undefined) updatePayload.time_string = data.timeString;
+  if (data.notes !== undefined) updatePayload.notes = data.notes;
+  if (data.sections !== undefined) updatePayload.sections = data.sections;
+
+  const { error } = await supabase
+    .from("service_plans")
+    .update(updatePayload)
+    .eq("id", id)
+    .eq("church_id", churchId);
+
+  if (error) throw error;
 }
 
-// -----------------------------------------------------
-// Delete service plan
-// -----------------------------------------------------
 export async function deleteServicePlan(churchId: string, id: string): Promise<void> {
-  const ref = doc(servicePlansCollection(churchId), id);
-  await deleteDoc(ref);
+  const supabase = getSupabaseClient();
+  const { error } = await supabase
+    .from("service_plans")
+    .delete()
+    .eq("id", id)
+    .eq("church_id", churchId);
+
+  if (error) throw error;
 }
 
-// -----------------------------------------------------
-// Duplicate service plan
-// -----------------------------------------------------
 export async function duplicateServicePlan(
   churchId: string,
   plan: ServicePlan
 ): Promise<ServicePlan> {
-  const now = Date.now();
-
-  // Deep copy sections
   const copiedSections = plan.sections.map((s) => ({
     id: crypto.randomUUID(),
     title: s.title,
@@ -187,32 +149,12 @@ export async function duplicateServicePlan(
     color: s.color,
   }));
 
-  // Must satisfy ServicePlanFirestore
-  const payload: ServicePlanFirestore = {
+  return createServicePlan(churchId, {
     title: `${plan.title} (Copy)`,
     dateString: plan.dateString,
     timeString: plan.timeString,
     notes: plan.notes,
     sections: copiedSections,
     createdBy: plan.createdBy,
-    createdAt: now,
-    updatedAt: now,
-
-    // Required Firestore fields
-    isPublic: plan.isPublic,
-    groups: [...plan.groups],
-  };
-
-  const ref = await addDoc(servicePlansCollection(churchId), payload);
-
-  return {
-    id: ref.id,
-    ...payload,
-
-    date: new Date(`${payload.dateString}T00:00:00`),
-    dateTime: new Date(`${payload.dateString}T${payload.timeString}:00`),
-
-    // Required by ServicePlan
-    visibility: payload.isPublic ? "public" : "private",
-  };
+  });
 }

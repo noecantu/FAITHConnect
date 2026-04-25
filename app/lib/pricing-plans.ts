@@ -1,5 +1,5 @@
 export type BillingCycle = "monthly" | "yearly";
-export type PlanId = "beginning" | "growing" | "abounding";
+export type PlanId = "beginning" | "beginningPlus" | "growing" | "growingPlus" | "abounding";
 
 export type PlanDefinition = {
   id: PlanId;
@@ -19,11 +19,26 @@ export const PRICING_PLANS: PlanDefinition[] = [
     features: ["Up to 50 Members", "All Core Features", "Email Support"],
   },
   {
+    id: "beginningPlus",
+    name: "Beginning Plus Plan",
+    monthlyPrice: 30,
+    yearlyPrice: 320,
+    features: ["Up to 150 Members", "All Core Features", "Email Support"],
+  },
+  {
     id: "growing",
     name: "Growing Plan",
     monthlyPrice: 42,
     yearlyPrice: 453,
     features: ["Up to 300 Members", "All Core Features", "Priority Email Support"],
+    highlight: true,
+  },
+  {
+    id: "growingPlus",
+    name: "Growing Plus Plan",
+    monthlyPrice: 60,
+    yearlyPrice: 645,
+    features: ["Up to 600 Members", "All Core Features", "Priority Email Support"],
     highlight: true,
   },
   {
@@ -39,11 +54,15 @@ export function normalizePlanId(raw: string | null | undefined): PlanId | null {
   if (!raw) return null;
 
   const normalized = raw.toLowerCase();
-  if (normalized === "beginning" || normalized === "growing" || normalized === "abounding") {
-    return normalized;
-  }
+  const map: Record<string, PlanId> = {
+    beginning: "beginning",
+    beginningplus: "beginningPlus",
+    growing: "growing",
+    growingplus: "growingPlus",
+    abounding: "abounding",
+  };
 
-  return null;
+  return map[normalized] ?? null;
 }
 
 export function normalizeBillingCycle(raw: string | null | undefined): BillingCycle {

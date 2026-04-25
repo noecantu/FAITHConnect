@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
-import { ref, deleteObject } from "firebase/storage";
-import { db, storage } from "@/app/lib/firebase/client";
+;
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import { useToast } from "@/app/hooks/use-toast";
@@ -11,43 +11,44 @@ import { Check, X } from "lucide-react";
 import ImageDropzone from "@/app/components/settings/ImageDropzone";
 
 interface Props {
-  regionId: string;
+  region_id: string;
   regionName: string;
 }
 
-export default function RegionLogoCard({ regionId, regionName }: Props) {
+export default function RegionLogoCard({
+  const supabase = getSupabaseClient(); region_id, regionName }: Props) {
   const { toast } = useToast();
 
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logo_url, setLogoUrl] = useState<string | null>(null);
   const [originalLogoUrl, setOriginalLogoUrl] = useState<string | null>(null);
-  const [uploadPath, setUploadPath] = useState(`regions/${regionId}/logo/logo-${Date.now()}.png`);
+  const [uploadPath, setUploadPath] = useState(`regions/${region_id}/logo/logo-${Date.now()}.png`);
 
   const [saving, setSaving] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [showConfirmRemove, setShowConfirmRemove] = useState(false);
 
-  const hasChanges = logoUrl !== originalLogoUrl;
+  const hasChanges = logo_url !== originalLogoUrl;
 
   useEffect(() => {
-    if (!regionId) return;
+    if (!region_id) return;
 
-    setUploadPath(`regions/${regionId}/logo/logo-${Date.now()}.png`);
+    setUploadPath(`regions/${region_id}/logo/logo-${Date.now()}.png`);
 
     const load = async () => {
-      const snap = await getDoc(doc(db, "regions", regionId));
+      const snap = await supabase.from("regions").select('*').eq('id', region_id).single();
       if (!snap.exists()) return;
 
-      const url = (snap.data().logoUrl as string | null | undefined) ?? null;
+      const url = (snap.data().logo_url as string | null | undefined) ?? null;
       setLogoUrl(url);
       setOriginalLogoUrl(url);
     };
 
     load();
-  }, [regionId]);
+  }, [region_id]);
 
   async function uploadLogoViaApi(file: File): Promise<string> {
     const formData = new FormData();
-    formData.append("regionId", regionId);
+    formData.append("region_id", region_id);
     formData.append("file", file);
 
     const res = await fetch("/api/region/logo/upload", {
@@ -76,7 +77,7 @@ export default function RegionLogoCard({ regionId, regionName }: Props) {
     const res = await fetch("/api/region/settings/update", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ regionId, logoUrl: nextLogoUrl }),
+      body: JSON.stringify({ region_id, logo_url: nextLogoUrl }),
     });
 
     const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -87,13 +88,13 @@ export default function RegionLogoCard({ regionId, regionName }: Props) {
   }
 
   async function handleSave() {
-    if (!regionId || !hasChanges) return;
+    if (!region_id || !hasChanges) return;
 
     setSaving(true);
 
     try {
-      await persistLogo(logoUrl);
-      setOriginalLogoUrl(logoUrl);
+      await persistLogo(logo_url);
+      setOriginalLogoUrl(logo_url);
       toast({ title: "Saved", description: "Region logo updated." });
     } catch (error) {
       toast({
@@ -106,12 +107,12 @@ export default function RegionLogoCard({ regionId, regionName }: Props) {
   }
 
   async function handleRemove() {
-    if (!regionId || !logoUrl) return;
+    if (!region_id || !logo_url) return;
 
     setRemoving(true);
 
     try {
-      const removedLogoUrl = logoUrl;
+      const removedLogoUrl = logo_url;
       await persistLogo(null);
 
       setLogoUrl(null);
@@ -157,11 +158,11 @@ export default function RegionLogoCard({ regionId, regionName }: Props) {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowConfirmRemove(true)}
-              disabled={!logoUrl || removing}
+              disabled={!logo_url || removing}
               className={`
                 p-2 rounded-md border bg-muted/20 transition
                 focus:outline-none focus:ring-2 focus:ring-primary
-                ${!logoUrl || removing ? "opacity-40 cursor-not-allowed" : "hover:bg-muted"}
+                ${!logo_url || removing ? "opacity-40 cursor-not-allowed" : "hover:bg-muted"}
               `}
             >
               {removing ? (
@@ -192,9 +193,9 @@ export default function RegionLogoCard({ regionId, regionName }: Props) {
 
       <CardContent className="space-y-4">
         <div className="flex justify-center">
-          {logoUrl ? (
+          {logo_url ? (
             <img
-              src={logoUrl}
+              src={logo_url}
               alt="Region Logo"
               className="h-40 w-40 rounded-md object-cover border border-border bg-white shadow-md"
             />
@@ -211,7 +212,7 @@ export default function RegionLogoCard({ regionId, regionName }: Props) {
           uploadHandler={uploadLogoViaApi}
           onUploaded={(url) => {
             setLogoUrl(url);
-            setUploadPath(`regions/${regionId}/logo/logo-${Date.now()}.png`);
+            setUploadPath(`regions/${region_id}/logo/logo-${Date.now()}.png`);
             toast({
               title: "Logo uploaded",
               description: "Preview updated. Click the checkmark to save.",

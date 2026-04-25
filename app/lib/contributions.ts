@@ -1,99 +1,59 @@
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  serverTimestamp,
-  Timestamp,
-} from "firebase/firestore";
-import { db } from '@/app/lib/firebase/client';
-import type { Contribution, ContributionRecord } from "./types";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
+import type { Contribution } from "./types";
 
-// ------------------------------
-// Real-time listener
-// ------------------------------
 export function listenToContributions(
-churchId: string, callback: (contributions: Contribution[]) => void) {
+  churchId: string,
+  callback: (contributions: Contribution[]) => void
+): () => void {
   if (!churchId) return () => {};
 
-  const q = query(
-    collection(db, "churches", churchId, "contributions"),
-    orderBy("date", "desc")
-  );
+  getSupabaseClient()
+    .from("contributions")
+    .select("*")
+    .eq("church_id", churchId)
+    .order("date", { ascending: false })
+    .then(({ data }) => {
+      if (!data) return;
+      const contributions: Contribution[] = data.map((row) => ({
+        id: row.id,
+        memberId: row.member_id ?? undefined,
+        memberName: row.member_name,
+        amount: row.amount,
+        category: row.category,
+        contributionType: row.contribution_type,
+        date: row.date,
+        notes: row.notes ?? "",
+      }));
+      callback(contributions);
+    });
 
-  return onSnapshot(
-    q,
-    (snapshot) => {
-      const data: Contribution[] = snapshot.docs.map((docSnap) => {
-        const raw = docSnap.data() as ContributionRecord;
-
-        let dateString = "";
-        if (raw.date instanceof Timestamp) {
-          dateString = raw.date.toDate().toISOString().slice(0, 10);
-        } else if (typeof raw.date === "string") {
-          dateString = raw.date;
-        }
-
-        return {
-          id: docSnap.id,
-          memberId: raw.memberId,
-          memberName: raw.memberName,
-          amount: raw.amount,
-          category: raw.category,
-          contributionType: raw.contributionType,
-          date: dateString,
-          notes: raw.notes ?? "",
-        };
-      });
-
-      callback(data);
-    },
-    (error) => {
-      if (error.code !== "permission-denied") {
-        console.error("listenToContributions error:", error);
-      }
-    }
-  );
+  // Return a no-op unsubscribe (no real-time listener needed)
+  return () => {};
 }
 
-// ------------------------------
-// Add
-// ------------------------------
 export async function addContribution(
   churchId: string,
   data: Omit<Contribution, "id">
 ) {
   if (!churchId) throw new Error("Missing churchId");
 
-  const colRef = collection(db, "churches", churchId, "contributions");
-
-  // Start with a safely typed object
+  const supabase = getSupabaseClient();
   const payload: Record<string, unknown> = {
-    memberName: data.memberName,
+    church_id: churchId,
+    member_name: data.memberName,
     amount: data.amount,
     category: data.category,
-    contributionType: data.contributionType,
+    contribution_type: data.contributionType,
     date: data.date,
-    notes: data.notes ?? "",
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
+    notes: data.notes ?? null,
   };
 
-  // Only include memberId if it is defined
-  if (data.memberId !== undefined) {
-    payload.memberId = data.memberId;
-  }
+  if (data.memberId) payload.member_id = data.memberId;
 
-  await addDoc(colRef, payload);
+  const { error } = await supabase.from("contributions").insert(payload);
+  if (error) throw error;
 }
 
-// ------------------------------
-// Update
-// ------------------------------
 export async function updateContribution(
   churchId: string,
   id: string,
@@ -101,30 +61,35 @@ export async function updateContribution(
 ) {
   if (!churchId) throw new Error("Missing churchId");
 
-  const ref = doc(db, "churches", churchId, "contributions", id);
+  const supabase = getSupabaseClient();
+  const updatePayload: Record<string, unknown> = {};
 
-  const updatePayload: Record<string, unknown> = {
-    updatedAt: serverTimestamp(),
-  };
-
-  if (data.memberId !== undefined) updatePayload.memberId = data.memberId;
-  if (data.memberName !== undefined) updatePayload.memberName = data.memberName;
+  if (data.memberId !== undefined) updatePayload.member_id = data.memberId;
+  if (data.memberName !== undefined) updatePayload.member_name = data.memberName;
   if (data.amount !== undefined) updatePayload.amount = data.amount;
   if (data.category !== undefined) updatePayload.category = data.category;
-  if (data.contributionType !== undefined)
-    updatePayload.contributionType = data.contributionType;
+  if (data.contributionType !== undefined) updatePayload.contribution_type = data.contributionType;
   if (data.date !== undefined) updatePayload.date = data.date;
   if (data.notes !== undefined) updatePayload.notes = data.notes;
 
-  await updateDoc(ref, updatePayload);
+  const { error } = await supabase
+    .from("contributions")
+    .update(updatePayload)
+    .eq("id", id)
+    .eq("church_id", churchId);
+
+  if (error) throw error;
 }
 
-// ------------------------------
-// Delete
-// ------------------------------
 export async function deleteContribution(churchId: string, id: string) {
   if (!churchId) throw new Error("Missing churchId");
 
-  const ref = doc(db, "churches", churchId, "contributions", id);
-  await deleteDoc(ref);
+  const supabase = getSupabaseClient();
+  const { error } = await supabase
+    .from("contributions")
+    .delete()
+    .eq("id", id)
+    .eq("church_id", churchId);
+
+  if (error) throw error;
 }

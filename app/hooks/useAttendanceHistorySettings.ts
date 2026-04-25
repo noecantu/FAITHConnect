@@ -1,89 +1,41 @@
-import { useEffect, useState, useCallback } from "react";
-import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { db } from '@/app/lib/firebase/client';
-import { AppUser } from "@/app/lib/types";
+import { useState, useEffect } from 'react';
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 
-export function useAttendanceHistorySettings(user: AppUser | null | undefined) {
-  const [breakdown, setBreakdown] = useState<"year" | "month" | "week">("year");
-  const [year, setYear] = useState<number | null>(null);
-  const [month, setMonth] = useState<number | null>(null);
-  const [week, setWeek] = useState<number | null>(null);
+export function useAttendanceHistorySettings(churchId: string | undefined) {
+  const [settings, setSettings] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const supabase = getSupabaseClient();
 
-  // Load settings on mount
   useEffect(() => {
-    if (!user?.uid) return;
+    if (!churchId) {
+      setLoading(false);
+      return;
+    }
 
-    const load = async () => {
-      const ref = doc(db, "users", user.uid);
-      const snap = await getDoc(ref);
-      const s = snap.data()?.settings?.attendanceHistory;
+    async function fetchSettings() {
+      const { data, error } = await supabase
+        .from("churches")
+        .select("settings")
+        .eq("id", churchId)
+        .single();
 
-      if (!s) return;
+      if (!error && data) {
+        setSettings(data.settings?.attendanceHistory || {});
+      }
+      setLoading(false);
+    }
 
-      if (s.breakdown) setBreakdown(s.breakdown);
-      if (s.year !== undefined) setYear(s.year);
-      if (s.month !== undefined) setMonth(s.month);
-      if (s.week !== undefined) setWeek(s.week);
-    };
+    fetchSettings();
+  }, [churchId]);
 
-    load();
-  }, [user?.uid]);
-
-  // Persist helper
-  const persist = useCallback(
-    async (field: string, value: any) => {
-      if (!user?.uid) return;
-
-      await updateDoc(doc(db, "users", user.uid), {
-        [`settings.attendanceHistory.${field}`]: value,
-        updatedAt: serverTimestamp(),
-      });
-    },
-    [user?.uid]
-  );
-
-  // Persisted setters
-  const setBreakdownPersisted = useCallback(
-    (v: "year" | "month" | "week") => {
-      setBreakdown(v);
-      persist("breakdown", v);
-    },
-    [persist]
-  );
-
-  const setYearPersisted = useCallback(
-    (v: number | null) => {
-      setYear(v);
-      persist("year", v);
-    },
-    [persist]
-  );
-
-  const setMonthPersisted = useCallback(
-    (v: number | null) => {
-      setMonth(v);
-      persist("month", v);
-    },
-    [persist]
-  );
-
-  const setWeekPersisted = useCallback(
-    (v: number | null) => {
-      setWeek(v);
-      persist("week", v);
-    },
-    [persist]
-  );
-
-  return {
-    breakdown,
-    year,
-    month,
-    week,
-
-    setBreakdownPersisted,
-    setYearPersisted,
-    setMonthPersisted,
-    setWeekPersisted,
+  const updateSettings = async (newSettings: any) => {
+    if (!churchId) return;
+    const { data: current } = await supabase.from("churches").select("settings").eq("id", churchId).single();
+    const updated = { ...current?.settings, attendanceHistory: newSettings };
+    const { error } = await supabase.from("churches").update({ settings: updated }).eq("id", churchId);
+    if (!error) setSettings(newSettings);
+    return { error };
   };
+
+  return { settings, loading, updateSettings };
 }

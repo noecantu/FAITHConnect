@@ -3,24 +3,25 @@
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/app/components/page-header';
 import { usePermissions } from '@/app/hooks/usePermissions';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase/client';
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import Link from 'next/link';
 import { formatPhone } from '@/app/lib/formatters';
 
 export default function RegionalChurchesPage() {
-  const { isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
+  const supabase = getSupabaseClient();
+  const { isRegionalAdmin, region_id, loading: permLoading } = usePermissions();
 
   const [churches, setChurches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Load churches in region
   useEffect(() => {
-    if (!regionId) return;
+    if (!region_id) return;
 
     const q = query(
       collection(db, 'churches'),
-      where('regionId', '==', regionId)
+      where('region_id', '==', region_id)
     );
 
     const unsub = onSnapshot(
@@ -37,7 +38,7 @@ export default function RegionalChurchesPage() {
     );
 
     return () => unsub();
-  }, [regionId]);
+  }, [region_id]);
 
   if (!permLoading && !isRegionalAdmin) {
     return (
@@ -83,9 +84,9 @@ export default function RegionalChurchesPage() {
               <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:text-left">
                 {/* Logo */}
                 <div className="flex-shrink-0">
-                  {church.logoUrl ? (
+                  {church.logo_url ? (
                     <img
-                      src={church.logoUrl}
+                      src={church.logo_url}
                       alt={`${church.name} logo`}
                       className="
                         h-32 w-32 rounded-md object-cover 

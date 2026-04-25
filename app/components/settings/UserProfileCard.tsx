@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
 import { Input } from "@/app/components/ui/input";
 import type { AppUser } from "@/app/lib/types";
 
 export default function UserProfileCard({
+  const supabase = getSupabaseClient();
   user,
   onDirtyChange,
   registerSave,
@@ -17,13 +18,13 @@ export default function UserProfileCard({
   onDirtyChange?: (dirty: boolean) => void;
   registerSave?: (fn: () => Promise<void>) => void;
 }) {
-  const [firstName, setFirstName] = useState(user.firstName ?? "");
-  const [lastName, setLastName] = useState(user.lastName ?? "");
+  const [first_name, setFirstName] = useState(user.first_name ?? "");
+  const [last_name, setLastName] = useState(user.last_name ?? "");
   const [email, setEmail] = useState(user.email ?? "");
 
   const [initial, setInitial] = useState({
-    firstName: user.firstName ?? "",
-    lastName: user.lastName ?? "",
+    first_name: user.first_name ?? "",
+    last_name: user.last_name ?? "",
     email: user.email ?? "",
   });
 
@@ -32,24 +33,24 @@ export default function UserProfileCard({
     if (!onDirtyChange) return;
 
     const dirty =
-      firstName !== initial.firstName ||
-      lastName !== initial.lastName ||
+      first_name !== initial.first_name ||
+      last_name !== initial.last_name ||
       email !== initial.email;
 
     onDirtyChange(dirty);
-  }, [firstName, lastName, email, initial, onDirtyChange]);
+  }, [first_name, last_name, email, initial, onDirtyChange]);
 
   // Save function for FAB
   async function save() {
     const ref = doc(db, "users", user.uid);
 
     await updateDoc(ref, {
-      firstName,
-      lastName,
+      first_name,
+      last_name,
       email,
     });
 
-    setInitial({ firstName, lastName, email });
+    setInitial({ first_name, last_name, email });
   }
 
   // Register save function with parent
@@ -67,7 +68,7 @@ export default function UserProfileCard({
         <div className="space-y-2">
           <Label>First Name</Label>
           <Input
-            value={firstName}
+            value={first_name}
             onChange={(e) => setFirstName(e.target.value)}
           />
         </div>
@@ -75,7 +76,7 @@ export default function UserProfileCard({
         <div className="space-y-2">
           <Label>Last Name</Label>
           <Input
-            value={lastName}
+            value={last_name}
             onChange={(e) => setLastName(e.target.value)}
           />
         </div>

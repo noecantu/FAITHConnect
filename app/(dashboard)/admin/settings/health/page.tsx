@@ -1,18 +1,18 @@
 // app/admin/settings/health/page.tsx
 
-import { adminDb, adminAuth } from "@/app/lib/firebase/admin";
+import { adminDb } from "@/app/lib/supabase/admin";
+import { createClient } from "@supabase/supabase-js";
 import HealthDashboard from "./HealthDashboard";
-import type { UserRecord, UserInfo } from "firebase-admin/auth";
 
 export default async function HealthPage() {
-  // Firestore stats (aggregate counts)
-  const [usersCountSnap, churchesCountSnap, logsCountSnap] = await Promise.all([
-    adminDb.collection("users").count().get(),
-    adminDb.collection("churches").count().get(),
-    adminDb.collection("systemLogs").count().get(),
+  // DB stats (aggregate counts)
+  const [usersResult, churchesResult, logsResult] = await Promise.all([
+    adminDb.from("users").select("id", { count: "exact", head: true }),
+    adminDb.from("churches").select("id", { count: "exact", head: true }),
+    adminDb.from("logs").select("id", { count: "exact", head: true }),
   ]);
 
-  // Auth stats (full pagination so counts are not capped)
+  // Auth stats
   const authUsers = await listAllAuthUsers();
   const totalUsers = authUsers.length;
 
@@ -22,9 +22,9 @@ export default async function HealthPage() {
   // Build metrics object
   const metrics = {
     firestore: {
-      users: usersCountSnap.data().count ?? 0,
-      churches: churchesCountSnap.data().count ?? 0,
-      logs: logsCountSnap.data().count ?? 0,
+      users: usersResult.count ?? 0,
+      churches: churchesResult.count ?? 0,
+      logs: logsResult.count ?? 0,
     },
     auth: {
       totalUsers,
@@ -42,12 +42,13 @@ export default async function HealthPage() {
   );
 }
 
-function countProviders(users: UserRecord[]) {
+function countProviders(users: Array<{ identities?: Record<string, unknown[]> }>) {
   const providerCounts: Record<string, number> = {};
 
   users.forEach((u) => {
-    u.providerData.forEach((p: UserInfo) => {
-      providerCounts[p.providerId] = (providerCounts[p.providerId] || 0) + 1;
+    const identities = u.identities ?? {};
+    Object.keys(identities).forEach((provider) => {
+      providerCounts[provider] = (providerCounts[provider] || 0) + 1;
     });
   });
 
@@ -55,25 +56,32 @@ function countProviders(users: UserRecord[]) {
 }
 
 async function listAllAuthUsers() {
-  const users: UserRecord[] = [];
-  let nextPageToken: string | undefined = undefined;
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
-  do {
-    const result = await adminAuth.listUsers(1000, nextPageToken);
-    users.push(...result.users);
-    nextPageToken = result.pageToken;
-  } while (nextPageToken);
+  const users: Array<{ identities?: Record<string, unknown[]> }> = [];
+  let page = 1;
+  const perPage = 1000;
+
+  while (true) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
+    if (error || !data?.users?.length) break;
+    users.push(...data.users as Array<{ identities?: Record<string, unknown[]> }>);
+    if (data.users.length < perPage) break;
+    page++;
+  }
 
   return users;
 }
 
 async function getSystemLogTypeCounts() {
-  const logsSnap = await adminDb.collection("systemLogs").select("type").get();
+  const { data: logs } = await adminDb.from("logs").select("type");
   const counts: Record<string, number> = {};
 
-  logsSnap.docs.forEach((docSnap) => {
-    const data = docSnap.data() as { type?: unknown };
-    const type = typeof data.type === "string" && data.type.trim().length > 0 ? data.type : "unknown";
+  (logs ?? []).forEach((row: { type?: string }) => {
+    const type = typeof row.type === "string" && row.type.trim().length > 0 ? row.type : "unknown";
     counts[type] = (counts[type] || 0) + 1;
   });
 

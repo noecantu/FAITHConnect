@@ -1,27 +1,23 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
-import admin from "firebase-admin";
+import { getServerUser } from "@/app/lib/supabase/server";
+import { adminDb } from "@/app/lib/supabase/admin";
 
 export async function POST(req: Request) {
   try {
-    // 1. Verify session
-    const cookie = req.headers.get("cookie") || "";
-    const session = cookie
-      .split("; ")
-      .find((c) => c.startsWith("session="))
-      ?.split("=")[1];
-
-    if (!session) {
+    // 1. Verify session using Supabase
+    const authUser = await getServerUser();
+    if (!authUser) {
       return NextResponse.json({ error: "No session" }, { status: 401 });
     }
-
-    const decoded = await adminAuth.verifySessionCookie(session, true);
-    const callerUid = decoded.uid;
+    const callerUid = authUser.id;
 
     // 2. Verify caller is a RegionalAdmin
-    const roles: string[] = decoded.roles ?? [];
+    // Assuming roles are on authUser.user_metadata or we fetch from user profile
+    // Based on previous files, roles might be in the 'users' table or on the user object.
+    // For now, keeping the logic as close as possible to original.
+    const roles: string[] = (authUser as any).app_metadata?.roles ?? [];
     if (!roles.includes("RegionalAdmin")) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -33,14 +29,16 @@ export async function POST(req: Request) {
     }
 
     // 4. Load the church doc
-    const churchRef = adminDb.collection("churches").doc(churchId);
-    const churchSnap = await churchRef.get();
+    const { data: churchData, error: churchError } = await adminDb
+      .from("churches")
+      .select("*")
+      .eq("id", churchId)
+      .single();
 
-    if (!churchSnap.exists) {
+    if (churchError || !churchData) {
       return NextResponse.json({ error: "Church not found" }, { status: 404 });
     }
 
-    const churchData = churchSnap.data()!;
     const regionSelectedId = churchData.regionSelectedId;
 
     if (!regionSelectedId) {
@@ -51,30 +49,60 @@ export async function POST(req: Request) {
     }
 
     // 5. Load the caller's region and verify they own it
-    const regionSnap = await adminDb.collection("regions").doc(regionSelectedId).get();
+    const { data: regionData, error: regionError } = await adminDb
+      .from("regions")
+      .select("*")
+      .eq("id", regionSelectedId)
+      .single();
 
-    if (!regionSnap.exists) {
+    if (regionError || !regionData) {
       return NextResponse.json({ error: "Region not found" }, { status: 404 });
     }
 
-    const regionData = regionSnap.data()!;
     if (regionData.regionAdminUid !== callerUid) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // 6. Approve the church
-    await churchRef.update({
-      regionId: regionSelectedId,
-      regionSelectedId: null,
-      regionStatus: "approved",
-      updatedAt: new Date(),
-    });
+    const { error: updateChurchError } = await adminDb
+      .from("churches")
+      .update({
+        regionId: regionSelectedId,
+        regionSelectedId: null,
+        regionStatus: "approved",
+        updatedAt: new Date().toISOString(),
+      })
+      .eq("id", churchId);
+
+    if (updateChurchError) throw updateChurchError;
 
     // 7. Grant the Regional Admin read-only access to this church
-    await adminDb.collection("users").doc(callerUid).update({
-      [`rolesByChurch.${churchId}`]: ["ChurchAuditor"],
-      managedChurchIds: admin.firestore.FieldValue.arrayUnion(churchId),
-    });
+    // Supabase jsonb update for rolesByChurch and array_append for managedChurchIds
+    const { data: userData, error: userFetchError } = await adminDb
+      .from("users")
+      .select("roles_by_church, managed_church_ids")
+      .eq("id", callerUid)
+      .single();
+
+    if (userFetchError) throw userFetchError;
+
+    const updatedRolesByChurch = {
+      ...(userData.roles_by_church || {}),
+      [churchId]: ["ChurchAuditor"]
+    };
+    
+    const existingManagedIds = Array.isArray(userData.managed_church_ids) ? userData.managed_church_ids : [];
+    const updatedManagedChurchIds = Array.from(new Set([...existingManagedIds, churchId]));
+
+    const { error: updateUserError } = await adminDb
+      .from("users")
+      .update({
+        roles_by_church: updatedRolesByChurch,
+        managed_church_ids: updatedManagedChurchIds
+      })
+      .eq("id", callerUid);
+
+    if (updateUserError) throw updateUserError;
 
     return NextResponse.json({ success: true });
   } catch (err) {

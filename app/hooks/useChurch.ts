@@ -1,50 +1,31 @@
-'use client';
+import { useState, useEffect } from 'react';
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 
-import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from '@/app/lib/firebase/client';
-import type { Church } from "@/app/lib/types";
-
-export function useChurch(churchId: string | null) {
-  const [church, setChurch] = useState<Church | null>(null);
+export function useChurch(churchId: string | undefined) {
+  const [church, setChurch] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let isActive = true;
-
     if (!churchId) {
-      setChurch(null);
       setLoading(false);
-      return () => { isActive = false };
+      return;
     }
 
-    const load = async () => {
-      try {
-        const ref = doc(db, "churches", churchId);
-        const snap = await getDoc(ref);
+    const supabase = getSupabaseClient();
+    async function fetchChurch() {
+      const { data, error } = await supabase
+        .from("churches")
+        .select("*")
+        .eq("id", churchId)
+        .single();
 
-        if (!isActive) return;
-
-        if (snap.exists()) {
-          setChurch({ id: snap.id, ...snap.data() } as Church);
-        } else {
-          setChurch(null);
-        }
-      } catch (err) {
-        if (isActive) {
-          console.error("Error loading church:", err);
-          setChurch(null);
-        }
-      } finally {
-        if (isActive) setLoading(false);
+      if (!error) {
+        setChurch(data);
       }
-    };
+      setLoading(false);
+    }
 
-    load();
-
-    return () => {
-      isActive = false;
-    };
+    fetchChurch();
   }, [churchId]);
 
   return { church, loading };

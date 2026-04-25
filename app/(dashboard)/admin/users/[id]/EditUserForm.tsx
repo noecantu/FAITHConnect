@@ -31,8 +31,8 @@ import {
 import { SYSTEM_ROLES, ROLE_LABELS, type Role, SystemRole } from "@/app/lib/auth/roles";
 import type { AppUser } from "@/app/lib/types";
 import RoleSelector from "@/app/components/settings/RoleSelector";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 
 // Firestore admin API
 async function updateUser(input: any) {
@@ -68,6 +68,7 @@ async function deleteUser(uid: string) {
 }
 
 export default function EditUserForm({
+  const supabase = getSupabaseClient();
   userId,
   user,
 }: {
@@ -84,8 +85,8 @@ export default function EditUserForm({
     SYSTEM_ROLES.includes(r as SystemRole)
   );
 
-  const [firstName, setFirstName] = useState(user.firstName ?? "");
-  const [lastName, setLastName] = useState(user.lastName ?? "");
+  const [first_name, setFirstName] = useState(user.first_name ?? "");
+  const [last_name, setLastName] = useState(user.last_name ?? "");
   const [email, setEmail] = useState(user.email ?? "");
 
   const [systemRole, setSystemRole] = useState<SystemRole>(
@@ -96,8 +97,8 @@ export default function EditUserForm({
     userRoles.filter((r) => !SYSTEM_ROLES.includes(r as SystemRole)) as Role[]
   );
 
-  const [churchId, setChurchId] = useState(
-    !isSystemUser ? user.churchId ?? "" : ""
+  const [church_id, setChurchId] = useState(
+    !isSystemUser ? user.church_id ?? "" : ""
   );
 
   // ⭐ NEW: Region name for Regional Admin
@@ -116,7 +117,7 @@ export default function EditUserForm({
     async function loadRegion() {
       if (systemRole !== "RegionalAdmin") return;
 
-      const rid = user?.regionId;
+      const rid = user?.region_id;
 
       // Prevent invalid Firestore doc IDs
       if (typeof rid !== "string" || rid.trim().length < 10) {
@@ -124,7 +125,7 @@ export default function EditUserForm({
       }
 
       try {
-        const snap = await getDoc(doc(db, "regions", rid));
+        const snap = await supabase.from("regions").select('*').eq('id', rid).single();
 
         if (snap.exists()) {
           const data = snap.data();
@@ -136,24 +137,24 @@ export default function EditUserForm({
     }
 
     loadRegion();
-  }, [systemRole, user?.regionId]);
+  }, [systemRole, user?.region_id]);
 
   // ⭐ Load district name if user is already a District Admin
   useEffect(() => {
     async function loadDistrict() {
       if (systemRole !== "DistrictAdmin") return;
 
-      const did = (user as any)?.districtId;
+      const did = (user as any)?.district_id;
 
       if (typeof did !== "string" || did.trim().length < 10) return;
 
       try {
-        const snap = await getDoc(doc(db, "districts", did));
+        const snap = await supabase.from("districts").select('*').eq('id', did).single();
 
         if (snap.exists()) {
           const data = snap.data();
           setDistrictName(data.name || "");
-          setDistrictTitle(data.regionAdminTitle || "");
+          setDistrictTitle(data.region_admin_title || "");
           setDistrictState(data.state || "");
         }
       } catch (err) {
@@ -162,7 +163,7 @@ export default function EditUserForm({
     }
 
     loadDistrict();
-  }, [systemRole, (user as any)?.districtId]);
+  }, [systemRole, (user as any)?.district_id]);
 
   function toggleRole(role: Role, checked: boolean) {
     if (checked) setRoles((prev) => [...prev, role]);
@@ -181,7 +182,7 @@ export default function EditUserForm({
     setLoading(true);
 
     const actorUid = currentUser.uid;
-    const actorName = `${currentUser.firstName} ${currentUser.lastName}`.trim();
+    const actorName = `${currentUser.first_name} ${currentUser.last_name}`.trim();
 
     let regionPayload = null;
 
@@ -218,11 +219,11 @@ export default function EditUserForm({
     try {
       await updateUser({
         userId,
-        firstName,
-        lastName,
+        first_name,
+        last_name,
         email,
         roles: isSystemUser ? [systemRole] : roles,
-        churchId: isSystemUser ? null : churchId,
+        church_id: isSystemUser ? null : church_id,
         actorUid,
         actorName,
         ...regionPayload,
@@ -278,7 +279,7 @@ export default function EditUserForm({
       <div className="space-y-2">
         <Label>First Name</Label>
         <Input
-          value={firstName}
+          value={first_name}
           onChange={(e) => setFirstName(e.target.value)}
         />
       </div>
@@ -287,7 +288,7 @@ export default function EditUserForm({
       <div className="space-y-2">
         <Label>Last Name</Label>
         <Input
-          value={lastName}
+          value={last_name}
           onChange={(e) => setLastName(e.target.value)}
         />
       </div>
@@ -375,15 +376,15 @@ export default function EditUserForm({
         <>
           <div className="space-y-2">
             <Label>Church</Label>
-              <Select value={churchId || "none"} onValueChange={setChurchId}>
+              <Select value={church_id || "none"} onValueChange={setChurchId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a church" />
                 </SelectTrigger>
 
                 <SelectContent>
                   <SelectItem value="none">(No church)</SelectItem>
-                  {user.churchId && (
-                    <SelectItem value={user.churchId}>{user.churchId}</SelectItem>
+                  {user.church_id && (
+                    <SelectItem value={user.church_id}>{user.church_id}</SelectItem>
                   )}
                 </SelectContent>
               </Select>

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Stripe from "stripe";
 import { getCurrentUser } from "@/app/lib/auth/server/getCurrentUser";
 import { can } from "@/app/lib/auth/permissions";
-import { adminDb } from "@/app/lib/firebase/admin";
+import { adminDb } from "@/app/lib/supabase/admin";
 import SubscriptionAuditClient from "./SubscriptionAuditClient";
 
 export const dynamic = "force-dynamic";
@@ -16,10 +16,10 @@ export type AuditRecord = {
   uid: string;
   email: string;
   name: string;
-  churchId: string | null;
+  church_id: string | null;
   churchName: string | null;
-  planId: string | null;
-  stripeCustomerId: string | null;
+  plan_id: string | null;
+  stripe_customer_id: string | null;
   stripeSubscriptionId: string | null;
   onboardingComplete: boolean;
   /** Monthly/annual amount in cents */
@@ -49,60 +49,44 @@ export default async function SubscriptionAuditPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (!can(user.roles ?? [], "system.manage")) {
-    redirect(`/church/${user.churchId}/user`);
+    redirect(`/church/${user.church_id}/user`);
   }
 
   // Audit one record per church using church-level billing ownership.
-  const churchesSnap = await adminDb.collection("churches").get();
+  const { data: churchRows } = await adminDb.from("churches").select(
+    "id, name, billing_owner_uid, created_by, plan_id, stripe_customer_id, stripe_subscription_id, billing_status, billing_contact_email"
+  );
 
-  const churchOwners = churchesSnap.docs.map((doc) => {
-    const data = doc.data() as {
-      createdBy?: unknown;
-      billingOwnerUid?: unknown;
-      name?: unknown;
-      planId?: unknown;
-      stripeCustomerId?: unknown;
-      stripeSubscriptionId?: unknown;
-      billingStatus?: unknown;
-      billingContactEmail?: unknown;
-    };
-    return {
-      churchId: doc.id,
-      churchName: typeof data.name === "string" ? data.name : null,
-      ownerUid:
-        typeof data.billingOwnerUid === "string"
-          ? data.billingOwnerUid
-          : typeof data.createdBy === "string"
-          ? data.createdBy
-          : null,
-      churchPlanId: typeof data.planId === "string" ? data.planId : null,
-      churchStripeCustomerId:
-        typeof data.stripeCustomerId === "string" ? data.stripeCustomerId : null,
-      churchStripeSubscriptionId:
-        typeof data.stripeSubscriptionId === "string" ? data.stripeSubscriptionId : null,
-      churchBillingStatus:
-        typeof data.billingStatus === "string" ? data.billingStatus : null,
-      churchBillingContactEmail:
-        typeof data.billingContactEmail === "string" ? data.billingContactEmail : null,
-    };
-  });
+  const churchOwners = (churchRows ?? []).map((row) => ({
+    church_id: row.id,
+    churchName: typeof row.name === "string" ? row.name : null,
+    ownerUid: typeof row.billing_owner_uid === "string"
+      ? row.billing_owner_uid
+      : typeof row.created_by === "string"
+      ? row.created_by
+      : null,
+    churchPlanId: typeof row.plan_id === "string" ? row.plan_id : null,
+    churchStripeCustomerId: typeof row.stripe_customer_id === "string" ? row.stripe_customer_id : null,
+    churchStripeSubscriptionId: typeof row.stripe_subscription_id === "string" ? row.stripe_subscription_id : null,
+    churchBillingStatus: typeof row.billing_status === "string" ? row.billing_status : null,
+    churchBillingContactEmail: typeof row.billing_contact_email === "string" ? row.billing_contact_email : null,
+  }));
 
   const ownerUids = Array.from(
     new Set(churchOwners.map((c) => c.ownerUid).filter((uid): uid is string => Boolean(uid)))
   );
 
-  const ownerRefs = ownerUids.map((uid) => adminDb.collection("users").doc(uid));
-  const ownerSnaps = ownerRefs.length > 0 ? await adminDb.getAll(...ownerRefs) : [];
+  const { data: ownerRows } = ownerUids.length > 0
+    ? await adminDb.from("users").select("id, email, first_name, last_name, plan_id, stripe_customer_id, stripe_subscription_id, onboarding_complete").in("id", ownerUids)
+    : { data: [] };
 
   const ownersByUid = new Map(
-    ownerSnaps
-      .filter((snap) => snap.exists)
-      .map((snap) => [snap.id, snap.data() as Record<string, unknown>])
+    (ownerRows ?? []).map((u) => [u.id, u as Record<string, unknown>])
   );
 
   const records: AuditRecord[] = await Promise.all(
     churchOwners.map(async ({
-      churchId,
+      church_id,
       churchName,
       ownerUid,
       churchPlanId,
@@ -114,8 +98,8 @@ export default async function SubscriptionAuditPage() {
       const owner = ownerUid ? ownersByUid.get(ownerUid) : undefined;
       const subscriptionId =
         churchStripeSubscriptionId ??
-        (owner && typeof owner.stripeSubscriptionId === "string"
-          ? owner.stripeSubscriptionId
+        (owner && typeof owner.stripe_subscription_id === "string"
+          ? owner.stripe_subscription_id
           : null);
 
       let subscriptionStatus: AuditRecord["subscriptionStatus"] =
@@ -159,29 +143,29 @@ export default async function SubscriptionAuditPage() {
         }
       }
 
-      const firstName = owner && typeof owner.firstName === "string" ? owner.firstName : "";
-      const lastName = owner && typeof owner.lastName === "string" ? owner.lastName : "";
+      const first_name = owner && typeof owner.first_name === "string" ? owner.first_name : "";
+      const last_name = owner && typeof owner.last_name === "string" ? owner.last_name : "";
       const email =
         churchBillingContactEmail ??
         (owner && typeof owner.email === "string" ? owner.email : "Unknown owner");
-      const name = [firstName, lastName].filter(Boolean).join(" ") || email;
+      const name = [first_name, last_name].filter(Boolean).join(" ") || email;
 
       return {
-        uid: ownerUid ?? `missing-owner:${churchId}`,
+        uid: ownerUid ?? `missing-owner:${church_id}`,
         email,
         name,
-        churchId,
+        church_id,
         churchName,
-        planId:
+        plan_id:
           churchPlanId ??
-          (owner && typeof owner.planId === "string" ? owner.planId : null),
-        stripeCustomerId:
+          (owner && typeof owner.plan_id === "string" ? owner.plan_id : null),
+        stripe_customer_id:
           churchStripeCustomerId ??
-          (owner && typeof owner.stripeCustomerId === "string"
-            ? owner.stripeCustomerId
+          (owner && typeof owner.stripe_customer_id === "string"
+            ? owner.stripe_customer_id
             : null),
         stripeSubscriptionId: subscriptionId,
-        onboardingComplete: owner?.onboardingComplete === true,
+        onboardingComplete: owner?.onboarding_complete === true,
         amountCents,
         interval,
         currentPeriodEnd,

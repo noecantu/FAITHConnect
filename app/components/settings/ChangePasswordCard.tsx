@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Input } from "@/app/components/ui/input";
-import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
-import { auth } from "@/app/lib/firebase/client";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 
 interface ChangePasswordCardProps {
   onDirtyChange: (v: boolean) => void;
@@ -23,22 +22,24 @@ export function ChangePasswordCard({ onDirtyChange, registerSave }: ChangePasswo
   }, [isDirty, onDirtyChange]);
 
   const handleSave = useCallback(async () => {
-    // ⬅️ critical: if nothing entered, do nothing and succeed
     if (!isDirty) return;
-
-    if (!auth.currentUser) return;
 
     if (next !== confirm) {
       throw new Error("Passwords do not match.");
     }
 
-    const email = auth.currentUser.email;
+    const supabase = getSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const email = user.email;
     if (!email) throw new Error("Missing email.");
 
-    const credential = EmailAuthProvider.credential(email, current);
-    await reauthenticateWithCredential(auth.currentUser, credential);
+    const { error: reAuthError } = await supabase.auth.signInWithPassword({ email, password: current });
+    if (reAuthError) throw new Error("Current password is incorrect.");
 
-    await updatePassword(auth.currentUser, next);
+    const { error: updateError } = await supabase.auth.updateUser({ password: next });
+    if (updateError) throw new Error(updateError.message);
 
     setCurrent("");
     setNext("");

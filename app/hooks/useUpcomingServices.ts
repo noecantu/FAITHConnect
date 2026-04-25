@@ -1,72 +1,34 @@
-'use client';
+import { useState, useEffect } from 'react';
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 
-import { useEffect, useState } from "react";
-import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
-import type { ServicePlan, ServicePlanFirestore } from "@/app/lib/types";
-
-export function useUpcomingServices(churchId: string | null) {
-  const [services, setServices] = useState<ServicePlan[]>([]);
+export function useUpcomingServices(churchId: string | undefined) {
+  const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let isActive = true;
-
     if (!churchId) {
-      setServices([]);
       setLoading(false);
-      return () => { isActive = false };
+      return;
     }
 
-    const safeChurchId = churchId;
+    const supabase = getSupabaseClient();
+    const today = new Date().toISOString().split('T')[0];
 
-    const load = async () => {
-      try {
-        const today = new Date().toISOString().slice(0, 10);
+    async function fetchServices() {
+      const { data, error } = await supabase
+        .from("service_plans")
+        .select("*")
+        .eq("church_id", churchId)
+        .gte("date_string", today)
+        .order("date_string", { ascending: true });
 
-        const ref = collection(db, "churches", safeChurchId, "servicePlans");
-        const q = query(
-          ref,
-          where("dateString", ">=", today),
-          orderBy("dateString", "asc")
-        );
-
-        const snap = await getDocs(q);
-        if (!isActive) return;
-
-        const items: ServicePlan[] = snap.docs.map((docSnap) => {
-          const data = docSnap.data() as ServicePlanFirestore;
-
-          const date = new Date(`${data.dateString}T${data.timeString}:00`);
-
-          return {
-            id: docSnap.id,
-            ...data,
-            date,
-            dateTime: date,
-
-            // Always visible
-            visibility: "public",
-            groups: [],
-          };
-        });
-
-        setServices(items);
-      } catch (err) {
-        if (isActive) {
-          console.error("Error loading upcoming services:", err);
-          setServices([]);
-        }
-      } finally {
-        if (isActive) setLoading(false);
+      if (!error) {
+        setServices(data || []);
       }
-    };
+      setLoading(false);
+    }
 
-    load();
-
-    return () => {
-      isActive = false;
-    };
+    fetchServices();
   }, [churchId]);
 
   return { services, loading };

@@ -1,22 +1,28 @@
 "use server";
 
-import { adminDb } from "@/app/lib/firebase/admin";
-import admin from "firebase-admin";
+import { adminDb } from "@/app/lib/supabase/admin";
 import { logSystemEvent } from "@/app/lib/system/logging";
 import { Role, SystemRole, ALL_ROLES, SYSTEM_ROLE_LIST } from "@/app/lib/auth/roles";
 import { can } from "@/app/lib/auth/permissions";
+import { createClient } from "@supabase/supabase-js";
+import { nanoid } from "nanoid";
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export interface UpdateUserInput {
   userId: string;
-  firstName?: string;
-  lastName?: string;
+  first_name?: string;
+  last_name?: string;
   email?: string;
   roles?: Role[] | SystemRole[];
-  churchId?: string | null;
+  church_id?: string | null;
   regionName?: string | null;
-  regionId?: string | null;
+  region_id?: string | null;
   districtName?: string | null;
-  districtId?: string | null;
+  district_id?: string | null;
   districtTitle?: string | null;
   districtState?: string | null;
   actorUid: string;
@@ -26,249 +32,129 @@ export interface UpdateUserInput {
 export async function updateUserAction(input: UpdateUserInput) {
   const { userId, actorUid, actorName, roles: newRoles, ...updates } = input;
 
-  const userRef = adminDb.collection("users").doc(userId);
-  const actorRef = adminDb.collection("users").doc(actorUid);
-
-  const [targetSnap, actorSnap] = await Promise.all([
-    userRef.get(),
-    actorRef.get(),
+  const [{ data: targetData }, { data: actorData }] = await Promise.all([
+    adminDb.from("users").select("*").eq("id", userId).single(),
+    adminDb.from("users").select("*").eq("id", actorUid).single(),
   ]);
 
-  if (!targetSnap.exists) throw new Error("User not found");
-  if (!actorSnap.exists) throw new Error("Actor not found");
+  if (!targetData) throw new Error("User not found");
+  if (!actorData) throw new Error("Actor not found");
 
-  const before = targetSnap.data() || {};
-  const actor = actorSnap.data() || {};
-
-  const actorRoles = (actor.roles ?? []) as Role[];
+  const before = targetData;
+  const actorRoles = (actorData.roles ?? []) as Role[];
   const isSelf = actorUid === userId;
-
   const isRootAdmin = can(actorRoles, "system.manage");
   const canAssignRoles = can(actorRoles, "roles.assign");
 
-  // ---------------------------------------
-  // 0. Validate roles (system vs church)
-  // ---------------------------------------
   let isSystemRoleUpdate = false;
   let isChurchRoleUpdate = false;
 
   if (newRoles) {
-    isSystemRoleUpdate = newRoles.every((r) =>
-      SYSTEM_ROLE_LIST.includes(r as Role)
-    );
-
-    isChurchRoleUpdate = newRoles.every((r) =>
-      ALL_ROLES.includes(r as Role) && !SYSTEM_ROLE_LIST.includes(r as Role)
-    );
-
-    if (!isSystemRoleUpdate && !isChurchRoleUpdate) {
-      throw new Error("Invalid role assignment.");
-    }
+    isSystemRoleUpdate = newRoles.every((r) => SYSTEM_ROLE_LIST.includes(r as Role));
+    isChurchRoleUpdate = newRoles.every((r) => ALL_ROLES.includes(r as Role) && !SYSTEM_ROLE_LIST.includes(r as Role));
+    if (!isSystemRoleUpdate && !isChurchRoleUpdate) throw new Error("Invalid role assignment.");
   }
 
-  // ---------------------------------------
-  // 1. Prevent cross-church modification
-  // ---------------------------------------
-  if (!isRootAdmin && actor.churchId !== before.churchId) {
+  if (!isRootAdmin && actorData.church_id !== before.church_id) {
     throw new Error("You cannot modify users from another church.");
   }
 
-  // ---------------------------------------
-  // 2. Only users with roles.assign can assign roles
-  // ---------------------------------------
-  if (newRoles && !canAssignRoles) {
-    throw new Error("You do not have permission to assign roles.");
-  }
+  if (newRoles && !canAssignRoles) throw new Error("You do not have permission to assign roles.");
 
-  // ---------------------------------------
-  // 2.5 Block any self-role changes server-side
-  // ---------------------------------------
   if (newRoles && isSelf) {
-    const currentRoles = (before.roles ?? []) as Role[];
-    const normalizedCurrent = [...currentRoles].sort();
+    const currentRoles = [...(before.roles ?? [])].sort();
     const normalizedNew = [...newRoles].sort();
-    const rolesChanged =
-      normalizedCurrent.length !== normalizedNew.length ||
-      normalizedCurrent.some((role, index) => role !== normalizedNew[index]);
-
-    if (rolesChanged) {
-      throw new Error("You cannot change your own roles.");
-    }
+    const rolesChanged = currentRoles.length !== normalizedNew.length || currentRoles.some((r, i) => r !== normalizedNew[i]);
+    if (rolesChanged) throw new Error("You cannot change your own roles.");
   }
 
-  // ---------------------------------------
-  // 3. Only RootAdmin can assign RootAdmin
-  // ---------------------------------------
   if (newRoles?.includes("RootAdmin") && !isRootAdmin) {
     throw new Error("Only RootAdmin can assign the RootAdmin role.");
   }
 
-  // ---------------------------------------
-  // 4 & 5. Admin logic applies ONLY to church users
-  // ---------------------------------------
   if (newRoles && isChurchRoleUpdate) {
     const churchRoles = newRoles as Role[];
-
     const targetIsAdmin = before.roles?.includes("Admin");
-    const removingAdmin =
-      targetIsAdmin && !churchRoles.includes("Admin");
+    const removingAdmin = targetIsAdmin && !churchRoles.includes("Admin");
 
-    if (isSelf && removingAdmin && !isRootAdmin) {
-      throw new Error("You cannot remove your own Admin role.");
-    }
+    if (isSelf && removingAdmin && !isRootAdmin) throw new Error("You cannot remove your own Admin role.");
 
     if (removingAdmin && !isRootAdmin) {
-      const adminsSnap = await adminDb
-        .collection("users")
-        .where("churchId", "==", before.churchId)
-        .where("roles", "array-contains", "Admin")
-        .get();
-
-      const admins = adminsSnap.docs.map((d) => ({ ...d.data(), uid: d.id }));
-      const otherAdmins = admins.filter((a) => a.uid !== userId);
-      const isLastAdmin = otherAdmins.length === 0;
-
-      if (isLastAdmin) {
-        throw new Error("You cannot remove the last Admin from this church.");
-      }
+      const { data: admins } = await adminDb.from("users").select("id").eq("church_id", before.church_id).contains("roles", ["Admin"]);
+      const otherAdmins = (admins ?? []).filter((a: { id: string }) => a.id !== userId);
+      if (otherAdmins.length === 0) throw new Error("You cannot remove the last Admin from this church.");
     }
   }
 
-  // ⭐ Regional Admin region assignment (FIXED CONDITION)
+  const finalUpdates: Record<string, unknown> = { ...updates };
+  if (newRoles) finalUpdates.roles = newRoles;
+
   const hasRegionalAdmin = newRoles?.includes("RegionalAdmin");
-
   if (newRoles && hasRegionalAdmin) {
-    const existingClaims = (await admin.auth().getUser(userId)).customClaims || {};
-    const existingRoles = existingClaims.roles || [];
-
-    await admin.auth().setCustomUserClaims(userId, {
-      ...existingClaims,
-      roles: Array.from(new Set([...existingRoles, "RegionalAdmin"]))
-    });
-
     const regionName = input.regionName?.trim();
+    if (!regionName) throw new Error("Region name required for Regional Admin.");
 
-    if (!regionName) {
-      throw new Error("Region name required for Regional Admin.");
-    }
+    const { data: existingRegion } = await adminDb.from("regions").select("id").eq("name", regionName).limit(1).single();
 
-    const regionSnap = await adminDb
-      .collection("regions")
-      .where("name", "==", regionName)
-      .limit(1)
-      .get();
-
-    let regionId: string;
-
-    if (!regionSnap.empty) {
-      const regionDoc = regionSnap.docs[0];
-      regionId = regionDoc.id;
-
-      await adminDb.collection("regions").doc(regionId).update({
-        regionAdminId: userId,
-        regionAdminName: `${before.firstName ?? ""} ${before.lastName ?? ""}`.trim(),
-        churchIds: regionDoc.data().churchIds ?? [],
-      });
+    let region_id: string;
+    if (existingRegion) {
+      region_id = existingRegion.id;
+      await adminDb.from("regions").update({
+        region_admin_id: userId,
+        region_admin_name: `${before.first_name ?? ""} ${before.last_name ?? ""}`.trim(),
+      }).eq("id", region_id);
     } else {
-      const newRegion = await adminDb.collection("regions").add({
+      region_id = nanoid();
+      await adminDb.from("regions").insert({
+        id: region_id,
         name: regionName,
-        regionAdminId: userId,
-        regionAdminName: `${before.firstName ?? ""} ${before.lastName ?? ""}`.trim(),
-        churchIds: [],
-        createdBy: actorUid,
-        createdByName: actorName ?? null,
-        createdAt: Date.now(),
+        region_admin_id: userId,
+        region_admin_name: `${before.first_name ?? ""} ${before.last_name ?? ""}`.trim(),
+        created_by: actorUid,
+        created_at: new Date().toISOString(),
       });
-
-      regionId = newRegion.id;
     }
-
-    updates.regionId = regionId;
+    finalUpdates.region_id = region_id;
+  } else if (newRoles && !newRoles.includes("RegionalAdmin")) {
+    finalUpdates.region_id = null;
   }
 
-  // Clear regionId if no longer RegionalAdmin
-  if (newRoles && !newRoles.includes("RegionalAdmin")) {
-    updates.regionId = null;
-  }
-
-  // DistrictAdmin district assignment
   const hasDistrictAdmin = newRoles?.includes("DistrictAdmin");
-
   if (newRoles && hasDistrictAdmin) {
-    const existingClaims = (await admin.auth().getUser(userId)).customClaims || {};
-    const existingRoles = existingClaims.roles || [];
-
-    await admin.auth().setCustomUserClaims(userId, {
-      ...existingClaims,
-      roles: Array.from(new Set([...existingRoles, "DistrictAdmin"]))
-    });
-
     const districtName = input.districtName?.trim();
+    if (!districtName) throw new Error("District name required for District Admin.");
 
-    if (!districtName) {
-      throw new Error("District name required for District Admin.");
-    }
+    const { data: existingDistrict } = await adminDb.from("districts").select("id").eq("name", districtName).limit(1).single();
 
-    const districtSnap = await adminDb
-      .collection("districts")
-      .where("name", "==", districtName)
-      .limit(1)
-      .get();
-
-    let districtId: string;
-
-    if (!districtSnap.empty) {
-      const districtDoc = districtSnap.docs[0];
-      districtId = districtDoc.id;
-
-      await adminDb.collection("districts").doc(districtId).update({
-        regionAdminId: userId,
-        regionAdminUid: userId,
-        regionAdminName: `${before.firstName ?? ""} ${before.lastName ?? ""}`.trim(),
-        regionAdminTitle: input.districtTitle?.trim() ?? null,
+    let district_id: string;
+    if (existingDistrict) {
+      district_id = existingDistrict.id;
+      await adminDb.from("districts").update({
+        region_admin_id: userId,
+        region_admin_name: `${before.first_name ?? ""} ${before.last_name ?? ""}`.trim(),
+        region_admin_title: input.districtTitle?.trim() ?? null,
         state: input.districtState?.trim() ?? null,
-        regionIds: districtDoc.data().regionIds ?? [],
-        churchIds: districtDoc.data().churchIds ?? [],
-      });
+      }).eq("id", district_id);
     } else {
-      const newDistrict = await adminDb.collection("districts").add({
+      district_id = nanoid();
+      await adminDb.from("districts").insert({
+        id: district_id,
         name: districtName,
-        regionAdminId: userId,
-        regionAdminUid: userId,
-        regionAdminName: `${before.firstName ?? ""} ${before.lastName ?? ""}`.trim(),
-        regionAdminTitle: input.districtTitle?.trim() ?? null,
+        region_admin_id: userId,
+        region_admin_name: `${before.first_name ?? ""} ${before.last_name ?? ""}`.trim(),
+        region_admin_title: input.districtTitle?.trim() ?? null,
         state: input.districtState?.trim() ?? null,
-        regionIds: [],
-        churchIds: [],
-        createdBy: actorUid,
-        createdByName: actorName ?? null,
-        createdAt: Date.now(),
+        created_by: actorUid,
+        created_at: new Date().toISOString(),
       });
-
-      districtId = newDistrict.id;
     }
-
-    updates.districtId = districtId;
+    finalUpdates.district_id = district_id;
+  } else if (newRoles && !newRoles.includes("DistrictAdmin")) {
+    finalUpdates.district_id = null;
   }
 
-  // Clear districtId if no longer DistrictAdmin
-  if (newRoles && !newRoles.includes("DistrictAdmin")) {
-    updates.districtId = null;
-  }
+  await adminDb.from("users").update(finalUpdates).eq("id", userId);
 
-  // ---------------------------------------
-  // 6. Apply updates
-  // ---------------------------------------
-  const finalUpdates = {
-    ...updates,
-    ...(newRoles ? { roles: newRoles } : {}),
-  };
-
-  await userRef.update(finalUpdates);
-
-  // ---------------------------------------
-  // 7. Log the event
-  // ---------------------------------------
   await logSystemEvent({
     type: "USER_UPDATED",
     actorUid,

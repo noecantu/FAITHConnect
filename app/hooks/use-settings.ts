@@ -1,57 +1,32 @@
-'use client';
+import { useState, useEffect } from 'react';
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 
-import { useEffect, useState } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../lib/firebase/client';
-import { useAuth } from './useAuth';
-import type { AppUser } from '../lib/types';
-export function useSettings() {
-  const { user } = useAuth(); // must contain user.uid
-  const [settings, setSettings] = useState<AppUser['settings'] | null>(null);
+export function useSettings(churchId: string | undefined) {
+  const [settings, setSettings] = useState<any>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.uid) {
-      // If user logs out, clear settings immediately
-      setSettings(null);
+    if (!churchId) {
       setLoading(false);
       return;
     }
 
-    const ref = doc(db, 'users', user.uid);
+    const supabase = getSupabaseClient();
+    async function fetchSettings() {
+      const { data, error } = await supabase
+        .from("churches")
+        .select("settings")
+        .eq("id", churchId)
+        .single();
 
-    const unsubscribe = onSnapshot(
-      ref,
-      (snap) => {
-        if (!snap.exists()) {
-          setSettings(null);
-          setLoading(false);
-          return;
-        }
-
-        const data = snap.data() as AppUser;
-        setSettings(data.settings ?? null);
-        setLoading(false);
-      },
-      (error) => {
-        const code = (error as { code?: string }).code;
-        if (code !== "permission-denied") {
-          console.error("useSettings snapshot error:", error);
-        }
-        setLoading(false);
+      if (!error && data) {
+        setSettings(data.settings ?? {});
       }
-    );
+      setLoading(false);
+    }
 
-    return () => unsubscribe();
-  }, [user?.uid]);
+    fetchSettings();
+  }, [churchId]);
 
-  return {
-    settings,
-    loading,
-
-    // Safe defaults
-    calendarView: settings?.calendarView ?? 'calendar',
-    cardView: settings?.cardView ?? 'show',
-    fiscalYear: settings?.fiscalYear ?? 'all',
-  };
+  return { settings, loading };
 }

@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 
 import { PageHeader } from "@/app/components/page-header";
@@ -14,6 +14,7 @@ import { Save, Loader2, Check } from "lucide-react";
 import { ProfilePhotoCard } from "@/app/components/settings/ProfilePhotoCard";
 
 export default function UserSettingsPage() {
+  const supabase = getSupabaseClient();
   //
   // 1. ALL HOOKS MUST BE HERE — NO RETURNS ABOVE THIS LINE
   //

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase/client';
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from '@/app/hooks/usePermissions';
 import {
   Card,
@@ -15,8 +15,9 @@ import { Badge } from '@/app/components/ui/badge';
 import Link from 'next/link';
 
 export default function RegionalUserDetailPage() {
+  const supabase = getSupabaseClient();
   const { userId } = useParams();
-  const { isRootAdmin, isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
+  const { isRootAdmin, isRegionalAdmin, region_id, loading: permLoading } = usePermissions();
 
   const [user, setUser] = useState<any | null>(null);
   const [church, setChurch] = useState<any | null>(null);
@@ -37,18 +38,18 @@ export default function RegionalUserDetailPage() {
 
       // Block cross‑region access
       if (!isRootAdmin) {
-        const churchId = typeof data.churchId === 'string' ? data.churchId : null;
+        const church_id = typeof data.church_id === 'string' ? data.church_id : null;
 
-        if (!churchId) {
+        if (!church_id) {
           setUser(null);
           setLoading(false);
           return;
         }
 
-        const churchSnap = await getDoc(doc(db, 'churches', churchId));
-        const churchRegionId = churchSnap.exists() ? churchSnap.data().regionId : null;
+        const churchSnap = await supabase.from('churches').select('*').eq('id', church_id).single();
+        const churchRegionId = churchSnap.exists() ? churchSnap.data().region_id : null;
 
-        if (churchRegionId !== regionId) {
+        if (churchRegionId !== region_id) {
           setUser(null);
           setLoading(false);
           return;
@@ -64,7 +65,7 @@ export default function RegionalUserDetailPage() {
     }
 
     loadUser();
-  }, [userId, regionId, isRootAdmin]);
+  }, [userId, region_id, isRootAdmin]);
 
   if (permLoading) {
     return <div className="p-6 text-muted-foreground">Loading…</div>;
@@ -97,29 +98,29 @@ export default function RegionalUserDetailPage() {
     <div className="p-3 space-y-3">
       <div>
         <h1 className="text-xl font-semibold">
-          {user.lastName}, {user.firstName}
+          {user.last_name}, {user.first_name}
         </h1>
         <p className="text-muted-foreground">User details in your region.</p>
       </div>
 
       {/* Profile Card */}
-      {user.churchId ? (
-        <Link href={`/admin/regional/church/${user.churchId}`} className="group block">
+      {user.church_id ? (
+        <Link href={`/admin/regional/church/${user.church_id}`} className="group block">
           <Card className="flex flex-col overflow-hidden bg-black/80 backdrop-blur-xl max-w-sm interactive-card">
             {/* Photo Section */}
             <div className="relative aspect-video w-full flex items-center justify-center bg-muted text-muted-foreground overflow-hidden">
-          {user.profilePhotoUrl ? (
+          {user.profile_photo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={user.profilePhotoUrl}
-              alt={`${user.firstName ?? "User"} ${user.lastName ?? ""} profile photo`.trim()}
+              src={user.profile_photo_url}
+              alt={`${user.first_name ?? "User"} ${user.last_name ?? ""} profile photo`.trim()}
               className="w-full h-full object-contain"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-white/10">
               <div className="text-center">
                 <div className="text-4xl font-semibold text-foreground/30">
-                  {`${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase() || "U"}
+                  {`${user.first_name?.[0] ?? ""}${user.last_name?.[0] ?? ""}`.toUpperCase() || "U"}
                 </div>
               </div>
             </div>
@@ -130,7 +131,7 @@ export default function RegionalUserDetailPage() {
         <CardHeader className="pb-1 pt-2 px-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">
-              {user.firstName} {user.lastName}
+              {user.first_name} {user.last_name}
             </CardTitle>
           </div>
         </CardHeader>
@@ -159,11 +160,11 @@ export default function RegionalUserDetailPage() {
           </div>
 
           {/* Church */}
-          {user.churchId && (
+          {user.church_id && (
             <div>
               <p className="text-muted-foreground mb-2">Church</p>
               <p className="text-foreground">
-                {church?.name || user.churchId}
+                {church?.name || user.church_id}
               </p>
             </div>
           )}
@@ -180,18 +181,18 @@ export default function RegionalUserDetailPage() {
         <Card className="flex flex-col overflow-hidden bg-black/80 border-white/15 backdrop-blur-xl max-w-sm">
           {/* Photo Section */}
           <div className="relative aspect-video w-full flex items-center justify-center bg-muted text-muted-foreground overflow-hidden">
-            {user.profilePhotoUrl ? (
+            {user.profile_photo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={user.profilePhotoUrl}
-                alt={`${user.firstName ?? "User"} ${user.lastName ?? ""} profile photo`.trim()}
+                src={user.profile_photo_url}
+                alt={`${user.first_name ?? "User"} ${user.last_name ?? ""} profile photo`.trim()}
                 className="w-full h-full object-contain"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-white/10">
                 <div className="text-center">
                   <div className="text-4xl font-semibold text-foreground/30">
-                    {`${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase() || "U"}
+                    {`${user.first_name?.[0] ?? ""}${user.last_name?.[0] ?? ""}`.toUpperCase() || "U"}
                   </div>
                 </div>
               </div>
@@ -202,7 +203,7 @@ export default function RegionalUserDetailPage() {
           <CardHeader className="pb-1 pt-2 px-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">
-                {user.firstName} {user.lastName}
+                {user.first_name} {user.last_name}
               </CardTitle>
             </div>
           </CardHeader>

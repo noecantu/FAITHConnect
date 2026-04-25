@@ -3,8 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/app/lib/firebase/client";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import {
@@ -18,16 +17,10 @@ import { Label } from "@/app/components/ui/label";
 import { useToast } from "@/app/hooks/use-toast";
 import { can } from "@/app/lib/auth/permissions";
 import type { Role } from "@/app/lib/auth/roles";
-import {
-  browserLocalPersistence,
-  browserSessionPersistence,
-  setPersistence,
-} from "firebase/auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [remember] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
@@ -38,30 +31,26 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // 1. Set Firebase persistence based on the toggle
-      await setPersistence(
-        auth,
-        remember ? browserLocalPersistence : browserSessionPersistence
-      );
+      const supabase = getSupabaseClient();
 
-      // 2. Sign in
-      const { user } = await signInWithEmailAndPassword(
-        auth,
-        email.trim(),
-        password
-      );
-
-      // 3. Create session cookie
-      const idToken = await user.getIdToken(true);
-
-      await fetch("/api/auth/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ idToken, remember }),
+      // 1. Sign in — Supabase SSR sets the session cookie automatically
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
       });
 
-      // 4. Fetch profile
+      if (error) {
+        toast({
+          title: "Login Failed",
+          description:
+            error.message === "Invalid login credentials"
+              ? "Incorrect email or password."
+              : error.message,
+        });
+        return;
+      }
+
+      // 2. Fetch profile (roles, churchId, onboarding state)
       const profileRes = await fetch("/api/users/me", {
         credentials: "include",
       });
@@ -74,27 +63,22 @@ export default function LoginPage() {
         description: "Welcome back!",
       });
 
-      // 5. Redirect logic
-      // System Admin
+      // 3. Redirect logic
       if (can(roles, "system.manage")) {
         router.replace("/admin");
         return;
       }
 
-      // Regional Admin
       if (roles.includes("DistrictAdmin")) {
         router.replace("/admin/district");
         return;
       }
 
-      // Regional Admin
       if (roles.includes("RegionalAdmin")) {
         router.replace("/admin/regional");
         return;
       }
 
-      // Onboarding resume — must run before any churchId-based routing
-      // so mid-onboarding users aren't sent to create-church prematurely.
       if (profile.onboardingComplete === false) {
         const onboardingStepPaths: Record<string, string> = {
           "choose-plan": "/onboarding/choose-plan",
@@ -108,7 +92,6 @@ export default function LoginPage() {
         return;
       }
 
-      // Church Admin
       if (can(roles, "church.manage")) {
         if (profile.churchId) {
           router.replace(`/admin/church/${profile.churchId}`);
@@ -118,21 +101,12 @@ export default function LoginPage() {
         return;
       }
 
-      // Regular church users
-      if (profile.churchId) {
-        // churchId IS the slug
-        router.replace(`/church/${profile.churchId}/user`);
-        return;
-      }
-
-      // Fallback
-      router.replace("/login");
-
-    } catch (error) {
-      console.error("Login error:", error);
+      router.replace(`/church/${profile.churchId}`);
+    } catch (err) {
+      console.error("Login error:", err);
       toast({
-        title: "Login Failed",
-        description: "The email or password you entered is incorrect.",
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
       });
     } finally {
       setIsLoading(false);
@@ -149,7 +123,7 @@ export default function LoginPage() {
             className="mx-auto h-20 w-20"
           />
           <CardTitle>FAITH Connect</CardTitle>
-          <CardDescription>Log in to your account</CardDescription>
+          <CardDescription>Sign in to your account</CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -183,7 +157,7 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Forgot + Remember */}
+            {/* Forgot */}
             <div className="flex items-center justify-center">
               <a
                 href="/forgot-password"
@@ -193,7 +167,6 @@ export default function LoginPage() {
               </a>
             </div>
 
-            {/* Submit */}
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Logging in..." : "Sign In"}
             </Button>
@@ -203,4 +176,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

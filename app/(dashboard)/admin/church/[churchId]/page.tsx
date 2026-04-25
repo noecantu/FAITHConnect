@@ -1,18 +1,9 @@
-//app/(dashboard)/admin/church/[churchId]/page.tsx
+//app/(dashboard)/admin/church/[church_id]/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { db } from "@/app/lib/firebase/client";
-
-import {
-  doc,
-  getDoc,
-  getDocs,
-  collection,
-  query,
-  where,
-} from "firebase/firestore";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 
 import { PageHeader } from "@/app/components/page-header";
 import {
@@ -46,7 +37,8 @@ import { ChurchDisabledNotice } from "@/app/components/layout/ChurchDisabledNoti
 import { BillingLapsedNotice } from "@/app/components/layout/BillingLapsedNotice";
 
 export default function ChurchAdminDashboard() {
-  const { churchId } = useParams();
+  const supabase = getSupabaseClient();
+  const { church_id } = useParams();
   const { user, loading: userLoading } = useAuth();
   const { isRegionalAdmin, isRootAdmin } = usePermissions();
   const isReadOnly = isRegionalAdmin && !isRootAdmin;
@@ -71,12 +63,12 @@ export default function ChurchAdminDashboard() {
       return;
     }
 
-    // 3. Wait for churchId to be available
+    // 3. Wait for church_id to be available
     //    - undefined → still loading
     //    - null → user has no church
-    if (churchId === undefined) return;
+    if (church_id === undefined) return;
 
-    if (churchId === null) {
+    if (church_id === null) {
       setLoading(false);
       return;
     }
@@ -102,15 +94,17 @@ export default function ChurchAdminDashboard() {
         // ---------------------------
         // 1. Load church document
         // ---------------------------
-        const churchRef = doc(db, "churches", churchId as string);
-        const churchSnap = await getDoc(churchRef);
+        const { data: churchData, error: churchError } = await supabase
+          .from("churches")
+          .select("*")
+          .eq("id", church_id as string)
+          .single();
 
-        if (!churchSnap.exists()) {
+        if (churchError || !churchData) {
           return;
         }
 
-        const churchData = churchSnap.data() as Church;
-        setChurch(churchData);
+        setChurch(churchData as Church);
 
         if (churchData.status === "disabled") {
           return;
@@ -119,20 +113,12 @@ export default function ChurchAdminDashboard() {
         // ---------------------------
         // 2. Members count
         // ---------------------------
-        const membersRef = collection(
-          db,
-          "churches",
-          churchId as string,
-          "members"
-        );
-
-        const membersQuery = query(
-          membersRef,
-          where("status", "!=", "Archived")
-        );
-
-        const membersSnap = await getDocs(membersQuery);
-        setMemberCount(membersSnap.size);
+        const { count: membersCount } = await supabase
+          .from("members")
+          .select("id", { count: "exact", head: true })
+          .eq("church_id", church_id as string)
+          .neq("status", "Archived");
+        setMemberCount(membersCount ?? 0);
 
 
         // ---------------------------
@@ -140,83 +126,49 @@ export default function ChurchAdminDashboard() {
         // ---------------------------
         const todayIso = new Date().toISOString().slice(0, 10);
 
-        const servicesRef = collection(
-          db,
-          "churches",
-          churchId as string,
-          "servicePlans"
-        );
-
-        const servicesQuery = query(
-          servicesRef,
-          where("dateString", ">=", todayIso)
-        );
-
-        const servicesSnap = await getDocs(servicesQuery);
-        setServiceCount(servicesSnap.size);
+        const { count: servicesCount } = await supabase
+          .from("service_plans")
+          .select("id", { count: "exact", head: true })
+          .eq("church_id", church_id as string)
+          .gte("date_string", todayIso);
+        setServiceCount(servicesCount ?? 0);
 
         // ---------------------------
         // 4. Events This Week
         // ---------------------------
-        const eventsRef = collection(
-          db,
-          "churches",
-          churchId as string,
-          "events"
-        );
-
-        const eventsQuery = query(
-          eventsRef,
-          where("date", ">=", startOfWeek),
-          where("date", "<=", endOfWeek)
-        );
-
-        const eventsSnap = await getDocs(eventsQuery);
-        setEventCount(eventsSnap.size);
+        const { count: eventsCount } = await supabase
+          .from("events")
+          .select("id", { count: "exact", head: true })
+          .eq("church_id", church_id as string)
+          .gte("date", startOfWeek.toISOString())
+          .lte("date", endOfWeek.toISOString());
+        setEventCount(eventsCount ?? 0);
 
         // ---------------------------
         // 5. Attendance This Week
         // ---------------------------
-        const attendanceRef = collection(
-          db,
-          "churches",
-          churchId as string,
-          "attendance"
-        );
-
         const startIso = startOfWeek.toISOString().slice(0, 10);
         const endIso = endOfWeek.toISOString().slice(0, 10);
 
-        const attendanceQuery = query(
-          attendanceRef,
-          where("__name__", ">=", startIso),
-          where("__name__", "<=", endIso)
-        );
-
-        const attendanceSnap = await getDocs(attendanceQuery);
+        const { data: attendanceRows } = await supabase
+          .from("attendance")
+          .select("records, visitors")
+          .eq("church_id", church_id as string)
+          .gte("date", startIso)
+          .lte("date", endIso);
 
         let totalPresent = 0;
-
-        attendanceSnap.forEach((docSnap) => {
-          const data = docSnap.data();
-
+        (attendanceRows ?? []).forEach((row: { records?: Record<string, boolean>; visitors?: number | Record<string, unknown> }) => {
           const recordCount =
-            data.records && typeof data.records === "object"
-              ? Object.keys(data.records).filter(
-                  (id) => data.records[id] === true
-                ).length
+            row.records && typeof row.records === "object"
+              ? Object.keys(row.records).filter((id) => row.records![id] === true).length
               : 0;
 
           let visitorCount = 0;
-
-          if (typeof data.visitors === "number") {
-            visitorCount = data.visitors;
-          } else if (
-            data.visitors &&
-            typeof data.visitors === "object" &&
-            !Array.isArray(data.visitors)
-          ) {
-            visitorCount = Object.keys(data.visitors).length;
+          if (typeof row.visitors === "number") {
+            visitorCount = row.visitors;
+          } else if (row.visitors && typeof row.visitors === "object" && !Array.isArray(row.visitors)) {
+            visitorCount = Object.keys(row.visitors).length;
           }
 
           totalPresent += recordCount + visitorCount;
@@ -240,7 +192,7 @@ export default function ChurchAdminDashboard() {
     }
 
     load();
-  }, [user, userLoading, churchId]);
+  }, [user, userLoading, church_id]);
 
   // ---------------------------
   // RENDER STATES
@@ -306,15 +258,15 @@ export default function ChurchAdminDashboard() {
   const statusLabel = isChurchDisabled ? "Disabled" : "Active";
   const accessModeLabel = isReadOnly ? "Read-Only" : "Full Access";
   const quickActions = [
-    { href: `/church/${churchId}/attendance`, label: "Attendance", icon: <CalendarCheck className="h-5 w-5 text-amber-500" /> },
-    { href: `/church/${churchId}/attendance/history`, label: "Attendance History", icon: <Activity className="h-5 w-5 text-amber-500" /> },
-    { href: `/church/${churchId}/contributions`, label: "Contributions", icon: <DollarSign className="h-5 w-5 text-emerald-500" /> },
-    { href: `/church/${churchId}/calendar`, label: "Events", icon: <Calendar className="h-5 w-5 text-sky-500" /> },
-    { href: `/church/${churchId}/members`, label: "Members", icon: <UserPlus className="h-5 w-5 text-blue-500" /> },
-    { href: `/church/${churchId}/reports`, label: "Reports", icon: <FileText className="h-5 w-5 text-orange-500" /> },
-    { href: `/church/${churchId}/service-plan`, label: "Service Plans", icon: <CalendarHeart className="h-5 w-5 text-violet-500" /> },
-    { href: `/church/${churchId}/music/setlists`, label: "Set Lists", icon: <Music className="h-5 w-5 text-emerald-500" /> },
-    { href: `/church/${churchId}/music/songs`, label: "Songs", icon: <Music2 className="h-5 w-5 text-emerald-500" /> },
+    { href: `/church/${church_id}/attendance`, label: "Attendance", icon: <CalendarCheck className="h-5 w-5 text-amber-500" /> },
+    { href: `/church/${church_id}/attendance/history`, label: "Attendance History", icon: <Activity className="h-5 w-5 text-amber-500" /> },
+    { href: `/church/${church_id}/contributions`, label: "Contributions", icon: <DollarSign className="h-5 w-5 text-emerald-500" /> },
+    { href: `/church/${church_id}/calendar`, label: "Events", icon: <Calendar className="h-5 w-5 text-sky-500" /> },
+    { href: `/church/${church_id}/members`, label: "Members", icon: <UserPlus className="h-5 w-5 text-blue-500" /> },
+    { href: `/church/${church_id}/reports`, label: "Reports", icon: <FileText className="h-5 w-5 text-orange-500" /> },
+    { href: `/church/${church_id}/service-plan`, label: "Service Plans", icon: <CalendarHeart className="h-5 w-5 text-violet-500" /> },
+    { href: `/church/${church_id}/music/setlists`, label: "Set Lists", icon: <Music className="h-5 w-5 text-emerald-500" /> },
+    { href: `/church/${church_id}/music/songs`, label: "Songs", icon: <Music2 className="h-5 w-5 text-emerald-500" /> },
   ];
 
   // ---------------------------
@@ -339,10 +291,10 @@ export default function ChurchAdminDashboard() {
           <CardContent className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 md:p-6">
             {/* Left: Logo + Name */}
             <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:text-left">
-              {church.logoUrl ? (
+              {church.logo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={church.logoUrl}
+                  src={church.logo_url}
                   alt={church.name}
                   className="h-32 w-32 rounded-md object-cover border border-border bg-white ring-2 ring-primary/20 shadow-md"
                 />

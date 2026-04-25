@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getDoc, updateDoc, doc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
@@ -35,24 +34,31 @@ export default function DistrictMembershipCard({ regionId }: Props) {
   useEffect(() => {
     async function load() {
       try {
-        const snap = await getDoc(doc(db, "regions", regionId));
-        if (!snap.exists()) return;
+        const supabase = getSupabaseClient();
+        const { data: region } = await supabase
+          .from("regions")
+          .select("district_status, district_id, district_selected_id")
+          .eq("id", regionId)
+          .single();
+        if (!region) return;
 
-        const data = snap.data();
-        const districtStatus: string | null = data.districtStatus ?? null;
+        const districtStatus: string | null = region.district_status ?? null;
         setStatus(districtStatus);
 
-        const did = data.districtId || data.districtSelectedId;
+        const did = region.district_id || region.district_selected_id;
         if (did) {
-          const dSnap = await getDoc(doc(db, "districts", did));
-          if (dSnap.exists()) {
-            const d = dSnap.data();
+          const { data: d } = await supabase
+            .from("districts")
+            .select("id, name, logo_url, region_admin_name, region_admin_title, state")
+            .eq("id", did)
+            .single();
+          if (d) {
             setDistrict({
-              id: dSnap.id,
+              id: d.id,
               name: d.name || "Unknown District",
-              logoUrl: d.logoUrl ?? null,
-              regionAdminName: d.regionAdminName ?? null,
-              regionAdminTitle: d.regionAdminTitle ?? null,
+              logoUrl: d.logo_url ?? null,
+              regionAdminName: d.region_admin_name ?? null,
+              regionAdminTitle: d.region_admin_title ?? null,
               state: d.state ?? null,
             });
           }
@@ -69,12 +75,13 @@ export default function DistrictMembershipCard({ regionId }: Props) {
   async function handleRemove() {
     setRemoving(true);
     try {
-      await updateDoc(doc(db, "regions", regionId), {
-        districtId: null,
-        districtSelectedId: null,
-        districtStatus: null,
-        updatedAt: new Date(),
-      });
+      const supabase = getSupabaseClient();
+      await supabase.from("regions").update({
+        district_id: null,
+        district_selected_id: null,
+        district_status: null,
+        updated_at: new Date().toISOString(),
+      }).eq("id", regionId);
 
       setDistrict(null);
       setStatus(null);

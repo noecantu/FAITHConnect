@@ -1,5 +1,4 @@
 //app/lib/types.ts
-import { Timestamp } from 'firebase/firestore';
 import type { Role } from '@/app/lib/auth/roles';
 
 export type Address = {
@@ -81,10 +80,10 @@ export type ContributionRecord = {
   amount: number;
   category: 'Tithes' | 'Offering' | 'Donation' | 'Other';
   contributionType: 'Digital Transfer' | 'Cash' | 'Check' | 'Other';
-  date: Timestamp;
+  date: string;
   notes?: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type Event = {
@@ -152,11 +151,11 @@ export type Member = {
 };
 
 export type MemberFirestore = Omit<Member, "birthday" | "baptismDate" | "anniversary"> & {
-  birthday?: Timestamp;
-  baptismDate?: Timestamp;
-  anniversary?: Timestamp;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  birthday?: string;
+  baptismDate?: string;
+  anniversary?: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type Mode = 'list' | 'create' | 'edit' | 'confirm-delete';
@@ -223,8 +222,8 @@ export interface SetListFirestore {
   timeString: string;
   sections: SetListSection[];
   createdBy: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: string;
+  updatedAt: string;
   serviceType: string | null;
   serviceNotes?: {
     theme?: string | null;

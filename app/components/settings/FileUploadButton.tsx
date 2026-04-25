@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/app/components/ui/button";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { storage } from "@/app/lib/firebase/client";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 
 interface Props {
   label: string;
@@ -21,11 +20,15 @@ export default function FileUploadButton({ label, path, onUploaded }: Props) {
     setUploading(true);
 
     try {
-      const storageRef = ref(storage, path);
-      await uploadBytes(storageRef, file);
+      const supabase = getSupabaseClient();
+      const { data, error } = await supabase.storage
+        .from("logos")
+        .upload(path, file, { upsert: true });
 
-      const url = await getDownloadURL(storageRef);
-      onUploaded(url);
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage.from("logos").getPublicUrl(data.path);
+      onUploaded(publicUrl);
     } finally {
       setUploading(false);
     }

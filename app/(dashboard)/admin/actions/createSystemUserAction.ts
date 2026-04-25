@@ -1,12 +1,17 @@
 "use server";
 
-import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
+import { adminDb } from "@/app/lib/supabase/admin";
 import { logSystemEvent } from "@/app/lib/system/logging";
-import { serverTimestamp } from "firebase/firestore";
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export interface CreateSystemUserInput {
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   email: string;
   password: string;
   actorUid: string;
@@ -14,46 +19,39 @@ export interface CreateSystemUserInput {
 }
 
 export async function createSystemUserAction(input: CreateSystemUserInput) {
-  const {
-    firstName,
-    lastName,
+  const { first_name, last_name, email, password, actorUid, actorName } = input;
+
+  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
     email,
     password,
-    actorUid,
-    actorName,
-  } = input;
-
-  // 1. Create Auth user
-  const userRecord = await adminAuth.createUser({
-    email,
-    password,
-    displayName: `${firstName} ${lastName}`.trim(),
+    email_confirm: true,
+    user_metadata: { first_name, last_name },
   });
 
-  // 2. Create Firestore user document
-  await adminDb.collection("users").doc(userRecord.uid).set({
-    uid: userRecord.uid,
-    firstName,
-    lastName,
-    displayName: `${firstName} ${lastName}`.trim(),
+  if (authError) throw authError;
+  const userId = authData.user.id;
+
+  await adminDb.from("users").insert({
+    id: userId,
+    first_name,
+    last_name,
     email,
-    churchId: null,
-    roles: [],          // <-- REQUIRED
-    regionId: null,     // <-- REQUIRED for Regional Admin workflow
-    regionName: null,   // <-- Optional but helpful
-    createdAt: serverTimestamp(),
+    church_id: null,
+    roles: [],
+    region_id: null,
+    region_name: null,
+    created_at: new Date().toISOString(),
   });
 
-  // 3. Log system event
   await logSystemEvent({
     type: "SYSTEM_USER_CREATED",
     actorUid,
     actorName,
-    targetId: userRecord.uid,
+    targetId: userId,
     targetType: "SYSTEM_USER",
     message: `Created system-level user: ${email}`,
     metadata: {},
   });
 
-  return { success: true, userId: userRecord.uid };
+  return { success: true, userId };
 }

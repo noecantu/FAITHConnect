@@ -8,8 +8,7 @@ import {
   CardContent,
 } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { toast } from "@/app/hooks/use-toast";
 import { generateCheckInCode } from "@/app/lib/utils/generateCheckInCode";
 
@@ -25,10 +24,11 @@ export function CheckInCodeSection({
   async function regenerate() {
     const newCode = generateCheckInCode();
 
-    await updateDoc(
-      doc(db, "churches", churchId, "members", member.id),
-      { checkInCode: newCode }
-    );
+    await getSupabaseClient()
+      .from("members")
+      .update({ check_in_code: newCode })
+      .eq("id", member.id)
+      .eq("church_id", churchId);
 
     setCode(newCode);
 

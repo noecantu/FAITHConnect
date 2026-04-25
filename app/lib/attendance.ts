@@ -1,7 +1,11 @@
-import { doc, deleteDoc } from "firebase/firestore";
-import { db } from '@/app/lib/firebase/client';
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 
 export async function deleteAttendanceDay(churchId: string, dateString: string) {
-  const ref = doc(db, `churches/${churchId}/attendance/${dateString}`);
-  await deleteDoc(ref);
+  const { error } = await getSupabaseClient()
+    .from("attendance")
+    .delete()
+    .eq("church_id", churchId)
+    .eq("date_string", dateString);
+
+  if (error) throw error;
 }

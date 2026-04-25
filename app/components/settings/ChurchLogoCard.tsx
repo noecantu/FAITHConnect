@@ -4,9 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/app/hooks/use-toast';
-import { db, storage } from '@/app/lib/firebase/client';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { ref, deleteObject } from 'firebase/storage';
+import { getSupabaseClient } from '@/app/lib/supabase/client';
 import { Check, X } from "lucide-react";
 import ImageDropzone from "@/app/components/settings/ImageDropzone";
 
@@ -73,11 +71,16 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
     setUploadPath(`churches/${churchId}/logo/logo-${Date.now()}.png`);
 
     const load = async () => {
-      const snap = await getDoc(doc(db, 'churches', churchId));
-      if (snap.exists()) {
-        const url = snap.data().logoUrl ?? null;
+      const { data } = await getSupabaseClient()
+        .from("churches")
+        .select("logo_url")
+        .eq("id", churchId)
+        .single();
+      if (data) {
+        const url = data.logo_url ?? null;
         setLogoUrl(url);
         setOriginalLogoUrl(url);
+      }
       }
     };
 
@@ -91,10 +94,10 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
     setSaving(true);
 
     try {
-      await updateDoc(doc(db, "churches", churchId), {
-        logoUrl,
-        updatedAt: new Date(),
-      });
+      await getSupabaseClient()
+        .from("churches")
+        .update({ logo_url: logoUrl })
+        .eq("id", churchId);
 
       setOriginalLogoUrl(logoUrl);
 
@@ -119,10 +122,10 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
     setRemoving(true);
 
     try {
-      await updateDoc(doc(db, "churches", churchId), {
-        logoUrl: null,
-        updatedAt: new Date(),
-      });
+      await getSupabaseClient()
+        .from("churches")
+        .update({ logo_url: null })
+        .eq("id", churchId);
 
       const removedLogoUrl = logoUrl;
 
@@ -131,12 +134,10 @@ export default function ChurchLogoCard({ churchId, churchName }: Props) {
       setShowConfirmRemove(false);
 
       try {
-        const decodedPath = decodeURIComponent(
-          removedLogoUrl.split("/o/")[1].split("?")[0]
-        );
-
-        const storageRef = ref(storage, decodedPath);
-        await deleteObject(storageRef);
+        const supabase = getSupabaseClient();
+        const bucketUrl = supabase.storage.from("logos").getPublicUrl("").data.publicUrl;
+        const path = removedLogoUrl.replace(bucketUrl, "");
+        await supabase.storage.from("logos").remove([path]);
       } catch (storageError) {
         console.warn("Logo file cleanup skipped:", storageError);
       }

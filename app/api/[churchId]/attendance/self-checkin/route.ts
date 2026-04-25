@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { adminDb } from "@/app/lib/firebase/admin";
+import { adminDb } from "@/app/lib/supabase/admin";
 
 type AttendanceData = {
   records: Record<string, boolean>;
@@ -21,82 +21,72 @@ export async function POST(
     const code = rawCode?.toString().trim().toUpperCase();
 
     if (!phone || phone.length !== 10) {
-      return NextResponse.json(
-        { error: "Invalid phone number" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid phone number" }, { status: 400 });
     }
 
     if (!code || !date) {
-      return NextResponse.json(
-        { error: "Missing check‑in code or date" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing check-in code or date" }, { status: 400 });
     }
 
-    // 🔒 Enforce same-day check-in
+    // Enforce same-day check-in
     const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, "0");
-    const dd = String(now.getDate()).padStart(2, "0");
-    const today = `${yyyy}-${mm}-${dd}`;
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
     if (date !== today) {
       return NextResponse.json(
-        {
-          error:
-            "This check‑in link has expired. Please scan today's QR code.",
-        },
+        { error: "This check-in link has expired. Please scan today's QR code." },
         { status: 400 }
       );
     }
 
-    // 1. Find member by BOTH phoneNumber + checkInCode
-    const membersSnap = await adminDb
-      .collection("churches")
-      .doc(churchId)
-      .collection("members")
-      .where("phoneNumber", "==", phone)
-      .where("checkInCode", "==", code)
-      .get();
+    // 1. Find member by phone + check-in code
+    const { data: members } = await adminDb
+      .from("members")
+      .select("id")
+      .eq("church_id", churchId)
+      .eq("phone_number", phone)
+      .eq("check_in_code", code)
+      .limit(1);
 
-    if (membersSnap.empty) {
-      return NextResponse.json(
-        { error: "No matching member found." },
-        { status: 404 }
-      );
+    if (!members || members.length === 0) {
+      return NextResponse.json({ error: "No matching member found." }, { status: 404 });
     }
 
-    const memberId = membersSnap.docs[0].id;
+    const memberId = members[0].id;
 
-    // 2. Attendance document for the day
-    const attendanceRef = adminDb
-      .collection("churches")
-      .doc(churchId)
-      .collection("attendance")
-      .doc(date);
+    // 2. Get or create attendance record for the day
+    const { data: attendanceRow } = await adminDb
+      .from("attendance")
+      .select("records, visitors")
+      .eq("church_id", churchId)
+      .eq("date_string", date)
+      .single();
 
-    const attendanceSnap = await attendanceRef.get();
-
-    // 3. Normalize attendance structure
-    const data: AttendanceData = attendanceSnap.exists
-      ? (attendanceSnap.data() as AttendanceData)
+    const data: AttendanceData = attendanceRow
+      ? { records: attendanceRow.records ?? {}, visitors: attendanceRow.visitors ?? [] }
       : { records: {}, visitors: [] };
 
-    // 4. Prevent duplicate check‑ins
+    // 3. Prevent duplicate check-ins
     if (data.records[memberId] === true) {
       return NextResponse.json({ alreadyCheckedIn: true });
     }
 
-    // 5. Mark member as present
+    // 4. Mark present
     data.records[memberId] = true;
 
-    // 6. Save
-    await attendanceRef.set(data, { merge: true });
+    // 5. Upsert
+    const { error } = await adminDb
+      .from("attendance")
+      .upsert(
+        { church_id: churchId, date_string: date, records: data.records, visitors: data.visitors },
+        { onConflict: "church_id,date_string" }
+      );
+
+    if (error) throw error;
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("SELF‑CHECKIN API ERROR:", err);
+    console.error("SELF-CHECKIN API ERROR:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

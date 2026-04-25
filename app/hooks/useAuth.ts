@@ -1,10 +1,8 @@
 //app/hooks/useAuth.ts
 "use client";
 
-import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "@/app/lib/firebase/client";
+import { useEffect, useState, useCallback } from "react";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import type { AppUser } from "@/app/lib/types";
 
 let logoutTransitionInProgress = false;
@@ -21,7 +19,6 @@ export function startLogoutTransition() {
 
 export function clearLogoutTransition() {
   if (!logoutTransitionInProgress) return;
-
   logoutTransitionInProgress = false;
   emitLogoutTransitionChange();
 }
@@ -33,107 +30,62 @@ export function useAuth() {
 
   useEffect(() => {
     const listener = () => setLogoutLoading(logoutTransitionInProgress);
-
     logoutTransitionListeners.add(listener);
     return () => {
       logoutTransitionListeners.delete(listener);
     };
   }, []);
 
-  useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (!firebaseUser) {
+  const fetchProfile = useCallback(async () => {
+    try {
+      const res = await fetch("/api/users/me", { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data as AppUser);
+      } else {
         setUser(null);
-        // If a manual logout is in progress, stay in the loading state until
-        // the page navigates away — clearing it here would expose unauthenticated
-        // fallback UI for a frame before window.location.href fires.
-        if (!logoutTransitionInProgress) {
-          setLoading(false);
-        }
-        return;
       }
+    } catch {
+      setUser(null);
+    } finally {
+      clearLogoutTransition();
+      setLoading(false);
+    }
+  }, []);
 
-      try {
-        // Mark loading immediately so downstream hooks don't fire Firestore
-        // reads against a stale/unauthenticated token during the transition.
-        setLoading(true);
+  useEffect(() => {
+    const supabase = getSupabaseClient();
 
-        // Force-refresh the ID token so custom claims (churchId, roles, etc.)
-        // are up-to-date before any downstream hooks fire. This is especially
-        // important when switching between users from different churches.
-        // If Firebase Auth quota is temporarily exceeded, gracefully fall back
-        // to a non-forced token read so the app stays functional.
-        try {
-          await firebaseUser.getIdToken(true);
-        } catch (error: unknown) {
-          const code =
-            typeof error === "object" && error !== null && "code" in error
-              ? String((error as { code?: unknown }).code)
-              : "";
-
-          if (code === "auth/quota-exceeded") {
-            await firebaseUser.getIdToken();
-          } else {
-            throw error;
-          }
-        }
-
-        let firestoreData: Record<string, unknown> = {};
-        let firestoreExists = false;
-
-        try {
-          const userRef = doc(db, "users", firebaseUser.uid);
-          const snap = await getDoc(userRef);
-          firestoreExists = snap.exists();
-          if (firestoreExists) {
-            firestoreData = snap.data() as Record<string, unknown>;
-          }
-        } catch (error: unknown) {
-          const code =
-            typeof error === "object" && error !== null && "code" in error
-              ? String((error as { code?: unknown }).code)
-              : "";
-
-          if (code !== "permission-denied") {
-            console.error("useAuth Firestore profile read failed:", error);
-          }
-        }
-
-        let serverData: Record<string, unknown> = {};
-        try {
-          const res = await fetch("/api/users/me");
-          if (res.ok) {
-            serverData = (await res.json()) as Record<string, unknown>;
-          }
-        } catch (error) {
-          console.error("useAuth server profile fetch failed:", error);
-        }
-
-        // Prefer server payload, then firestore payload, then auth payload.
-        // This avoids hard-failing during initial login claim propagation.
-        const mergedUser = {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email ?? "",
-          ...firestoreData,
-          ...serverData,
-        };
-
-        const hasProfileData =
-          firestoreExists ||
-          Boolean(serverData.uid) ||
-          Boolean(serverData.email) ||
-          Boolean(firestoreData.email);
-
-        setUser(hasProfileData ? (mergedUser as AppUser) : null);
-      } finally {
-        clearLogoutTransition();
+    // Check current session immediately
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        fetchProfile();
+      } else {
+        setUser(null);
         setLoading(false);
       }
     });
 
-    return () => unsubscribeAuth();
-  }, []);
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === "SIGNED_OUT" || !session) {
+          setUser(null);
+          if (!logoutTransitionInProgress) {
+            setLoading(false);
+          }
+          return;
+        }
+
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
+          setLoading(true);
+          await fetchProfile();
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [fetchProfile]);
 
   return { user, loading: loading || logoutLoading };
 }
-

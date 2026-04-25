@@ -3,8 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { db } from "@/app/lib/firebase/client";
-import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { AlertTriangle, CalendarDays, Settings, ShieldCheck, Users } from "lucide-react";
 
 import { PageHeader } from "@/app/components/page-header";
@@ -59,12 +58,14 @@ export default function MasterChurchDetailsClient({
   async function updateChurchStatus(nextStatus: "active" | "disabled") {
     setIsUpdatingStatus(true);
     try {
-      await updateDoc(doc(db, "churches", churchId), {
-        status: nextStatus,
-        ...(nextStatus === "active"
-          ? { enabledAt: serverTimestamp() }
-          : { disabledAt: serverTimestamp() }),
-      });
+      const updatePayload: Record<string, unknown> = { status: nextStatus };
+      if (nextStatus === "active") updatePayload.enabled_at = new Date().toISOString();
+      else updatePayload.disabled_at = new Date().toISOString();
+
+      await getSupabaseClient()
+        .from("churches")
+        .update(updatePayload)
+        .eq("id", churchId);
 
       setLocalChurch((prev) => ({ ...prev, status: nextStatus }));
 

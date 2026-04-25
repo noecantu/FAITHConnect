@@ -1,9 +1,8 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import admin from "firebase-admin";
-import { adminDb } from "@/app/lib/firebase/admin";
-import { getCurrentUser } from "@/app/lib/auth/server/getCurrentUser";
+import { adminDb } from "@/app/lib/supabase/admin";
+import { getServerUser } from "@/app/lib/supabase/server";
 import { can } from "@/app/lib/auth/permissions";
 
 type UpdatePayload = {
@@ -16,7 +15,7 @@ type UpdatePayload = {
 
 export async function POST(req: Request) {
   try {
-    const user = await getCurrentUser();
+    const user = await getServerUser();
 
     if (!user) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
@@ -29,7 +28,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing districtId." }, { status: 400 });
     }
 
-    const roles = user.roles ?? [];
+    const roles = user.user_metadata?.roles ?? [];
     const canManageSystem = can(roles, "system.manage");
     const canManageDistrict = can(roles, "district.manage");
 
@@ -37,19 +36,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Forbidden." }, { status: 403 });
     }
 
-    if (!canManageSystem && user.districtId !== districtId) {
+    // Note: Assuming user metadata contains districtId for simpler check
+    if (!canManageSystem && user.user_metadata?.districtId !== districtId) {
       return NextResponse.json({ error: "Forbidden." }, { status: 403 });
     }
 
-    const districtRef = adminDb.collection("districts").doc(districtId);
-    const districtSnap = await districtRef.get();
+    const { data: district, error: fetchError } = await adminDb
+      .from("districts")
+      .select("*")
+      .eq("id", districtId)
+      .single();
 
-    if (!districtSnap.exists) {
+    if (fetchError || !district) {
       return NextResponse.json({ error: "District not found." }, { status: 404 });
     }
 
-    const updates: Record<string, unknown> = {
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    const updates: Record<string, any> = {
+      updated_at: new Date().toISOString(),
     };
 
     if (typeof body.name === "string") {
@@ -57,7 +60,7 @@ export async function POST(req: Request) {
     }
 
     if (typeof body.regionAdminTitle === "string") {
-      updates.regionAdminTitle = body.regionAdminTitle.trim() || null;
+      updates.region_admin_title = body.regionAdminTitle.trim() || null;
     }
 
     if (typeof body.state === "string") {
@@ -65,10 +68,15 @@ export async function POST(req: Request) {
     }
 
     if (typeof body.logoUrl === "string" || body.logoUrl === null) {
-      updates.logoUrl = body.logoUrl;
+      updates.logo_url = body.logoUrl;
     }
 
-    await districtRef.update(updates);
+    const { error: updateError } = await adminDb
+      .from("districts")
+      .update(updates)
+      .eq("id", districtId);
+
+    if (updateError) throw updateError;
 
     return NextResponse.json({ success: true });
   } catch (error) {

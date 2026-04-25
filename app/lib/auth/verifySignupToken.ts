@@ -1,21 +1,20 @@
-import { db } from "@/app/lib/firebase/client";
-import { doc, getDoc } from "firebase/firestore";
+import { adminDb } from "@/app/lib/supabase/admin";
 
 export async function verifySignupToken(token: string) {
   try {
-    const ref = doc(db, "signupTokens", token);
-    const snap = await getDoc(ref);
+    const { data, error } = await adminDb
+      .from("signup_tokens")
+      .select("*")
+      .eq("token", token)
+      .single();
 
-    // Token does not exist
-    if (!snap.exists()) {
+    if (error || !data) {
       return { valid: false, reason: "not_found" };
     }
 
-    const data = snap.data();
-
     // Expiration check
     const now = Date.now();
-    const expiresAt = data.expiresAt?.toMillis?.() ?? 0;
+    const expiresAt = data.expires_at ? new Date(data.expires_at).getTime() : 0;
 
     if (expiresAt < now) {
       return { valid: false, reason: "expired" };
@@ -26,14 +25,12 @@ export async function verifySignupToken(token: string) {
       return { valid: false, reason: "used" };
     }
 
-    // Token is valid
     return {
       valid: true,
-      planId: data.planId,
-      customerId: data.customerId,
-      subscriptionId: data.subscriptionId,
+      planId: data.plan_id,
+      customerId: data.customer_id,
+      subscriptionId: data.subscription_id,
     };
-
   } catch (err) {
     console.error("verifySignupToken error:", err);
     return { valid: false, reason: "error" };

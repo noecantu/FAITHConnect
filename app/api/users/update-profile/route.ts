@@ -1,31 +1,45 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { adminDb } from "@/app/lib/firebase/admin";
+import { adminDb } from "@/app/lib/supabase/admin";
+import { getServerUser } from "@/app/lib/supabase/server";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { firstName, lastName, profilePhotoUrl } = body;
-
-    const uid = req.headers.get("x-user-id");
-    if (!uid) {
+    const user = await getServerUser();
+    if (!user) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
+    const uid = user.id;
+    const body = await req.json();
+    const { firstName, lastName, profilePhotoUrl } = body;
+
     // Fetch actor profile to ensure user exists
-    const userSnap = await adminDb.collection("users").doc(uid).get();
-    if (!userSnap.exists) {
+    const { data: userData, error: fetchError } = await adminDb
+      .from("users")
+      .select("*")
+      .eq("id", uid)
+      .single();
+
+    if (fetchError || !userData) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Whitelist fields that can be updated
-    const updates: Record<string, any> = {};
-    if (typeof firstName === "string") updates.firstName = firstName;
-    if (typeof lastName === "string") updates.lastName = lastName;
-    if (typeof profilePhotoUrl === "string") updates.profilePhotoUrl = profilePhotoUrl;
+    const updates: Record<string, any> = {
+      updated_at: new Date().toISOString()
+    };
+    if (typeof firstName === "string") updates.first_name = firstName;
+    if (typeof lastName === "string") updates.last_name = lastName;
+    if (typeof profilePhotoUrl === "string") updates.profile_photo_url = profilePhotoUrl;
 
-    await adminDb.collection("users").doc(uid).update(updates);
+    const { error: updateError } = await adminDb
+      .from("users")
+      .update(updates)
+      .eq("id", uid);
+
+    if (updateError) throw updateError;
 
     return NextResponse.json({ success: true });
   } catch (error) {

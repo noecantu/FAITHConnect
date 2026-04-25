@@ -1,15 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { db } from "@/app/lib/firebase/client";
-
-import {
-  collection,
-  query,
-  orderBy,
-  limit,
-  getDocs,
-} from "firebase/firestore";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 
 import Link from "next/link";
 import { Input } from "@/app/components/ui/input";
@@ -46,17 +38,16 @@ export default function GlobalChurchListPage() {
     async function loadInitial() {
       setLoading(true);
 
-      const ref = collection(db, "churches");
-      const q = query(ref, orderBy(sortField), limit(PAGE_SIZE));
+      const supabase = getSupabaseClient();
+      const ascending = true;
+      let queryBuilder = supabase
+        .from("churches")
+        .select("*")
+        .order(sortField === "name" ? "name" : "created_at", { ascending })
+        .limit(PAGE_SIZE);
 
-      const snap = await getDocs(q);
-
-      const docs = snap.docs.map((d) => {
-        const { id: _ignored, ...rest } = d.data() as Church;
-        return { id: d.id, ...rest };
-      });
-
-      setChurches(docs);
+      const { data } = await queryBuilder;
+      setChurches((data ?? []) as unknown as Church[]);
       setLoading(false);
     }
 

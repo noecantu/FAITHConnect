@@ -11,8 +11,8 @@ import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Loader2, Trash2 } from 'lucide-react';
-import { db } from '@/app/lib/firebase/client';
-import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+import { getSupabaseClient } from "@/app/lib/supabase/client";
+;
 
 interface SectionName {
   id: string;
@@ -24,15 +24,16 @@ interface SectionNameDialogProps {
   onOpenChange: (isOpen: boolean) => void;
   onSelect: (title: string | null) => void;
   currentTitle?: string | null;
-  churchId: string;
+  church_id: string;
 }
 
 export default function SectionNameDialog({
+  const supabase = getSupabaseClient();
   isOpen,
   onOpenChange,
   onSelect,
   currentTitle,
-  churchId
+  church_id
 }: SectionNameDialogProps) {
   const [items, setItems] = useState<SectionName[]>([]);
   const [newTitle, setNewTitle] = useState('');
@@ -41,12 +42,12 @@ export default function SectionNameDialog({
   const [titleToAdd, setTitleToAdd] = useState<string | null>(null);
 
   const fetchItems = useCallback(async () => {
-    if (!db || !churchId) return;
+    if (!db || !church_id) return;
     setIsLoading(true);
     setTitleToAdd(null);
 
     try {
-      const ref = collection(db, 'churches', churchId, 'sectionNames');
+      const ref = collection(db, 'churches', church_id, 'sectionNames');
       const q = query(ref, orderBy('title'));
       const snap = await getDocs(q);
 
@@ -69,7 +70,7 @@ export default function SectionNameDialog({
     } finally {
       setIsLoading(false);
     }
-  }, [db, churchId, currentTitle]);
+  }, [db, church_id, currentTitle]);
 
   useEffect(() => {
     if (isOpen) fetchItems();
@@ -77,14 +78,14 @@ export default function SectionNameDialog({
 
   const handleAdd = async (value?: string, autoSelect = false) => {
     const title = (value || newTitle).trim();
-    if (!db || !churchId || title === '' || items.some(i => i.title.toLowerCase() === title.toLowerCase())) {
+    if (!db || !church_id || title === '' || items.some(i => i.title.toLowerCase() === title.toLowerCase())) {
       return;
     }
 
     try {
-      const created = await addDoc(collection(db, 'churches', churchId, 'sectionNames'), {
+      const created = await addDoc(collection(db, 'churches', church_id, 'sectionNames'), {
         title,
-        createdAt: new Date(),
+        created_at: new Date(),
       });
 
       if (autoSelect) {
@@ -102,10 +103,10 @@ export default function SectionNameDialog({
   };
 
   const handleDelete = async (id: string) => {
-    if (!db || !churchId) return;
+    if (!db || !church_id) return;
 
     try {
-      await deleteDoc(doc(db, 'churches', churchId, 'sectionNames', id));
+      await deleteDoc(doc(db, 'churches', church_id, 'sectionNames', id));
       await fetchItems();
     } catch (err) {
       console.error("Error deleting section name:", err);

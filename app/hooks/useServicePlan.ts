@@ -1,48 +1,33 @@
-'use client';
+import { useState, useEffect } from 'react';
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 
-import { useEffect, useState } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase/client';
-import { useChurchId } from './useChurchId';
-import type { ServicePlan } from '../lib/types';
-import { useAuth } from './useAuth';
-
-export function useServicePlan(id?: string) {
-  const { churchId } = useChurchId();
-  const { user } = useAuth();
-  const [plan, setPlan] = useState<ServicePlan | null>(null);
+export function useServicePlan(churchId: string | undefined, planId: string | undefined) {
+  const [plan, setPlan] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!churchId || !id || !user?.uid) {
-      setPlan(null);
+    if (!churchId || !planId) {
       setLoading(false);
       return;
     }
 
-    const ref = doc(db, 'churches', churchId, 'servicePlans', id);
+    const supabase = getSupabaseClient();
+    async function fetchPlan() {
+      const { data, error } = await supabase
+        .from("service_plans")
+        .select("*")
+        .eq("id", planId)
+        .eq("church_id", churchId)
+        .single();
 
-    const unsub = onSnapshot(
-      ref,
-      (snap) => {
-        if (snap.exists()) {
-          setPlan({ id: snap.id, ...snap.data() } as ServicePlan);
-        } else {
-          setPlan(null);
-        }
-        setLoading(false);
-      },
-      (error) => {
-        // Swallow the expected logout error
-        if (error.code !== 'permission-denied') {
-          console.error('useServicePlan listener error:', error);
-        }
+      if (!error) {
+        setPlan(data);
       }
-    );
+      setLoading(false);
+    }
 
-    return () => unsub();
-  }, [churchId, id, user?.uid]);
+    fetchPlan();
+  }, [churchId, planId]);
 
   return { plan, loading };
 }
-

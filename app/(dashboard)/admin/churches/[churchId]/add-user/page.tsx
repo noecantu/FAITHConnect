@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { auth, db } from "@/app/lib/firebase/client";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
+;
+;
 
 import { PageHeader } from "@/app/components/page-header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
@@ -18,8 +18,9 @@ import { useToast } from "@/app/hooks/use-toast";
 import { ROLE_LABELS, ALL_ROLES, SYSTEM_ROLE_LIST } from "@/app/lib/auth/roles";
 
 export default function AddUserPage() {
+  const supabase = getSupabaseClient();
   const params = useParams();
-  const churchIdRaw = params?.churchId;
+  const churchIdRaw = params?.church_id;
 
   const churchIdStr = Array.isArray(churchIdRaw)
     ? churchIdRaw[0]
@@ -32,8 +33,8 @@ export default function AddUserPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [first_name, setFirstName] = useState("");
+  const [last_name, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
@@ -41,7 +42,7 @@ export default function AddUserPage() {
 
   // ❗ Now we can safely check params
   if (!churchIdStr || typeof churchIdStr !== "string") {
-    console.error("Invalid churchId param");
+    console.error("Invalid church_id param");
     return <div>Invalid church ID</div>;
   }
 
@@ -67,12 +68,12 @@ export default function AddUserPage() {
 
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        displayName: `${firstName.trim()} ${lastName.trim()}`.trim(),
+        first_name: first_name.trim(),
+        last_name: last_name.trim(),
+        displayName: `${first_name.trim()} ${last_name.trim()}`.trim(),
         email: email.trim(),
         roles: selectedRoles,
-        churchId: churchIdSafe,
+        church_id: churchIdSafe,
         enabledAt: serverTimestamp(),
       });
 
@@ -115,7 +116,7 @@ export default function AddUserPage() {
           <div className="space-y-2">
             <Label>First Name</Label>
             <Input
-              value={firstName}
+              value={first_name}
               onChange={(e) => setFirstName(e.target.value)}
               placeholder="First Name"
             />
@@ -125,7 +126,7 @@ export default function AddUserPage() {
           <div className="space-y-2">
             <Label>Last Name</Label>
             <Input
-              value={lastName}
+              value={last_name}
               onChange={(e) => setLastName(e.target.value)}
               placeholder="Last Name"
             />

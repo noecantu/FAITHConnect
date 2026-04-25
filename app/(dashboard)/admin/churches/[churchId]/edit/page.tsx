@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { db } from "@/app/lib/firebase/client";
-import { doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 
 import { PageHeader } from "@/app/components/page-header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
@@ -39,17 +38,19 @@ export default function EditChurchPage() {
     if (!churchIdStr || typeof churchIdStr !== "string") return;
 
     const load = async () => {
-      const ref = doc(db, "churches", churchIdStr);
-      const snap = await getDoc(ref);
+      const { data: raw, error } = await getSupabaseClient()
+        .from("churches")
+        .select("*")
+        .eq("id", churchIdStr)
+        .single();
 
-      if (!snap.exists()) {
+      if (error || !raw) {
         console.error("Church not found");
         setLoading(false);
         return;
       }
 
-      const raw = snap.data();
-      const churchData = raw as Church;
+      const churchData = raw as unknown as Church;
       setChurch(churchData);
 
       setName(churchData.name ?? "");
@@ -74,14 +75,10 @@ export default function EditChurchPage() {
     }
 
     try {
-      const ref = doc(db, "churches", churchIdStr);
-      await updateDoc(ref, {
-        name,
-        timezone,
-        logoUrl,
-        description,
-        updatedAt: serverTimestamp(),
-      });
+      await getSupabaseClient()
+        .from("churches")
+        .update({ name, timezone, logo_url: logoUrl, description })
+        .eq("id", churchIdStr);
 
       toast({
         title: "Church updated",

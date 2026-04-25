@@ -2,8 +2,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "@/app/lib/firebase/client";
-import { collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
+;
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Input } from "@/app/components/ui/input";
 import { Button } from "@/app/components/ui/button";
@@ -11,6 +11,7 @@ import { Label } from "@/app/components/ui/label";
 import { useToast } from "@/app/hooks/use-toast";
 
 export default function RegionsPage() {
+  const supabase = getSupabaseClient();
   const { toast } = useToast();
 
   const [regions, setRegions] = useState<any[]>([]);
@@ -37,7 +38,7 @@ export default function RegionsPage() {
       state: state.trim() || null,
       regionAdminId: regionAdminId || null,
       active: true,
-      createdAt: serverTimestamp(),
+      created_at: serverTimestamp(),
     });
 
     toast({ title: "Region Created" });

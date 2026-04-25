@@ -1,18 +1,19 @@
-//app/(dashboard)/admin/church/[churchId]/select-region/[regionId]/page.tsx
+//app/(dashboard)/admin/church/[church_id]/select-region/[region_id]/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase/client';
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { Card } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/app/hooks/use-toast';
 
 export default function ConfirmRegionPage() {
-  const { churchId, regionId } = useParams() as {
-    churchId: string;
-    regionId: string;
+  const supabase = getSupabaseClient();
+  const { church_id, region_id } = useParams() as {
+    church_id: string;
+    region_id: string;
   };
 
   const router = useRouter();
@@ -24,26 +25,26 @@ export default function ConfirmRegionPage() {
 
   useEffect(() => {
     async function load() {
-      const snap = await getDoc(doc(db, 'regions', regionId));
+      const snap = await supabase.from('regions').select('*').eq('id', region_id).single();
       if (snap.exists()) {
         setRegion({ id: snap.id, ...snap.data() });
       }
       setLoading(false);
     }
     load();
-  }, [regionId]);
+  }, [region_id]);
 
   async function handleConfirm() {
-    if (!churchId || !regionId) return;
+    if (!church_id || !region_id) return;
 
     setSaving(true);
 
     try {
-      await updateDoc(doc(db, 'churches', churchId), {
-        regionSelectedId: regionId,
+      await updateDoc(doc(db, 'churches', church_id), {
+        regionSelectedId: region_id,
         regionStatus: 'pending',
-        regionId: null,
-        updatedAt: new Date(),
+        region_id: null,
+        updated_at: new Date(),
       });
 
       toast({
@@ -51,7 +52,7 @@ export default function ConfirmRegionPage() {
         description: 'Your region selection is pending approval.',
       });
 
-      router.push(`/admin/church/${churchId}`);
+      router.push(`/admin/church/${church_id}`);
     } catch (err) {
       console.error(err);
       toast({
@@ -87,9 +88,9 @@ export default function ConfirmRegionPage() {
       </p>
 
       <Card className="p-6 bg-black/60 border-white/20 backdrop-blur-xl space-y-3">
-        {region.logoUrl ? (
+        {region.logo_url ? (
           <img
-            src={region.logoUrl}
+            src={region.logo_url}
             alt={`${region.name} logo`}
             className="h-16 w-16 rounded-md object-cover border border-white/20"
           />
@@ -98,9 +99,9 @@ export default function ConfirmRegionPage() {
         <p className="text-xl font-semibold">{region.name}</p>
 
         {/* Title + Admin Name */}
-        {region.regionAdminTitle && region.regionAdminName && (
+        {region.region_admin_title && region.region_admin_name && (
           <p className="text-sm text-muted-foreground">
-            {region.regionAdminTitle}: {region.regionAdminName}
+            {region.region_admin_title}: {region.region_admin_name}
           </p>
         )}
       </Card>
@@ -116,7 +117,7 @@ export default function ConfirmRegionPage() {
 
         <Button
           variant="outline"
-          onClick={() => router.push(`/admin/church/${churchId}/select-region`)}
+          onClick={() => router.push(`/admin/church/${church_id}/select-region`)}
         >
           Cancel
         </Button>

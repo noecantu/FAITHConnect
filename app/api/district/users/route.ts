@@ -2,7 +2,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
-import { adminAuth, adminDb } from "@/app/lib/firebase/admin";
+import { getServerUser } from "@/app/lib/supabase/server";
+import { adminDb } from "@/app/lib/supabase/admin";
 
 type DistrictUser = {
   uid: string;
@@ -10,7 +11,7 @@ type DistrictUser = {
   lastName?: string;
   email?: string;
   roles?: string[];
-  churchId?: string | null;
+  church_id?: string | null;
   churchName?: string;
 };
 
@@ -31,7 +32,7 @@ export async function GET(req: Request) {
     }
 
     const decoded = await adminAuth.verifySessionCookie(session, true);
-    const callerUid = decoded.uid;
+    
     const { searchParams } = new URL(req.url);
     const districtId = searchParams.get("districtId")?.trim() ?? "";
 
@@ -39,8 +40,8 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Missing districtId" }, { status: 400 });
     }
 
-    const userSnap = await adminDb.collection("users").doc(callerUid).get();
-    const caller = userSnap.data();
+    const userSnap = await adminDb.from("users").select("*").eq("id", callerUid).single();
+    const caller = userSnap;
 
     if (!caller) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -69,7 +70,7 @@ export async function GET(req: Request) {
     );
 
     const churches = churchSnapshots.flatMap((snapshot) =>
-      snapshot.docs.map((doc) => ({ id: doc.id, name: doc.data().name || doc.id }))
+      snapshot.docs.map((doc) => ({ id: doc.id, name: doc.name || doc.id }))
     );
 
     if (churches.length === 0) {
@@ -79,15 +80,15 @@ export async function GET(req: Request) {
     const churchNameById = new Map(churches.map((church) => [church.id, church.name]));
 
     const userSnapshots = await Promise.all(
-      churches.map((church) => adminDb.collection("users").where("churchId", "==", church.id).get())
+      churches.map((church) => adminDb.collection("users").where("church_id", "==", church.id).get())
     );
 
     const users = new Map<string, DistrictUser>();
 
     userSnapshots.forEach((snapshot) => {
       snapshot.docs.forEach((doc) => {
-        const data = doc.data();
-        const churchId = typeof data.churchId === "string" ? data.churchId : null;
+        const data = doc;
+        const church_id = typeof data.church_id === "string" ? data.church_id : null;
 
         users.set(doc.id, {
           uid: doc.id,
@@ -95,8 +96,8 @@ export async function GET(req: Request) {
           lastName: data.lastName,
           email: data.email,
           roles: Array.isArray(data.roles) ? data.roles : [],
-          churchId,
-          churchName: churchId ? churchNameById.get(churchId) ?? churchId : undefined,
+          church_id,
+          churchName: church_id ? churchNameById.get(church_id) ?? church_id : undefined,
         });
       });
     });

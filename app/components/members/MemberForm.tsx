@@ -16,8 +16,7 @@ import { memberSchema } from "@/app/lib/memberForm.schema";
 import { useMemberRelationships } from "@/app/hooks/useMemberRelationships";
 import { usePhotoCapture } from "@/app/hooks/usePhotoCapture";
 import QRCode from "qrcode";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
-import { storage } from "@/app/lib/firebase/client";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { generateCheckInCode } from "@/app/lib/utils/generateCheckInCode";
 
 import {
@@ -268,10 +267,18 @@ export default function MemberForm({
         const safeLast = cleanValues.lastName.replace(/\s+/g, "");
         const fileName = `QRCode_${safeFirst}${safeLast}.png`;
 
-        // Upload QR code
-        const qrRef = ref(storage, `churches/${churchId}/members/${newId}/${fileName}`);
-        await uploadString(qrRef, qrBase64, "data_url");
-        const qrUrl = await getDownloadURL(qrRef);
+        // Upload QR code to Supabase Storage
+        const supabase = getSupabaseClient();
+        const base64Data = qrBase64.replace(/^data:image\/png;base64,/, "");
+        const byteArray = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+        const storagePath = `churches/${churchId}/members/${newId}/${fileName}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("member-photos")
+          .upload(storagePath, byteArray, { contentType: "image/png", upsert: true });
+        if (uploadError) throw uploadError;
+        const { data: { publicUrl: qrUrl } } = supabase.storage
+          .from("member-photos")
+          .getPublicUrl(uploadData.path);
 
         // ⭐ Update QR code URL
         await updateMember(churchId, newId, { qrCode: qrUrl });

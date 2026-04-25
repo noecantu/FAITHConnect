@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
 import { Input } from "@/app/components/ui/input";
@@ -10,10 +10,11 @@ import { Button } from "@/app/components/ui/button";
 import { useToast } from "@/app/hooks/use-toast";
 
 interface Props {
-  regionId: string;
+  region_id: string;
 }
 
-export default function RegionProfileCard({ regionId }: Props) {
+export default function RegionProfileCard({
+  const supabase = getSupabaseClient(); region_id }: Props) {
   const { toast } = useToast();
 
   const [name, setName] = useState("");
@@ -28,17 +29,17 @@ export default function RegionProfileCard({ regionId }: Props) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!regionId) return;
+    if (!region_id) return;
 
     const load = async () => {
       setLoading(true);
       try {
-        const snap = await getDoc(doc(db, "regions", regionId));
+        const snap = await supabase.from("regions").select('*').eq('id', region_id).single();
         if (!snap.exists()) return;
 
         const data = snap.data();
         const nextName = (data.name as string | undefined) ?? "";
-        const nextTitle = (data.regionAdminTitle as string | undefined) ?? "";
+        const nextTitle = (data.region_admin_title as string | undefined) ?? "";
         const nextState = (data.state as string | undefined) ?? "";
 
         setName(nextName);
@@ -56,7 +57,7 @@ export default function RegionProfileCard({ regionId }: Props) {
     };
 
     load();
-  }, [regionId]);
+  }, [region_id]);
 
   const hasChanges =
     name !== initialName ||
@@ -64,7 +65,7 @@ export default function RegionProfileCard({ regionId }: Props) {
     state !== initialState;
 
   async function handleSave() {
-    if (!regionId || !hasChanges) return;
+    if (!region_id || !hasChanges) return;
 
     setSaving(true);
 
@@ -73,9 +74,9 @@ export default function RegionProfileCard({ regionId }: Props) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          regionId,
+          region_id,
           name,
-          regionAdminTitle: title,
+          region_admin_title: title,
           state,
         }),
       });

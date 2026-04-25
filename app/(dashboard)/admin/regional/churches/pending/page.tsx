@@ -2,26 +2,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { db } from '@/app/lib/firebase/client';
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { useToast } from '@/app/hooks/use-toast';
-import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+;
 import { PageHeader } from '@/app/components/page-header';
 import { DashboardApprovalRequestCard } from '@/app/components/ui/dashboard-cards';
 
 export default function PendingChurchesPage() {
-  const { regionId, isRegionalAdmin, user, loading: permLoading } = usePermissions();
+  const supabase = getSupabaseClient();
+  const { region_id, isRegionalAdmin, user, loading: permLoading } = usePermissions();
   const { toast } = useToast();
 
   const [pending, setPending] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!regionId) return;
+    if (!region_id) return;
 
     const q = query(
       collection(db, 'churches'),
-      where('regionSelectedId', '==', regionId),
+      where('regionSelectedId', '==', region_id),
       where('regionStatus', '==', 'pending')
     );
 
@@ -39,13 +40,13 @@ export default function PendingChurchesPage() {
     );
 
     return () => unsub();
-  }, [regionId]);
+  }, [region_id]);
 
-  async function handleApprove(churchId: string) {
+  async function handleApprove(church_id: string) {
     const res = await fetch("/api/church-approval/approve", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ churchId }),
+      body: JSON.stringify({ church_id }),
       credentials: "include",
     });
 
@@ -64,10 +65,10 @@ export default function PendingChurchesPage() {
     });
   }
 
-  async function handleReject(churchId: string) {
-    await updateDoc(doc(db, 'churches', churchId), {
+  async function handleReject(church_id: string) {
+    await updateDoc(doc(db, 'churches', church_id), {
       regionStatus: 'rejected',
-      updatedAt: new Date(),
+      updated_at: new Date(),
     });
 
     toast({
@@ -117,7 +118,7 @@ export default function PendingChurchesPage() {
           <DashboardApprovalRequestCard
             key={church.id}
             name={church.name || "Unknown Church"}
-            logoUrl={church.logoUrl ?? null}
+            logo_url={church.logo_url ?? null}
             logoAlt={`${church.name || "Church"} logo`}
             fallback={String(church.name || "CH")
               .split(' ')

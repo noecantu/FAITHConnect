@@ -2,8 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, doc, onSnapshot, query, where } from "firebase/firestore";
-import { db } from "@/app/lib/firebase/client";
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { PageHeader } from "@/app/components/page-header";
 import {
@@ -67,65 +66,59 @@ export default function DistrictDashboardPage() {
   // Load district details
   useEffect(() => {
     if (!districtId) return;
+    let active = true;
 
-    const unsub = onSnapshot(
-      doc(db, "districts", districtId),
-      (snap) => {
-        if (snap.exists()) {
-          const data = snap.data();
-          setDistrictName(data.name || "Your District");
-          setDistrictAdminName(data.regionAdminName || "");
-          setDistrictTitle(data.regionAdminTitle || "");
-          setDistrictState(data.state || "");
-          setDistrictLogoUrl(data.logoUrl ?? null);
-        }
-      },
-      (error) => {
-        if ((error as { code?: string }).code !== "permission-denied") console.error("district details error:", error);
-      }
-    );
+    getSupabaseClient()
+      .from("districts")
+      .select("*")
+      .eq("id", districtId)
+      .single()
+      .then(({ data }) => {
+        if (!active || !data) return;
+        setDistrictName(data.name || "Your District");
+        setDistrictAdminName(data.region_admin_name || "");
+        setDistrictTitle(data.region_admin_title || "");
+        setDistrictState(data.state || "");
+        setDistrictLogoUrl(data.logo_url ?? null);
+      });
 
-    return () => unsub();
+    return () => { active = false; };
   }, [districtId]);
 
   // Load approved regions in this district
   useEffect(() => {
     if (!districtId) return;
+    let active = true;
 
-    const q = query(collection(db, "regions"), where("districtId", "==", districtId));
-
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        setRegions(snap.docs.map((d) => ({ id: d.id, name: d.data().name || "Unknown" })));
+    getSupabaseClient()
+      .from("regions")
+      .select("id, name")
+      .eq("district_id", districtId)
+      .then(({ data }) => {
+        if (!active) return;
+        setRegions((data ?? []).map((d) => ({ id: d.id, name: d.name || "Unknown" })));
         setLoading(false);
-      },
-      (error) => {
-        if ((error as { code?: string }).code !== "permission-denied") console.error("district regions error:", error);
-        setLoading(false);
-      }
-    );
+      });
 
-    return () => unsub();
+    return () => { active = false; };
   }, [districtId]);
 
   // Load pending region requests
   useEffect(() => {
     if (!districtId) return;
+    let active = true;
 
-    const q = query(
-      collection(db, "regions"),
-      where("districtSelectedId", "==", districtId),
-      where("districtStatus", "==", "pending")
-    );
+    getSupabaseClient()
+      .from("regions")
+      .select("id", { count: "exact", head: true })
+      .eq("district_selected_id", districtId)
+      .eq("district_status", "pending")
+      .then(({ count }) => {
+        if (!active) return;
+        setPendingCount(count ?? 0);
+      });
 
-    const unsub = onSnapshot(
-      q,
-      (snap) => setPendingCount(snap.size),
-      (error) => { if ((error as { code?: string }).code !== "permission-denied") console.error("pending regions error:", error); }
-    );
-
-    return () => unsub();
+    return () => { active = false; };
   }, [districtId]);
 
   // Load district-only aggregates through an admin-backed API because

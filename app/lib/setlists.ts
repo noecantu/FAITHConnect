@@ -1,81 +1,66 @@
-// lib/setlists.ts
+import { getSupabaseClient } from "@/app/lib/supabase/client";
+import type { SetList, SetListSection } from "./types";
+import { nanoid } from "nanoid";
+import { fromDateString, toDateTime } from "./date-utils";
 
-import {
-  collection,
-  doc,
-  addDoc,
-  getDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  orderBy,
-  serverTimestamp,
-  onSnapshot,
-  CollectionReference,
-  Timestamp,
-} from 'firebase/firestore';
+function rowToSetList(row: Record<string, unknown>): SetList {
+  const dateString = row.date_string as string;
+  const timeString = row.time_string as string;
 
-import { db } from './firebase/client';
-import type { SetList, SetListFirestore, SetListSection } from './types';
-import { nanoid } from 'nanoid';
-import { fromDateString, toDateTime } from './date-utils';
+  let sections: SetListSection[] = (row.sections as SetListSection[]) ?? [];
 
-function setListDoc(churchId: string, setListId: string) {
-  return doc(db, `churches/${churchId}/setlists/${setListId}`);
+  if ((!sections || sections.length === 0) && row.songs) {
+    sections = [
+      {
+        id: nanoid(),
+        title: "Main",
+        songs: row.songs as SetListSection["songs"],
+      },
+    ];
+  }
+
+  sections = sections.map((s: Partial<SetListSection> & { name?: string }) => ({
+    ...s,
+    title: s.title || s.name || "Untitled Section",
+  })) as SetListSection[];
+
+  return {
+    id: row.id as string,
+    churchId: row.church_id as string,
+    title: row.title as string,
+    dateString,
+    timeString,
+    date: fromDateString(dateString),
+    dateTime: toDateTime(dateString, timeString),
+    sections,
+    createdBy: row.created_by as string,
+    createdAt: row.created_at ? new Date(row.created_at as string).getTime() : Date.now(),
+    updatedAt: row.updated_at ? new Date(row.updated_at as string).getTime() : Date.now(),
+    serviceType: (row.service_type as string) ?? null,
+    serviceNotes: (row.service_notes as SetList["serviceNotes"]) ?? null,
+  };
 }
 
-function setListsCollection(churchId: string) {
-  return collection(db, 'churches', churchId, 'setlists') as CollectionReference<SetListFirestore>;
-}
-
-// Real-time listener
 export function listenToSetLists(
   churchId: string,
   callback: (lists: SetList[]) => void,
   userId?: string
-) {
+): () => void {
   if (!churchId || !userId) return () => {};
 
-  const q = query(setListsCollection(churchId), orderBy('dateString', 'desc'));
+  getSupabaseClient()
+    .from("setlists")
+    .select("*")
+    .eq("church_id", churchId)
+    .order("date_string", { ascending: false })
+    .then(({ data }) => {
+      if (!data) return;
+      callback(data.map(rowToSetList));
+    });
 
-  return onSnapshot(
-    q,
-    (snapshot) => {
-      const lists: SetList[] = snapshot.docs.map((docSnap) => {
-        const data = docSnap.data();
-
-        return {
-          id: docSnap.id,
-          churchId: data.churchId,
-          title: data.title,
-
-          dateString: data.dateString,
-          timeString: data.timeString,
-
-          date: fromDateString(data.dateString),
-          dateTime: toDateTime(data.dateString, data.timeString),
-
-          sections: data.sections ?? [],
-          createdBy: data.createdBy,
-          createdAt: data.createdAt?.toMillis?.() ?? Date.now(),
-          updatedAt: data.updatedAt?.toMillis?.() ?? Date.now(),
-
-          serviceType: data.serviceType,
-          serviceNotes: data.serviceNotes,
-        };
-      });
-
-      callback(lists);
-    },
-    (error) => {
-      if (error.code !== "permission-denied") {
-        console.error("listenToSetLists error:", error);
-      }
-    }
-  );
+  return () => {};
 }
 
-// Create Set List
 export async function createSetList(
   churchId: string | null,
   data: {
@@ -91,58 +76,30 @@ export async function createSetList(
       notes?: string | null;
     } | null;
   }
-) {
+): Promise<SetList> {
   if (!churchId) throw new Error("churchId is required");
 
-  const cid = churchId;
+  const supabase = getSupabaseClient();
 
-  const ref = await addDoc(setListsCollection(cid), {
-    title: data.title,
-    dateString: data.dateString,
-    timeString: data.timeString,
-    sections: data.sections,
-    createdBy: data.createdBy,
-    serviceType: data.serviceType,
-    ...(data.serviceNotes !== undefined && { serviceNotes: data.serviceNotes }),
-    churchId: cid,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
+  const { data: row, error } = await supabase
+    .from("setlists")
+    .insert({
+      church_id: churchId,
+      title: data.title,
+      date_string: data.dateString,
+      time_string: data.timeString,
+      sections: data.sections,
+      created_by: data.createdBy,
+      service_type: data.serviceType,
+      ...(data.serviceNotes !== undefined && { service_notes: data.serviceNotes }),
+    })
+    .select()
+    .single();
 
-  const snap = await getDoc(ref);
-  const docData = snap.data() as SetListFirestore;
-
-  return {
-    id: ref.id,
-    churchId: cid,
-    title: docData.title,
-
-    dateString: docData.dateString,
-    timeString: docData.timeString,
-
-    date: fromDateString(docData.dateString),
-    dateTime: toDateTime(docData.dateString, docData.timeString),
-
-    sections: docData.sections ?? [],
-    createdBy: docData.createdBy,
-
-    createdAt:
-      docData.createdAt instanceof Timestamp
-        ? docData.createdAt.toMillis()
-        : Date.now(),
-
-    updatedAt:
-      docData.updatedAt instanceof Timestamp
-        ? docData.updatedAt.toMillis()
-        : Date.now(),
-
-    serviceType: docData.serviceType,
-    serviceNotes: docData.serviceNotes ?? null,
-  } as SetList;
+  if (error || !row) throw error ?? new Error("Failed to create set list");
+  return rowToSetList(row);
 }
 
-
-// Update Set List
 export async function updateSetList(
   churchId: string,
   setListId: string,
@@ -158,85 +115,54 @@ export async function updateSetList(
       notes?: string | null;
     } | null;
   }
-) {
+): Promise<void> {
   if (!churchId) throw new Error("churchId is required");
 
-  const cid = churchId;
-
-  const payload: Record<string, unknown> = {
-    updatedAt: serverTimestamp(),
-  };
-
+  const payload: Record<string, unknown> = {};
   if (data.title !== undefined) payload.title = data.title;
-  if (data.dateString !== undefined) payload.dateString = data.dateString;
-  if (data.timeString !== undefined) payload.timeString = data.timeString;
+  if (data.dateString !== undefined) payload.date_string = data.dateString;
+  if (data.timeString !== undefined) payload.time_string = data.time_string;
   if (data.sections !== undefined) payload.sections = data.sections;
-  if (data.serviceType !== undefined) payload.serviceType = data.serviceType;
-  if (data.serviceNotes !== undefined) payload.serviceNotes = data.serviceNotes;
+  if (data.serviceType !== undefined) payload.service_type = data.serviceType;
+  if (data.serviceNotes !== undefined) payload.service_notes = data.serviceNotes;
 
-  await updateDoc(setListDoc(cid, setListId), payload);
+  const { error } = await getSupabaseClient()
+    .from("setlists")
+    .update(payload)
+    .eq("id", setListId)
+    .eq("church_id", churchId);
+
+  if (error) throw error;
 }
 
-// Delete Set List
 export async function deleteSetList(
   churchId: string | null,
   setListId: string,
   router: { push: (path: string) => void }
-) {
+): Promise<void> {
   if (!churchId) return;
 
-  await deleteDoc(doc(db, "churches", churchId, "setlists", setListId));
+  const { error } = await getSupabaseClient()
+    .from("setlists")
+    .delete()
+    .eq("id", setListId)
+    .eq("church_id", churchId);
+
+  if (error) throw error;
   router.push("/music/setlists");
 }
 
-// Get Set List by ID
 export async function getSetListById(
   churchId: string,
   id: string
 ): Promise<SetList | null> {
-  const ref = doc(db, 'churches', churchId, 'setlists', id);
-  const snap = await getDoc(ref);
+  const { data, error } = await getSupabaseClient()
+    .from("setlists")
+    .select("*")
+    .eq("id", id)
+    .eq("church_id", churchId)
+    .single();
 
-  if (!snap.exists()) return null;
-
-  const data = snap.data();
-
-  let sections: SetListSection[] = (data.sections || []).map((s: unknown) => {
-    const section = s as Partial<SetListSection> & { name?: string };
-
-    return {
-      ...section,
-      title: section.title || section.name || "Untitled Section",
-    } as SetListSection;
-  });
-
-  if ((!sections || sections.length === 0) && data.songs) {
-    sections = [
-      {
-        id: nanoid(),
-        title: "Main",
-        songs: data.songs,
-      },
-    ];
-  }
-
-  return {
-    id: snap.id,
-    churchId,
-    title: data.title,
-
-    dateString: data.dateString,
-    timeString: data.timeString,
-
-    date: fromDateString(data.dateString),
-    dateTime: toDateTime(data.dateString, data.timeString),
-
-    sections,
-    createdBy: data.createdBy,
-    createdAt: data.createdAt?.toMillis?.() ?? Date.now(),
-    updatedAt: data.updatedAt?.toMillis?.() ?? Date.now(),
-
-    serviceType: data.serviceType,
-    serviceNotes: data.serviceNotes,
-  };
+  if (error || !data) return null;
+  return rowToSetList(data);
 }

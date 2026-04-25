@@ -6,8 +6,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { useToast } from "./use-toast";
 import type { Member } from "../lib/types";
 import type { MemberFormValues } from "../lib/memberForm.schema";
-import { ref, uploadBytes, deleteObject, getDownloadURL } from "firebase/storage";
-import { storage } from '@/app/lib/firebase/client';
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 
 export function usePhotoCapture({
   form,
@@ -71,16 +70,21 @@ export function usePhotoCapture({
 
       try {
         // 3. Upload using the stable ID (real or temp)
-        const storageRef = ref(
-          storage,
-          `churches/${churchId}/members/${id}/profile.jpg`
-        );
+        const supabase = getSupabaseClient();
+        const path = `churches/${churchId}/members/${id}/profile.jpg`;
 
-        await uploadBytes(storageRef, photoFile);
-        const url = await getDownloadURL(storageRef);
+        const { error: uploadError } = await supabase.storage
+          .from("member-photos")
+          .upload(path, photoFile, { upsert: true, contentType: "image/jpeg" });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from("member-photos")
+          .getPublicUrl(path);
 
         // 4. Save the URL to the form
-        form.setValue("profilePhotoUrl", url, { shouldDirty: true });
+        form.setValue("profilePhotoUrl", urlData.publicUrl, { shouldDirty: true });
       } catch (err) {
         console.error("Photo upload failed:", err);
         toast({
@@ -159,9 +163,11 @@ export function usePhotoCapture({
 
     if (url) {
       try {
-        const path = decodeURIComponent(url.split("/o/")[1].split("?")[0]);
-        const storageRef = ref(storage, path);
-        await deleteObject(storageRef);
+        // Extract path from Supabase public URL
+        const supabase = getSupabaseClient();
+        const bucketUrl = supabase.storage.from("member-photos").getPublicUrl("").data.publicUrl;
+        const path = url.replace(bucketUrl, "");
+        await supabase.storage.from("member-photos").remove([path]);
       } catch (err) {
         console.error("Failed to delete photo:", err);
       }

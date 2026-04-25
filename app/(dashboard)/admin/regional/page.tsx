@@ -2,8 +2,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, doc, query, where, onSnapshot, getDocs } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase/client';
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { countPresentAttendanceEntries } from '@/app/lib/attendance-count';
 import { getUsersByChurchIds } from '@/app/lib/regional-users';
@@ -39,13 +39,14 @@ type RegionalUser = {
 };
 
 export default function RegionalDashboardPage() {
-  const { isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
+  const supabase = getSupabaseClient();
+  const { isRegionalAdmin, region_id, loading: permLoading } = usePermissions();
 
   const [churches, setChurches] = useState<RegionalChurch[]>([]);
   const [users, setUsers] = useState<RegionalUser[]>([]);
   const [regionName, setRegionName] = useState('');
-  const [regionAdminName, setRegionAdminName] = useState('');
-  const [regionAdminTitle, setRegionAdminTitle] = useState('');
+  const [region_admin_name, setRegionAdminName] = useState('');
+  const [region_admin_title, setRegionAdminTitle] = useState('');
   const [regionLogoUrl, setRegionLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(true);
@@ -59,11 +60,11 @@ export default function RegionalDashboardPage() {
 
   // Load churches in region
   useEffect(() => {
-    if (!regionId) return;
+    if (!region_id) return;
 
     const q = query(
       collection(db, 'churches'),
-      where('regionId', '==', regionId)
+      where('region_id', '==', region_id)
     );
 
     const unsub = onSnapshot(
@@ -80,7 +81,7 @@ export default function RegionalDashboardPage() {
     );
 
     return () => unsub();
-  }, [regionId]);
+  }, [region_id]);
 
   // Load users belonging to churches in this region
   useEffect(() => {
@@ -121,11 +122,11 @@ export default function RegionalDashboardPage() {
 
   // Load pending churches
   useEffect(() => {
-    if (!regionId) return;
+    if (!region_id) return;
 
     const q = query(
       collection(db, "churches"),
-      where("regionSelectedId", "==", regionId),
+      where("regionSelectedId", "==", region_id),
       where("regionStatus", "==", "pending")
     );
 
@@ -136,28 +137,28 @@ export default function RegionalDashboardPage() {
     );
 
     return () => unsub();
-  }, [regionId]);
+  }, [region_id]);
 
   // Load region details
   useEffect(() => {
-    if (!regionId) return;
+    if (!region_id) return;
 
     const unsub = onSnapshot(
-      doc(db, 'regions', regionId),
+      doc(db, 'regions', region_id),
       (snap) => {
         if (snap.exists()) {
           const data = snap.data();
           setRegionName(data.name || 'Unknown Region');
-          setRegionAdminName(data.regionAdminName || 'Unknown Admin');
-          setRegionAdminTitle(data.regionAdminTitle || '');
-          setRegionLogoUrl(data.logoUrl ?? null);
+          setRegionAdminName(data.region_admin_name || 'Unknown Admin');
+          setRegionAdminTitle(data.region_admin_title || '');
+          setRegionLogoUrl(data.logo_url ?? null);
         }
       },
       (error) => { if ((error as { code?: string }).code !== 'permission-denied') console.error('region details snapshot error:', error); }
     );
 
     return () => unsub();
-  }, [regionId]);
+  }, [region_id]);
 
   // Load regional aggregate metrics
   useEffect(() => {
@@ -183,14 +184,14 @@ export default function RegionalDashboardPage() {
       try {
         const metricsPerChurch = await Promise.all(
           approvedChurches.map(async (church) => {
-            const churchId = church.id as string;
+            const church_id = church.id as string;
 
             const [eventsSnap, attendanceSnap, musicItemsSnap, setlistsSnap, membersSnap] = await Promise.all([
-              getDocs(collection(db, 'churches', churchId, 'events')),
-              getDocs(collection(db, 'churches', churchId, 'attendance')),
-              getDocs(collection(db, 'churches', churchId, 'songs')),
-              getDocs(collection(db, 'churches', churchId, 'setlists')),
-              getDocs(query(collection(db, 'churches', churchId, 'members'), where('status', '==', 'Active'))),
+              getDocs(collection(db, 'churches', church_id, 'events')),
+              getDocs(collection(db, 'churches', church_id, 'attendance')),
+              getDocs(collection(db, 'churches', church_id, 'songs')),
+              getDocs(collection(db, 'churches', church_id, 'setlists')),
+              getDocs(query(collection(db, 'churches', church_id, 'members'), where('status', '==', 'Active'))),
             ]);
 
             const attendanceTotal = attendanceSnap.docs.reduce(
@@ -287,14 +288,14 @@ export default function RegionalDashboardPage() {
       {/* Identity Header */}
       <DashboardIdentityCard
         eyebrow="Region"
-        logoUrl={regionLogoUrl}
+        logo_url={regionLogoUrl}
         logoAlt={`${regionName} logo`}
         fallback={regionName.split(' ').map((w) => w[0]?.toUpperCase()).join('').slice(0, 2) || 'R'}
         name={regionName}
-        subtitle={regionAdminTitle ? `${regionAdminTitle}: ${regionAdminName || 'Regional Admin'}` : regionAdminName || 'Regional Admin'}
+        subtitle={region_admin_title ? `${region_admin_title}: ${region_admin_name || 'Regional Admin'}` : region_admin_name || 'Regional Admin'}
         panelTitle="Region Info"
         panelRows={[
-          { label: 'Region ID', value: regionId ? `${regionId.slice(0, 8)}…` : '—' },
+          { label: 'Region ID', value: region_id ? `${region_id.slice(0, 8)}…` : '—' },
           { label: 'Approved Churches', value: String(approvedChurches.length) },
           { label: 'Pending', value: String(pendingCount), highlighted: pendingCount > 0, href: pendingCount > 0 ? '/admin/regional/churches/pending' : undefined },
         ]}

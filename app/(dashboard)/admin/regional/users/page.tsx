@@ -2,8 +2,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase/client';
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { getUsersByChurchIds } from '@/app/lib/regional-users';
 import { PageHeader } from '@/app/components/page-header';
@@ -15,26 +15,27 @@ type RegionalChurch = {
 
 type RegionalUser = {
   uid: string;
-  firstName?: string;
-  lastName?: string;
+  first_name?: string;
+  last_name?: string;
   email?: string;
   roles?: string[];
-  profilePhotoUrl?: string | null;
+  profile_photo_url?: string | null;
 };
 
 export default function RegionalUsersPage() {
-  const { isRootAdmin, isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
+  const supabase = getSupabaseClient();
+  const { isRootAdmin, isRegionalAdmin, region_id, loading: permLoading } = usePermissions();
   const [churches, setChurches] = useState<RegionalChurch[]>([]);
   const [users, setUsers] = useState<RegionalUser[]>([]);
   const [churchesLoading, setChurchesLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(true);
 
   useEffect(() => {
-    if (!regionId) return;
+    if (!region_id) return;
 
     const q = query(
       collection(db, 'churches'),
-      where('regionId', '==', regionId)
+      where('region_id', '==', region_id)
     );
 
     const unsub = onSnapshot(
@@ -51,7 +52,7 @@ export default function RegionalUsersPage() {
     );
 
     return () => unsub();
-  }, [regionId]);
+  }, [region_id]);
 
   useEffect(() => {
     if (churchesLoading) return;
@@ -138,22 +139,22 @@ export default function RegionalUsersPage() {
               "
             >
               <div className="flex items-center gap-3">
-                {user.profilePhotoUrl ? (
+                {user.profile_photo_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={user.profilePhotoUrl}
-                    alt={`${user.firstName ?? "User"} ${user.lastName ?? ""} profile photo`.trim()}
+                    src={user.profile_photo_url}
+                    alt={`${user.first_name ?? "User"} ${user.last_name ?? ""} profile photo`.trim()}
                     className="h-24 w-24 rounded-xl object-cover interactive-card-media"
                   />
                 ) : (
                   <div className="h-24 w-24 rounded-xl flex items-center justify-center bg-white/10 interactive-card-media text-sm font-semibold">
-                    {`${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase() || "U"}
+                    {`${user.first_name?.[0] ?? ""}${user.last_name?.[0] ?? ""}`.toUpperCase() || "U"}
                   </div>
                 )}
 
                 <div className="min-w-0">
                   <h2 className="text-lg font-semibold truncate">
-                    {user.firstName} {user.lastName}
+                    {user.first_name} {user.last_name}
                   </h2>
                   <p className="text-sm text-muted-foreground truncate">{user.email}</p>
                 </div>

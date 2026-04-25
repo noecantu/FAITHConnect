@@ -2,15 +2,16 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { doc, updateDoc } from "firebase/firestore";
-import { db, storage } from "@/app/lib/firebase/client";
-import { ref, deleteObject } from "firebase/storage";
+;
+import { getSupabaseClient } from "@/app/lib/supabase/client";
+;
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import ImageDropzone from "@/app/components/settings/ImageDropzone";
 import type { AppUser } from "@/app/lib/types";
 
 export function ProfilePhotoCard({
+  const supabase = getSupabaseClient();
   user,
   onDirtyChange,
   registerSave,
@@ -19,13 +20,13 @@ export function ProfilePhotoCard({
   onDirtyChange?: (dirty: boolean) => void;
   registerSave?: (fn: () => Promise<void>) => void;
 }) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(user.profilePhotoUrl ?? null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(user.profile_photo_url ?? null);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [removeRequested, setRemoveRequested] = useState(false);
 
   const initials =
-    (user.firstName?.[0] ??
-      user.lastName?.[0] ??
+    (user.first_name?.[0] ??
+      user.last_name?.[0] ??
       user.email?.[0] ??
       "U").toUpperCase();
 
@@ -40,10 +41,10 @@ export function ProfilePhotoCard({
     const userRef = doc(db, "users", user.uid);
 
     // Remove photo
-    if (removeRequested && user.profilePhotoUrl) {
+    if (removeRequested && user.profile_photo_url) {
       const fileRef = ref(storage, `users/${user.uid}/profile.jpg`);
       await deleteObject(fileRef).catch(() => {});
-      await updateDoc(userRef, { profilePhotoUrl: null });
+      await updateDoc(userRef, { profile_photo_url: null });
 
       setPreviewUrl(null);
       setUploadedUrl(null);
@@ -53,11 +54,11 @@ export function ProfilePhotoCard({
 
     // Save uploaded photo
     if (uploadedUrl) {
-      await updateDoc(userRef, { profilePhotoUrl: uploadedUrl });
+      await updateDoc(userRef, { profile_photo_url: uploadedUrl });
       setPreviewUrl(uploadedUrl);
       setUploadedUrl(null);
     }
-  }, [uploadedUrl, removeRequested, user.uid, user.profilePhotoUrl]);
+  }, [uploadedUrl, removeRequested, user.uid, user.profile_photo_url]);
 
   useEffect(() => {
     registerSave?.(handleSave);

@@ -1,55 +1,32 @@
-'use client';
+import { useState, useEffect } from 'react';
+import { getSupabaseClient } from "@/app/lib/supabase/client";
 
-import { useEffect, useState, useCallback } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase/client';
-
-export interface AttendanceHistoryItem {
-  dateString: string;
-  records: Record<string, boolean>;
-  membersSnapshot: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    status: string;
-  }[];
-}
-
-export function useAttendanceHistory(churchId: string | null) {
-  const [data, setData] = useState<AttendanceHistoryItem[]>([]);
+export function useAttendanceHistory(churchId: string | undefined) {
+  const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async () => {
+  useEffect(() => {
     if (!churchId) {
-      setData([]);
       setLoading(false);
       return;
     }
 
-    setLoading(true);
+    const supabase = getSupabaseClient();
+    async function fetchHistory() {
+      const { data, error } = await supabase
+        .from("attendance")
+        .select("*")
+        .eq("church_id", churchId)
+        .order("date_string", { ascending: false });
 
-    const attendanceRef = collection(db, 'churches', churchId, 'attendance');
-    const attendanceSnap = await getDocs(attendanceRef);
+      if (!error) {
+        setHistory(data || []);
+      }
+      setLoading(false);
+    }
 
-    const items: AttendanceHistoryItem[] = attendanceSnap.docs.map((d) => {
-      const data = d.data();
-
-      return {
-        dateString: d.id,
-        records: data.records || {},
-        membersSnapshot: data.membersSnapshot || [],
-      };
-    });
-
-    items.sort((a, b) => a.dateString.localeCompare(b.dateString));
-
-    setData(items);
-    setLoading(false);
+    fetchHistory();
   }, [churchId]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  return { data, loading, refresh: load };
+  return { history, loading };
 }

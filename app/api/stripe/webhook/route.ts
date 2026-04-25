@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { adminDb } from "@/app/lib/firebase/admin";
-import { Timestamp } from "firebase-admin/firestore";
+import { adminDb } from "@/app/lib/supabase/admin";
 import { randomUUID } from "crypto";
 
 export const runtime = "nodejs";
@@ -23,9 +22,9 @@ type BillingStatus =
 
 const HEALTHY_BILLING_STATUSES = new Set<BillingStatus>(["active", "trialing"]);
 
-function toTimestampFromUnix(seconds?: number | null): Timestamp | null {
+function toISODate(seconds?: number | null): string | null {
   if (!seconds || Number.isNaN(seconds)) return null;
-  return Timestamp.fromMillis(seconds * 1000);
+  return new Date(seconds * 1000).toISOString();
 }
 
 function toId(expandable: string | Stripe.Customer | Stripe.DeletedCustomer | null | undefined): string | null {
@@ -41,39 +40,38 @@ function toSubscriptionId(
 }
 
 function getCurrentPeriodEndSeconds(sub: Stripe.Subscription): number | null {
-  const rootPeriodEnd = (sub as unknown as { current_period_end?: unknown }).current_period_end;
+  const rootPeriodEnd = (sub as any).current_period_end;
   if (typeof rootPeriodEnd === "number") return rootPeriodEnd;
 
-  const firstItem = sub.items?.data?.[0] as
-    | (Stripe.SubscriptionItem & { current_period_end?: unknown })
-    | undefined;
-
-  if (firstItem && typeof firstItem.current_period_end === "number") {
-    return firstItem.current_period_end;
+  const firstItem = sub.items?.data?.[0];
+  if (firstItem && typeof (firstItem as any).current_period_end === "number") {
+    return (firstItem as any).current_period_end;
   }
 
   return null;
 }
 
 async function findUsersByStripeRefs(customerId: string | null, subscriptionId: string | null) {
-  const users = new Map<string, FirebaseFirestore.QueryDocumentSnapshot>();
+  const users = new Map<string, any>();
 
   if (customerId) {
-    const byCustomer = await adminDb
-      .collection("users")
-      .where("stripeCustomerId", "==", customerId)
-      .limit(20)
-      .get();
-    byCustomer.docs.forEach((docSnap) => users.set(docSnap.id, docSnap));
+    const { data: byCustomer } = await adminDb
+      .from("users")
+      .select("*")
+      .eq("stripe_customer_id", customerId)
+      .limit(20);
+    
+    byCustomer?.forEach((user) => users.set(user.id, user));
   }
 
   if (subscriptionId) {
-    const bySubscription = await adminDb
-      .collection("users")
-      .where("stripeSubscriptionId", "==", subscriptionId)
-      .limit(20)
-      .get();
-    bySubscription.docs.forEach((docSnap) => users.set(docSnap.id, docSnap));
+    const { data: bySubscription } = await adminDb
+      .from("users")
+      .select("*")
+      .eq("stripe_subscription_id", subscriptionId)
+      .limit(20);
+    
+    bySubscription?.forEach((user) => users.set(user.id, user));
   }
 
   return Array.from(users.values());
@@ -85,7 +83,7 @@ async function syncUserBillingState(params: {
   status: BillingStatus;
   eventType: string;
   eventId: string;
-  currentPeriodEnd: Timestamp | null;
+  currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
   lastInvoiceId?: string | null;
   lastInvoiceStatus?: string | null;
@@ -93,77 +91,62 @@ async function syncUserBillingState(params: {
   const targetUsers = await findUsersByStripeRefs(params.customerId, params.subscriptionId);
   if (targetUsers.length === 0) return;
 
-  const now = Timestamp.now();
+  const now = new Date().toISOString();
   const isDelinquent = !HEALTHY_BILLING_STATUSES.has(params.status);
 
   await Promise.all(
-    targetUsers.map((userSnap) =>
-      userSnap.ref.set(
-        {
-          stripeCustomerId: params.customerId,
-          stripeSubscriptionId: params.subscriptionId,
-          billingStatus: params.status,
-          billingDelinquent: isDelinquent,
-          billingCurrentPeriodEnd: params.currentPeriodEnd,
-          billingCancelAtPeriodEnd: params.cancelAtPeriodEnd,
-          billingLastInvoiceId: params.lastInvoiceId ?? null,
-          billingLastInvoiceStatus: params.lastInvoiceStatus ?? null,
-          billingLastEventType: params.eventType,
-          billingLastEventId: params.eventId,
-          billingUpdatedAt: now,
-        },
-        { merge: true }
-      )
-    )
+    targetUsers.map(async (user) => {
+      await adminDb
+        .from("users")
+        .update({
+          stripe_customer_id: params.customerId,
+          stripe_subscription_id: params.subscriptionId,
+          billing_status: params.status,
+          billing_delinquent: isDelinquent,
+          billing_current_period_end: params.currentPeriodEnd,
+          billing_cancel_at_period_end: params.cancelAtPeriodEnd,
+          billing_last_invoice_id: params.lastInvoiceId ?? null,
+          billing_last_invoice_status: params.lastInvoiceStatus ?? null,
+          billing_last_event_type: params.eventType,
+          billing_last_event_id: params.eventId,
+          billing_updated_at: now,
+        })
+        .eq("id", user.id);
+
+      const uid = user.id;
+
+      // Find churches where this user is the billing owner or creator
+      const { data: ownerChurches } = await adminDb
+        .from("churches")
+        .select("id")
+        .or(`billing_owner_uid.eq.${uid},created_by.eq.${uid}`)
+        .limit(50);
+
+      if (ownerChurches && ownerChurches.length > 0) {
+        const churchIds = ownerChurches.map(c => c.id);
+        const billingContactEmail = user.email || null;
+
+        await adminDb
+          .from("churches")
+          .update({
+            billing_owner_uid: uid,
+            billing_contact_email: billingContactEmail,
+            stripe_customer_id: params.customerId,
+            stripe_subscription_id: params.subscriptionId,
+            billing_status: params.status,
+            billing_delinquent: isDelinquent,
+            billing_current_period_end: params.currentPeriodEnd,
+            billing_cancel_at_period_end: params.cancelAtPeriodEnd,
+            billing_last_invoice_id: params.lastInvoiceId ?? null,
+            billing_last_invoice_status: params.lastInvoiceStatus ?? null,
+            billing_last_event_type: params.eventType,
+            billing_last_event_id: params.eventId,
+            billing_updated_at: now,
+          })
+          .in("id", churchIds);
+      }
+    })
   );
-
-  const churchRefs = new Map<string, FirebaseFirestore.DocumentReference>();
-
-  for (const userSnap of targetUsers) {
-    const uid = userSnap.id;
-
-    const ownerChurches = await adminDb
-      .collection("churches")
-      .where("billingOwnerUid", "==", uid)
-      .limit(50)
-      .get();
-    ownerChurches.docs.forEach((docSnap) => churchRefs.set(docSnap.id, docSnap.ref));
-
-    const legacyOwnerChurches = await adminDb
-      .collection("churches")
-      .where("createdBy", "==", uid)
-      .limit(50)
-      .get();
-    legacyOwnerChurches.docs.forEach((docSnap) => churchRefs.set(docSnap.id, docSnap.ref));
-
-    const data = userSnap.data() as { email?: unknown };
-    const billingContactEmail = typeof data.email === "string" ? data.email : null;
-
-    await Promise.all(
-      Array.from(churchRefs.values()).map((ref) =>
-        ref.set(
-          {
-            billingOwnerUid: uid,
-            billingContactEmail,
-            stripeCustomerId: params.customerId,
-            stripeSubscriptionId: params.subscriptionId,
-            billingStatus: params.status,
-            billingDelinquent: isDelinquent,
-            billingCurrentPeriodEnd: params.currentPeriodEnd,
-            billingCancelAtPeriodEnd: params.cancelAtPeriodEnd,
-            billingLastInvoiceId: params.lastInvoiceId ?? null,
-            billingLastInvoiceStatus: params.lastInvoiceStatus ?? null,
-            billingLastEventType: params.eventType,
-            billingLastEventId: params.eventId,
-            billingUpdatedAt: now,
-          },
-          { merge: true }
-        )
-      )
-    );
-
-    churchRefs.clear();
-  }
 }
 
 export async function POST(req: Request) {
@@ -188,9 +171,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  const eventRef = adminDb.collection("stripeWebhookEvents").doc(event.id);
-  const existingEvent = await eventRef.get();
-  if (existingEvent.exists) {
+  // Check if event already processed
+  const { data: existingEvent } = await adminDb
+    .from("stripe_webhook_events")
+    .select("id")
+    .eq("id", event.id)
+    .single();
+
+  if (existingEvent) {
     return NextResponse.json({ received: true, duplicate: true });
   }
 
@@ -204,19 +192,20 @@ export async function POST(req: Request) {
 
     const token = randomUUID();
 
-    await adminDb.collection("signupTokens").doc(token).set({
-      planId: planId ?? null,
-      customerId,
-      subscriptionId,
-      createdAt: Timestamp.now(),
-      expiresAt: Timestamp.fromMillis(Date.now() + 1000 * 60 * 30),
+    await adminDb.from("signup_tokens").insert({
+      id: token,
+      plan_id: planId ?? null,
+      customer_id: customerId,
+      subscription_id: subscriptionId,
+      created_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 1000 * 60 * 30).toISOString(),
       used: false,
-      sourceEventId: event.id,
+      source_event_id: event.id,
     });
 
     if (subscriptionId) {
       try {
-        const sub = (await stripe.subscriptions.retrieve(subscriptionId)) as unknown as Stripe.Subscription;
+        const sub = await stripe.subscriptions.retrieve(subscriptionId);
         const status = sub.status as BillingStatus;
 
         await syncUserBillingState({
@@ -225,9 +214,9 @@ export async function POST(req: Request) {
           status,
           eventType: event.type,
           eventId: event.id,
-          currentPeriodEnd: toTimestampFromUnix(getCurrentPeriodEndSeconds(sub)),
+          currentPeriodEnd: toISODate(getCurrentPeriodEndSeconds(sub)),
           cancelAtPeriodEnd: sub.cancel_at_period_end,
-          lastInvoiceId: toSubscriptionId(sub.latest_invoice as string | { id: string } | null | undefined),
+          lastInvoiceId: toSubscriptionId(sub.latest_invoice as any),
           lastInvoiceStatus: null,
         });
       } catch (error) {
@@ -246,22 +235,20 @@ export async function POST(req: Request) {
       status,
       eventType: event.type,
       eventId: event.id,
-      currentPeriodEnd: toTimestampFromUnix(getCurrentPeriodEndSeconds(sub)),
+      currentPeriodEnd: toISODate(getCurrentPeriodEndSeconds(sub)),
       cancelAtPeriodEnd: sub.cancel_at_period_end,
-      lastInvoiceId: typeof sub.latest_invoice === "string" ? sub.latest_invoice : sub.latest_invoice?.id ?? null,
+      lastInvoiceId: typeof sub.latest_invoice === "string" ? sub.latest_invoice : (sub.latest_invoice as any)?.id ?? null,
       lastInvoiceStatus: null,
     });
   }
 
   if (event.type === "invoice.payment_failed" || event.type === "invoice.paid") {
     const invoice = event.data.object as Stripe.Invoice;
-    const subscriptionId = toSubscriptionId(
-      (invoice as unknown as { subscription?: string | { id: string } | null }).subscription
-    );
+    const subscriptionId = toSubscriptionId(invoice.subscription as any);
 
     if (subscriptionId) {
       try {
-        const sub = (await stripe.subscriptions.retrieve(subscriptionId)) as unknown as Stripe.Subscription;
+        const sub = await stripe.subscriptions.retrieve(subscriptionId);
         const status = sub.status as BillingStatus;
 
         await syncUserBillingState({
@@ -270,7 +257,7 @@ export async function POST(req: Request) {
           status,
           eventType: event.type,
           eventId: event.id,
-          currentPeriodEnd: toTimestampFromUnix(getCurrentPeriodEndSeconds(sub)),
+          currentPeriodEnd: toISODate(getCurrentPeriodEndSeconds(sub)),
           cancelAtPeriodEnd: sub.cancel_at_period_end,
           lastInvoiceId: invoice.id,
           lastInvoiceStatus: invoice.status ?? null,
@@ -281,11 +268,12 @@ export async function POST(req: Request) {
     }
   }
 
-  await eventRef.set({
+  await adminDb.from("stripe_webhook_events").insert({
+    id: event.id,
     type: event.type,
     livemode: event.livemode,
-    created: Timestamp.fromMillis(event.created * 1000),
-    processedAt: Timestamp.now(),
+    created_at: new Date(event.created * 1000).toISOString(),
+    processed_at: new Date().toISOString(),
   });
 
   return NextResponse.json({ received: true });
