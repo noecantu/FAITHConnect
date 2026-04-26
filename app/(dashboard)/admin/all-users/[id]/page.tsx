@@ -38,16 +38,16 @@ export default async function AllUserProfilePage({
   const user: EditableNonSystemUser = {
     uid: userData.id,
     email: userData.email ?? "",
-    first_name: userData.first_name ?? "",
-    last_name: userData.last_name ?? "",
+    firstName: userData.first_name ?? "",
+    lastName: userData.last_name ?? "",
     roles,
-    church_id: userData.church_id ?? null,
+    churchId: userData.church_id ?? null,
   };
 
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Edit User</h1>
-      <EditAllUserForm user={user} churchOptions={churchOptions} />
+      <EditAllUserForm user={user} churches={churchOptions} />
     </div>
   );
 }

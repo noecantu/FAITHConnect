@@ -11,9 +11,20 @@ export default function AuthRouter() {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (loading || user === null) return;
+    if (loading) return;
+
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
 
     const roles = user.roles ?? [];
+
+    // System-level users should never be routed into church onboarding.
+    if (can(roles, "system.manage")) {
+      router.replace("/admin");
+      return;
+    }
 
     // PUBLIC ROUTES
     if (
@@ -40,12 +51,6 @@ export default function AuthRouter() {
         return;
       }
       // Already on the correct onboarding step — let the page render.
-      return;
-    }
-
-    // ADMIN ROUTES
-    if (can(roles, "system.manage")) {
-      router.push("/admin");
       return;
     }
 

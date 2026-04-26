@@ -54,6 +54,14 @@ export default function LoginPage() {
       const profileRes = await fetch("/api/users/me", {
         credentials: "include",
       });
+
+      if (!profileRes.ok) {
+        // Session can be momentarily out of sync right after sign-in.
+        // Let the centralized auth router resolve the final destination.
+        router.replace("/auth-router");
+        return;
+      }
+
       const profile = await profileRes.json();
 
       const roles = (profile.roles ?? []) as Role[];
@@ -101,7 +109,11 @@ export default function LoginPage() {
         return;
       }
 
-      router.replace(`/church/${profile.churchId}`);
+      if (profile.churchId) {
+        router.replace(`/church/${profile.churchId}/members`);
+      } else {
+        router.replace("/auth-router");
+      }
     } catch (err) {
       console.error("Login error:", err);
       toast({

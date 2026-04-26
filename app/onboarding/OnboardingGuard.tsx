@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { can } from "@/app/lib/auth/permissions";
 
 export default function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -32,6 +33,14 @@ export default function OnboardingGuard({ children }: { children: React.ReactNod
         }
 
         const user = await res.json();
+        const roles = Array.isArray(user.roles) ? user.roles : [];
+
+        // System users should never be forced through onboarding steps.
+        if (can(roles, "system.manage")) {
+          router.replace("/admin");
+          return;
+        }
+
         const step = user.onboardingStep;
 
         const steps: Record<string, string> = {

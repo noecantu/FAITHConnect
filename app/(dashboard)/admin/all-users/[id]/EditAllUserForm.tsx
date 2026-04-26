@@ -80,7 +80,7 @@ export default function EditAllUserForm({
   churches,
 }: {
   user: EditableNonSystemUser;
-  churches: ChurchOption[];
+  churches: ChurchOption[] | null | undefined;
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -97,10 +97,10 @@ export default function EditAllUserForm({
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const sortedChurches = useMemo(
-    () => [...churches].sort((a, b) => a.name.localeCompare(b.name)),
-    [churches]
-  );
+  const sortedChurches = useMemo(() => {
+    const list = Array.isArray(churches) ? churches : [];
+    return [...list].sort((a, b) => a.name.localeCompare(b.name));
+  }, [churches]);
 
   function toggleRole(role: Role, checked: boolean) {
     setRoles((prev) => {

@@ -176,12 +176,14 @@ export function DashboardSummaryCard({
 
 interface DashboardMetricCardProps {
   title: string;
-  value: number;
+  value: number | null | undefined;
   description: string;
   icon: React.ReactNode;
 }
 
 export function DashboardMetricCard({ title, value, description, icon }: DashboardMetricCardProps) {
+  const safeValue = Number.isFinite(value) ? value : 0;
+
   return (
     <Card className="p-4 rounded-xl border border-white/10 bg-black/45 backdrop-blur-xl shadow-[0_10px_24px_rgba(0,0,0,0.18)]">
       <div className="flex items-start justify-between gap-3">
@@ -190,7 +192,7 @@ export function DashboardMetricCard({ title, value, description, icon }: Dashboa
           {icon}
         </div>
       </div>
-      <p className="text-3xl font-bold mt-1.5">{value.toLocaleString()}</p>
+      <p className="text-3xl font-bold mt-1.5">{safeValue.toLocaleString()}</p>
       <p className="text-xs text-muted-foreground mt-1 opacity-70">{description}</p>
     </Card>
   );
