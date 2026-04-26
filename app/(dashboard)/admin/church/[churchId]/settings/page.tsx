@@ -4,9 +4,6 @@ import { useEffect, useState } from 'react';
 import { PageHeader } from '@/app/components/page-header';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useAuth } from '@/app/hooks/useAuth';
-
-;
-import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { can } from '@/app/lib/auth/permissions';
 import type { Role } from '@/app/lib/auth/roles';
 
@@ -22,14 +19,8 @@ import ChurchProfileCard from '@/app/components/settings/ChurchProfileCard';
 import RegionMembershipCard from '@/app/components/settings/RegionMembershipCard';
 
 export default function ChurchSettingsPage() {
-  const supabase = getSupabaseClient();
-  const { church_id } = useChurchId();
+  const { churchId: church_id } = useChurchId();
   const { user, loading: authLoading } = useAuth();
-
-  const [churchName] = useState('');
-
-  const [users, setUsers] = useState<AppUser[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(true);
 
   const [storageUsed, setStorageUsed] = useState<number | null>(null);
   const [hasLoadedUsage, setHasLoadedUsage] = useState(false);
@@ -37,10 +28,13 @@ export default function ChurchSettingsPage() {
   const [billingOwnerUid, setBillingOwnerUid] = useState<string | null>(null);
 
   const {
+    users,
+    loading: loadingUsers,
+
     mode,
     selectedUser,
-    first_name,
-    last_name,
+    firstName,
+    lastName,
     email,
     password,
     selectedRoles,
@@ -69,74 +63,28 @@ export default function ChurchSettingsPage() {
     goBackToList,
 
     getSortedUsers,
-  } = useUserManagement();
+  } = useUserManagement(church_id ?? undefined);
 
-  // ---------- USERS LIST SUBSCRIPTION ----------
-
-  useEffect(() => {
-    if (!church_id || !user?.uid) {
-      setUsers([]);
-      setLoadingUsers(false);
-      return;
-    }
-
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('church_id', '==', church_id));
-
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const list = snap.docs.map((d) => ({
-          ...(d.data() as AppUser),
-          uid: d.id,
-        }));
-        setUsers(list);
-        setLoadingUsers(false);
-      },
-      (error) => {
-        if (error.code !== 'permission-denied') {
-          console.error('listenToUsers error:', error);
-        }
-        setLoadingUsers(false);
-      }
-    );
-
-    return () => unsub();
-  }, [church_id, user?.uid]);
+  // ---------- BILLING OWNER ----------
 
   useEffect(() => {
     if (!church_id) {
       setBillingOwnerUid(null);
       return;
     }
-
-    const churchRef = doc(db, 'churches', church_id);
-    const unsub = onSnapshot(
-      churchRef,
-      (snap) => {
-        if (!snap.exists()) {
-          setBillingOwnerUid(null);
-          return;
-        }
-
-        const data = snap.data() as { billingOwnerUid?: unknown; createdBy?: unknown };
+    fetch(`/api/church/${encodeURIComponent(church_id)}`)
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (!data) return;
         const uid =
-          typeof data.billingOwnerUid === 'string'
-            ? data.billingOwnerUid
-            : typeof data.createdBy === 'string'
-            ? data.createdBy
+          typeof data.billing_owner_uid === 'string'
+            ? data.billing_owner_uid
+            : typeof data.created_by === 'string'
+            ? data.created_by
             : null;
-
         setBillingOwnerUid(uid);
-      },
-      (error) => {
-        if (error.code !== 'permission-denied') {
-          console.error('listenToChurch billing owner error:', error);
-        }
-      }
-    );
-
-    return () => unsub();
+      })
+      .catch(() => setBillingOwnerUid(null));
   }, [church_id]);
 
   // ---------- STORAGE USAGE ----------
@@ -160,7 +108,7 @@ export default function ChurchSettingsPage() {
     fetchUsage();
   }, []);
 
-  const sortedUsers = getSortedUsers(users).sort((a, b) => {
+  const sortedUsers = getSortedUsers(users).sort((a: AppUser, b: AppUser) => {
     const aIsBillingOwner = billingOwnerUid != null && a.uid === billingOwnerUid;
     const bIsBillingOwner = billingOwnerUid != null && b.uid === billingOwnerUid;
 
@@ -231,12 +179,12 @@ export default function ChurchSettingsPage() {
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
-            <ChurchLogoCard church_id={church_id!} churchName={churchName} />
+            <ChurchLogoCard churchId={church_id!} churchName="" />
 
             <ChurchProfileCard church_id={church_id!} />
           </div>
 
-          <RegionMembershipCard church_id={church_id!} />
+          <RegionMembershipCard churchId={church_id!} />
 
           <StorageUsageCard
             storageUsed={storageUsed}
@@ -250,8 +198,8 @@ export default function ChurchSettingsPage() {
       {(mode === 'create' || mode === 'edit') && (
         <UserFormCard
           mode={mode}
-          first_name={first_name}
-          last_name={last_name}
+          firstName={firstName}
+          lastName={lastName}
           email={email}
           password={password}
           selectedRoles={selectedRoles}
@@ -271,9 +219,9 @@ export default function ChurchSettingsPage() {
           isSaving={isSaving}
           isTransferringBillingOwner={isTransferringBillingOwner}
           isBillingOwner={selectedUser?.uid === billingOwnerUid}
-          canTransferBillingOwner={Boolean(selectedUser?.roles?.includes('Admin'))}
+          canTransferBillingOwner={Boolean(selectedUser?.roles?.includes('Admin' as Role))}
           currentUserId={user?.uid ?? ''}
-          currentUserRoles={user?.roles ?? []}
+          currentUserRoles={(user?.roles ?? []) as Role[]}
           targetUserId={selectedUser?.uid}
         />
       )}
@@ -289,3 +237,4 @@ export default function ChurchSettingsPage() {
     </>
   );
 }
+

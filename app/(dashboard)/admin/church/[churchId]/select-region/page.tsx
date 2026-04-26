@@ -16,9 +16,13 @@ export default function SelectRegionPage() {
 
   useEffect(() => {
     async function load() {
-      const snap = await getDocs(collection(db, 'regions'));
-      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setRegions(list);
+      const { data, error } = await supabase
+        .from('regions')
+        .select('*')
+        .order('state', { ascending: true })
+        .order('name', { ascending: true });
+      if (error) console.error('SelectRegionPage load error:', error);
+      setRegions(data ?? []);
       setLoading(false);
     }
     load();

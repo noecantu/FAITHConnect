@@ -13,7 +13,6 @@ import { useRouter } from "next/navigation";
 import { Fab } from '@/app/components/ui/fab';
 import { ChevronRight, FileText, Music2 } from "lucide-react";
 import { useSettings } from '@/app/hooks/use-settings';
-;
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { useAuth } from '@/app/hooks/useAuth';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
@@ -22,17 +21,46 @@ import { Button } from '@/app/components/ui/button';
 
 export default function SongsPage() {
   const supabase = getSupabaseClient();
-  const { church_id } = useChurchId();
+  const { churchId: church_id } = useChurchId();
   const { songs, loading } = useSongs(church_id);
   const { canManageMusic, canReadMusic, loading: rolesLoading } = usePermissions();
   const canManage = canManageMusic;
   const canView = canReadMusic;
   const { user } = useAuth();
-  const { settings } = useSettings();
+  const { settings } = useSettings(church_id ?? undefined);
   const savedSort = settings?.songSort ?? "title";
   const [sortBy, setSortBy] = useState<"title" | "artist" | "key" | "bpm">(savedSort);
   const [search, setSearch] = useState('');
   const router = useRouter();
+
+  async function saveSongSortPreference(newSort: "title" | "artist" | "key" | "bpm") {
+    if (!user?.uid) return;
+
+    const { data: userRow, error: fetchError } = await supabase
+      .from("users")
+      .select("settings")
+      .eq("id", user.uid)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error("Error reading user settings:", fetchError);
+      return;
+    }
+
+    const currentSettings =
+      userRow && typeof userRow.settings === "object" && userRow.settings !== null
+        ? (userRow.settings as Record<string, unknown>)
+        : {};
+
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({ settings: { ...currentSettings, songSort: newSort } })
+      .eq("id", user.uid);
+
+    if (updateError) {
+      console.error("Error saving song sort preference:", updateError);
+    }
+  }
 
   useEffect(() => {
     if (settings?.songSort) {
@@ -155,12 +183,9 @@ export default function SongsPage() {
               <Select
                 value={sortBy}
                 onValueChange={async (newSort) => {
-                  setSortBy(newSort as "title" | "artist" | "key" | "bpm");
-
-                  if (!user) return;
-                  await updateDoc(doc(db, "users", user.uid), {
-                    "settings.songSort": newSort,
-                  });
+                  const nextSort = newSort as "title" | "artist" | "key" | "bpm";
+                  setSortBy(nextSort);
+                  await saveSongSortPreference(nextSort);
                 }}
               >
                 <SelectTrigger

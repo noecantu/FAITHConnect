@@ -35,12 +35,11 @@ export default function RegionMembershipCard({ churchId }: Props) {
     async function load() {
       try {
         const supabase = getSupabaseClient();
-        const { data: church } = await supabase
-          .from("churches")
-          .select("region_status, region_id, region_selected_id")
-          .eq("id", churchId)
-          .single();
-        if (!church) return;
+
+        // Fetch church via API to bypass RLS
+        const churchRes = await fetch(`/api/church/${encodeURIComponent(churchId)}`);
+        if (!churchRes.ok) return;
+        const church = await churchRes.json();
 
         const regionStatus: string | null = church.region_status ?? null;
         setStatus(regionStatus);
@@ -51,7 +50,7 @@ export default function RegionMembershipCard({ churchId }: Props) {
             .from("regions")
             .select("id, name, logo_url, region_admin_name, region_admin_title, state")
             .eq("id", regionDocId)
-            .single();
+            .maybeSingle();
           if (regionData) {
             setRegion({
               id: regionData.id,
@@ -77,13 +76,15 @@ export default function RegionMembershipCard({ churchId }: Props) {
     setRemoving(true);
 
     try {
-      const supabase = getSupabaseClient();
-      await supabase.from("churches").update({
-        region_id: null,
-        region_selected_id: null,
-        region_status: null,
-        updated_at: new Date().toISOString(),
-      }).eq("id", churchId);
+      const res = await fetch(`/api/church/${encodeURIComponent(churchId)}/profile`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ region_id: null, region_selected_id: null, region_status: null }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(typeof body.error === 'string' ? body.error : `HTTP ${res.status}`);
+      }
 
       setRegion(null);
       setStatus(null);

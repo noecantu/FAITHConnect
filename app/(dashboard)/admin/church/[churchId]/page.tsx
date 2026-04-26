@@ -138,12 +138,15 @@ export default function ChurchAdminDashboard() {
         // ---------------------------
         // 4. Events This Week
         // ---------------------------
+        const startDateString = startOfWeek.toISOString().slice(0, 10);
+        const endDateString = endOfWeek.toISOString().slice(0, 10);
+
         const { count: eventsCount } = await supabase
           .from("events")
           .select("id", { count: "exact", head: true })
           .eq("church_id", churchId)
-          .gte("date", startOfWeek.toISOString())
-          .lte("date", endOfWeek.toISOString());
+          .gte("date_string", startDateString)
+          .lte("date_string", endDateString);
         setEventCount(eventsCount ?? 0);
 
         // ---------------------------
@@ -152,31 +155,16 @@ export default function ChurchAdminDashboard() {
         const startIso = startOfWeek.toISOString().slice(0, 10);
         const endIso = endOfWeek.toISOString().slice(0, 10);
 
-        const { data: attendanceRows } = await supabase
+        const { count: presentCount } = await supabase
           .from("attendance")
-          .select("records, visitors")
+          .select("id", { count: "exact", head: true })
           .eq("church_id", churchId)
           .gte("date", startIso)
-          .lte("date", endIso);
+          .lte("date", endIso)
+          .eq("attended", true);
 
-        let totalPresent = 0;
-        (attendanceRows ?? []).forEach((row: { records?: Record<string, boolean>; visitors?: number | Record<string, unknown> }) => {
-          const recordCount =
-            row.records && typeof row.records === "object"
-              ? Object.keys(row.records).filter((id) => row.records![id] === true).length
-              : 0;
+        setAttendanceThisWeek(presentCount ?? 0);
 
-          let visitorCount = 0;
-          if (typeof row.visitors === "number") {
-            visitorCount = row.visitors;
-          } else if (row.visitors && typeof row.visitors === "object" && !Array.isArray(row.visitors)) {
-            visitorCount = Object.keys(row.visitors).length;
-          }
-
-          totalPresent += recordCount + visitorCount;
-        });
-
-        setAttendanceThisWeek(totalPresent);
       } catch (error: unknown) {
         const code =
           typeof error === "object" && error !== null && "code" in error

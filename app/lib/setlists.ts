@@ -4,10 +4,21 @@ import { nanoid } from "nanoid";
 import { fromDateString, toDateTime } from "./date-utils";
 
 function rowToSetList(row: Record<string, unknown>): SetList {
-  const dateString = row.date_string as string;
-  const timeString = row.time_string as string;
+  const dateString = (row.date_string ?? row.date ?? '') as string;
+  const timeString = (row.time_string ?? '') as string;
 
   let sections: SetListSection[] = (row.sections as SetListSection[]) ?? [];
+
+  if ((!sections || sections.length === 0) && row.items) {
+    // Legacy flat items → wrap in a single section
+    sections = [
+      {
+        id: nanoid(),
+        title: "Main",
+        songs: row.items as SetListSection["songs"],
+      },
+    ];
+  }
 
   if ((!sections || sections.length === 0) && row.songs) {
     sections = [
@@ -52,8 +63,9 @@ export function listenToSetLists(
     .from("setlists")
     .select("*")
     .eq("church_id", churchId)
-    .order("date_string", { ascending: false })
-    .then(({ data }) => {
+    .order("created_at", { ascending: false })
+    .then(({ data, error }) => {
+      if (error) { console.error("listenToSetLists error:", error); return; }
       if (!data) return;
       callback(data.map(rowToSetList));
     });
@@ -90,8 +102,8 @@ export async function createSetList(
       time_string: data.timeString,
       sections: data.sections,
       created_by: data.createdBy,
-      service_type: data.serviceType,
-      ...(data.serviceNotes !== undefined && { service_notes: data.serviceNotes }),
+      service_type: data.serviceType ?? null,
+      service_notes: data.serviceNotes ?? null,
     })
     .select()
     .single();
@@ -121,7 +133,7 @@ export async function updateSetList(
   const payload: Record<string, unknown> = {};
   if (data.title !== undefined) payload.title = data.title;
   if (data.dateString !== undefined) payload.date_string = data.dateString;
-  if (data.timeString !== undefined) payload.time_string = data.time_string;
+  if (data.timeString !== undefined) payload.time_string = data.timeString;
   if (data.sections !== undefined) payload.sections = data.sections;
   if (data.serviceType !== undefined) payload.service_type = data.serviceType;
   if (data.serviceNotes !== undefined) payload.service_notes = data.serviceNotes;

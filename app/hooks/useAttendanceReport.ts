@@ -21,21 +21,25 @@ export function useAttendanceReport({
   selectedYear,
   selectedMonth,
 }: UseAttendanceReportProps) {
+  const safeAttendance = Array.isArray(attendance) ? attendance : [];
+  const safeMembers = Array.isArray(members) ? members : [];
+  const safeSelectedMembers = Array.isArray(selectedMembers) ? selectedMembers : [];
+
   // MEMBER FILTER (robust)
   const memberFiltered = useMemo<AttendanceRecord[]>(() => {
-    if (selectedMembers.length === 0) return attendance;
+    if (safeSelectedMembers.length === 0) return safeAttendance;
 
-    return attendance.filter((a: AttendanceRecord) => {
-      if (a.memberId && selectedMembers.includes(a.memberId)) return true;
+    return safeAttendance.filter((a: AttendanceRecord) => {
+      if (a.memberId && safeSelectedMembers.includes(a.memberId)) return true;
 
-      const match = members.find((m: Member) => {
+      const match = safeMembers.find((m: Member) => {
         const full = `${m.firstName} ${m.lastName}`.trim();
-        return selectedMembers.includes(m.id) && a.memberName === full;
+        return safeSelectedMembers.includes(m.id) && a.memberName === full;
       });
 
       return Boolean(match);
     });
-  }, [attendance, selectedMembers, members]);
+  }, [safeAttendance, safeSelectedMembers, safeMembers]);
 
   // DATE FILTERS
   let list: AttendanceRecord[] = memberFiltered;
@@ -60,7 +64,7 @@ export function useAttendanceReport({
   // VISITORS
   let visitorRows: AttendanceRecord[] = [];
   if (includeVisitors) {
-    visitorRows = attendance.filter((a: AttendanceRecord) => {
+    visitorRows = safeAttendance.filter((a: AttendanceRecord) => {
       if (!a.visitorId) return false;
       const d = new Date(a.date);
 

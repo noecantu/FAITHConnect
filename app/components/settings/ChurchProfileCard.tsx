@@ -66,10 +66,9 @@ export default function ChurchProfileCard({
     if (!church_id) return;
 
     const load = async () => {
-      const snap = await supabase.from('churches').select('*').eq('id', church_id).single();
-      if (!snap.exists()) return;
-
-      const data = snap.data();
+      const { data, error } = await supabase.from('churches').select('*').eq('id', church_id).maybeSingle();
+      if (error) { console.error('ChurchProfileCard load error:', error); return; }
+      if (!data) return;
 
       // Set region from church data
       setRegionId(data.region_id ?? "");
@@ -87,8 +86,8 @@ export default function ChurchProfileCard({
       setEmail(data.email ?? '');
 
       // Leader fields
-      setLeaderName(data.leaderName ?? '');
-      setLeaderTitle(data.leaderTitle ?? '');
+      setLeaderName(data.leader_name ?? '');
+      setLeaderTitle(data.leader_title ?? '');
 
       // Phone
       phone.setDigits(data.phone ?? '');
@@ -102,8 +101,8 @@ export default function ChurchProfileCard({
       setOriginalZip(data.zip ?? '');
       setOriginalCountry(data.country ?? '');
       setOriginalEmail(data.email ?? '');
-      setOriginalLeaderName(data.leaderName ?? '');
-      setOriginalLeaderTitle(data.leaderTitle ?? '');
+      setOriginalLeaderName(data.leader_name ?? '');
+      setOriginalLeaderTitle(data.leader_title ?? '');
     };
 
     load();
@@ -129,20 +128,27 @@ export default function ChurchProfileCard({
     setSaving(true);
 
     try {
-      await updateDoc(doc(db, "churches", church_id), {
-        timezone,
-        address,
-        city,
-        state: addressState,
-        zip,
-        country,
-        email,
-        phone: phone.digits,
-        leaderName,
-        leaderTitle,
-        region_id: region_id || null,
-        updated_at: new Date(),
+      const res = await fetch(`/api/church/${encodeURIComponent(church_id)}/profile`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          timezone,
+          address,
+          city,
+          state: addressState,
+          zip,
+          country,
+          email,
+          phone: phone.digits,
+          leader_name: leaderName,
+          leader_title: leaderTitle,
+          region_id: region_id || null,
+        }),
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(typeof body.error === 'string' ? body.error : `HTTP ${res.status}`);
+      }
 
       // Update originals
       setOriginalTimezone(timezone);

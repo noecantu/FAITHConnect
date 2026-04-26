@@ -1,33 +1,71 @@
 import { useState, useEffect } from 'react';
 import { getSupabaseClient } from "@/app/lib/supabase/client";
+import type { AttendanceRecord, Member } from "@/app/lib/types";
 
-export function useAttendanceForReports(churchId: string | undefined, startDate: string, endDate: string) {
-  const [data, setData] = useState<any[]>([]);
+type AttendanceRow = {
+  id: string;
+  date: string;
+  member_id: string | null;
+  member_name: string | null;
+  visitor_id: string | null;
+  visitor_name: string | null;
+  attended: boolean | null;
+};
+
+function rowToAttendanceRecord(row: AttendanceRow): AttendanceRecord {
+  return {
+    id: row.id,
+    date: row.date,
+    memberId: row.member_id ?? undefined,
+    memberName: row.member_name ?? undefined,
+    visitorId: row.visitor_id ?? undefined,
+    visitorName: row.visitor_name ?? undefined,
+    attended: row.attended ?? false,
+  };
+}
+
+export function useAttendanceForReports(churchId: string | undefined, _members?: Member[]) {
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!churchId) {
+      setAttendance([]);
       setLoading(false);
       return;
     }
 
-    const supabase = getSupabaseClient();
-    async function fetchData() {
+    let active = true;
+
+    const fetchData = async () => {
+      setLoading(true);
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from("attendance")
-        .select("*")
+        .select("id, date, member_id, member_name, visitor_id, visitor_name, attended")
         .eq("church_id", churchId)
-        .gte("date_string", startDate)
-        .lte("date_string", endDate);
+        .order("date", { ascending: false });
 
-      if (!error) {
-        setData(data || []);
+      if (!active) return;
+
+      if (error) {
+        console.error("useAttendanceForReports fetch error:", error);
+        setAttendance([]);
+        setLoading(false);
+        return;
       }
+
+      const mapped = (data as AttendanceRow[] | null)?.map(rowToAttendanceRecord) ?? [];
+      setAttendance(mapped);
       setLoading(false);
-    }
+    };
 
     fetchData();
-  }, [churchId, startDate, endDate]);
 
-  return { data, loading };
+    return () => {
+      active = false;
+    };
+  }, [churchId]);
+
+  return { attendance, loading };
 }

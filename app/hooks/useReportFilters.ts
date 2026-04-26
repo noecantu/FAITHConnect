@@ -3,7 +3,7 @@ import type { ContributionBreakdown, ContributionBreakdownRow } from "./useContr
 import { useAttendanceReport } from "./useAttendanceReport";
 import { useMemberReport } from "./useMemberReport";
 import { Member, Contribution } from "../lib/types";
-import { AttendanceRecord } from "./useAttendanceForReports";
+import type { AttendanceRecord } from "../lib/types";
 
 export type ReportRouterProps = {
   reportType: "members" | "contributions" | "attendance";

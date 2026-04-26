@@ -10,18 +10,28 @@ create extension if not exists "uuid-ossp";
 -- ENUMS
 -- ============================================================
 
-create type billing_status as enum ('active', 'trialing', 'past_due', 'canceled', 'incomplete', 'incomplete_expired', 'paused', 'unpaid');
-create type church_status   as enum ('pending', 'active', 'disabled');
-create type member_status   as enum ('Active', 'Prospect', 'Archived');
-create type contribution_category as enum ('Tithes', 'Offering', 'Donation', 'Other');
-create type contribution_type     as enum ('Digital Transfer', 'Cash', 'Check', 'Other');
+do $$ begin
+  create type billing_status as enum ('active', 'trialing', 'past_due', 'canceled', 'incomplete', 'incomplete_expired', 'paused', 'unpaid');
+exception when duplicate_object then null; end $$;
+do $$ begin
+  create type church_status as enum ('pending', 'active', 'disabled');
+exception when duplicate_object then null; end $$;
+do $$ begin
+  create type member_status as enum ('Active', 'Prospect', 'Archived');
+exception when duplicate_object then null; end $$;
+do $$ begin
+  create type contribution_category as enum ('Tithes', 'Offering', 'Donation', 'Other');
+exception when duplicate_object then null; end $$;
+do $$ begin
+  create type contribution_type as enum ('Digital Transfer', 'Cash', 'Check', 'Other');
+exception when duplicate_object then null; end $$;
 
 -- ============================================================
 -- USERS
 -- References auth.users (Supabase Auth) – one row per user.
 -- ============================================================
 
-create table public.users (
+create table if not exists public.users (
   id                      uuid primary key references auth.users (id) on delete cascade,
   email                   text not null,
   first_name              text,
@@ -65,7 +75,7 @@ begin
 end;
 $$;
 
-create trigger users_updated_at
+create or replace trigger users_updated_at
   before update on public.users
   for each row execute function public.set_updated_at();
 
@@ -73,7 +83,7 @@ create trigger users_updated_at
 -- CHURCHES
 -- ============================================================
 
-create table public.churches (
+create table if not exists public.churches (
   id                      text primary key,   -- slug, e.g. "grace-fellowship"
   slug                    text not null unique,
   name                    text not null,
@@ -106,6 +116,11 @@ create table public.churches (
   -- Settings stored as flexible JSON
   settings                jsonb not null default '{}',
 
+  -- Region membership
+  region_id               text,
+  region_selected_id      text,
+  region_status           text,
+
   created_by              uuid references public.users (id) on delete set null,
   created_at              timestamptz not null default now(),
   updated_at              timestamptz not null default now(),
@@ -113,17 +128,17 @@ create table public.churches (
   disabled_at             timestamptz
 );
 
-create trigger churches_updated_at
+create or replace trigger churches_updated_at
   before update on public.churches
   for each row execute function public.set_updated_at();
 
-create index churches_slug_idx on public.churches (slug);
+create index if not exists churches_slug_idx on public.churches (slug);
 
 -- ============================================================
 -- MEMBERS
 -- ============================================================
 
-create table public.members (
+create table if not exists public.members (
   id                  uuid primary key default uuid_generate_v4(),
   church_id           text not null references public.churches (id) on delete cascade,
 
@@ -153,18 +168,18 @@ create table public.members (
   updated_at          timestamptz not null default now()
 );
 
-create trigger members_updated_at
+create or replace trigger members_updated_at
   before update on public.members
   for each row execute function public.set_updated_at();
 
-create index members_church_id_idx on public.members (church_id);
-create index members_status_idx    on public.members (church_id, status);
+create index if not exists members_church_id_idx on public.members (church_id);
+create index if not exists members_status_idx    on public.members (church_id, status);
 
 -- ============================================================
 -- EVENTS
 -- ============================================================
 
-create table public.events (
+create table if not exists public.events (
   id              uuid primary key default uuid_generate_v4(),
   church_id       text not null references public.churches (id) on delete cascade,
 
@@ -179,18 +194,18 @@ create table public.events (
   updated_at      timestamptz not null default now()
 );
 
-create trigger events_updated_at
+create or replace trigger events_updated_at
   before update on public.events
   for each row execute function public.set_updated_at();
 
-create index events_church_id_idx on public.events (church_id);
-create index events_date_idx      on public.events (church_id, date_string);
+create index if not exists events_church_id_idx on public.events (church_id);
+create index if not exists events_date_idx      on public.events (church_id, date_string);
 
 -- ============================================================
 -- SERVICE PLANS
 -- ============================================================
 
-create table public.service_plans (
+create table if not exists public.service_plans (
   id              uuid primary key default uuid_generate_v4(),
   church_id       text not null references public.churches (id) on delete cascade,
 
@@ -209,14 +224,14 @@ create table public.service_plans (
   updated_at      bigint not null
 );
 
-create index service_plans_church_id_idx  on public.service_plans (church_id);
-create index service_plans_date_idx       on public.service_plans (church_id, date_string desc);
+create index if not exists service_plans_church_id_idx  on public.service_plans (church_id);
+create index if not exists service_plans_date_idx       on public.service_plans (church_id, date_string desc);
 
 -- ============================================================
 -- CONTRIBUTIONS
 -- ============================================================
 
-create table public.contributions (
+create table if not exists public.contributions (
   id                  uuid primary key default uuid_generate_v4(),
   church_id           text not null references public.churches (id) on delete cascade,
 
@@ -232,18 +247,18 @@ create table public.contributions (
   updated_at          timestamptz not null default now()
 );
 
-create trigger contributions_updated_at
+create or replace trigger contributions_updated_at
   before update on public.contributions
   for each row execute function public.set_updated_at();
 
-create index contributions_church_id_idx on public.contributions (church_id);
-create index contributions_date_idx      on public.contributions (church_id, date desc);
+create index if not exists contributions_church_id_idx on public.contributions (church_id);
+create index if not exists contributions_date_idx      on public.contributions (church_id, date desc);
 
 -- ============================================================
 -- SONGS
 -- ============================================================
 
-create table public.songs (
+create table if not exists public.songs (
   id          uuid primary key default uuid_generate_v4(),
   church_id   text not null references public.churches (id) on delete cascade,
 
@@ -260,44 +275,55 @@ create table public.songs (
   updated_at  timestamptz not null default now()
 );
 
-create trigger songs_updated_at
+create or replace trigger songs_updated_at
   before update on public.songs
   for each row execute function public.set_updated_at();
 
-create index songs_church_id_idx on public.songs (church_id);
-create index songs_title_idx     on public.songs (church_id, title);
+create index if not exists songs_church_id_idx on public.songs (church_id);
+create index if not exists songs_title_idx     on public.songs (church_id, title);
 
 -- ============================================================
 -- SET LISTS
 -- ============================================================
 
-create table public.setlists (
-  id          uuid primary key default uuid_generate_v4(),
-  church_id   text not null references public.churches (id) on delete cascade,
+create table if not exists public.setlists (
+  id            uuid primary key default uuid_generate_v4(),
+  church_id     text not null references public.churches (id) on delete cascade,
 
-  title       text not null,
-  date        text,
-  notes       text,
+  title         text not null,
+  date_string   text,
+  time_string   text,
+  notes         text,
 
-  -- Items: [{ songId, key, notes }]
-  items       jsonb not null default '[]',
+  sections      jsonb not null default '[]',
+  service_type  text,
+  service_notes jsonb,
 
-  created_by  uuid references public.users (id) on delete set null,
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
+  created_by    uuid references public.users (id) on delete set null,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
 );
 
-create trigger setlists_updated_at
+-- Migrate existing tables that used old column names
+do $$ begin
+  begin alter table public.setlists rename column date to date_string; exception when others then null; end;
+  begin alter table public.setlists add column time_string text; exception when duplicate_column then null; end;
+  begin alter table public.setlists add column sections jsonb not null default '[]'; exception when duplicate_column then null; end;
+  begin alter table public.setlists add column service_type text; exception when duplicate_column then null; end;
+  begin alter table public.setlists add column service_notes jsonb; exception when duplicate_column then null; end;
+end $$;
+
+create or replace trigger setlists_updated_at
   before update on public.setlists
   for each row execute function public.set_updated_at();
 
-create index setlists_church_id_idx on public.setlists (church_id);
+create index if not exists setlists_church_id_idx on public.setlists (church_id);
 
 -- ============================================================
 -- ATTENDANCE
 -- ============================================================
 
-create table public.attendance (
+create table if not exists public.attendance (
   id              uuid primary key default uuid_generate_v4(),
   church_id       text not null references public.churches (id) on delete cascade,
   date            text not null,   -- YYYY-MM-DD
@@ -312,17 +338,17 @@ create table public.attendance (
   updated_at      timestamptz not null default now()
 );
 
-create trigger attendance_updated_at
+create or replace trigger attendance_updated_at
   before update on public.attendance
   for each row execute function public.set_updated_at();
 
-create index attendance_church_date_idx on public.attendance (church_id, date);
+create index if not exists attendance_church_date_idx on public.attendance (church_id, date);
 
 -- ============================================================
 -- LOGS (audit trail)
 -- ============================================================
 
-create table public.logs (
+create table if not exists public.logs (
   id          uuid primary key default uuid_generate_v4(),
   type        text not null,
   message     text not null,
@@ -336,15 +362,15 @@ create table public.logs (
   created_at  timestamptz not null default now()
 );
 
-create index logs_type_idx     on public.logs (type);
-create index logs_actor_idx    on public.logs (actor_uid);
-create index logs_created_idx  on public.logs (created_at desc);
+create index if not exists logs_type_idx     on public.logs (type);
+create index if not exists logs_actor_idx    on public.logs (actor_uid);
+create index if not exists logs_created_idx  on public.logs (created_at desc);
 
 -- ============================================================
 -- DISTRICTS / REGIONS
 -- ============================================================
 
-create table public.districts (
+create table if not exists public.districts (
   id          uuid primary key default uuid_generate_v4(),
   name        text not null,
   admin_uid   uuid references public.users (id) on delete set null,
@@ -352,11 +378,11 @@ create table public.districts (
   updated_at  timestamptz not null default now()
 );
 
-create trigger districts_updated_at
+create or replace trigger districts_updated_at
   before update on public.districts
   for each row execute function public.set_updated_at();
 
-create table public.regions (
+create table if not exists public.regions (
   id          uuid primary key default uuid_generate_v4(),
   district_id uuid references public.districts (id) on delete cascade,
   name        text not null,
@@ -365,7 +391,7 @@ create table public.regions (
   updated_at  timestamptz not null default now()
 );
 
-create trigger regions_updated_at
+create or replace trigger regions_updated_at
   before update on public.regions
   for each row execute function public.set_updated_at();
 
@@ -390,6 +416,9 @@ alter table public.regions        enable row level security;
 -- users: each user can read/update their own row only.
 -- Service role (used by your API routes via adminDb) bypasses RLS.
 -- ----------------------------------------------------------------
+drop policy if exists "users: read own"   on public.users;
+drop policy if exists "users: update own" on public.users;
+drop policy if exists "users: insert own" on public.users;
 create policy "users: read own"   on public.users for select using (auth.uid() = id);
 create policy "users: update own" on public.users for update using (auth.uid() = id);
 create policy "users: insert own" on public.users for insert with check (auth.uid() = id);
@@ -397,6 +426,8 @@ create policy "users: insert own" on public.users for insert with check (auth.ui
 -- ----------------------------------------------------------------
 -- churches: member of that church can read; Admin role can write.
 -- ----------------------------------------------------------------
+drop policy if exists "churches: read if member" on public.churches;
+drop policy if exists "churches: write if admin" on public.churches;
 create policy "churches: read if member" on public.churches for select
   using (
     exists (
@@ -427,6 +458,7 @@ create policy "churches: write if admin" on public.churches for all
 -- Church-scoped tables: users belonging to the church can read.
 -- Write access checked in API routes via service role (adminDb).
 -- ----------------------------------------------------------------
+drop policy if exists "members: read if church member" on public.members;
 create policy "members: read if church member" on public.members for select
   using (
     exists (
@@ -435,6 +467,7 @@ create policy "members: read if church member" on public.members for select
     )
   );
 
+drop policy if exists "events: read if church member" on public.events;
 create policy "events: read if church member" on public.events for select
   using (
     exists (
@@ -443,6 +476,7 @@ create policy "events: read if church member" on public.events for select
     )
   );
 
+drop policy if exists "service_plans: read if church member" on public.service_plans;
 create policy "service_plans: read if church member" on public.service_plans for select
   using (
     exists (
@@ -451,6 +485,7 @@ create policy "service_plans: read if church member" on public.service_plans for
     )
   );
 
+drop policy if exists "contributions: read if church member" on public.contributions;
 create policy "contributions: read if church member" on public.contributions for select
   using (
     exists (
@@ -459,6 +494,7 @@ create policy "contributions: read if church member" on public.contributions for
     )
   );
 
+drop policy if exists "songs: read if church member" on public.songs;
 create policy "songs: read if church member" on public.songs for select
   using (
     exists (
@@ -467,6 +503,7 @@ create policy "songs: read if church member" on public.songs for select
     )
   );
 
+drop policy if exists "setlists: read if church member" on public.setlists;
 create policy "setlists: read if church member" on public.setlists for select
   using (
     exists (
@@ -475,6 +512,7 @@ create policy "setlists: read if church member" on public.setlists for select
     )
   );
 
+drop policy if exists "attendance: read if church member" on public.attendance;
 create policy "attendance: read if church member" on public.attendance for select
   using (
     exists (
@@ -496,6 +534,7 @@ begin
 end;
 $$;
 
+drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
