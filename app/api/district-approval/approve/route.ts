@@ -6,81 +6,96 @@ import { adminDb } from "@/app/lib/supabase/admin";
 
 export async function POST(req: Request) {
   try {
-    // 1. Verify session
-    const cookie = req.headers.get("cookie") || "";
-    const session = cookie
-      .split("; ")
-      .find((c) => c.startsWith("session="))
-      ?.split("=")[1];
-
-    if (!session) {
+    const authUser = await getServerUser();
+    if (!authUser) {
       return NextResponse.json({ error: "No session" }, { status: 401 });
     }
 
-    const decoded = await adminAuth.verifySessionCookie(session, true);
-    
+    const callerUid = authUser.id;
 
-    // 2. Verify caller is a DistrictAdmin
-    const roles: string[] = decoded.roles ?? [];
-    if (!roles.includes("DistrictAdmin")) {
+    const { data: caller } = await adminDb
+      .from("users")
+      .select("roles, managed_region_ids")
+      .eq("id", callerUid)
+      .single();
+
+    if (!caller) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const roles: string[] = Array.isArray(caller.roles) ? caller.roles : [];
+    const isSystem = roles.includes("RootAdmin") || roles.includes("SystemAdmin");
+    if (!isSystem && !roles.includes("DistrictAdmin")) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // 3. Parse body
     const { regionId } = await req.json();
     if (!regionId || typeof regionId !== "string") {
       return NextResponse.json({ error: "Missing regionId" }, { status: 400 });
     }
 
-    // 4. Load the region doc
-    const regionRef = adminDb.collection("regions").doc(regionId);
-    const regionSnap = await regionRef.get();
+    const { data: region } = await adminDb
+      .from("regions")
+      .select("*")
+      .eq("id", regionId)
+      .single();
 
-    if (!regionSnap !== null) {
+    if (!region) {
       return NextResponse.json({ error: "Region not found" }, { status: 404 });
     }
 
-    const regionData = regionSnap!;
-    const districtSelectedId = regionData.districtSelectedId;
-
+    const districtSelectedId = region.district_selected_id;
     if (!districtSelectedId) {
-      return NextResponse.json(
-        { error: "No districtSelectedId on region" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No pending district on region" }, { status: 400 });
     }
 
-    // 5. Load the district and verify the caller owns it
-    const districtRef = adminDb.collection("districts").doc(districtSelectedId);
-    const districtSnap = await districtRef.get();
+    const { data: district } = await adminDb
+      .from("districts")
+      .select("*")
+      .eq("id", districtSelectedId)
+      .single();
 
-    if (!districtSnap !== null) {
+    if (!district) {
       return NextResponse.json({ error: "District not found" }, { status: 404 });
     }
 
-    const districtData = districtSnap!;
-    if (districtData.regionAdminUid !== callerUid && districtData.regionAdminId !== callerUid) {
+    if (!isSystem && district.region_admin_id !== callerUid) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // 6. Approve: update the region doc
-    await regionRef.update({
-      districtId: districtSelectedId,
-      districtSelectedId: admin.firestore.FieldValue.delete(),
-      districtStatus: "approved",
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    // Approve: link region to district and clear the pending request
+    await adminDb
+      .from("regions")
+      .update({
+        district_id: districtSelectedId,
+        district_selected_id: null,
+        district_status: "approved",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", regionId);
 
-    // 7. Add regionId to district's regionIds array
-    await districtRef.update({
-      regionIds: admin.firestore.FieldValue.arrayUnion(regionId),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    // Add regionId to district's region_ids array (if column exists)
+    const existingRegionIds: string[] = Array.isArray(district.region_ids) ? district.region_ids : [];
+    if (!existingRegionIds.includes(regionId)) {
+      await adminDb
+        .from("districts")
+        .update({
+          region_ids: [...existingRegionIds, regionId],
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", districtSelectedId);
+    }
 
-    // 8. Grant the District Admin read-only access via managedRegionIds
-    await adminDb.collection("users").doc(callerUid).update({
-      managedRegionIds: admin.firestore.FieldValue.arrayUnion(regionId),
-    });
+    // Grant the District Admin access via managed_region_ids
+    const existingManaged: string[] = Array.isArray(caller.managed_region_ids)
+      ? caller.managed_region_ids
+      : [];
+    if (!existingManaged.includes(regionId)) {
+      await adminDb
+        .from("users")
+        .update({ managed_region_ids: [...existingManaged, regionId] })
+        .eq("id", callerUid);
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {

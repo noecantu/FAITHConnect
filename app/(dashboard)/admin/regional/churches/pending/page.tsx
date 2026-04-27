@@ -1,46 +1,35 @@
-//app/(dashboard)/admin/regional/churches/pending/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { useToast } from '@/app/hooks/use-toast';
-;
 import { PageHeader } from '@/app/components/page-header';
 import { DashboardApprovalRequestCard } from '@/app/components/ui/dashboard-cards';
 
 export default function PendingChurchesPage() {
   const supabase = getSupabaseClient();
-  const { region_id, isRegionalAdmin, user, loading: permLoading } = usePermissions();
+  const { region_id, isRegionalAdmin, loading: permLoading } = usePermissions();
   const { toast } = useToast();
 
   const [pending, setPending] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchPending = useCallback(async () => {
     if (!region_id) return;
+    setLoading(true);
+    const { data } = await supabase
+      .from('churches')
+      .select('*')
+      .eq('region_selected_id', region_id)
+      .eq('region_status', 'pending');
+    setPending(data ?? []);
+    setLoading(false);
+  }, [region_id, supabase]);
 
-    const q = query(
-      collection(db, 'churches'),
-      where('regionSelectedId', '==', region_id),
-      where('regionStatus', '==', 'pending')
-    );
-
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        setPending(list);
-        setLoading(false);
-      },
-      (error) => {
-        if ((error as { code?: string }).code !== 'permission-denied') console.error('pending churches snapshot error:', error);
-        setLoading(false);
-      }
-    );
-
-    return () => unsub();
-  }, [region_id]);
+  useEffect(() => {
+    fetchPending();
+  }, [fetchPending]);
 
   async function handleApprove(church_id: string) {
     const res = await fetch("/api/church-approval/approve", {
@@ -52,37 +41,25 @@ export default function PendingChurchesPage() {
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      toast({
-        title: "Error",
-        description: data.error ?? "Could not approve church.",
-      });
+      toast({ title: "Error", description: data.error ?? "Could not approve church." });
       return;
     }
 
-    toast({
-      title: "Church Approved",
-      description: "This church is now officially part of your region.",
-    });
+    toast({ title: "Church Approved", description: "This church is now officially part of your region." });
+    fetchPending();
   }
 
   async function handleReject(church_id: string) {
-    await updateDoc(doc(db, 'churches', church_id), {
-      regionStatus: 'rejected',
-      updated_at: new Date(),
-    });
-
-    toast({
-      title: 'Church Rejected',
-      description: 'The church has been marked as rejected.',
-    });
+    await supabase
+      .from('churches')
+      .update({ region_status: 'rejected', updated_at: new Date().toISOString() })
+      .eq('id', church_id);
+    toast({ title: 'Church Rejected', description: 'The church has been marked as rejected.' });
+    fetchPending();
   }
 
   if (permLoading) {
-    return (
-      <div className="p-6 text-muted-foreground">
-        Loading…
-      </div>
-    );
+    return <div className="p-6 text-muted-foreground">Loading…</div>;
   }
 
   if (!isRegionalAdmin) {
@@ -95,11 +72,7 @@ export default function PendingChurchesPage() {
   }
 
   if (loading) {
-    return (
-      <div className="p-6 text-muted-foreground">
-        Loading Pending Churches…
-      </div>
-    );
+    return <div className="p-6 text-muted-foreground">Loading Pending Churches…</div>;
   }
 
   return (
@@ -122,11 +95,11 @@ export default function PendingChurchesPage() {
             logoAlt={`${church.name || "Church"} logo`}
             fallback={String(church.name || "CH")
               .split(' ')
-              .map((word) => word[0]?.toUpperCase())
+              .map((word: string) => word[0]?.toUpperCase())
               .join('')
               .slice(0, 2)}
-            subtitle={church.leaderTitle || church.leaderName
-              ? `${church.leaderTitle ? `${church.leaderTitle} ` : ''}${church.leaderName ?? ''}`
+            subtitle={church.leader_title || church.leader_name
+              ? `${church.leader_title ? `${church.leader_title} ` : ''}${church.leader_name ?? ''}`
               : null}
             meta={church.city || church.state
               ? [church.city, church.state].filter(Boolean).join(', ')

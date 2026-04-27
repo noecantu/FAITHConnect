@@ -17,18 +17,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2023-10-16",
 });
 
-async function getSessionEmail(req: Request): Promise<string | undefined> {
+async function getSessionEmail(): Promise<string | undefined> {
   try {
-    const cookie = req.headers.get("cookie") || "";
-    const session = cookie
-      .split("; ")
-      .find((c) => c.startsWith("session="))
-      ?.split("=")[1];
-    if (!session) return undefined;
-    const decoded = await adminAuth.verifySessionCookie(session, true);
-    const snap = await adminDb.collection("users").doc(decoded.uid).get();
-    const email = snap.data()?.email;
-    return typeof email === "string" && email ? email : undefined;
+    const authUser = await getServerUser();
+    return authUser?.email ?? undefined;
   } catch {
     return undefined;
   }
@@ -82,7 +74,7 @@ export async function POST(req: Request) {
     console.log("BILLING CYCLE:", normalizedCycle);
     console.log("PRICE FOUND:", priceId);
 
-    const customerEmail = await getSessionEmail(req);
+    const customerEmail = await getSessionEmail();
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",

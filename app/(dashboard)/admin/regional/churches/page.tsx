@@ -3,41 +3,31 @@
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/app/components/page-header';
 import { usePermissions } from '@/app/hooks/usePermissions';
-;
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 import Link from 'next/link';
 import { formatPhone } from '@/app/lib/formatters';
 
 export default function RegionalChurchesPage() {
-  const supabase = getSupabaseClient();
   const { isRegionalAdmin, region_id, loading: permLoading } = usePermissions();
 
   const [churches, setChurches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load churches in region
   useEffect(() => {
     if (!region_id) return;
+    let active = true;
 
-    const q = query(
-      collection(db, 'churches'),
-      where('region_id', '==', region_id)
-    );
-
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        setChurches(list);
+    getSupabaseClient()
+      .from('churches')
+      .select('*')
+      .eq('region_id', region_id)
+      .then(({ data }) => {
+        if (!active) return;
+        setChurches(data ?? []);
         setLoading(false);
-      },
-      (error) => {
-        if ((error as { code?: string }).code !== 'permission-denied') console.error('regional churches list snapshot error:', error);
-        setLoading(false);
-      }
-    );
+      });
 
-    return () => unsub();
+    return () => { active = false; };
   }, [region_id]);
 
   if (!permLoading && !isRegionalAdmin) {

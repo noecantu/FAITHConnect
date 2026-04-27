@@ -15,24 +15,13 @@ type DistrictUser = {
   churchName?: string;
 };
 
-function getSessionCookie(req: Request) {
-  const cookie = req.headers.get("cookie") || "";
-  return cookie
-    .split("; ")
-    .find((entry) => entry.startsWith("session="))
-    ?.split("=")[1];
-}
-
 export async function GET(req: Request) {
   try {
-    const session = getSessionCookie(req);
-
-    if (!session) {
+    const authUser = await getServerUser();
+    if (!authUser) {
       return NextResponse.json({ error: "No session" }, { status: 401 });
     }
 
-    const decoded = await adminAuth.verifySessionCookie(session, true);
-    
     const { searchParams } = new URL(req.url);
     const districtId = searchParams.get("districtId")?.trim() ?? "";
 
@@ -40,69 +29,64 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Missing districtId" }, { status: 400 });
     }
 
-    const userSnap = await adminDb.from("users").select("*").eq("id", callerUid).single();
-    const caller = userSnap;
+    const { data: caller } = await adminDb
+      .from("users")
+      .select("roles, district_id")
+      .eq("id", authUser.id)
+      .single();
 
     if (!caller) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const roles = Array.isArray(caller.roles) ? caller.roles : [];
+    const roles: string[] = Array.isArray(caller.roles) ? caller.roles : [];
     const canManageSystem = roles.includes("RootAdmin") || roles.includes("SystemAdmin");
 
-    if (!canManageSystem && (!roles.includes("DistrictAdmin") || caller.districtId !== districtId)) {
+    if (!canManageSystem && (!roles.includes("DistrictAdmin") || caller.district_id !== districtId)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const regionsSnap = await adminDb
-      .collection("regions")
-      .where("districtId", "==", districtId)
-      .get();
+    const { data: regions } = await adminDb
+      .from("regions")
+      .select("id")
+      .eq("district_id", districtId);
 
-    const regionIds = regionsSnap.docs.map((doc) => doc.id);
+    const regionIds = (regions ?? []).map((r) => r.id);
 
     if (regionIds.length === 0) {
       return NextResponse.json({ users: [] });
     }
 
-    const churchSnapshots = await Promise.all(
-      regionIds.map((regionId) => adminDb.collection("churches").where("regionId", "==", regionId).get())
-    );
+    const { data: churches } = await adminDb
+      .from("churches")
+      .select("id, name")
+      .in("region_id", regionIds);
 
-    const churches = churchSnapshots.flatMap((snapshot) =>
-      snapshot.docs.map((doc) => ({ id: doc.id, name: doc.name || doc.id }))
-    );
+    const churchList = churches ?? [];
 
-    if (churches.length === 0) {
+    if (churchList.length === 0) {
       return NextResponse.json({ users: [] });
     }
 
-    const churchNameById = new Map(churches.map((church) => [church.id, church.name]));
+    const churchIds = churchList.map((c) => c.id);
+    const churchNameById = new Map(churchList.map((c) => [c.id, c.name]));
 
-    const userSnapshots = await Promise.all(
-      churches.map((church) => adminDb.collection("users").where("church_id", "==", church.id).get())
-    );
+    const { data: userRows } = await adminDb
+      .from("users")
+      .select("id, first_name, last_name, email, roles, church_id")
+      .in("church_id", churchIds);
 
-    const users = new Map<string, DistrictUser>();
+    const users: DistrictUser[] = (userRows ?? []).map((u) => ({
+      uid: u.id,
+      firstName: u.first_name,
+      lastName: u.last_name,
+      email: u.email,
+      roles: Array.isArray(u.roles) ? u.roles : [],
+      church_id: u.church_id,
+      churchName: u.church_id ? churchNameById.get(u.church_id) ?? u.church_id : undefined,
+    }));
 
-    userSnapshots.forEach((snapshot) => {
-      snapshot.docs.forEach((doc) => {
-        const data = doc;
-        const church_id = typeof data.church_id === "string" ? data.church_id : null;
-
-        users.set(doc.id, {
-          uid: doc.id,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          roles: Array.isArray(data.roles) ? data.roles : [],
-          church_id,
-          churchName: church_id ? churchNameById.get(church_id) ?? church_id : undefined,
-        });
-      });
-    });
-
-    return NextResponse.json({ users: Array.from(users.values()) });
+    return NextResponse.json({ users });
   } catch (error) {
     console.error("district users error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
