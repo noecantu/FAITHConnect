@@ -1,6 +1,19 @@
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 import type { Contribution } from "./types";
 
+function toErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) return error.message;
+
+  if (error && typeof error === "object") {
+    const maybe = error as Record<string, unknown>;
+    const parts = [maybe.message, maybe.code, maybe.details, maybe.hint]
+      .filter((part): part is string => typeof part === "string" && part.trim().length > 0);
+    if (parts.length > 0) return parts.join(" | ");
+  }
+
+  return fallback;
+}
+
 export function listenToContributions(
   churchId: string,
   callback: (contributions: Contribution[]) => void
@@ -37,21 +50,26 @@ export async function addContribution(
 ) {
   if (!churchId) throw new Error("Missing churchId");
 
-  const supabase = getSupabaseClient();
-  const payload: Record<string, unknown> = {
-    church_id: churchId,
-    member_name: data.memberName,
-    amount: data.amount,
-    category: data.category,
-    contribution_type: data.contributionType,
-    date: data.date,
-    notes: data.notes ?? null,
-  };
+  const res = await fetch("/api/contributions/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      churchId,
+      memberId: data.memberId,
+      memberName: data.memberName,
+      amount: data.amount,
+      category: data.category,
+      contributionType: data.contributionType,
+      date: data.date,
+      notes: data.notes ?? null,
+    }),
+  });
 
-  if (data.memberId) payload.member_id = data.memberId;
-
-  const { error } = await supabase.from("contributions").insert(payload);
-  if (error) throw error;
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(toErrorMessage(body, `Failed to add contribution (${res.status})`));
+  }
 }
 
 export async function updateContribution(
@@ -61,35 +79,41 @@ export async function updateContribution(
 ) {
   if (!churchId) throw new Error("Missing churchId");
 
-  const supabase = getSupabaseClient();
-  const updatePayload: Record<string, unknown> = {};
+  const res = await fetch("/api/contributions/update", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      churchId,
+      id,
+      memberId: data.memberId,
+      memberName: data.memberName,
+      amount: data.amount,
+      category: data.category,
+      contributionType: data.contributionType,
+      date: data.date,
+      notes: data.notes,
+    }),
+  });
 
-  if (data.memberId !== undefined) updatePayload.member_id = data.memberId;
-  if (data.memberName !== undefined) updatePayload.member_name = data.memberName;
-  if (data.amount !== undefined) updatePayload.amount = data.amount;
-  if (data.category !== undefined) updatePayload.category = data.category;
-  if (data.contributionType !== undefined) updatePayload.contribution_type = data.contributionType;
-  if (data.date !== undefined) updatePayload.date = data.date;
-  if (data.notes !== undefined) updatePayload.notes = data.notes;
-
-  const { error } = await supabase
-    .from("contributions")
-    .update(updatePayload)
-    .eq("id", id)
-    .eq("church_id", churchId);
-
-  if (error) throw error;
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(toErrorMessage(body, `Failed to update contribution (${res.status})`));
+  }
 }
 
 export async function deleteContribution(churchId: string, id: string) {
   if (!churchId) throw new Error("Missing churchId");
 
-  const supabase = getSupabaseClient();
-  const { error } = await supabase
-    .from("contributions")
-    .delete()
-    .eq("id", id)
-    .eq("church_id", churchId);
+  const res = await fetch("/api/contributions/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ churchId, id }),
+  });
 
-  if (error) throw error;
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(toErrorMessage(body, `Failed to delete contribution (${res.status})`));
+  }
 }

@@ -19,7 +19,7 @@ import { listenToContributions } from '@/app/lib/contributions';
 import { listenToMembers } from '@/app/lib/members';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import type { Contribution, Member } from '@/app/lib/types';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Fab } from '@/app/components/ui/fab';
 import {
   Select,
@@ -56,10 +56,14 @@ export default function ContributionsPage() {
   // ------------------------------
   useEffect(() => setIsClient(true), []);
 
-  useEffect(() => {
+  const refreshContributions = useCallback(() => {
     if (!churchId) return;
-    return listenToContributions(churchId, setContributions);
+    void listenToContributions(churchId, setContributions);
   }, [churchId]);
+
+  useEffect(() => {
+    refreshContributions();
+  }, [refreshContributions]);
 
   useEffect(() => {
     if (!churchId) return;
@@ -327,6 +331,7 @@ export default function ContributionsPage() {
           onClose={() => setIsAddDialogOpen(false)}
           members={members}
           churchId={churchId}
+          onSaved={refreshContributions}
         />
 
         {/* Edit Contribution */}
@@ -335,6 +340,7 @@ export default function ContributionsPage() {
           members={members}
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
+          onSaved={refreshContributions}
         />
 
         {canEdit && (

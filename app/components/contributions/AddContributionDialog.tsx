@@ -46,12 +46,36 @@ const usdFormatter = new Intl.NumberFormat("en-US", {
 function parseCurrencyInput(value: string): number {
   const cleaned = value.replace(/[^0-9.]/g, "");
   const [whole, ...rest] = cleaned.split(".");
-  const normalized = rest.length > 0
-    ? `${whole}.${rest.join("")}`
-    : whole;
+  const decimal = rest.join("").slice(0, 2);
+  const normalized = rest.length > 0 ? `${whole}.${decimal}` : whole;
 
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function sanitizeAmountInput(value: string): string {
+  const cleaned = value.replace(/[^0-9.]/g, "");
+  const [whole, ...rest] = cleaned.split(".");
+  const decimal = rest.join("").slice(0, 2);
+  return rest.length > 0 ? `${whole}.${decimal}` : whole;
+}
+
+function toEditableAmount(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return "";
+  return value.toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1");
+}
+
+function getErrorMessage(error: unknown, fallback = "Please try again."): string {
+  if (error instanceof Error && error.message) return error.message;
+
+  if (error && typeof error === "object") {
+    const maybe = error as Record<string, unknown>;
+    const parts = [maybe.message, maybe.code, maybe.details]
+      .filter((part): part is string => typeof part === "string" && part.trim().length > 0);
+    if (parts.length > 0) return parts.join(" | ");
+  }
+
+  return fallback;
 }
 
 const contributionSchema = z.object({
@@ -77,6 +101,7 @@ interface AddContributionDialogProps {
   onClose: () => void;
   members: Member[];
   churchId: string | null;
+  onSaved?: () => void;
 }
 
 export function AddContributionDialog({
@@ -84,9 +109,11 @@ export function AddContributionDialog({
   onClose,
   members,
   churchId,
+  onSaved,
 }: AddContributionDialogProps) {
   const { toast } = useToast();
   const [amountInput, setAmountInput] = React.useState(usdFormatter.format(0));
+  const [isAmountFocused, setIsAmountFocused] = React.useState(false);
 
   const form = useForm<ContributionFormValues>({
     resolver: zodResolver(contributionSchema),
@@ -104,8 +131,12 @@ export function AddContributionDialog({
   React.useEffect(() => {
     if (!isOpen) return;
     const currentAmount = form.getValues("amount") ?? 0;
-    setAmountInput(usdFormatter.format(Number(currentAmount) || 0));
-  }, [isOpen, form]);
+    setAmountInput(
+      isAmountFocused
+        ? toEditableAmount(Number(currentAmount) || 0)
+        : usdFormatter.format(Number(currentAmount) || 0)
+    );
+  }, [isOpen, form, isAmountFocused]);
 
   async function onSubmit(values: ContributionFormValues) {
     if (!churchId) return;
@@ -157,14 +188,17 @@ export function AddContributionDialog({
         contributionType: "Digital Transfer",
         date: dayjs().format("YYYY-MM-DD"),
       });
+      setIsAmountFocused(false);
       setAmountInput(usdFormatter.format(0));
 
+      onSaved?.();
       onClose();
     } catch (error) {
-      console.error(error);
+      const message = getErrorMessage(error);
+      console.error("Add contribution error:", message);
       toast({
         title: "Error adding contribution",
-        description: (error as Error).message || "Please try again.",
+        description: message,
         // variant: "destructive",
       });
     }
@@ -274,23 +308,30 @@ export function AddContributionDialog({
                         inputMode="decimal"
                         placeholder="$0.00"
                         value={amountInput}
+                        className="text-right tabular-nums"
+                        onFocus={() => {
+                          setIsAmountFocused(true);
+                          const current = Number(field.value) || 0;
+                          setAmountInput(toEditableAmount(current));
+                        }}
                         onChange={(e) => {
-                          const raw = e.target.value;
+                          const sanitized = sanitizeAmountInput(e.target.value);
 
-                          if (raw.trim() === "") {
+                          if (sanitized.trim() === "") {
                             setAmountInput("");
                             field.onChange(0);
                             return;
                           }
 
-                          const parsed = parseCurrencyInput(raw);
+                          const parsed = parseCurrencyInput(sanitized);
                           field.onChange(parsed);
-                          setAmountInput(usdFormatter.format(parsed));
+                          setAmountInput(sanitized);
                         }}
                         onBlur={() => {
-                          if (amountInput.trim() === "") {
-                            setAmountInput(usdFormatter.format(0));
-                          }
+                          setIsAmountFocused(false);
+                          const parsed = parseCurrencyInput(amountInput);
+                          field.onChange(parsed);
+                          setAmountInput(usdFormatter.format(parsed));
                         }}
                       />
                     </FormControl>

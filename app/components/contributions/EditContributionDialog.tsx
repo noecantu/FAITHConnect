@@ -54,11 +54,25 @@ const contributionSchema = z.object({
 
 type ContributionFormValues = z.infer<typeof contributionSchema>;
 
+function getErrorMessage(error: unknown, fallback = 'Please try again.'): string {
+  if (error instanceof Error && error.message) return error.message;
+
+  if (error && typeof error === 'object') {
+    const maybe = error as Record<string, unknown>;
+    const parts = [maybe.message, maybe.code, maybe.details]
+      .filter((part): part is string => typeof part === 'string' && part.trim().length > 0);
+    if (parts.length > 0) return parts.join(' | ');
+  }
+
+  return fallback;
+}
+
 interface EditContributionDialogProps {
   contribution: Contribution | null;
   members: Member[];
   isOpen: boolean;
   onClose: () => void;
+  onSaved?: () => void;
 }
 
 export function EditContributionDialog({
@@ -66,6 +80,7 @@ export function EditContributionDialog({
   members,
   isOpen,
   onClose,
+  onSaved,
 }: EditContributionDialogProps) {
   const { toast } = useToast();
   const { churchId } = useChurchId();
@@ -108,12 +123,14 @@ export function EditContributionDialog({
         title: 'Contribution Updated',
         description: 'The contribution details have been saved.',
       });
+      onSaved?.();
       onClose();
     } catch (error) {
-      console.error(error);
+      const message = getErrorMessage(error);
+      console.error('Update contribution error:', message);
       toast({
         title: 'Error updating contribution',
-        description: (error as Error).message || 'Please try again.',
+        description: message,
         // variant: 'destructive',
       });
     }
@@ -128,13 +145,15 @@ export function EditContributionDialog({
         title: 'Contribution Deleted',
         description: 'The contribution has been successfully deleted.',
       });
+      onSaved?.();
       setIsDeleteAlertOpen(false);
       onClose();
     } catch (error) {
-      console.error(error);
+      const message = getErrorMessage(error);
+      console.error('Delete contribution error:', message);
       toast({
         title: 'Error deleting contribution',
-        description: (error as Error).message || 'Please try again.',
+        description: message,
         // variant: 'destructive',
       });
     }
