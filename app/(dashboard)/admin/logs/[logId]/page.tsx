@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { adminDb } from "@/app/lib/supabase/admin";
 import LogDetailView from "./LogDetailView";
 

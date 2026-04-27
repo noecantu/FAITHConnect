@@ -1,4 +1,6 @@
 //app/(dashboard)/admin/settings/page.tsx
+export const dynamic = "force-dynamic";
+
 import { PageHeader } from '@/app/components/page-header';
 import { loadSystemSettings } from './actions';
 import SettingsClient from './SettingsClient';

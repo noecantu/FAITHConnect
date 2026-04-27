@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { redirect } from "next/navigation";
 import { adminDb } from "@/app/lib/supabase/admin";
 import { getCurrentUser } from "@/app/lib/auth/server/getCurrentUser";

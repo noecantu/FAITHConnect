@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+export const dynamic = "force-dynamic";
+
 import { adminDb } from "@/app/lib/supabase/admin";
 import { getCurrentUser } from "@/app/lib/auth/server/getCurrentUser";
 import { SYSTEM_ROLE_LIST, type Role } from "@/app/lib/auth/roles";
