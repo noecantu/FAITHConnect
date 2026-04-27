@@ -1,14 +1,8 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { adminDb } from "@/app/lib/supabase/admin";
+import { adminDb, getAdminClient } from "@/app/lib/supabase/admin";
 import { isMissingTableError, schemaNotInitializedResponse } from "@/app/lib/supabase/schema-errors";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function POST(req: Request) {
   try {
@@ -22,7 +16,7 @@ export async function POST(req: Request) {
     let uid: string;
 
     // Attempt to create the user via admin (no confirmation email)
-    const { data: created, error: createError } = await supabaseAdmin.auth.admin.createUser({
+    const { data: created, error: createError } = await getAdminClient().auth.admin.createUser({
       email: normalizedEmail,
       password,
       email_confirm: true,
@@ -32,7 +26,7 @@ export async function POST(req: Request) {
       const msg = createError.message.toLowerCase();
       if (msg.includes("already registered") || msg.includes("already exists") || msg.includes("duplicate")) {
         // User exists — sign them in to verify credentials
-        const { data: signInData, error: signInError } = await supabaseAdmin.auth.signInWithPassword({
+        const { data: signInData, error: signInError } = await getAdminClient().auth.signInWithPassword({
           email: normalizedEmail,
           password,
         });

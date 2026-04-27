@@ -1,16 +1,9 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { adminDb } from "@/app/lib/supabase/admin";
-import { createClient } from "@supabase/supabase-js";
+import { adminDb, getAdminClient } from "@/app/lib/supabase/admin";
 import { getServerUser } from "@/app/lib/supabase/server";
 import { can } from "@/app/lib/auth/permissions";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 const MAX_LOGO_SIZE_BYTES = 5 * 1024 * 1024;
 const BUCKET = "logos";
@@ -82,7 +75,7 @@ export async function POST(req: Request) {
     const objectPath = `regions/${regionId}/logo/logo-${Date.now()}.${ext}`;
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    const { error: uploadError } = await supabaseAdmin.storage
+    const { error: uploadError } = await getAdminClient().storage
       .from(BUCKET)
       .upload(objectPath, buffer, {
         contentType: file.type,
@@ -91,7 +84,7 @@ export async function POST(req: Request) {
 
     if (uploadError) throw uploadError;
 
-    const { data: urlData } = supabaseAdmin.storage
+    const { data: urlData } = getAdminClient().storage
       .from(BUCKET)
       .getPublicUrl(objectPath);
 

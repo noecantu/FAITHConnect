@@ -2,15 +2,9 @@ export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { getServerUser } from "@/app/lib/supabase/server";
-import { adminDb } from "@/app/lib/supabase/admin";
+import { adminDb, getAdminClient } from "@/app/lib/supabase/admin";
 import { can } from "@/app/lib/auth/permissions";
 import type { Role } from "@/app/lib/auth/roles";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function POST(req: Request) {
   try {
@@ -71,7 +65,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(uid);
+    const { error: deleteAuthError } = await getAdminClient().auth.admin.deleteUser(uid);
     if (deleteAuthError && !deleteAuthError.message.includes("not found")) {
       throw deleteAuthError;
     }

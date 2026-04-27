@@ -2,13 +2,7 @@ export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { getServerUser } from "@/app/lib/supabase/server";
-import { adminDb } from "@/app/lib/supabase/admin";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { adminDb, getAdminClient } from "@/app/lib/supabase/admin";
 
 export async function POST(req: Request) {
   try {
@@ -50,7 +44,7 @@ export async function POST(req: Request) {
       // Use the access_token from the signup response since cookies may not be set yet.
       let verifiedUid: string | null = null;
       if (accessToken) {
-        const { data: { user: tokenUser } } = await supabaseAdmin.auth.getUser(accessToken);
+        const { data: { user: tokenUser } } = await getAdminClient().auth.getUser(accessToken);
         verifiedUid = tokenUser?.id ?? null;
       } else {
         const authUser = await getServerUser();

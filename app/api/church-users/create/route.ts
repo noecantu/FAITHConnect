@@ -2,16 +2,9 @@ export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { getServerUser } from "@/app/lib/supabase/server";
-import { adminDb } from "@/app/lib/supabase/admin";
+import { adminDb, getAdminClient } from "@/app/lib/supabase/admin";
 import { can } from "@/app/lib/auth/permissions";
-import { createClient } from "@supabase/supabase-js";
 import type { Role } from "@/app/lib/auth/roles";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 export async function POST(req: Request) {
   try {
@@ -42,7 +35,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "email and churchId are required" }, { status: 400 });
     }
 
-    const { data: { user }, error: createError } = await supabaseAdmin.auth.admin.createUser({
+    const { data: { user }, error: createError } = await getAdminClient().auth.admin.createUser({
       email: email.trim().toLowerCase(),
       password: password || crypto.randomUUID(),
       email_confirm: true,
@@ -69,7 +62,7 @@ export async function POST(req: Request) {
     });
 
     if (profileError) {
-      await supabaseAdmin.auth.admin.deleteUser(uid);
+      await getAdminClient().auth.admin.deleteUser(uid);
       return NextResponse.json({ error: profileError.message }, { status: 500 });
     }
 
