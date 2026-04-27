@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-;
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from '@/app/hooks/usePermissions';
 import {
@@ -17,7 +16,7 @@ import Link from 'next/link';
 export default function RegionalUserDetailPage() {
   const supabase = getSupabaseClient();
   const { userId } = useParams();
-  const { isRootAdmin, isRegionalAdmin, region_id, loading: permLoading } = usePermissions();
+  const { isRootAdmin, isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
 
   const [user, setUser] = useState<any | null>(null);
   const [church, setChurch] = useState<any | null>(null);
@@ -25,16 +24,17 @@ export default function RegionalUserDetailPage() {
 
   useEffect(() => {
     async function loadUser() {
-      const ref = doc(db, 'users', userId as string);
-      const snap = await getDoc(ref);
+      const { data } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId as string)
+        .single();
 
-      if (!snap.exists()) {
+      if (!data) {
         setUser(null);
         setLoading(false);
         return;
       }
-
-      const data = snap.data();
 
       // Block cross‑region access
       if (!isRootAdmin) {
@@ -46,26 +46,26 @@ export default function RegionalUserDetailPage() {
           return;
         }
 
-        const churchSnap = await supabase.from('churches').select('*').eq('id', church_id).single();
-        const churchRegionId = churchSnap.exists() ? churchSnap.data().region_id : null;
+        const { data: churchData } = await supabase.from('churches').select('*').eq('id', church_id).single();
+        const churchRegionId = churchData?.region_id ?? null;
 
-        if (churchRegionId !== region_id) {
+        if (churchRegionId !== regionId) {
           setUser(null);
           setLoading(false);
           return;
         }
 
-        if (churchSnap.exists()) {
-          setChurch(churchSnap.data());
+        if (churchData) {
+          setChurch(churchData);
         }
       }
 
-      setUser({ ...data, uid: snap.id });
+      setUser({ ...data, uid: data.id });
       setLoading(false);
     }
 
     loadUser();
-  }, [userId, region_id, isRootAdmin]);
+  }, [userId, regionId, isRootAdmin, supabase]);
 
   if (permLoading) {
     return <div className="p-6 text-muted-foreground">Loading…</div>;

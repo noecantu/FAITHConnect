@@ -32,10 +32,13 @@ export interface Church {
   slug: string;
   timezone: string;
   logoUrl?: string | null;
+  logo_url?: string | null;
   description?: string | null;
   status?: string | null;
   createdAt?: Date | { seconds: number } | null;
+  created_at?: string | null;
   updatedAt?: Date | { seconds: number } | null;
+  updated_at?: string | null;
   enabledAt?: Date | { seconds: number } | null;
   disabledAt?: Date | { seconds: number } | null;
   address?: string | null;
@@ -47,6 +50,8 @@ export interface Church {
   phone?: string | null;
   leaderName?: string | null;
   leaderTitle?: string | null;
+  leader_name?: string | null;
+  leader_title?: string | null;
   // Billing
   billingStatus?: string | null;
   billingDelinquent?: boolean | null;
@@ -137,6 +142,8 @@ export type Member = {
   qrCode?: string;
   firstName: string;
   lastName: string;
+  first_name?: string;
+  last_name?: string;
   email?: string;
   phoneNumber: string;
   profilePhotoUrl?: string;
@@ -330,11 +337,15 @@ export interface SystemSettings {
 }
 
 export interface AppUser {
+  id?: string; // Supabase user.id alias for uid
   uid: string;
   email: string;
   churchId?: string | null;
+  church_id?: string | null;
   regionId?: string | null;
+  region_id?: string | null;
   districtId?: string | null;
+  district_id?: string | null;
   roles?: Role[];
   isSystemUser?: boolean;
   isRootAdmin?: boolean;
@@ -344,9 +355,14 @@ export interface AppUser {
   managedChurchIds?: string[];
   firstName?: string | null;
   lastName?: string | null;
-  profilePhotoUrl?: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  profilePhotoUrl?: string | null;
+  profile_photo_url?: string;
+  onboardingComplete?: boolean;
+  onboardingStep?: string | null;
   settings?: {
-    attendanceView: "cards" | "list";
+    attendanceView?: "cards" | "list";
     calendarView?: "calendar" | "list";
     cardView?: "show" | "hide";
     fiscalYear?: string | null;

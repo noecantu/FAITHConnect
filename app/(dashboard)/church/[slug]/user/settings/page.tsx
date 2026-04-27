@@ -105,21 +105,28 @@ export default function UserSettingsPage() {
   useEffect(() => {
     if (authLoading || !authUser) return;
 
-    const userId = authUser.uid;
+    const userId = authUser.id || authUser.uid;
 
     async function load() {
       setLoading(true);
       try {
-        const ref = doc(db, "users", userId);
-        const snap = await getDoc(ref);
-        setFullUser(snap.data());
+        const { data, error } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", userId)
+          .single();
+
+        if (error) throw error;
+        setFullUser(data);
+      } catch (err) {
+        console.error("Failed to load user:", err);
       } finally {
         setLoading(false);
       }
     }
 
     load();
-  }, [authUser, authLoading]);
+  }, [authUser, authLoading, supabase]);
 
   //
   // 3. NOW — AND ONLY NOW — YOU MAY RETURN CONDITIONALLY

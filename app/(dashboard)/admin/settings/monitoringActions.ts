@@ -206,7 +206,8 @@ export async function getStripeSyncStatus() {
         apiVersion: "2023-10-16",
       });
 
-    const account = await stripe.accounts.retrieve();
+    const accountId = process.env.STRIPE_ACCOUNT_ID;
+    const account = accountId ? await stripe.accounts.retrieve(accountId) : null;
 
     const { data: usersData } = await adminDb
       .from("users")
@@ -240,7 +241,7 @@ export async function getStripeSyncStatus() {
         message: unhealthySampleCount > 0
           ? "Some sampled subscriptions are not active/trialing."
           : "Stripe API reachable and sampled subscriptions are healthy.",
-        stripeAccountId: account.id,
+        stripeAccountId: account?.id ?? null,
         usersWithStoredSubscriptionId: subscriptionIds.length,
         sampledSubscriptions: sampleStatuses.length,
         unhealthySampleCount,

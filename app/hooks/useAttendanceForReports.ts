@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 import type { AttendanceRecord, Member } from "@/app/lib/types";
 
+export type { AttendanceRecord } from "@/app/lib/types";
+
 type AttendanceRow = {
   id: string;
   date: string;
@@ -24,7 +26,7 @@ function rowToAttendanceRecord(row: AttendanceRow): AttendanceRecord {
   };
 }
 
-export function useAttendanceForReports(churchId: string | undefined, _members?: Member[]) {
+export function useAttendanceForReports(churchId: string | null | undefined, _members?: Member[]) {
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
 

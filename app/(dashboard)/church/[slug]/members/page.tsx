@@ -17,8 +17,6 @@ import { listenToMembers } from '@/app/lib/members';
 import type { Member } from '@/app/lib/types';
 
 import MemberCard from '@/app/components/members/MemberCard';
-
-;
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { SearchBar } from '@/app/components/ui/search-bar';
 
@@ -35,7 +33,8 @@ export default function MembersPage() {
   // Only true for Church Admin + Root Admin
   const canEdit = !isReadOnly && canManageMembers;
 
-  const { cardView } = useSettings();
+  const { settings } = useSettings(church_id ?? undefined);
+  const cardView = (settings?.cardView ?? 'show') as 'show' | 'hide';
   const { user } = useAuth();
 
   const [members, setMembers] = useState<Member[]>([]);
@@ -98,10 +97,21 @@ export default function MembersPage() {
 
                 if (!user?.uid) return;
 
-                await updateDoc(doc(db, 'users', user.uid), {
-                  'settings.cardView': v,
-                  updated_at: serverTimestamp(),
-                });
+                const { data: current } = await supabase
+                  .from('users')
+                  .select('settings')
+                  .eq('id', user.uid)
+                  .single();
+
+                const mergedSettings = {
+                  ...((current?.settings as Record<string, unknown> | null) ?? {}),
+                  cardView: v,
+                };
+
+                await supabase
+                  .from('users')
+                  .update({ settings: mergedSettings, updated_at: new Date().toISOString() })
+                  .eq('id', user.uid);
               }}
               className="flex items-center gap-4"
             >

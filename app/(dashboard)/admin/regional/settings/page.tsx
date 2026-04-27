@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-;
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { useCurrentUser } from "@/app/hooks/useCurrentUser";
@@ -16,7 +15,7 @@ import { Save, Loader2, Check } from "lucide-react";
 
 export default function RegionalSettingsPage() {
   const supabase = getSupabaseClient();
-  const { isRegionalAdmin, region_id, loading: permLoading } = usePermissions();
+  const { isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
   const { user, loading: userLoading } = useCurrentUser();
 
   const [regionName, setRegionName] = useState("Region");
@@ -65,10 +64,10 @@ export default function RegionalSettingsPage() {
   }, [dirty, isDirty]);
 
   useEffect(() => {
-    if (!region_id) return;
+    if (!regionId) return;
 
     const load = async () => {
-      const { data: regionData } = await supabase.from("regions").select('name').eq('id', region_id).single();
+      const { data: regionData } = await supabase.from("regions").select('name').eq('id', regionId).single();
       if (!regionData) return;
 
       const name = (regionData.name as string | undefined) ?? "Region";
@@ -76,13 +75,13 @@ export default function RegionalSettingsPage() {
     };
 
     load();
-  }, [region_id]);
+  }, [regionId, supabase]);
 
   if (permLoading || userLoading) {
     return <div className="p-6 text-muted-foreground">Loading…</div>;
   }
 
-  if (!isRegionalAdmin || !region_id) {
+  if (!isRegionalAdmin || !regionId) {
     return (
       <div className="p-6">
         <h1 className="text-xl font-semibold">Unauthorized</h1>
@@ -103,8 +102,8 @@ export default function RegionalSettingsPage() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RegionProfileCard region_id={region_id} />
-        <RegionLogoCard region_id={region_id} regionName={regionName} />
+        <RegionProfileCard region_id={regionId} />
+        <RegionLogoCard region_id={regionId} regionName={regionName} />
         <ProfilePhotoCard
           user={user}
           onDirtyChange={handlePhotoDirty}
@@ -116,7 +115,7 @@ export default function RegionalSettingsPage() {
         />
       </div>
 
-      <DistrictMembershipCard region_id={region_id} />
+      <DistrictMembershipCard regionId={regionId} />
 
       <Fab
         type="save"

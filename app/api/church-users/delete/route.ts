@@ -85,23 +85,11 @@ export async function POST(req: Request) {
   }
 }
 
+
+
 function readSessionCookie(req: Request): string | null {
   const cookieHeader = req.headers.get("cookie") || "";
   const match = cookieHeader.match(/session=([^;]+)/);
   return match?.[1] ?? null;
-}
-
-async function deleteDocumentTree(ref: DocumentReference) {
-  const subcollections = await ref.listCollections();
-
-  for (const subcollection of subcollections) {
-    const childRefs = await subcollection.listDocuments();
-
-    for (const childRef of childRefs) {
-      await deleteDocumentTree(childRef);
-    }
-  }
-
-  await ref.delete();
 }
 

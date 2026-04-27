@@ -2,7 +2,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-;
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { getUsersByChurchIds } from '@/app/lib/regional-users';
@@ -23,36 +22,38 @@ type RegionalUser = {
 };
 
 export default function RegionalUsersPage() {
-  const supabase = getSupabaseClient();
-  const { isRootAdmin, isRegionalAdmin, region_id, loading: permLoading } = usePermissions();
+  const { isRootAdmin, isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
   const [churches, setChurches] = useState<RegionalChurch[]>([]);
   const [users, setUsers] = useState<RegionalUser[]>([]);
   const [churchesLoading, setChurchesLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(true);
 
   useEffect(() => {
-    if (!region_id) return;
+    if (!regionId) return;
 
-    const q = query(
-      collection(db, 'churches'),
-      where('region_id', '==', region_id)
-    );
+    let active = true;
 
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as RegionalChurch[];
-        setChurches(list);
-        setChurchesLoading(false);
-      },
-      (error) => {
-        if ((error as { code?: string }).code !== 'permission-denied') console.error('regional churches snapshot error:', error);
-        setChurchesLoading(false);
+    (async () => {
+      try {
+        const { data } = await getSupabaseClient()
+          .from('churches')
+          .select('id')
+          .eq('region_id', regionId);
+
+        if (!active) return;
+        setChurches((data ?? []) as RegionalChurch[]);
+      } catch (error) {
+        console.error('regional churches load error:', error);
+        if (active) setChurches([]);
+      } finally {
+        if (active) setChurchesLoading(false);
       }
-    );
+    })();
 
-    return () => unsub();
-  }, [region_id]);
+    return () => {
+      active = false;
+    };
+  }, [regionId]);
 
   useEffect(() => {
     if (churchesLoading) return;
@@ -89,23 +90,23 @@ export default function RegionalUsersPage() {
     };
   }, [churches, churchesLoading]);
 
-    // Block unauthorized access
-    if (permLoading) {
-      return (
-        <div className="p-6 text-muted-foreground">
-          Loading…
-        </div>
-      );
-    }
+  // Block unauthorized access
+  if (permLoading) {
+    return (
+      <div className="p-6 text-muted-foreground">
+        Loading…
+      </div>
+    );
+  }
 
-    if (!isRegionalAdmin && !isRootAdmin) {
-      return (
-        <div className="p-6">
-          <h1 className="text-xl font-semibold">Unauthorized</h1>
-          <p>You do not have permission to view this page.</p>
-        </div>
-      );
-    }
+  if (!isRegionalAdmin && !isRootAdmin) {
+    return (
+      <div className="p-6">
+        <h1 className="text-xl font-semibold">Unauthorized</h1>
+        <p>You do not have permission to view this page.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">

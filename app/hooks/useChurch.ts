@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export function useChurch(churchId: string | undefined) {
+export function useChurch(churchId: string | null | undefined) {
   const [church, setChurch] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 

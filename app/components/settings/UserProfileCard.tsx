@@ -41,14 +41,16 @@ export default function UserProfileCard({
 
   // Save function for FAB
   async function save() {
-    const ref = doc(db, "users", user.uid);
+    const { error } = await supabase
+      .from("users")
+      .update({
+        first_name,
+        last_name,
+        email,
+      })
+      .eq("id", user.id);
 
-    await updateDoc(ref, {
-      first_name,
-      last_name,
-      email,
-    });
-
+    if (error) throw error;
     setInitial({ first_name, last_name, email });
   }
 

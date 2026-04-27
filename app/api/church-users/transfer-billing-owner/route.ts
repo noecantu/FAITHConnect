@@ -74,22 +74,3 @@ export async function POST(req: Request) {
     );
   }
 }
-
-    await adminDb
-      .from("churches")
-      .update({
-        billing_owner_uid: uid,
-        billing_contact_email: billingContactEmail,
-        billing_updated_at: new Date().toISOString(),
-      })
-      .eq("id", targetChurchId);
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("church-users/transfer-billing-owner error:", error);
-    return NextResponse.json(
-      { error: "Failed to transfer billing ownership." },
-      { status: 500 }
-    );
-  }
-}

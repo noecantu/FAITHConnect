@@ -62,23 +62,21 @@ export function SetListSectionEditor({
      Fetch Section Names
   ---------------------------------------------- */
   const fetchSectionNames = useCallback(async () => {
-    if (!db || !church_id) return;
+    if (!church_id) return;
 
     try {
-      const ref = collection(db, 'churches', church_id, 'sectionNames');
-      const q = query(ref, orderBy('title'));
-      const snap = await getDocs(q);
+      const { data } = await supabase
+        .from("section_names")
+        .select("id, title")
+        .eq("church_id", church_id)
+        .order("title", { ascending: true });
 
-      setSectionNames(
-        snap.docs.map((d) => ({
-          id: d.id,
-          title: d.data().title as string,
-        }))
-      );
+      setSectionNames((data ?? []) as SectionName[]);
     } catch (err) {
       console.error('Error fetching section names:', err);
+      setSectionNames([]);
     }
-  }, [church_id]);
+  }, [church_id, supabase]);
 
   useEffect(() => {
     if (church_id) fetchSectionNames();

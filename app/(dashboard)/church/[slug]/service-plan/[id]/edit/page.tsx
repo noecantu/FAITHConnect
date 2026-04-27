@@ -56,7 +56,7 @@ export default function EditServicePlanPage() {
   const { churchId, loading: churchLoading } = useChurchId();
   const { canManageServicePlans, loading: rolesLoading } = usePermissions();
   const { members } = useMembers();
-  const { plan, loading } = useServicePlan(id as string);
+  const { plan, loading } = useServicePlan(churchId ?? undefined, id as string);
   const [isSectionNameDialogOpen, setIsSectionNameDialogOpen] = useState(false);
 
   const form = useForm<FormValues>({
@@ -78,7 +78,7 @@ export default function EditServicePlanPage() {
       dateString: plan.dateString ?? '',
       timeString: plan.timeString ?? '',
       notes: plan.notes ?? '',
-      sections: plan.sections?.map((section) => ({
+      sections: plan.sections?.map((section: any) => ({
         id: section.id,
         title: section.title,
         personId: section.personId ?? null,

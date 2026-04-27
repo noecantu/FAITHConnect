@@ -9,23 +9,23 @@ import { DashboardApprovalRequestCard } from '@/app/components/ui/dashboard-card
 
 export default function PendingChurchesPage() {
   const supabase = getSupabaseClient();
-  const { region_id, isRegionalAdmin, loading: permLoading } = usePermissions();
+  const { regionId, isRegionalAdmin, loading: permLoading } = usePermissions();
   const { toast } = useToast();
 
   const [pending, setPending] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchPending = useCallback(async () => {
-    if (!region_id) return;
+    if (!regionId) return;
     setLoading(true);
     const { data } = await supabase
       .from('churches')
       .select('*')
-      .eq('region_selected_id', region_id)
+      .eq('region_selected_id', regionId)
       .eq('region_status', 'pending');
     setPending(data ?? []);
     setLoading(false);
-  }, [region_id, supabase]);
+  }, [regionId, supabase]);
 
   useEffect(() => {
     fetchPending();
@@ -91,7 +91,7 @@ export default function PendingChurchesPage() {
           <DashboardApprovalRequestCard
             key={church.id}
             name={church.name || "Unknown Church"}
-            logo_url={church.logo_url ?? null}
+            logoUrl={church.logo_url ?? null}
             logoAlt={`${church.name || "Church"} logo`}
             fallback={String(church.name || "CH")
               .split(' ')

@@ -36,13 +36,14 @@ export function ProfilePhotoCard({
   }, [dirty, onDirtyChange]);
 
   const handleSave = useCallback(async () => {
-    const userRef = doc(db, "users", user.uid);
-
     // Remove photo
     if (removeRequested && user.profile_photo_url) {
-      const fileRef = ref(storage, `users/${user.uid}/profile.jpg`);
-      await deleteObject(fileRef).catch(() => {});
-      await updateDoc(userRef, { profile_photo_url: null });
+      await supabase.storage.from("member-photos").remove([`users/${user.id}/profile.jpg`]).catch(() => {});
+      const { error } = await supabase
+        .from("users")
+        .update({ profile_photo_url: null })
+        .eq("id", user.id);
+      if (error) throw error;
 
       setPreviewUrl(null);
       setUploadedUrl(null);
@@ -52,11 +53,15 @@ export function ProfilePhotoCard({
 
     // Save uploaded photo
     if (uploadedUrl) {
-      await updateDoc(userRef, { profile_photo_url: uploadedUrl });
+      const { error } = await supabase
+        .from("users")
+        .update({ profile_photo_url: uploadedUrl })
+        .eq("id", user.id);
+      if (error) throw error;
       setPreviewUrl(uploadedUrl);
       setUploadedUrl(null);
     }
-  }, [uploadedUrl, removeRequested, user.uid, user.profile_photo_url]);
+  }, [uploadedUrl, removeRequested, user.id, user.profile_photo_url, supabase]);
 
   useEffect(() => {
     registerSave?.(handleSave);

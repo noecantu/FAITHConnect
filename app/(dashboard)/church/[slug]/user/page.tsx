@@ -47,7 +47,7 @@ export default function UserDashboardPage({
   const churchId = user?.churchId ?? null;
 
   const { church, loading: loadingChurch } = useChurch(churchId);
-  const { events, loading: loadingEvents } = useUpcomingEvents(churchId, user);
+  const { events, loading: loadingEvents } = useUpcomingEvents(churchId);
   const { services, loading: loadingServices } = useUpcomingServices(churchId);
 
   const isAdminUser = user ? can(user.roles, "church.manage") : false;

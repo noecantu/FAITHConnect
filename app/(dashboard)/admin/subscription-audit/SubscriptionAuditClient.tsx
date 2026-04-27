@@ -185,7 +185,7 @@ export default function SubscriptionAuditClient({
                   const isProblem = PROBLEM_STATUSES.includes(r.subscriptionStatus);
                   return (
                     <tr
-                      key={`${r.churchId ?? "no-church"}:${r.uid}`}
+                      key={`${r.church_id ?? "no-church"}:${r.uid}`}
                       className={`border-b border-white/5 transition hover:bg-white/[0.03] ${
                         isProblem ? "bg-rose-500/[0.04]" : ""
                       }`}
@@ -198,12 +198,12 @@ export default function SubscriptionAuditClient({
 
                       {/* Church */}
                       <td className="px-4 py-3">
-                        {r.churchId ? (
+                        {r.church_id ? (
                           <Link
-                            href={`/admin/churches/${r.churchId}`}
+                            href={`/admin/churches/${r.church_id}`}
                             className="text-blue-400 hover:underline"
                           >
-                            {r.churchName ?? r.churchId}
+                            {r.churchName ?? r.church_id}
                           </Link>
                         ) : (
                           <span className="text-muted-foreground italic">No church</span>
@@ -212,7 +212,7 @@ export default function SubscriptionAuditClient({
 
                       {/* Plan */}
                       <td className="px-4 py-3 text-white/70 capitalize">
-                        {r.planId ?? <span className="text-muted-foreground italic">—</span>}
+                        {r.plan_id ?? <span className="text-muted-foreground italic">—</span>}
                       </td>
 
                       {/* Amount */}

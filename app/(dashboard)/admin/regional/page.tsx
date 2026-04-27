@@ -37,7 +37,7 @@ type RegionalUser = {
 };
 
 export default function RegionalDashboardPage() {
-  const { isRegionalAdmin, region_id, loading: permLoading } = usePermissions();
+  const { isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
 
   const [churches, setChurches] = useState<RegionalChurch[]>([]);
   const [users, setUsers] = useState<RegionalUser[]>([]);
@@ -57,13 +57,13 @@ export default function RegionalDashboardPage() {
 
   // Load region details
   useEffect(() => {
-    if (!region_id) return;
+    if (!regionId) return;
     let active = true;
 
     getSupabaseClient()
       .from('regions')
       .select('*')
-      .eq('id', region_id)
+      .eq('id', regionId)
       .single()
       .then(({ data }) => {
         if (!active || !data) return;
@@ -74,17 +74,17 @@ export default function RegionalDashboardPage() {
       });
 
     return () => { active = false; };
-  }, [region_id]);
+  }, [regionId]);
 
   // Load churches in region
   useEffect(() => {
-    if (!region_id) return;
+    if (!regionId) return;
     let active = true;
 
     getSupabaseClient()
       .from('churches')
       .select('id, region_status, leader_name, leader_title')
-      .eq('region_id', region_id)
+      .eq('region_id', regionId)
       .then(({ data }) => {
         if (!active) return;
         setChurches((data ?? []) as RegionalChurch[]);
@@ -92,17 +92,17 @@ export default function RegionalDashboardPage() {
       });
 
     return () => { active = false; };
-  }, [region_id]);
+  }, [regionId]);
 
   // Load pending churches (requested to join this region but not approved)
   useEffect(() => {
-    if (!region_id) return;
+    if (!regionId) return;
     let active = true;
 
     getSupabaseClient()
       .from('churches')
       .select('id', { count: 'exact', head: true })
-      .eq('region_selected_id', region_id)
+      .eq('region_selected_id', regionId)
       .eq('region_status', 'pending')
       .then(({ count }) => {
         if (!active) return;
@@ -110,7 +110,7 @@ export default function RegionalDashboardPage() {
       });
 
     return () => { active = false; };
-  }, [region_id]);
+  }, [regionId]);
 
   // Load users belonging to churches in this region
   useEffect(() => {
@@ -249,7 +249,7 @@ export default function RegionalDashboardPage() {
         subtitle={region_admin_title ? `${region_admin_title}: ${region_admin_name || 'Regional Admin'}` : region_admin_name || 'Regional Admin'}
         panelTitle="Region Info"
         panelRows={[
-          { label: 'Region ID', value: region_id ? `${region_id.slice(0, 8)}…` : '—' },
+          { label: 'Region ID', value: regionId ? `${regionId.slice(0, 8)}…` : '—' },
           { label: 'Approved Churches', value: String(approvedChurches.length) },
           { label: 'Pending', value: String(pendingCount), highlighted: pendingCount > 0, href: pendingCount > 0 ? '/admin/regional/churches/pending' : undefined },
         ]}

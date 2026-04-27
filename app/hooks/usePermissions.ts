@@ -25,6 +25,10 @@ export function usePermissions() {
     regionId: user?.regionId ?? null,
     districtId: user?.districtId ?? null,
     churchId: user?.churchId ?? null,
+    // Backward-compatible aliases for files not yet migrated to camelCase.
+    region_id: user?.regionId ?? null,
+    district_id: user?.districtId ?? null,
+    church_id: user?.churchId ?? null,
 
     // Permissions
     canManageChurch: can(roles, "church.manage"),

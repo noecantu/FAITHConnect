@@ -26,7 +26,7 @@ export default async function LogDetailPage({
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Log Detail</h1>
-      <LogDetailView log={{ id: logId, ...log }} />
+      <LogDetailView logId={logId} log={{ id: logId, ...log }} />
     </div>
   );
 }

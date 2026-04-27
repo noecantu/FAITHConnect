@@ -182,7 +182,7 @@ interface DashboardMetricCardProps {
 }
 
 export function DashboardMetricCard({ title, value, description, icon }: DashboardMetricCardProps) {
-  const safeValue = Number.isFinite(value) ? value : 0;
+  const safeValue = typeof value === "number" && Number.isFinite(value) ? value : 0;
 
   return (
     <Card className="p-4 rounded-xl border border-white/10 bg-black/45 backdrop-blur-xl shadow-[0_10px_24px_rgba(0,0,0,0.18)]">

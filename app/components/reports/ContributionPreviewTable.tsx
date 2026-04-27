@@ -32,13 +32,15 @@ export function ContributionPreviewTable({
   breakdownRows,
   useGroupedView = false,
 }: Props) {
-  const sourceRows = useGroupedView ? breakdownRows : contributions;
+  const sourceRows: Array<Contribution | ContributionBreakdownRow> = useGroupedView
+    ? breakdownRows
+    : contributions;
   const totalAmount = useGroupedView
-    ? (sourceRows as ContributionBreakdownRow[]).reduce(
+    ? breakdownRows.reduce(
         (sum, row) => sum + row.totalAmount,
         0
       )
-    : (sourceRows as Contribution[]).reduce(
+    : contributions.reduce(
         (sum, contribution) => sum + contribution.amount,
         0
       );

@@ -97,7 +97,9 @@ function dispatch(action: Action) {
   listeners.forEach((listener) => listener(memoryState));
 }
 
-type Toast = Omit<ToasterToast, "id">;
+type Toast = Omit<ToasterToast, "id"> & {
+  variant?: string;
+};
 
 function toast(props: Toast) {
   const id = genId();

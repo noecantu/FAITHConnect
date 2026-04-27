@@ -40,6 +40,7 @@ import type { Role } from "./roles";
 export const ROLE_GROUP_MAP: Record<Role, MinistryGroup[]> = {
   RootAdmin: [],
   SystemAdmin: [],
+  DistrictAdmin: [],
   RegionalAdmin: [],
   Support: [],
   Auditor: [],

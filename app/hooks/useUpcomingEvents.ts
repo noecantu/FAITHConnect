@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 
-export function useUpcomingEvents(churchId: string | undefined) {
+export function useUpcomingEvents(churchId: string | null | undefined) {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 

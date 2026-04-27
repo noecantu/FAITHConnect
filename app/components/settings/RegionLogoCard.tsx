@@ -121,8 +121,11 @@ export default function RegionLogoCard({
       setShowConfirmRemove(false);
 
       try {
-        const decodedPath = decodeURIComponent(removedLogoUrl.split("/o/")[1].split("?")[0]);
-        await deleteObject(ref(storage, decodedPath));
+        const pathMatch = removedLogoUrl.match(/\/storage\/v1\/object\/public\/([^\/]+)\/(.*?)(?:\?|$)/);
+        if (pathMatch && pathMatch[2]) {
+          const filePath = decodeURIComponent(pathMatch[2]);
+          await supabase.storage.from("regions").remove([filePath]);
+        }
       } catch (storageError) {
         console.warn("Logo file cleanup skipped:", storageError);
       }

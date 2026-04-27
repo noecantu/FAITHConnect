@@ -27,8 +27,8 @@ export default function CalendarDayPage() {
   const isReadOnly = isAuditor || isRegionalAdmin;
   const canManage = !isReadOnly && canManageEvents;
 
-  const { events } = useCalendarEvents(churchId);
-  const { services } = useUpcomingServices(churchId);
+  const { events } = useCalendarEvents(churchId ?? undefined);
+  const { services } = useUpcomingServices(churchId ?? undefined);
 
   const dayEvents = useMemo(
     () =>

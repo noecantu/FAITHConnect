@@ -30,6 +30,7 @@ export function useChurchId() {
   if (routeChurchId) {
     return {
       churchId: routeChurchId,
+      church_id: routeChurchId,
       loading: authLoading,
     };
   }
@@ -38,6 +39,7 @@ export function useChurchId() {
   if (storedChurchId) {
     return {
       churchId: storedChurchId,
+      church_id: storedChurchId,
       loading: authLoading,
     };
   }
@@ -45,6 +47,7 @@ export function useChurchId() {
   // 3. Church Admin default
   return {
     churchId: user?.churchId ?? null,
+    church_id: user?.churchId ?? null,
     loading: authLoading,
   };
 }

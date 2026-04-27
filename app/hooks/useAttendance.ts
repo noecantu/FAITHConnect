@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 
 export function useAttendance(
-  churchId: string | undefined,
+  churchId: string | null | undefined,
   members: any[],
   dateString: string,
   _editable: boolean

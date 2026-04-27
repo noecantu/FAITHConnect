@@ -47,9 +47,17 @@ export async function POST(req: Request) {
         monthly: process.env.STRIPE_PRICE_BEGINNING_MONTHLY,
         yearly: process.env.STRIPE_PRICE_BEGINNING_YEARLY,
       },
+      beginningPlus: {
+        monthly: process.env.STRIPE_PRICE_BEGINNING_PLUS_MONTHLY,
+        yearly: process.env.STRIPE_PRICE_BEGINNING_PLUS_YEARLY,
+      },
       growing: {
         monthly: process.env.STRIPE_PRICE_GROWING_MONTHLY,
         yearly: process.env.STRIPE_PRICE_GROWING_YEARLY,
+      },
+      growingPlus: {
+        monthly: process.env.STRIPE_PRICE_GROWING_PLUS_MONTHLY,
+        yearly: process.env.STRIPE_PRICE_GROWING_PLUS_YEARLY,
       },
       abounding: {
         monthly: process.env.STRIPE_PRICE_ABOUNDING_MONTHLY,

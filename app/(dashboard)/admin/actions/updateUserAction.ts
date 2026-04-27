@@ -4,13 +4,7 @@ import { adminDb } from "@/app/lib/supabase/admin";
 import { logSystemEvent } from "@/app/lib/system/logging";
 import { Role, SystemRole, ALL_ROLES, SYSTEM_ROLE_LIST } from "@/app/lib/auth/roles";
 import { can } from "@/app/lib/auth/permissions";
-import { createClient } from "@supabase/supabase-js";
 import { nanoid } from "nanoid";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export interface UpdateUserInput {
   userId: string;

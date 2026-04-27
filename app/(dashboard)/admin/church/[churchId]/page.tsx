@@ -289,10 +289,10 @@ export default function ChurchAdminDashboard() {
           <CardContent className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 md:p-6">
             {/* Left: Logo + Name */}
             <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:text-left">
-              {church.logo_url ? (
+              {church.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={church.logo_url}
+                  src={church.logoUrl}
                   alt={church.name}
                   className="h-32 w-32 rounded-md object-cover border border-border bg-white ring-2 ring-primary/20 shadow-md"
                 />

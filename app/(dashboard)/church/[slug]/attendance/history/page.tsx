@@ -79,9 +79,9 @@ function getAttendanceSummaryText(
 export default function AttendanceHistoryPage() {
   const router = useRouter();
   const { churchId, loading: churchLoading } = useChurchId();
-  const { user, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
 
-  const { data, loading, refresh } = useAttendanceHistory(churchId);
+  const { data, loading, refresh } = useAttendanceHistory(churchId ?? undefined);
   const canView = useCan("attendance.read");
   const canDelete = useCan("attendance.manage");
 
@@ -96,16 +96,38 @@ export default function AttendanceHistoryPage() {
   // Persisted Breakdown Settings
   // ------------------------------
   const {
-    breakdown: timeFrame,
-    year: selectedYear,
-    month: selectedMonth,
-    week: selectedWeek,
+    settings: attendanceHistorySettings,
+    updateSettings: updateAttendanceHistorySettings,
+  } = useAttendanceHistorySettings(churchId ?? undefined);
 
-    setBreakdownPersisted,
-    setYearPersisted,
-    setMonthPersisted,
-    setWeekPersisted,
-  } = useAttendanceHistorySettings(user);
+  const timeFrame = (attendanceHistorySettings?.breakdown ?? "year") as "year" | "month" | "week";
+  const selectedYear = (attendanceHistorySettings?.year ?? null) as number | null;
+  const selectedMonth = (attendanceHistorySettings?.month ?? null) as number | null;
+  const selectedWeek = (attendanceHistorySettings?.week ?? null) as number | null;
+
+  const setBreakdownPersisted = (value: "year" | "month" | "week") =>
+    updateAttendanceHistorySettings({
+      ...(attendanceHistorySettings ?? {}),
+      breakdown: value,
+    });
+
+  const setYearPersisted = (value: number) =>
+    updateAttendanceHistorySettings({
+      ...(attendanceHistorySettings ?? {}),
+      year: value,
+    });
+
+  const setMonthPersisted = (value: number) =>
+    updateAttendanceHistorySettings({
+      ...(attendanceHistorySettings ?? {}),
+      month: value,
+    });
+
+  const setWeekPersisted = (value: number) =>
+    updateAttendanceHistorySettings({
+      ...(attendanceHistorySettings ?? {}),
+      week: value,
+    });
 
   // ------------------------------
   // Available Years

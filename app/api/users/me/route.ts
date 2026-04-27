@@ -162,6 +162,7 @@ export async function GET() {
       }
 
       return NextResponse.json({
+        id: uid,
         uid,
         email: authUser.email ?? null,
         firstName: (metadata as Record<string, unknown>).firstName ?? null,
@@ -242,6 +243,7 @@ export async function GET() {
     }
 
     return NextResponse.json({
+      id: uid,
       uid,
       email: user.email ?? null,
       firstName: user.first_name ?? null,

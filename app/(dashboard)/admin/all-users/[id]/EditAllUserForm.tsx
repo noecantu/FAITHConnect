@@ -91,7 +91,9 @@ export default function EditAllUserForm({
   const [email, setEmail] = useState(user.email ?? "");
   const [churchId, setChurchId] = useState(user.churchId ?? "none");
   const [roles, setRoles] = useState<Role[]>(
-    (user.roles ?? []).filter((role) => CHURCH_ROLES.includes(role))
+    (user.roles ?? []).filter((role): role is Role =>
+      (CHURCH_ROLES as readonly string[]).includes(role)
+    )
   );
 
   const [isSaving, setIsSaving] = useState(false);

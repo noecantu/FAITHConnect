@@ -53,15 +53,23 @@ export default function EditEventPage({
     async function load() {
       if (!church_id) return;
 
-      const ref = doc(db, "churches", church_id, "events", eventId);
-      const snap = await getDoc(ref);
+      const { data: raw } = await supabase
+        .from("events")
+        .select("*")
+        .eq("id", eventId)
+        .eq("church_id", church_id)
+        .single();
 
-      if (snap.exists()) {
-        const raw = snap.data();
+      if (raw) {
+        const parsedDate =
+          typeof raw.date === "string" || raw.date instanceof Date
+            ? new Date(raw.date)
+            : null;
+
         setEventData({
-          id: eventId,
           ...raw,
-          date: raw.date?.toDate ? raw.date.toDate() : new Date(raw.date),
+          id: eventId,
+          date: parsedDate ?? new Date(),
         });
       } else {
         setEventData(null);

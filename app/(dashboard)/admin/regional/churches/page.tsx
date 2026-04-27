@@ -8,19 +8,19 @@ import Link from 'next/link';
 import { formatPhone } from '@/app/lib/formatters';
 
 export default function RegionalChurchesPage() {
-  const { isRegionalAdmin, region_id, loading: permLoading } = usePermissions();
+  const { isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
 
   const [churches, setChurches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!region_id) return;
+    if (!regionId) return;
     let active = true;
 
     getSupabaseClient()
       .from('churches')
       .select('*')
-      .eq('region_id', region_id)
+      .eq('region_id', regionId)
       .then(({ data }) => {
         if (!active) return;
         setChurches(data ?? []);
@@ -28,7 +28,7 @@ export default function RegionalChurchesPage() {
       });
 
     return () => { active = false; };
-  }, [region_id]);
+  }, [regionId]);
 
   if (!permLoading && !isRegionalAdmin) {
     return (

@@ -70,9 +70,9 @@ export default async function MasterChurchDetailsPage({
   return (
     <MasterChurchDetailsClient
       church={church}
-      memberCount={memberCount}
-      serviceCount={serviceCount}
-      eventCount={eventCount}
+      memberCount={memberCount ?? 0}
+      serviceCount={serviceCount ?? 0}
+      eventCount={eventCount ?? 0}
       admins={admins}
     />
   );

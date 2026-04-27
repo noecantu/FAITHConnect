@@ -20,7 +20,7 @@ type District = {
 
 export default function SelectDistrictPage() {
   const supabase = getSupabaseClient();
-  const { isRegionalAdmin, region_id, loading: permLoading } = usePermissions();
+  const { isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
 
   const [districts, setDistricts] = useState<District[]>([]);
   const [search, setSearch] = useState("");
@@ -51,14 +51,14 @@ export default function SelectDistrictPage() {
 
   // Load current region's district status
   useEffect(() => {
-    if (!region_id) return;
+    if (!regionId) return;
 
     async function loadRegion() {
       try {
         const { data: regionData } = await supabase
           .from("regions")
           .select("district_status, district_id, district_selected_id")
-          .eq("id", region_id!)
+          .eq("id", regionId)
           .single();
 
         if (!regionData) return;
@@ -80,7 +80,7 @@ export default function SelectDistrictPage() {
     }
 
     loadRegion();
-  }, [region_id]);
+  }, [regionId, supabase]);
 
   const filtered = districts.filter((d) => {
     const term = search.toLowerCase();

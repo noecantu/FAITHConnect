@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-;
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { useChurchId } from "@/app/hooks/useChurchId";
 import MemberForm from "@/app/components/members/MemberForm";
@@ -24,36 +23,40 @@ export default function EditMemberPage() {
     if (!church_id || !memberId) return;
 
     async function loadMember() {
-      const ref = doc(db, "churches", church_id!, "members", memberId);
-      const snap = await getDoc(ref);
-      if (snap.exists()) {
-        const data = snap.data();
+      const { data } = await supabase
+        .from("members")
+        .select("*")
+        .eq("church_id", church_id)
+        .eq("id", memberId)
+        .single();
 
+      if (data) {
         setMember({
-          id: snap.id,
-          ...data,
-          birthday: data.birthday
-            ? data.birthday instanceof Timestamp
-              ? data.birthday.toDate().toISOString().substring(0, 10)
-              : data.birthday // already a string
-            : "",
-          baptismDate: data.baptismDate
-            ? data.baptismDate instanceof Timestamp
-              ? data.baptismDate.toDate().toISOString().substring(0, 10)
-              : data.baptismDate
-            : "",
-          anniversary: data.anniversary
-            ? data.anniversary instanceof Timestamp
-              ? data.anniversary.toDate().toISOString().substring(0, 10)
-              : data.anniversary
-            : "",
+          id: data.id,
+          userId: data.user_id ?? null,
+          checkInCode: data.check_in_code ?? "",
+          qrCode: data.qr_code ?? "",
+          firstName: data.first_name ?? "",
+          lastName: data.last_name ?? "",
+          first_name: data.first_name ?? "",
+          last_name: data.last_name ?? "",
+          email: data.email ?? "",
+          phoneNumber: data.phone_number ?? "",
+          profilePhotoUrl: data.profile_photo_url ?? "",
+          status: data.status ?? "Active",
+          address: data.address ?? null,
+          birthday: data.birthday ?? "",
+          baptismDate: data.baptism_date ?? "",
+          anniversary: data.anniversary ?? "",
+          familyId: data.family_id ?? null,
+          notes: data.notes ?? "",
           relationships: Array.isArray(data.relationships)
             ? data.relationships
                 .map((rel: any) => ({
                   ...rel,
-                  memberIds: [...rel.memberIds].filter(Boolean).sort(),
+                  memberIds: [...(rel.memberIds ?? [])].filter(Boolean).sort(),
                 }))
-                .filter((rel) => rel.memberIds.length === 2)
+                .filter((rel: any) => rel.memberIds.length === 2)
             : [],
         } as Member);
       } else {
@@ -81,11 +84,11 @@ export default function EditMemberPage() {
   return (
     <>
       <h1 className="text-2xl font-bold">
-        Edit {member.first_name} {member.last_name}
+        Edit {member.firstName ?? member.first_name} {member.lastName ?? member.last_name}
       </h1>
 
       <MemberForm
-        church_id={church_id}
+        churchId={church_id}
         member={member}
         onSuccess={() => {
           router.push(`/church/${church_id}/members`);

@@ -10,8 +10,6 @@ import { useToast } from "@/app/hooks/use-toast";
 import TimezoneSelect from "@/app/components/settings/TimezoneSelect";
 import LocaleSelect from "@/app/components/settings/LocaleSelect";
 
-import { getSupabaseClient } from "@/app/lib/supabase/client";
-
 import type { SystemSettings } from "@/app/lib/types";
 
 type IdentityFields = {
@@ -26,9 +24,8 @@ export default function SectionIdentity({
   updateSettings,
 }: {
   settings: SystemSettings;
-  updateSettings: (s: Partial<SystemSettings>) => void;
+  updateSettings: (s: Partial<SystemSettings>) => Promise<void> | void;
 }) {
-  const supabase = getSupabaseClient();
   const { toast } = useToast();
 
   // Local editable state
@@ -78,14 +75,11 @@ export default function SectionIdentity({
     setSaving(true);
 
     try {
-      const ref = doc(db, "system", "settings");
-
-      await updateDoc(ref, {
+      await updateSettings({
         platformName,
         supportEmail,
         defaultTimezone,
         defaultLocale,
-        updated_at: new Date(),
       });
 
       // Update originals

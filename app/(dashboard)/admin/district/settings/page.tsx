@@ -104,7 +104,7 @@ export default function DistrictSettingsPage() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DistrictProfileCard districtId={districtId} />
+        <DistrictProfileCard district_id={districtId} />
         <DistrictLogoCard districtId={districtId} districtName={districtName} />
         <ProfilePhotoCard
           user={user}

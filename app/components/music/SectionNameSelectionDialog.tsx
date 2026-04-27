@@ -23,7 +23,8 @@ interface SectionNameDialogProps {
   onOpenChange: (isOpen: boolean) => void;
   onSelect: (title: string | null) => void;
   currentTitle?: string | null;
-  church_id: string;
+  church_id?: string;
+  churchId?: string;
 }
 
 export default function SectionNameDialog({
@@ -31,9 +32,11 @@ export default function SectionNameDialog({
   onOpenChange,
   onSelect,
   currentTitle,
-  church_id
+  church_id,
+  churchId,
 }: SectionNameDialogProps) {
   const supabase = getSupabaseClient();
+  const resolvedChurchId = church_id ?? churchId ?? "";
   const [items, setItems] = useState<SectionName[]>([]);
   const [newTitle, setNewTitle] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -41,18 +44,20 @@ export default function SectionNameDialog({
   const [titleToAdd, setTitleToAdd] = useState<string | null>(null);
 
   const fetchItems = useCallback(async () => {
-    if (!db || !church_id) return;
+    if (!resolvedChurchId) return;
     setIsLoading(true);
     setTitleToAdd(null);
 
     try {
-      const ref = collection(db, 'churches', church_id, 'sectionNames');
-      const q = query(ref, orderBy('title'));
-      const snap = await getDocs(q);
+      const { data } = await supabase
+        .from("section_names")
+        .select("id, title")
+        .eq("church_id", resolvedChurchId)
+        .order("title", { ascending: true });
 
-      const fetched = snap.docs.map(d => ({
+      const fetched = (data ?? []).map((d: { id: string; title: string }) => ({
         id: d.id,
-        title: d.data().title as string,
+        title: d.title,
       }));
 
       setItems(fetched);
@@ -66,10 +71,11 @@ export default function SectionNameDialog({
       }
     } catch (err) {
       console.error("Error fetching section names:", err);
+      setItems([]);
     } finally {
       setIsLoading(false);
     }
-  }, [db, church_id, currentTitle]);
+  }, [resolvedChurchId, currentTitle, supabase]);
 
   useEffect(() => {
     if (isOpen) fetchItems();
@@ -77,14 +83,15 @@ export default function SectionNameDialog({
 
   const handleAdd = async (value?: string, autoSelect = false) => {
     const title = (value || newTitle).trim();
-    if (!db || !church_id || title === '' || items.some(i => i.title.toLowerCase() === title.toLowerCase())) {
+    if (!resolvedChurchId || title === '' || items.some(i => i.title.toLowerCase() === title.toLowerCase())) {
       return;
     }
 
     try {
-      const created = await addDoc(collection(db, 'churches', church_id, 'sectionNames'), {
+      await supabase.from("section_names").insert({
+        church_id: resolvedChurchId,
         title,
-        created_at: new Date(),
+        created_at: new Date().toISOString(),
       });
 
       if (autoSelect) {
@@ -102,10 +109,14 @@ export default function SectionNameDialog({
   };
 
   const handleDelete = async (id: string) => {
-    if (!db || !church_id) return;
+    if (!resolvedChurchId) return;
 
     try {
-      await deleteDoc(doc(db, 'churches', church_id, 'sectionNames', id));
+      await supabase
+        .from("section_names")
+        .delete()
+        .eq("id", id)
+        .eq("church_id", resolvedChurchId);
       await fetchItems();
     } catch (err) {
       console.error("Error deleting section name:", err);

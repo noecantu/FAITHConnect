@@ -30,7 +30,6 @@ import {
 } from '@/app/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
 import { useContributionHistorySettings } from "@/app/hooks/useContributionHistorySettings";
-import { useAuth } from "@/app/hooks/useAuth";
 
 // ------------------------------
 // Page Component
@@ -71,18 +70,33 @@ export default function ContributionsPage() {
   // Columns
   // ------------------------------
   const columns = useMemo(() => getColumns(), []);
-  const { user } = useAuth();
-
   const {
-    breakdown: timeFrame,
-    year: selectedYear,
-    month: selectedMonth,
-    week: selectedWeek,
+    settings: contributionHistorySettings,
+    updateSettings: updateContributionHistorySettings,
+  } = useContributionHistorySettings(churchId ?? undefined);
 
-    setBreakdownPersisted,
-    setYearPersisted,
-    setMonthPersisted,
-  } = useContributionHistorySettings(user);
+  const timeFrame = (contributionHistorySettings?.breakdown ?? "year") as "year" | "month" | "week";
+  const selectedYear = (contributionHistorySettings?.year ?? null) as number | null;
+  const selectedMonth = (contributionHistorySettings?.month ?? null) as number | null;
+  const selectedWeek = (contributionHistorySettings?.week ?? null) as number | null;
+
+  const setBreakdownPersisted = (value: "year" | "month" | "week") =>
+    updateContributionHistorySettings({
+      ...(contributionHistorySettings ?? {}),
+      breakdown: value,
+    });
+
+  const setYearPersisted = (value: number) =>
+    updateContributionHistorySettings({
+      ...(contributionHistorySettings ?? {}),
+      year: value,
+    });
+
+  const setMonthPersisted = (value: number) =>
+    updateContributionHistorySettings({
+      ...(contributionHistorySettings ?? {}),
+      month: value,
+    });
 
   // ------------------------------
   // Available Years
@@ -145,8 +159,7 @@ export default function ContributionsPage() {
     filteredContributions,
     timeFrame,
     selectedYear,
-    selectedMonth,
-    selectedWeek
+    selectedMonth
   );
 
   // ------------------------------

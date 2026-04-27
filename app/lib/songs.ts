@@ -12,6 +12,7 @@ function rowToSong(row: Record<string, unknown>): Song {
     notes: (row.notes as string) ?? "",
     lyrics: (row.lyrics as string) ?? "",
     tags: (row.tags as string[]) ?? [],
+    createdBy: (row.created_by as string) ?? "",
     createdAt: row.created_at ? new Date(row.created_at as string) : new Date(),
     updatedAt: row.updated_at ? new Date(row.updated_at as string) : new Date(),
   } as Song;

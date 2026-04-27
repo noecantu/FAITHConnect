@@ -14,7 +14,7 @@ export default function ConfirmDistrictPage() {
   const { districtId } = useParams() as { districtId: string };
   const router = useRouter();
   const { toast } = useToast();
-  const { isRegionalAdmin, region_id, loading: permLoading } = usePermissions();
+  const { isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
 
   const [district, setDistrict] = useState<Record<string, string | null> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,7 +30,7 @@ export default function ConfirmDistrictPage() {
   }, [districtId]);
 
   async function handleConfirm() {
-    if (!region_id || !districtId) return;
+    if (!regionId || !districtId) return;
 
     setSaving(true);
 
@@ -43,7 +43,7 @@ export default function ConfirmDistrictPage() {
           district_id: null,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", region_id);
+        .eq("id", regionId);
 
       if (error) throw error;
 

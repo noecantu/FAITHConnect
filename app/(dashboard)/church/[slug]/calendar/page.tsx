@@ -12,12 +12,12 @@ import { useCalendarEvents } from "@/app/hooks/useCalendarEvents";
 import { useUpcomingServices } from "@/app/hooks/useUpcomingServices";
 import { useCalendarMonth } from "@/app/hooks/useCalendarMonth";
 import { useCalendarFilters } from "@/app/hooks/useCalendarFilters";
+import { useCalendarView } from "@/app/hooks/useCalendarView";
 import { CalendarControls } from "@/app/components/calendar/CalendarControls";
 import { CalendarViewSwitcher } from "@/app/components/calendar/CalendarViewSwitcher";
 
 import type { Role } from "@/app/lib/auth/roles";
 import type { UserProfile, Event, ServicePlan } from "@/app/lib/types";
-import { useUserCalendarSettings } from "@/app/hooks/useUserCalendarSettings";
 import { useParams, useRouter } from "next/navigation";
 import { dateKey } from "@/app/lib/calendar/utils";
 import { canUserSeeEvent } from "@/app/lib/canUserSeeEvent";
@@ -65,8 +65,8 @@ export default function CalendarPage() {
 
   const effectiveChurchId = churchId;
 
-  const { events } = useCalendarEvents(effectiveChurchId);
-  const { services } = useUpcomingServices(effectiveChurchId);
+  const { events } = useCalendarEvents(effectiveChurchId ?? undefined);
+  const { services } = useUpcomingServices(effectiveChurchId ?? undefined);
 
   const merged: CalendarItem[] = useMemo(() => {
     const serviceItems: CalendarItem[] = services.map((sp) => ({
@@ -102,7 +102,7 @@ export default function CalendarPage() {
   const month = useCalendarMonth();
   const filters = useCalendarFilters<CalendarItem>(visible);
 
-  const { view, setView } = useUserCalendarSettings(user?.uid ?? null);
+  const { view, setView } = useCalendarView("calendar");
   const viewControls = { view, setView };
 
   if (loadingUser) return <>Loading...</>;
