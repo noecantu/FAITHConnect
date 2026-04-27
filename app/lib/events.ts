@@ -1,25 +1,34 @@
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 
+function toErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) return error.message;
+
+  if (error && typeof error === "object") {
+    const maybe = error as Record<string, unknown>;
+    const parts = [maybe.message, maybe.code, maybe.details, maybe.hint]
+      .filter((part): part is string => typeof part === "string" && part.trim().length > 0);
+    if (parts.length > 0) return parts.join(" | ");
+  }
+
+  return fallback;
+}
+
 export async function createEvent(churchId: string, data: Record<string, unknown>) {
   if (!churchId) throw new Error("Missing churchId");
 
-  const supabase = getSupabaseClient();
-  const { data: row, error } = await supabase
-    .from("events")
-    .insert({
-      church_id: churchId,
-      title: data.title,
-      date_string: data.dateString ?? data.date_string,
-      description: data.description ?? null,
-      notes: data.notes ?? null,
-      visibility: data.visibility ?? "private",
-      groups: data.groups ?? [],
-    })
-    .select()
-    .single();
+  const res = await fetch("/api/events/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ churchId, ...data }),
+  });
 
-  if (error) throw error;
-  return row;
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(toErrorMessage(body, `Failed to create event (${res.status})`));
+  }
+
+  return body.row;
 }
 
 export async function updateEvent(
@@ -30,22 +39,15 @@ export async function updateEvent(
   if (!churchId) throw new Error("Missing churchId");
   if (!eventId) throw new Error("Missing eventId");
 
-  const supabase = getSupabaseClient();
-  const updatePayload: Record<string, unknown> = {};
+  const res = await fetch("/api/events/update", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ churchId, eventId, ...data }),
+  });
 
-  if (data.title !== undefined) updatePayload.title = data.title;
-  if (data.dateString !== undefined) updatePayload.date_string = data.dateString;
-  if (data.date_string !== undefined) updatePayload.date_string = data.date_string;
-  if (data.description !== undefined) updatePayload.description = data.description;
-  if (data.notes !== undefined) updatePayload.notes = data.notes;
-  if (data.visibility !== undefined) updatePayload.visibility = data.visibility;
-  if (data.groups !== undefined) updatePayload.groups = data.groups;
-
-  const { error } = await supabase
-    .from("events")
-    .update(updatePayload)
-    .eq("id", eventId)
-    .eq("church_id", churchId);
-
-  if (error) throw error;
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(toErrorMessage(body, `Failed to update event (${res.status})`));
+  }
 }

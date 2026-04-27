@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 
 import { useChurchId } from "@/app/hooks/useChurchId";
+import { useToast } from "@/app/hooks/use-toast";
 import { createEvent, updateEvent } from "@/app/lib/events";
 
 import { Input } from "@/app/components/ui/input";
@@ -32,6 +33,7 @@ export default function EventEditor({
   onSaved,
 }: EventEditorProps) {
   const { churchId } = useChurchId();
+  const { toast } = useToast();
 
   // --- USER STATE ---
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -64,6 +66,7 @@ export default function EventEditor({
   );
 
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // --- LOAD USER ---
   useEffect(() => {
@@ -108,6 +111,7 @@ export default function EventEditor({
     if (!title || !localDateString || !localTimeString) return;
 
     setSaving(true);
+    setSaveError(null);
 
     let finalIsPublic = isPublic;
     let finalGroups = groups;
@@ -131,14 +135,24 @@ export default function EventEditor({
       groups: finalIsPublic ? [] : finalGroups,
     };
 
-    if (mode === "create") {
-      await createEvent(churchId!, payload);
-    } else {
-      await updateEvent(churchId!, initialEvent.id, payload);
-    }
+    try {
+      if (mode === "create") {
+        await createEvent(churchId!, payload);
+      } else {
+        await updateEvent(churchId!, initialEvent.id, payload);
+      }
 
-    setSaving(false);
-    onSaved();
+      onSaved();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to save event";
+      setSaveError(message);
+      toast({
+        title: "Error saving event",
+        description: message,
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   // --- HANDLERS FOR DATE/TIME INPUTS ---
@@ -154,6 +168,10 @@ export default function EventEditor({
     <>
       {/* Scrollable content */}
       <div className="flex-grow overflow-y-auto px-6 py-2 space-y-4">
+        {saveError && (
+          <p className="text-sm text-destructive">{saveError}</p>
+        )}
+
         {/* Date & Time */}
         <div className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
