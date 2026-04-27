@@ -17,6 +17,7 @@ import DeleteUserDialog from '@/app/components/settings/DeleteUserDialog';
 import ChurchLogoCard from '@/app/components/settings/ChurchLogoCard';
 import ChurchProfileCard from '@/app/components/settings/ChurchProfileCard';
 import RegionMembershipCard from '@/app/components/settings/RegionMembershipCard';
+import ChurchDataWarningsCard from '@/app/components/settings/ChurchDataWarningsCard';
 
 export default function ChurchSettingsPage() {
   const { churchId: church_id } = useChurchId();
@@ -192,6 +193,8 @@ export default function ChurchSettingsPage() {
             refreshing={refreshing}
             onRefresh={fetchUsage}
           />
+
+          <ChurchDataWarningsCard churchId={church_id!} />
         </>
       )}
 

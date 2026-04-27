@@ -8,6 +8,7 @@ import {
   getDay,
   isPast,
   isToday,
+  isValid,
 } from 'date-fns';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
@@ -34,6 +35,7 @@ export function GridCalendar({
 }: GridCalendarProps) {  
 
   const eventsByDay = events.reduce((acc, item) => {
+    if (!isValid(item.date)) return acc;
     const key = dateKey(item.date);
     if (!acc[key]) acc[key] = [];
     acc[key].push(item);
