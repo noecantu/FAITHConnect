@@ -59,7 +59,6 @@ export function RelationshipsSection({
     <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
       <CardHeader>
         <CardTitle className="text-xl">Relationships</CardTitle>
-        <CardDescription>Manage member relationships.</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">

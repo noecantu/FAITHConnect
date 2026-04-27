@@ -121,16 +121,6 @@ function MemberFabMenu({
             </DropdownMenuItem>
           )}
 
-          {/* VIEW CHECK-IN CODE */}
-          {isEditing && (
-            <DropdownMenuItem
-              className="flex items-center justify-center p-2"
-              onClick={() => setShowCheckInCode(true)}
-            >
-              <FileUser className="h-4 w-4" />
-            </DropdownMenuItem>
-          )}
-
           {/* DELETE */}
           {isEditing && member && (
             <AlertDialog>
@@ -328,7 +318,14 @@ export default function MemberForm({
           className="space-y-6"
         >
           <MemberInfoSection form={form} />
-          <StatusSection form={form} />
+
+          <div className="grid gap-6 md:grid-cols-2 md:items-start">
+            <StatusSection form={form} />
+
+            {isEditing && (
+              <CheckInCodeSection member={member} churchId={churchId} />
+            )}
+          </div>
 
           <RelationshipsSection
             form={form}
@@ -349,10 +346,6 @@ export default function MemberForm({
             setIsTakingPhoto={photo.setIsTakingPhoto}
             handleRemovePhoto={photo.handleRemovePhoto}
           />
-
-          {isEditing && (
-            <CheckInCodeSection member={member} churchId={churchId} />
-          )}
         </form>
 
         {/* ⭐ FAB MENU OUTSIDE THE FORM ⭐ */}

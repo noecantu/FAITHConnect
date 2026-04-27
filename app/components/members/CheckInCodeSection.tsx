@@ -47,15 +47,11 @@ export function CheckInCodeSection({
   }
 
   return (
-    <Card>
+    <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
       <CardHeader>
         <CardTitle className="text-xl">Check‑In Code</CardTitle>
       </CardHeader>
-
       <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          This code is used for Self Check‑In for Attendance purposes.
-        </p>
 
         <div className="flex items-center gap-4">
           <span className="font-mono text-base px-2 py-1 rounded border bg-muted">
