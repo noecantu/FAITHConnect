@@ -52,7 +52,7 @@ export default function ConfirmDistrictPage() {
         description: "Your request to join this district is pending approval.",
       });
 
-      router.push("/admin/regional");
+      router.push("/admin/regional/settings");
     } catch (err: any) {
       console.error(err);
       toast({

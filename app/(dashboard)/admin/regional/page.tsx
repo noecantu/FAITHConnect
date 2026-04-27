@@ -99,14 +99,22 @@ export default function RegionalDashboardPage() {
     if (!regionId) return;
     let active = true;
 
-    getSupabaseClient()
-      .from('churches')
-      .select('id', { count: 'exact', head: true })
-      .eq('region_selected_id', regionId)
-      .eq('region_status', 'pending')
-      .then(({ count }) => {
+    fetch('/api/church-approval/pending?countOnly=1', {
+      credentials: 'include',
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to load pending count (${res.status})`);
+        }
+
+        const body = await res.json();
         if (!active) return;
-        setPendingCount(count ?? 0);
+        setPendingCount(typeof body?.count === 'number' ? body.count : 0);
+      })
+      .catch((err) => {
+        console.error('Error loading pending church count:', err);
+        if (!active) return;
+        setPendingCount(0);
       });
 
     return () => { active = false; };

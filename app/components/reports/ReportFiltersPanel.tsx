@@ -7,8 +7,11 @@ import {
   CardContent,
 } from "@/app/components/ui/card";
 
+import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import { MultiSelect } from "@/app/components/ui/multi-select";
+import { Label } from "@/app/components/ui/label";
+import { CalendarClock, FilterX } from "lucide-react";
 
 import { ReportTypeSelect } from "./ReportTypeSelect";
 import { MemberSelect } from "./MemberSelect";
@@ -25,7 +28,7 @@ type ContributionBreakdownOption = {
 
 interface ReportFiltersPanelProps {
   reportType: "members" | "contributions" | "attendance";
-  setReportType: (v: any) => void;
+  setReportType: (v: "members" | "contributions" | "attendance") => void;
 
   members: any[];
   memberOptions?: Array<{ label: string; value: string }>;
@@ -64,6 +67,8 @@ interface ReportFiltersPanelProps {
   canReadMembers: boolean;
   canReadContributions: boolean;
   canReadAttendance: boolean;
+
+  onResetFilters: () => void;
 }
 
 export function ReportFiltersPanel({
@@ -103,37 +108,79 @@ export function ReportFiltersPanel({
   canReadMembers,
   canReadContributions,
   canReadAttendance,
+  onResetFilters,
 }: ReportFiltersPanelProps) {
+  const activeFilters = [
+    selectedMembers.length > 0 ? `${selectedMembers.length} member${selectedMembers.length === 1 ? "" : "s"}` : null,
+    selectedChurches.length > 0 ? `${selectedChurches.length} church${selectedChurches.length === 1 ? "" : "es"}` : null,
+    selectedStatus.length > 0 ? `${selectedStatus.length} status` : null,
+    selectedYear ? `Year ${selectedYear}` : null,
+    selectedMonth && timeFrame === "month" ? `Month ${selectedMonth}` : null,
+  ].filter((value): value is string => Boolean(value));
+
   return (
-    // <Card className="w-full lg:w-80 h-fit">
-    <Card className="relative w-full lg:w-80 h-fit bg-black/80 border-white/20 backdrop-blur-xl">
-      <CardHeader>
-        <CardTitle>Filters</CardTitle>
+    <Card className="animate-fadeIn relative h-fit w-full border-white/20 bg-black/80 backdrop-blur-xl lg:sticky lg:top-24 lg:w-[22rem] xl:w-[24rem] 2xl:w-[25rem]">
+      <CardHeader className="space-y-4 pb-2">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <CardTitle>Report Setup</CardTitle>
+            <p className="mt-1 text-xs text-white/70">Pick a report type, then narrow the scope.</p>
+          </div>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 shrink-0 px-2 text-white/80 hover:text-white"
+            onClick={onResetFilters}
+          >
+            <FilterX className="h-4 w-4" />
+            Reset
+          </Button>
+        </div>
+
+        {activeFilters.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {activeFilters.map((filter) => (
+              <Badge
+                key={filter}
+                variant="outline"
+                className="max-w-full break-words border-white/30 bg-black/40 text-white/85"
+              >
+                {filter}
+              </Badge>
+            ))}
+          </div>
+        )}
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-5 sm:space-y-6">
 
         {/* REPORT TYPE */}
-        <ReportTypeSelect
-          value={reportType}
-          onChange={setReportType}
-          canReadMembers={canReadMembers}
-          canReadContributions={canReadContributions}
-          canReadAttendance={canReadAttendance}
-        />
+        <div className="rounded-lg border border-white/15 bg-black/50 p-3 transition-colors duration-200">
+          <ReportTypeSelect
+            value={reportType}
+            onChange={setReportType}
+            canReadMembers={canReadMembers}
+            canReadContributions={canReadContributions}
+            canReadAttendance={canReadAttendance}
+          />
+        </div>
 
         {/* STATUS (Members Report Only) */}
         {reportType === "members" && (
-          <StatusSelect
-            options={statusOptions}
-            value={selectedStatus}
-            onChange={setSelectedStatus}
-          />
+          <div className="rounded-lg border border-white/15 bg-black/50 p-3 transition-colors duration-200">
+            <StatusSelect
+              options={statusOptions}
+              value={selectedStatus}
+              onChange={setSelectedStatus}
+            />
+          </div>
         )}
 
         {reportType === "contributions" && contributionBreakdownOptions.length > 1 && (
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Breakdown</label>
+          <div className="space-y-2 rounded-lg border border-white/15 bg-black/50 p-3 transition-colors duration-200">
+            <Label className="text-sm font-medium">Breakdown</Label>
             <select
               className="
                 w-full
@@ -162,9 +209,9 @@ export function ReportFiltersPanel({
         )}
 
         {reportType === "contributions" && churchOptions.length > 1 && (
-          <div className="space-y-2">
+          <div className="space-y-2 rounded-lg border border-white/15 bg-black/50 p-3 transition-colors duration-200">
             <div className="flex justify-between items-center">
-              <label className="text-sm font-medium">Churches</label>
+              <Label className="text-sm font-medium">Churches</Label>
               <Button
                 variant="ghost"
                 size="sm"
@@ -194,33 +241,37 @@ export function ReportFiltersPanel({
         )}
 
         {/* MEMBER SELECT */}
-        <MemberSelect
-          members={members}
-          options={memberOptions}
-          value={selectedMembers}
-          onChange={setSelectedMembers}
-        />
-        {memberOptions && (
-          <p className="text-xs text-muted-foreground -mt-4">
-            {selectedMembers.length === 0
-              ? "All members in scope are included."
-              : `${selectedMembers.length} member${selectedMembers.length === 1 ? "" : "s"} selected.`}
-          </p>
-        )}
+        <div className="space-y-2 rounded-lg border border-white/15 bg-black/50 p-3 transition-colors duration-200">
+          <MemberSelect
+            members={members}
+            options={memberOptions}
+            value={selectedMembers}
+            onChange={setSelectedMembers}
+          />
+          {memberOptions && (
+            <p className="text-xs text-muted-foreground">
+              {selectedMembers.length === 0
+                ? "All members in scope are included."
+                : `${selectedMembers.length} member${selectedMembers.length === 1 ? "" : "s"} selected.`}
+            </p>
+          )}
+        </div>
 
         {/* MEMBER FIELD SELECT (Members Report Only) */}
         {reportType === "members" && (
-          <MemberFieldSelect
-            options={memberFieldOptions}
-            value={selectedFields}
-            onChange={setSelectedFields}
-          />
+          <div className="rounded-lg border border-white/15 bg-black/50 p-3 transition-colors duration-200">
+            <MemberFieldSelect
+              options={memberFieldOptions}
+              value={selectedFields}
+              onChange={setSelectedFields}
+            />
+          </div>
         )}
 
         {/* INCLUDE VISITORS (Attendance Only) */}
         {reportType === "attendance" && (
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Include Visitors</label>
+          <div className="space-y-2 rounded-lg border border-white/15 bg-black/50 p-3 transition-colors duration-200">
+            <Label className="text-sm font-medium">Include Visitors</Label>
             <select
               className="
                 w-full
@@ -250,8 +301,12 @@ export function ReportFiltersPanel({
         {(reportType === "contributions" || reportType === "attendance") && (
           <>
             {/* TIME FRAME */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Time Frame</label>
+            <div className="space-y-3 rounded-lg border border-white/15 bg-black/50 p-3 transition-colors duration-200">
+              <div className="flex items-center gap-2">
+                <CalendarClock className="h-4 w-4 text-white/70" />
+                <Label className="text-sm font-medium">Time Frame</Label>
+              </div>
+
                 <div className="grid grid-cols-2 gap-2 w-full">
                   {["month", "year"].map((tf) => {
                     const isActive = timeFrame === tf;
@@ -265,9 +320,13 @@ export function ReportFiltersPanel({
                           ${isActive ? "" : "bg-black/80 border border-white/20 backdrop-blur-xl"}
                         `}
                         onClick={() => {
-                          setTimeFrame(tf as any);
-                          setSelectedYear(null);
-                          setSelectedMonth(null);
+                          const next = tf as "month" | "year";
+                          setTimeFrame(next);
+
+                          // Preserve the active year when changing modes so filtering doesn't reset unexpectedly.
+                          if (next === "year") {
+                            setSelectedMonth(null);
+                          }
                         }}
                       >
                         {tf.charAt(0).toUpperCase() + tf.slice(1)}
@@ -278,8 +337,8 @@ export function ReportFiltersPanel({
             </div>
 
             {/* YEAR SELECT */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Year</label>
+            <div className="space-y-2 rounded-lg border border-white/15 bg-black/50 p-3 transition-colors duration-200">
+              <Label className="text-sm font-medium">Year</Label>
               <select
                 className="
                   w-full
@@ -311,8 +370,8 @@ export function ReportFiltersPanel({
 
             {/* MONTH SELECT */}
             {timeFrame === "month" && selectedYear && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Month</label>
+              <div className="space-y-2 rounded-lg border border-white/15 bg-black/50 p-3 transition-colors duration-200">
+                <Label className="text-sm font-medium">Month</Label>
                 <select
                   className="
                     w-full

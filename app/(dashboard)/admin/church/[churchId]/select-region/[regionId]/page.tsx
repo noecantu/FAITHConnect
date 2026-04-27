@@ -54,7 +54,7 @@ export default function ConfirmRegionPage() {
         description: 'Your region selection is pending approval.',
       });
 
-      router.push(`/admin/church/${churchId}`);
+      router.push(`/admin/church/${churchId}/settings`);
     } catch (err) {
       console.error(err);
       toast({

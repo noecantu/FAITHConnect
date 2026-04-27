@@ -324,6 +324,17 @@ export default function ReportsPage() {
     setReportType(type);
   };
 
+  const resetFilters = () => {
+    setSelectedMembers([]);
+    setSelectedChurches([]);
+    setSelectedStatus([]);
+    setSelectedFields([]);
+    setIncludeVisitors(false);
+    setTimeFrame("year");
+    setSelectedYear(null);
+    setSelectedMonth(null);
+  };
+
   // -------------------------------------------------------
   // 7. AUTO-SELECT YEAR/MONTH/WEEK
   // -------------------------------------------------------
@@ -429,7 +440,7 @@ export default function ReportsPage() {
         )}
       </PageHeader>
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col items-start gap-6 lg:flex-row xl:gap-8">
         {/* LEFT PANEL */}
         <ReportFiltersPanel
           reportType={reportType}
@@ -461,10 +472,11 @@ export default function ReportsPage() {
           canReadMembers={!scopedContributionOnly && canReadMembers}
           canReadContributions={canReadContributions}
           canReadAttendance={!scopedContributionOnly && canReadAttendance}
+          onResetFilters={resetFilters}
         />
 
         {/* RIGHT PANEL */}
-        <div className="space-y-6 w-full min-w-0">
+        <div className="animate-fadeIn w-full min-w-0 space-y-6">
           {reportType === "contributions" && scopedContributionOnly && canReadContributions && (
             <div className="rounded-md border border-white/20 bg-black/50 p-4 text-sm text-white/90 backdrop-blur-xl">
               <div className="font-semibold mb-2">Report Scope Summary</div>

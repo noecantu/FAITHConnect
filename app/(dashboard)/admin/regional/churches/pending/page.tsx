@@ -1,14 +1,12 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { useToast } from '@/app/hooks/use-toast';
 import { PageHeader } from '@/app/components/page-header';
 import { DashboardApprovalRequestCard } from '@/app/components/ui/dashboard-cards';
 
 export default function PendingChurchesPage() {
-  const supabase = getSupabaseClient();
   const { regionId, isRegionalAdmin, loading: permLoading } = usePermissions();
   const { toast } = useToast();
 
@@ -18,14 +16,29 @@ export default function PendingChurchesPage() {
   const fetchPending = useCallback(async () => {
     if (!regionId) return;
     setLoading(true);
-    const { data } = await supabase
-      .from('churches')
-      .select('*')
-      .eq('region_selected_id', regionId)
-      .eq('region_status', 'pending');
-    setPending(data ?? []);
-    setLoading(false);
-  }, [regionId, supabase]);
+
+    try {
+      const res = await fetch('/api/church-approval/pending', {
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to load pending churches (${res.status})`);
+      }
+
+      const body = await res.json();
+      setPending(Array.isArray(body?.pending) ? body.pending : []);
+    } catch (err) {
+      console.error('Error loading pending churches:', err);
+      setPending([]);
+      toast({
+        title: 'Error',
+        description: 'Could not load pending church requests.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [regionId, toast]);
 
   useEffect(() => {
     fetchPending();
