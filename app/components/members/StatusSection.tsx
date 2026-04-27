@@ -3,6 +3,7 @@
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/app/components/ui/card";
@@ -31,6 +32,7 @@ export function StatusSection({ form }: Props) {
     <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
       <CardHeader>
         <CardTitle className="text-xl">Status</CardTitle>
+        <CardDescription>Set the member's current status.</CardDescription>
       </CardHeader>
       <CardContent>
         <FormField

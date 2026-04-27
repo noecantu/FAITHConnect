@@ -318,15 +318,7 @@ export default function MemberForm({
           className="space-y-6"
         >
           <MemberInfoSection form={form} />
-
-          <div className="grid gap-6 md:grid-cols-2 md:items-start">
-            <StatusSection form={form} />
-
-            {isEditing && (
-              <CheckInCodeSection member={member} churchId={churchId} />
-            )}
-          </div>
-
+          <StatusSection form={form} />
           <RelationshipsSection
             form={form}
             currentMemberId={member?.id ?? form.getValues("tempId") ?? ""}
@@ -337,7 +329,6 @@ export default function MemberForm({
             append={relationships.append}
             remove={relationships.remove}
           />
-
           <PhotoSection
             churchId={churchId}
             form={form}
@@ -346,6 +337,10 @@ export default function MemberForm({
             setIsTakingPhoto={photo.setIsTakingPhoto}
             handleRemovePhoto={photo.handleRemovePhoto}
           />
+
+          {isEditing && (
+            <CheckInCodeSection member={member} churchId={churchId} />
+          )}
         </form>
 
         {/* ⭐ FAB MENU OUTSIDE THE FORM ⭐ */}
