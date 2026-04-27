@@ -30,8 +30,8 @@ export default function SetListsPage() {
   const canView = canReadMusic;
 
   const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<SortType>('date-desc');
-  const [filter, setFilter] = useState<FilterType>('all');
+  const [sort, setSort] = useState<SortType>('date-asc');
+  const [filter, setFilter] = useState<FilterType>('future');
 
   const router = useRouter();
 
@@ -215,15 +215,15 @@ export default function SetListsPage() {
                       : 'Try adjusting search, date filter, or sort settings to find what you need.'}
                   </p>
                   <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-                    {(search || filter !== 'all' || sort !== 'date-desc') && (
+                    {(search || filter !== 'future' || sort !== 'date-asc') && (
                       <Button
                         type="button"
                         variant="outline"
                         className="border-white/30 bg-white/5 hover:bg-white/10"
                         onClick={() => {
                           setSearch('');
-                          setFilter('all');
-                          setSort('date-desc');
+                          setFilter('future');
+                          setSort('date-asc');
                         }}
                       >
                         Reset Filters
@@ -252,12 +252,14 @@ export default function SetListsPage() {
                       router.push(`/church/${churchId}/music/setlists/${row.id}`);
                     }
                   }}
-                  style={{ animationDelay: `${index * 50}ms` }}
-                  className={`group border border-white/15 rounded-lg p-4 flex items-start justify-between cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(0,0,0,0.28)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 animate-in fade-in slide-in-from-bottom-2 duration-500 ${
-                    index % 2 === 0
-                      ? 'bg-white/[0.03] hover:bg-white/[0.08]'
-                      : 'bg-white/[0.08] hover:bg-white/[0.13]'
-                  }`}
+                  style={{
+                    animationDelay: `${index * 50}ms`,
+                    backgroundImage:
+                      index % 2 === 0
+                        ? 'linear-gradient(90deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 42%, rgba(255,255,255,0.00) 100%)'
+                        : 'linear-gradient(270deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 42%, rgba(255,255,255,0.00) 100%)',
+                  }}
+                  className="group border border-white/15 rounded-lg p-4 flex items-start justify-between cursor-pointer bg-white/[0.04] transition-all hover:-translate-y-0.5 hover:bg-white/[0.09] hover:shadow-[0_10px_24px_rgba(0,0,0,0.28)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 animate-in fade-in slide-in-from-bottom-2 duration-500"
                 >
                   <div className="space-y-2">
                     <div className="font-semibold tracking-tight group-hover:text-white transition-colors">{row.title}</div>

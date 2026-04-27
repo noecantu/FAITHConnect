@@ -1,4 +1,17 @@
-import { getSupabaseClient } from "@/app/lib/supabase/client";
+import { createSetList, getSetListById } from "@/app/lib/setlists";
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) return error.message;
+
+  if (error && typeof error === "object") {
+    const maybe = error as Record<string, unknown>;
+    const parts = [maybe.message, maybe.code, maybe.details]
+      .filter((part): part is string => typeof part === "string" && part.trim().length > 0);
+    if (parts.length > 0) return parts.join(" | ");
+  }
+
+  return "Unknown duplication error";
+}
 
 export async function duplicateSetList(
   churchId: string,
@@ -6,38 +19,22 @@ export async function duplicateSetList(
   router: { push: (path: string) => void }
 ) {
   try {
-    const supabase = getSupabaseClient();
+    const original = await getSetListById(churchId, setListId);
+    if (!original) {
+      throw new Error("Set list not found");
+    }
 
-    // Fetch original
-    const { data: original, error: fetchError } = await supabase
-      .from("setlists")
-      .select("*")
-      .eq("id", setListId)
-      .eq("church_id", churchId)
-      .single();
+    const created = await createSetList(churchId, {
+      title: `${original.title}_Copy`,
+      dateString: original.dateString,
+      timeString: original.timeString,
+      sections: original.sections,
+      serviceType: original.serviceType ?? null,
+      serviceNotes: original.serviceNotes ?? null,
+    });
 
-    if (fetchError || !original) return;
-
-    // Create duplicate
-    const { data: newRow, error: insertError } = await supabase
-      .from("setlists")
-      .insert({
-        church_id: churchId,
-        title: `${original.title}_Copy`,
-        date_string: original.date_string ?? null,
-        time_string: original.time_string ?? null,
-        service_type: original.service_type ?? null,
-        service_notes: original.service_notes ?? "",
-        created_by: "system",
-        sections: original.sections ?? [],
-      })
-      .select("id")
-      .single();
-
-    if (insertError || !newRow) throw insertError ?? new Error("Insert failed");
-
-    router.push(`/church/${churchId}/music/setlists/${newRow.id}`);
+    router.push(`/church/${churchId}/music/setlists/${created.id}`);
   } catch (err) {
-    console.error("Duplicate error:", err);
+    console.error("Duplicate error:", getErrorMessage(err));
   }
 }
