@@ -17,6 +17,7 @@ import { Label } from "@/app/components/ui/label";
 import { useToast } from "@/app/hooks/use-toast";
 import { can } from "@/app/lib/auth/permissions";
 import type { Role } from "@/app/lib/auth/roles";
+import { invalidateCurrentUserCache } from "@/app/lib/currentUserCache";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -50,6 +51,9 @@ export default function LoginPage() {
         return;
       }
 
+      // Drop any pre-login cached profile so post-login routing uses fresh role data.
+      invalidateCurrentUserCache();
+
       // 2. Fetch profile (roles, churchId, onboarding state)
       const profileRes = await fetch("/api/users/me", {
         credentials: "include",
@@ -65,6 +69,8 @@ export default function LoginPage() {
       const profile = await profileRes.json();
 
       const roles = (profile.roles ?? []) as Role[];
+      const isSystemUser =
+        profile.isSystemUser === true || profile.isRootAdmin === true;
 
       toast({
         title: "Login Successful",
@@ -72,6 +78,11 @@ export default function LoginPage() {
       });
 
       // 3. Redirect logic
+      if (isSystemUser) {
+        router.replace("/admin");
+        return;
+      }
+
       if (can(roles, "system.manage")) {
         router.replace("/admin");
         return;
@@ -88,6 +99,11 @@ export default function LoginPage() {
       }
 
       if (profile.onboardingComplete === false) {
+        const safeOnboardingStep =
+          profile.onboardingStep === "billing" && !profile.planId
+            ? "choose-plan"
+            : profile.onboardingStep;
+
         const onboardingStepPaths: Record<string, string> = {
           "choose-plan": "/onboarding/choose-plan",
           "confirm-plan": "/onboarding/confirm-plan",
@@ -95,7 +111,7 @@ export default function LoginPage() {
           "billing": "/onboarding/billing",
           "create-church": "/onboarding/create-church",
         };
-        const stepPath = onboardingStepPaths[profile.onboardingStep as string];
+        const stepPath = onboardingStepPaths[safeOnboardingStep as string];
         router.replace(stepPath ?? "/onboarding/choose-plan");
         return;
       }

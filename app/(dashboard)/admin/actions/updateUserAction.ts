@@ -40,8 +40,23 @@ export async function updateUserAction(input: UpdateUserInput) {
   if (!targetData) throw new Error("User not found");
   if (!actorData) throw new Error("Actor not found");
 
+  const ROOT_ADMIN_EMAIL = (
+    process.env.ROOT_ADMIN_EMAIL ??
+    process.env.NEXT_PUBLIC_ROOT_ADMIN_EMAIL ??
+    "root@faithconnect.app"
+  ).trim().toLowerCase();
+
   const before = targetData;
-  const actorRoles = (actorData.roles ?? []) as Role[];
+  let actorRoles = (actorData.roles ?? []) as Role[];
+
+  // Bootstrap RootAdmin role from email if not already present in DB
+  if (
+    actorData.email?.trim().toLowerCase() === ROOT_ADMIN_EMAIL &&
+    !(actorRoles as string[]).includes("RootAdmin")
+  ) {
+    actorRoles = [...actorRoles, "RootAdmin" as unknown as Role];
+  }
+
   const isSelf = actorUid === userId;
   const isRootAdmin = can(actorRoles, "system.manage");
   const canAssignRoles = can(actorRoles, "roles.assign");
@@ -153,7 +168,8 @@ export async function updateUserAction(input: UpdateUserInput) {
     finalUpdates.district_id = null;
   }
 
-  await adminDb.from("users").update(finalUpdates).eq("id", userId);
+  const { error: updateError } = await adminDb.from("users").update(finalUpdates).eq("id", userId);
+  if (updateError) throw new Error(updateError.message);
 
   await logSystemEvent({
     type: "USER_UPDATED",

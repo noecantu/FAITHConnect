@@ -68,10 +68,10 @@ export default function RegionalSettingsPage() {
     if (!region_id) return;
 
     const load = async () => {
-      const snap = await supabase.from("regions").select('*').eq('id', region_id).single();
-      if (!snap.exists()) return;
+      const { data: regionData } = await supabase.from("regions").select('name').eq('id', region_id).single();
+      if (!regionData) return;
 
-      const name = (snap.data().name as string | undefined) ?? "Region";
+      const name = (regionData.name as string | undefined) ?? "Region";
       setRegionName(name);
     };
 

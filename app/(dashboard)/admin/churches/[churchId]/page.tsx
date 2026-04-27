@@ -6,9 +6,9 @@ export const dynamic = "force-dynamic";
 export default async function MasterChurchDetailsPage({
   params,
 }: {
-  params: Promise<{ church_id: string }>;
+  params: Promise<{ churchId: string }>;
 }) {
-  const { church_id } = await params;
+  const { churchId: church_id } = await params;
 
   // 1. Load church document
   const { data: church, error: churchError } = await adminDb

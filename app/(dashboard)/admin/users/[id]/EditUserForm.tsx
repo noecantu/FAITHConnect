@@ -124,12 +124,8 @@ export default function EditUserForm({
       }
 
       try {
-        const snap = await supabase.from("regions").select('*').eq('id', rid).single();
-
-        if (snap.exists()) {
-          const data = snap.data();
-          setRegionName(data.name || "");
-        }
+        const { data } = await supabase.from("regions").select('*').eq('id', rid).single();
+        if (data) setRegionName(data.name || "");
       } catch (err) {
         console.error("Failed to load region:", err);
       }
@@ -148,10 +144,8 @@ export default function EditUserForm({
       if (typeof did !== "string" || did.trim().length < 10) return;
 
       try {
-        const snap = await supabase.from("districts").select('*').eq('id', did).single();
-
-        if (snap.exists()) {
-          const data = snap.data();
+        const { data } = await supabase.from("districts").select('*').eq('id', did).single();
+        if (data) {
           setDistrictName(data.name || "");
           setDistrictTitle(data.region_admin_title || "");
           setDistrictState(data.state || "");

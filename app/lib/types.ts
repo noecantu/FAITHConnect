@@ -336,6 +336,8 @@ export interface AppUser {
   regionId?: string | null;
   districtId?: string | null;
   roles?: Role[];
+  isSystemUser?: boolean;
+  isRootAdmin?: boolean;
   rolesByChurch?: {
     [churchId: string]: Role[];
   };

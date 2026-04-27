@@ -7,7 +7,15 @@ import { adminDb } from "@/app/lib/supabase/admin";
 import { ROLE_PERMISSIONS, can } from "@/app/lib/auth/permissions";
 import { ROLES, type Role } from "@/app/lib/auth/roles";
 
-const ROOT_ADMIN_EMAIL = (process.env.ROOT_ADMIN_EMAIL ?? "root@faithconnect.app").toLowerCase();
+const ROOT_ADMIN_EMAIL = (
+  process.env.ROOT_ADMIN_EMAIL ??
+  process.env.NEXT_PUBLIC_ROOT_ADMIN_EMAIL ??
+  process.env.ROOT_ADMIN_USER_EMAIL ??
+  process.env.ROOTADMIN_EMAIL ??
+  "root@faithconnect.app"
+)
+  .trim()
+  .toLowerCase();
 
 function resolvePermissions(roles: Role[]) {
   const perms = new Set<string>();
@@ -27,9 +35,13 @@ function normalizeRoles(raw: unknown): Role[] {
     const key = value.toLowerCase().replace(/[\s_-]+/g, "");
     const aliases: Record<string, Role> = {
       rootadmin: "RootAdmin",
+      rootadministrator: "RootAdmin",
       systemadmin: "SystemAdmin",
+      systemadministrator: "SystemAdmin",
       districtadmin: "DistrictAdmin",
+      districtadministrator: "DistrictAdmin",
       regionaladmin: "RegionalAdmin",
+      regionaladministrator: "RegionalAdmin",
       support: "Support",
       auditor: "Auditor",
       admin: "Admin",
@@ -85,10 +97,10 @@ function mergeRoles(...roleSources: unknown[]): Role[] {
 
 function applyRootBootstrapRoles(email: string | null | undefined, roles: Role[]): Role[] {
   if (!email) return roles;
-  if (roles.length > 0) return roles;
-
   if (email.toLowerCase() === ROOT_ADMIN_EMAIL) {
-    return ["RootAdmin"];
+    const merged = new Set<Role>(roles);
+    merged.add("RootAdmin");
+    return Array.from(merged);
   }
 
   return roles;
@@ -117,11 +129,37 @@ export async function GET() {
 
       const roles = normalizeRoles(
         (metadata as Record<string, unknown>).roles ??
-          (appMetadata as Record<string, unknown>).roles
+          (metadata as Record<string, unknown>).role ??
+          (metadata as Record<string, unknown>).user_role ??
+          (appMetadata as Record<string, unknown>).roles ??
+          (appMetadata as Record<string, unknown>).role ??
+          (appMetadata as Record<string, unknown>).user_role
       );
       const effectiveRoles = applyRootBootstrapRoles(authUser.email ?? null, roles);
       const permissions = resolvePermissions(effectiveRoles);
       const isSystemUser = can(effectiveRoles, "system.manage");
+      const isRootAdmin =
+        (authUser.email ?? "").trim().toLowerCase() === ROOT_ADMIN_EMAIL;
+
+      // If we bootstrapped a RootAdmin role, persist it so RLS policies work
+      if (
+        effectiveRoles.includes("RootAdmin") &&
+        (authUser.email ?? "").trim().toLowerCase() === ROOT_ADMIN_EMAIL
+      ) {
+        await adminDb.from("users").upsert(
+          {
+            id: uid,
+            email: authUser.email,
+            roles: effectiveRoles,
+            first_name: (metadata as Record<string, unknown>).firstName as string ?? "Root",
+            last_name: (metadata as Record<string, unknown>).lastName as string ?? "Admin",
+            onboarding_step: "complete",
+            onboarding_complete: true,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "id" }
+        );
+      }
 
       return NextResponse.json({
         uid,
@@ -152,6 +190,8 @@ export async function GET() {
 
         onboardingStep: isSystemUser ? "complete" : "choose-plan",
         onboardingComplete: isSystemUser,
+        isSystemUser,
+        isRootAdmin,
       });
     }
 
@@ -160,20 +200,46 @@ export async function GET() {
 
     const roles = mergeRoles(
       user.roles,
+      (user as Record<string, unknown>).role,
+      (user as Record<string, unknown>).user_role,
       (metadata as Record<string, unknown>).roles,
       (metadata as Record<string, unknown>).role,
+      (metadata as Record<string, unknown>).user_role,
       (appMetadata as Record<string, unknown>).roles,
-      (appMetadata as Record<string, unknown>).role
+      (appMetadata as Record<string, unknown>).role,
+      (appMetadata as Record<string, unknown>).user_role
     );
     const effectiveRoles = applyRootBootstrapRoles(authUser.email ?? null, roles);
     const permissions = resolvePermissions(effectiveRoles);
     const isSystemUser = can(effectiveRoles, "system.manage");
+    const isRootAdmin =
+      (authUser.email ?? "").trim().toLowerCase() === ROOT_ADMIN_EMAIL;
+
+    // If the DB row has no roles but we bootstrapped RootAdmin, persist it
+    const dbRoles = normalizeRoles(user.roles);
+    if (
+      effectiveRoles.includes("RootAdmin") &&
+      (authUser.email ?? "").trim().toLowerCase() === ROOT_ADMIN_EMAIL &&
+      !dbRoles.includes("RootAdmin")
+    ) {
+      await adminDb
+        .from("users")
+        .update({ roles: effectiveRoles, updated_at: new Date().toISOString() })
+        .eq("id", uid);
+    }
 
     const onboardingComplete = isSystemUser
       ? true
       : (user.onboarding_complete === undefined ? true : user.onboarding_complete);
 
     const onboardingStep = isSystemUser ? "complete" : (user.onboarding_step ?? "complete");
+
+    if (isSystemUser && (user.onboarding_complete !== true || user.onboarding_step !== "complete")) {
+      await adminDb
+        .from("users")
+        .update({ onboarding_complete: true, onboarding_step: "complete", updated_at: new Date().toISOString() })
+        .eq("id", uid);
+    }
 
     return NextResponse.json({
       uid,
@@ -198,6 +264,8 @@ export async function GET() {
 
       onboardingStep,
       onboardingComplete,
+      isSystemUser,
+      isRootAdmin,
     });
   } catch (err) {
     console.error("Error in /api/users/me:", err);

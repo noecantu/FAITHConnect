@@ -4,7 +4,13 @@ import { adminDb } from "@/app/lib/supabase/admin";
 import type { AppUser } from "@/app/lib/types";
 import { ROLES, type Role } from "@/app/lib/auth/roles";
 
-const ROOT_ADMIN_EMAIL = (process.env.ROOT_ADMIN_EMAIL ?? "root@faithconnect.app").toLowerCase();
+const ROOT_ADMIN_EMAIL = (
+  process.env.ROOT_ADMIN_EMAIL ??
+  process.env.NEXT_PUBLIC_ROOT_ADMIN_EMAIL ??
+  "root@faithconnect.app"
+)
+  .trim()
+  .toLowerCase();
 
 function normalizeRoles(raw: unknown): Role[] {
   const toCanonicalRole = (value: unknown): Role | null => {
@@ -73,10 +79,11 @@ function mergeRoles(...roleSources: unknown[]): Role[] {
 
 function applyRootBootstrapRoles(email: string | null | undefined, roles: Role[]): Role[] {
   if (!email) return roles;
-  if (roles.length > 0) return roles;
 
-  if (email.toLowerCase() === ROOT_ADMIN_EMAIL) {
-    return ["RootAdmin"];
+  if (email.trim().toLowerCase() === ROOT_ADMIN_EMAIL) {
+    const merged = new Set<Role>(roles);
+    merged.add("RootAdmin");
+    return Array.from(merged);
   }
 
   return roles;

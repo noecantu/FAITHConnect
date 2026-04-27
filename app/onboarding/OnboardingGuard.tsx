@@ -35,13 +35,21 @@ export default function OnboardingGuard({ children }: { children: React.ReactNod
         const user = await res.json();
         const roles = Array.isArray(user.roles) ? user.roles : [];
 
+        if (user.isSystemUser === true || user.isRootAdmin === true) {
+          router.replace("/admin");
+          return;
+        }
+
         // System users should never be forced through onboarding steps.
         if (can(roles, "system.manage")) {
           router.replace("/admin");
           return;
         }
 
-        const step = user.onboardingStep;
+        const step =
+          user.onboardingStep === "billing" && !user.planId
+            ? "choose-plan"
+            : user.onboardingStep;
 
         const steps: Record<string, string> = {
           "choose-plan": "/onboarding/choose-plan",

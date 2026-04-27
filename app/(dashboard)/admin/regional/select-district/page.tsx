@@ -2,7 +2,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-;
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { PageHeader } from "@/app/components/page-header";
@@ -33,17 +32,14 @@ export default function SelectDistrictPage() {
   useEffect(() => {
     async function load() {
       try {
-        const snap = await getDocs(collection(db, "districts"));
-        setDistricts(
-          snap.docs.map((d) => ({
-            id: d.id,
-            name: d.data().name || "Unknown District",
-            logo_url: d.data().logo_url ?? null,
-            region_admin_name: d.data().region_admin_name ?? null,
-            region_admin_title: d.data().region_admin_title ?? null,
-            state: d.data().state ?? null,
-          }))
-        );
+        const { data, error } = await supabase
+          .from("districts")
+          .select("id, name, logo_url, region_admin_name, region_admin_title, state")
+          .order("state", { ascending: true })
+          .order("name", { ascending: true });
+
+        if (error) throw error;
+        setDistricts(data ?? []);
       } catch (err) {
         console.error("Error loading districts:", err);
       } finally {
@@ -59,16 +55,24 @@ export default function SelectDistrictPage() {
 
     async function loadRegion() {
       try {
-        const snap = await getDoc(doc(db, "regions", region_id!));
-        if (snap.exists()) {
-          const data = snap.data();
-          setCurrentDistrictStatus(data.district_status ?? null);
+        const { data: regionData } = await supabase
+          .from("regions")
+          .select("district_status, district_id, district_selected_id")
+          .eq("id", region_id!)
+          .single();
 
-          if (data.district_id || data.district_selected_id) {
-            const did = data.district_id || data.district_selected_id;
-            const dSnap = await supabase.from("districts").select('*').eq('id', did).single();
-            if (dSnap.exists()) setCurrentDistrictName(dSnap.data().name || null);
-          }
+        if (!regionData) return;
+
+        setCurrentDistrictStatus(regionData.district_status ?? null);
+
+        const did = regionData.district_id || regionData.district_selected_id;
+        if (did) {
+          const { data: dData } = await supabase
+            .from("districts")
+            .select("name")
+            .eq("id", did)
+            .single();
+          if (dData) setCurrentDistrictName(dData.name || null);
         }
       } catch (err) {
         console.error("Error loading region district status:", err);

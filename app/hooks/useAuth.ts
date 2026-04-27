@@ -4,6 +4,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 import type { AppUser } from "@/app/lib/types";
+import {
+  fetchCurrentUserCached,
+  invalidateCurrentUserCache,
+} from "@/app/lib/currentUserCache";
 
 let logoutTransitionInProgress = false;
 const logoutTransitionListeners = new Set<() => void>();
@@ -14,6 +18,7 @@ function emitLogoutTransitionChange() {
 
 export function startLogoutTransition() {
   logoutTransitionInProgress = true;
+  invalidateCurrentUserCache();
   emitLogoutTransitionChange();
 }
 
@@ -38,13 +43,8 @@ export function useAuth() {
 
   const fetchProfile = useCallback(async () => {
     try {
-      const res = await fetch("/api/users/me", { credentials: "include" });
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data as AppUser);
-      } else {
-        setUser(null);
-      }
+      const data = await fetchCurrentUserCached();
+      setUser(data);
     } catch {
       setUser(null);
     } finally {
@@ -70,6 +70,7 @@ export function useAuth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === "SIGNED_OUT" || !session) {
+          invalidateCurrentUserCache();
           setUser(null);
           if (!logoutTransitionInProgress) {
             setLoading(false);
@@ -77,7 +78,13 @@ export function useAuth() {
           return;
         }
 
+        // TOKEN_REFRESHED: update the cache so next read is fresh, but don't
+        // force a re-render if a fetch is already in flight or data is cached.
         if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
+          if (event === "TOKEN_REFRESHED") {
+            // Bust the cache so the next fetch picks up updated claims
+            invalidateCurrentUserCache();
+          }
           setLoading(true);
           await fetchProfile();
         }

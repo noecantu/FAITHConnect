@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
       const supabase = getSupabaseClient();
       const { error } = await supabase.auth.resetPasswordForEmail(
         normalizedEmail,
-        { redirectTo: `${window.location.origin}/login` }
+        { redirectTo: `${window.location.origin}/reset-password` }
       );
 
       // Always redirect to /sent to avoid account enumeration

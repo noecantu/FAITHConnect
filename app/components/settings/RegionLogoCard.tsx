@@ -36,10 +36,10 @@ export default function RegionLogoCard({
     setUploadPath(`regions/${region_id}/logo/logo-${Date.now()}.png`);
 
     const load = async () => {
-      const snap = await supabase.from("regions").select('*').eq('id', region_id).single();
-      if (!snap.exists()) return;
+      const { data } = await supabase.from("regions").select('*').eq('id', region_id).single();
+      if (!data) return;
 
-      const url = (snap.data().logo_url as string | null | undefined) ?? null;
+      const url = (data.logo_url as string | null | undefined) ?? null;
       setLogoUrl(url);
       setOriginalLogoUrl(url);
     };

@@ -8,7 +8,7 @@ import { Card } from '@/app/components/ui/card';
 
 export default function SelectRegionPage() {
   const supabase = getSupabaseClient();
-  const { church_id } = useParams();
+  const { churchId } = useParams();
   const router = useRouter();
 
   const [regions, setRegions] = useState<any[]>([]);
@@ -19,9 +19,8 @@ export default function SelectRegionPage() {
       const { data, error } = await supabase
         .from('regions')
         .select('*')
-        .order('state', { ascending: true })
         .order('name', { ascending: true });
-      if (error) console.error('SelectRegionPage load error:', error);
+      if (error) console.error('SelectRegionPage load error:', JSON.stringify(error), error);
       setRegions(data ?? []);
       setLoading(false);
     }
@@ -71,7 +70,7 @@ export default function SelectRegionPage() {
                 "
                 onClick={() =>
                   router.push(
-                    `/admin/church/${church_id}/select-region/${region.id}`
+                    `/admin/church/${churchId}/select-region/${region.id}`
                   )
                 }
               >

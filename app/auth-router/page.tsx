@@ -19,9 +19,12 @@ export default function AuthRouter() {
     }
 
     const roles = user.roles ?? [];
+    const isSystemUser =
+      (user as unknown as { isSystemUser?: boolean; isRootAdmin?: boolean }).isSystemUser === true ||
+      (user as unknown as { isSystemUser?: boolean; isRootAdmin?: boolean }).isRootAdmin === true;
 
     // System-level users should never be routed into church onboarding.
-    if (can(roles, "system.manage")) {
+    if (isSystemUser || can(roles, "system.manage")) {
       router.replace("/admin");
       return;
     }

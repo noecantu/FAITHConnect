@@ -36,6 +36,7 @@ create table if not exists public.users (
   email                   text not null,
   first_name              text,
   last_name               text,
+  display_name            text,
   profile_photo_url       text,
 
   -- Plan / billing
@@ -57,6 +58,12 @@ create table if not exists public.users (
   -- Regional / district
   region_id               text,
   region_name             text,
+  region_admin_title      text,
+  state                   text,
+  district_id             text,
+  district_name           text,
+  district_title          text,
+  district_state          text,
 
   -- Onboarding
   onboarding_step         text    not null default 'choose-plan',
@@ -371,11 +378,15 @@ create index if not exists logs_created_idx  on public.logs (created_at desc);
 -- ============================================================
 
 create table if not exists public.districts (
-  id          uuid primary key default uuid_generate_v4(),
-  name        text not null,
-  admin_uid   uuid references public.users (id) on delete set null,
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
+  id                  uuid primary key default uuid_generate_v4(),
+  name                text not null,
+  state               text,
+  logo_url            text,
+  region_admin_name   text,
+  region_admin_title  text,
+  admin_uid           uuid references public.users (id) on delete set null,
+  created_at          timestamptz not null default now(),
+  updated_at          timestamptz not null default now()
 );
 
 create or replace trigger districts_updated_at
@@ -383,12 +394,18 @@ create or replace trigger districts_updated_at
   for each row execute function public.set_updated_at();
 
 create table if not exists public.regions (
-  id          uuid primary key default uuid_generate_v4(),
-  district_id uuid references public.districts (id) on delete cascade,
-  name        text not null,
-  admin_uid   uuid references public.users (id) on delete set null,
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
+  id                    uuid primary key default uuid_generate_v4(),
+  district_id           uuid references public.districts (id) on delete cascade,
+  district_selected_id  uuid references public.districts (id) on delete set null,
+  district_status       text,
+  name                  text not null,
+  state                 text,
+  logo_url              text,
+  region_admin_name     text,
+  region_admin_title    text,
+  admin_uid             uuid references public.users (id) on delete set null,
+  created_at            timestamptz not null default now(),
+  updated_at            timestamptz not null default now()
 );
 
 create or replace trigger regions_updated_at
@@ -457,6 +474,22 @@ create policy "churches: write if admin" on public.churches for all
 -- ----------------------------------------------------------------
 -- Church-scoped tables: users belonging to the church can read.
 -- Write access checked in API routes via service role (adminDb).
+-- ----------------------------------------------------------------
+
+-- ----------------------------------------------------------------
+-- districts: any authenticated user can read; write via service role only.
+-- ----------------------------------------------------------------
+drop policy if exists "districts: read if authenticated" on public.districts;
+create policy "districts: read if authenticated" on public.districts for select
+  using (auth.uid() is not null);
+
+-- ----------------------------------------------------------------
+-- regions: any authenticated user can read; write via service role only.
+-- ----------------------------------------------------------------
+drop policy if exists "regions: read if authenticated" on public.regions;
+create policy "regions: read if authenticated" on public.regions for select
+  using (auth.uid() is not null);
+
 -- ----------------------------------------------------------------
 drop policy if exists "members: read if church member" on public.members;
 create policy "members: read if church member" on public.members for select

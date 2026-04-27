@@ -35,10 +35,9 @@ export default function DistrictProfileCard({
     const load = async () => {
       setLoading(true);
       try {
-        const snap = await supabase.from("districts").select('*').eq('id', district_id).single();
-        if (!snap.exists()) return;
+        const { data } = await supabase.from("districts").select('*').eq('id', district_id).single();
+        if (!data) return;
 
-        const data = snap.data();
         const nextName = (data.name as string | undefined) ?? "";
         const nextTitle = (data.region_admin_title as string | undefined) ?? "";
         const nextState = (data.state as string | undefined) ?? "";

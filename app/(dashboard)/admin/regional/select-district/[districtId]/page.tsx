@@ -1,9 +1,8 @@
-//app/(dashboard)/admin/regional/select-district/[district_id]/page.tsx
+//app/(dashboard)/admin/regional/select-district/[districtId]/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-;
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { Card } from "@/app/components/ui/card";
@@ -12,38 +11,41 @@ import { useToast } from "@/app/hooks/use-toast";
 
 export default function ConfirmDistrictPage() {
   const supabase = getSupabaseClient();
-  const { district_id } = useParams() as { district_id: string };
+  const { districtId } = useParams() as { districtId: string };
   const router = useRouter();
   const { toast } = useToast();
   const { isRegionalAdmin, region_id, loading: permLoading } = usePermissions();
 
-  const [district, setDistrict] = useState<any>(null);
+  const [district, setDistrict] = useState<Record<string, string | null> | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     async function load() {
-      const snap = await supabase.from("districts").select('*').eq('id', district_id).single();
-      if (snap.exists()) {
-        setDistrict({ id: snap.id, ...snap.data() });
-      }
+      const { data } = await supabase.from("districts").select("*").eq("id", districtId).single();
+      setDistrict(data ?? null);
       setLoading(false);
     }
     load();
-  }, [district_id]);
+  }, [districtId]);
 
   async function handleConfirm() {
-    if (!region_id || !district_id) return;
+    if (!region_id || !districtId) return;
 
     setSaving(true);
 
     try {
-      await updateDoc(doc(db, "regions", region_id), {
-        district_selected_id: district_id,
-        district_status: "pending",
-        district_id: null,
-        updated_at: new Date(),
-      });
+      const { error } = await supabase
+        .from("regions")
+        .update({
+          district_selected_id: districtId,
+          district_status: "pending",
+          district_id: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", region_id);
+
+      if (error) throw error;
 
       toast({
         title: "District Request Sent",
@@ -56,6 +58,7 @@ export default function ConfirmDistrictPage() {
       toast({
         title: "Error",
         description: "Could not submit district request.",
+        variant: "destructive",
       });
     } finally {
       setSaving(false);
