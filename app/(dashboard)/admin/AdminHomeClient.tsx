@@ -107,7 +107,7 @@ export default function AdminHomeClient({
       {/* Platform Identity */}
       <DashboardIdentityCard
         eyebrow="Platform"
-        logoUrl={null}
+        logoUrl="/F-Flame_Vector_Optimized.svg"
         logoAlt="FAITH Connect"
         fallback="FC"
         name="FAITH Connect"
