@@ -15,6 +15,8 @@ interface CalendarViewSwitcherProps {
   month: Date;
   events: CalendarItem[];
   onSelectDate: (date: Date) => void;
+  selectedDate?: Date;
+  density?: 'comfortable' | 'compact';
   onPrevMonth: () => void;
   onNextMonth: () => void;
 
@@ -29,6 +31,8 @@ export function CalendarViewSwitcher({
   month,
   events,
   onSelectDate,
+  selectedDate,
+  density,
   onPrevMonth,
   onNextMonth,
   canManage,
@@ -60,6 +64,8 @@ export function CalendarViewSwitcher({
           month={month}
           events={events}
           onSelectDate={onSelectDate}
+          selectedDate={selectedDate}
+          density={density}
           onPrevMonth={onPrevMonth}
           onNextMonth={onNextMonth}
         />
@@ -78,6 +84,8 @@ export function CalendarViewSwitcher({
     month,
     events,
     onSelectDate,
+    selectedDate,
+    density,
     onPrevMonth,
     onNextMonth,
     canManage,

@@ -9,6 +9,7 @@ import {
   isPast,
   isToday,
   isValid,
+  isSameDay,
 } from 'date-fns';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
@@ -23,6 +24,8 @@ interface GridCalendarProps {
   onPrevMonth: () => void;
   onNextMonth: () => void;
   events: (Event | ServicePlan)[];
+  selectedDate?: Date;
+  density?: 'comfortable' | 'compact';
   onEdit?: (event: Event | ServicePlan) => void;
 }
 
@@ -32,6 +35,8 @@ export function GridCalendar({
   onPrevMonth,
   onNextMonth,
   events,
+  selectedDate,
+  density = 'comfortable',
 }: GridCalendarProps) {  
 
   const eventsByDay = events.reduce((acc, item) => {
@@ -123,9 +128,13 @@ export function GridCalendar({
             const count = dayEvents.length;
 
             const dayClass = [
-              "relative flex flex-col items-start justify-start p-2 border-r border-b aspect-square overflow-hidden",
+              "relative flex flex-col items-start justify-start border-r border-b aspect-square overflow-hidden",
+              density === 'compact' ? 'p-1.5' : 'p-2',
               "transition-all duration-150",
               "hover:bg-white/10 hover:shadow-lg hover:z-10 hover:scale-[1.02]",
+              selectedDate && isSameDay(day, selectedDate)
+                ? "ring-2 ring-sky-400/70 ring-inset"
+                : "",
               isToday(day)
                 ? "bg-primary/20 ring-2 ring-primary/40 ring-offset-1 ring-offset-black"
                 : "",
@@ -140,7 +149,7 @@ export function GridCalendar({
                 className={dayClass}
                 onClick={() => onSelectDate(day)}
               >
-                <span className="text-sm font-medium">{format(day, 'd')}</span>
+                <span className={density === 'compact' ? 'text-xs font-medium' : 'text-sm font-medium'}>{format(day, 'd')}</span>
 
                 {/* Mobile count bubble */}
                 {count > 0 && (
@@ -155,7 +164,7 @@ export function GridCalendar({
 
                 {/* Desktop event chips */}
                 {count > 0 && (
-                  <div className="hidden md:flex flex-col items-start w-full mt-1 space-y-2">
+                  <div className={density === 'compact' ? 'hidden md:flex flex-col items-start w-full mt-1 space-y-1.5' : 'hidden md:flex flex-col items-start w-full mt-1 space-y-2'}>
                     {dayEvents.slice(0, 2).map((event) => {
                       const groups = "groups" in event ? event.groups : [];
                       const color = getGroupColor(groups);
