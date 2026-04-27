@@ -6,24 +6,33 @@ import { adminDb } from "@/app/lib/supabase/admin";
 
 export async function POST(req: Request) {
   try {
-    // 1. Verify session using Supabase
+    // 1. Verify session
     const authUser = await getServerUser();
     if (!authUser) {
       return NextResponse.json({ error: "No session" }, { status: 401 });
     }
     const callerUid = authUser.id;
 
-    // 2. Verify caller is a RegionalAdmin
-    // Assuming roles are on authUser.user_metadata or we fetch from user profile
-    // Based on previous files, roles might be in the 'users' table or on the user object.
-    // For now, keeping the logic as close as possible to original.
-    const roles: string[] = (authUser as any).app_metadata?.roles ?? [];
-    if (!roles.includes("RegionalAdmin")) {
+    // 2. Load caller from users table (not app_metadata which may be stale)
+    const { data: caller } = await adminDb
+      .from("users")
+      .select("roles, region_id")
+      .eq("id", callerUid)
+      .single();
+
+    if (!caller) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const roles: string[] = Array.isArray(caller.roles) ? caller.roles : [];
+    const isSystem = roles.includes("RootAdmin") || roles.includes("SystemAdmin");
+    if (!isSystem && !roles.includes("RegionalAdmin")) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // 3. Parse body
-    const { churchId } = await req.json();
+    // 3. Parse body — frontend sends church_id
+    const body = await req.json();
+    const churchId: string = body.churchId ?? body.church_id;
     if (!churchId || typeof churchId !== "string") {
       return NextResponse.json({ error: "Missing churchId" }, { status: 400 });
     }
@@ -39,45 +48,34 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Church not found" }, { status: 404 });
     }
 
-    const regionSelectedId = churchData.regionSelectedId;
-
+    // Use snake_case column name
+    const regionSelectedId = churchData.region_selected_id;
     if (!regionSelectedId) {
-      return NextResponse.json(
-        { error: "No regionSelectedId on church" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No pending region request on church" }, { status: 400 });
     }
 
-    // 5. Load the caller's region and verify they own it
-    const { data: regionData, error: regionError } = await adminDb
-      .from("regions")
-      .select("*")
-      .eq("id", regionSelectedId)
-      .single();
-
-    if (regionError || !regionData) {
-      return NextResponse.json({ error: "Region not found" }, { status: 404 });
+    // 5. Non-system users: verify caller owns the region being requested
+    if (!isSystem) {
+      const callerRegionId = caller.region_id;
+      if (!callerRegionId || callerRegionId !== regionSelectedId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
 
-    if (regionData.regionAdminUid !== callerUid) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    // 6. Approve the church
+    // 6. Approve the church — use snake_case columns
     const { error: updateChurchError } = await adminDb
       .from("churches")
       .update({
-        regionId: regionSelectedId,
-        regionSelectedId: null,
-        regionStatus: "approved",
-        updatedAt: new Date().toISOString(),
+        region_id: regionSelectedId,
+        region_selected_id: null,
+        region_status: "approved",
+        updated_at: new Date().toISOString(),
       })
       .eq("id", churchId);
 
     if (updateChurchError) throw updateChurchError;
 
-    // 7. Grant the Regional Admin read-only access to this church
-    // Supabase jsonb update for rolesByChurch and array_append for managedChurchIds
+    // 7. Grant the Regional Admin auditor access to this church
     const { data: userData, error: userFetchError } = await adminDb
       .from("users")
       .select("roles_by_church, managed_church_ids")
@@ -88,9 +86,9 @@ export async function POST(req: Request) {
 
     const updatedRolesByChurch = {
       ...(userData.roles_by_church || {}),
-      [churchId]: ["ChurchAuditor"]
+      [churchId]: ["ChurchAuditor"],
     };
-    
+
     const existingManagedIds = Array.isArray(userData.managed_church_ids) ? userData.managed_church_ids : [];
     const updatedManagedChurchIds = Array.from(new Set([...existingManagedIds, churchId]));
 
@@ -98,7 +96,7 @@ export async function POST(req: Request) {
       .from("users")
       .update({
         roles_by_church: updatedRolesByChurch,
-        managed_church_ids: updatedManagedChurchIds
+        managed_church_ids: updatedManagedChurchIds,
       })
       .eq("id", callerUid);
 
@@ -110,3 +108,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+

@@ -44,7 +44,7 @@ export function DashboardIdentityCard({
             <img
               src={logoUrl}
               alt={logoAlt}
-              className="h-32 w-32 rounded-md object-fill border border-border bg-black ring-2 ring-primary/20 shadow-md"
+              className="h-32 w-32 rounded-md object-cover border border-border bg-black ring-2 ring-primary/20 shadow-md"
             />
           ) : (
             <div className="h-32 w-32 rounded-md bg-muted flex items-center justify-center text-2xl font-semibold text-muted-foreground border border-border">

@@ -50,11 +50,20 @@ export default function PendingChurchesPage() {
   }
 
   async function handleReject(church_id: string) {
-    await supabase
-      .from('churches')
-      .update({ region_status: 'rejected', updated_at: new Date().toISOString() })
-      .eq('id', church_id);
-    toast({ title: 'Church Rejected', description: 'The church has been marked as rejected.' });
+    const res = await fetch("/api/church-approval/reject", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ church_id }),
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast({ title: "Error", description: data.error ?? "Could not reject church." });
+      return;
+    }
+
+    toast({ title: "Church Rejected", description: "The church has been marked as rejected." });
     fetchPending();
   }
 

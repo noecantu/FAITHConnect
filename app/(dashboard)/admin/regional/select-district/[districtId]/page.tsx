@@ -14,7 +14,7 @@ export default function ConfirmDistrictPage() {
   const { districtId } = useParams() as { districtId: string };
   const router = useRouter();
   const { toast } = useToast();
-  const { isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
+  const { isRegionalAdmin, loading: permLoading } = usePermissions();
 
   const [district, setDistrict] = useState<Record<string, string | null> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,22 +30,22 @@ export default function ConfirmDistrictPage() {
   }, [districtId]);
 
   async function handleConfirm() {
-    if (!regionId || !districtId) return;
+    if (!districtId) return;
 
     setSaving(true);
 
     try {
-      const { error } = await supabase
-        .from("regions")
-        .update({
-          district_selected_id: districtId,
-          district_status: "pending",
-          district_id: null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", regionId);
+      const res = await fetch("/api/region/request-district", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ districtId }),
+        credentials: "include",
+      });
 
-      if (error) throw error;
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Could not submit district request.");
+      }
 
       toast({
         title: "District Request Sent",
@@ -53,11 +53,11 @@ export default function ConfirmDistrictPage() {
       });
 
       router.push("/admin/regional");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       toast({
         title: "Error",
-        description: "Could not submit district request.",
+        description: err.message ?? "Could not submit district request.",
         variant: "destructive",
       });
     } finally {

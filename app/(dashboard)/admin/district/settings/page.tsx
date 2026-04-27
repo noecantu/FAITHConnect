@@ -60,9 +60,9 @@ export default function DistrictSettingsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DistrictProfileCard district_id={districtId} />
+        <ChangePasswordCard />
         <DistrictLogoCard districtId={districtId} districtName={districtName} />
         <ProfilePhotoCard user={user} />
-        <ChangePasswordCard />
       </div>
     </div>
   );

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
-import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import ImageDropzone from "@/app/components/settings/ImageDropzone";
 import { Check, X } from "lucide-react";
+import { useToast } from "@/app/hooks/use-toast";
 import type { AppUser } from "@/app/lib/types";
 
 export function ProfilePhotoCard({
@@ -17,6 +17,7 @@ export function ProfilePhotoCard({
   onDirtyChange?: (dirty: boolean) => void;
   registerSave?: (fn: () => Promise<void>) => void;
 }) {
+  const { toast } = useToast();
   const initialPhotoUrl = user.profile_photo_url ?? user.profilePhotoUrl ?? null;
   const [photoUrl, setPhotoUrl] = useState<string | null>(initialPhotoUrl);
   const [originalPhotoUrl, setOriginalPhotoUrl] = useState<string | null>(initialPhotoUrl);
@@ -31,6 +32,11 @@ export function ProfilePhotoCard({
       user.lastName?.[0] ??
       user.email?.[0] ??
       "U").toUpperCase();
+
+  const displayName = [user.first_name ?? user.firstName, user.last_name ?? user.lastName]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
 
   const dirty = photoUrl !== originalPhotoUrl;
 
@@ -86,10 +92,16 @@ export function ProfilePhotoCard({
     try {
       await saveProfilePhotoUrl(photoUrl);
       setOriginalPhotoUrl(photoUrl);
+      toast({ title: "Saved", description: "Profile photo updated." });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Could not update profile photo.",
+      });
     } finally {
       setSaving(false);
     }
-  }, [dirty, photoUrl]);
+  }, [dirty, photoUrl, toast]);
 
   const handleRemove = useCallback(async () => {
     if (!photoUrl && !originalPhotoUrl) return;
@@ -108,10 +120,16 @@ export function ProfilePhotoCard({
       setPhotoUrl(null);
       setOriginalPhotoUrl(null);
       setShowConfirmRemove(false);
+      toast({ title: "Photo removed", description: "Your profile photo has been removed." });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Could not remove profile photo.",
+      });
     } finally {
       setRemoving(false);
     }
-  }, [photoUrl, originalPhotoUrl]);
+  }, [photoUrl, originalPhotoUrl, toast]);
 
   useEffect(() => {
     setPhotoUrl(initialPhotoUrl);
@@ -131,7 +149,10 @@ export function ProfilePhotoCard({
     <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
       <CardHeader>
         <div className="flex items-start justify-between w-full">
-          <CardTitle>Profile Photo</CardTitle>
+          <div>
+            <CardTitle>Profile Photo</CardTitle>
+            <CardDescription>Upload and manage your profile photo for quick identification.</CardDescription>
+          </div>
 
           <div className="flex items-center gap-2">
             <button
@@ -170,36 +191,42 @@ export function ProfilePhotoCard({
       </CardHeader>
 
       <CardContent className="space-y-4">
-
-        {/* Preview */}
-        <div className="flex items-center gap-4">
-          <div className="h-32 w-32 shrink-0 rounded-lg overflow-hidden bg-slate-800 flex items-center justify-center text-xl font-semibold">
-            {photoUrl ? (
-              <Image
-                src={photoUrl}
-                alt="Profile Photo"
-                width={96}
-                height={96}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <span>{initials}</span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-2 w-full">
-
-            {/* Drag-and-drop uploader */}
-            <ImageDropzone
-              label="Upload Profile Photo"
-              path={`users/${user.uid}/profile.jpg`}
-              uploadHandler={uploadProfilePhotoViaApi}
-              onUploaded={(url) => {
-                setPhotoUrl(url);
-              }}
+        <div className="flex justify-center">
+          {photoUrl ? (
+            <img
+              src={photoUrl}
+              alt="Profile Photo"
+              className="h-40 w-40 rounded-md object-cover border border-border bg-white shadow-md"
             />
-          </div>
+          ) : (
+            <div className="h-40 w-40 rounded-md bg-muted flex items-center justify-center text-xl font-semibold text-muted-foreground border border-border">
+              {(displayName || initials)
+                .split(" ")
+                .map((word) => word[0]?.toUpperCase())
+                .join("")
+                .slice(0, 2) || "U"}
+            </div>
+          )}
         </div>
+
+        <ImageDropzone
+          label="Upload Profile Photo"
+          path={`users/${user.uid}/profile.jpg`}
+          uploadHandler={uploadProfilePhotoViaApi}
+          onUploaded={(url) => {
+            setPhotoUrl(url);
+            toast({
+              title: "Photo uploaded",
+              description: "Preview updated. Click the checkmark to save.",
+            });
+          }}
+          onError={(error) => {
+            toast({
+              title: "Upload failed",
+              description: error.message || "Could not upload profile photo.",
+            });
+          }}
+        />
 
         {showConfirmRemove && (
           <div className="border border-red-500 bg-red-50 rounded-md p-4 space-y-3">

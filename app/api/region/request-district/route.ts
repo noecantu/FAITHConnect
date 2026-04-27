@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
     const { data: caller } = await adminDb
       .from("users")
-      .select("roles")
+      .select("roles, region_id")
       .eq("id", callerUid)
       .single();
 
@@ -25,58 +25,46 @@ export async function POST(req: Request) {
 
     const roles: string[] = Array.isArray(caller.roles) ? caller.roles : [];
     const isSystem = roles.includes("RootAdmin") || roles.includes("SystemAdmin");
-    if (!isSystem && !roles.includes("DistrictAdmin")) {
+    if (!isSystem && !roles.includes("RegionalAdmin")) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { regionId } = await req.json();
-    if (!regionId || typeof regionId !== "string") {
-      return NextResponse.json({ error: "Missing regionId" }, { status: 400 });
+    const { districtId } = await req.json();
+    if (!districtId || typeof districtId !== "string") {
+      return NextResponse.json({ error: "Missing districtId" }, { status: 400 });
     }
 
-    const { data: region } = await adminDb
-      .from("regions")
-      .select("*")
-      .eq("id", regionId)
-      .single();
-
-    if (!region) {
-      return NextResponse.json({ error: "Region not found" }, { status: 404 });
+    const regionId = caller.region_id;
+    if (!regionId) {
+      return NextResponse.json({ error: "No region associated with this user" }, { status: 400 });
     }
 
-    const districtSelectedId = region.district_selected_id;
-    if (!districtSelectedId) {
-      return NextResponse.json({ error: "No pending district on region" }, { status: 400 });
-    }
-
+    // Verify the district exists
     const { data: district } = await adminDb
       .from("districts")
-      .select("*")
-      .eq("id", districtSelectedId)
+      .select("id")
+      .eq("id", districtId)
       .single();
 
     if (!district) {
       return NextResponse.json({ error: "District not found" }, { status: 404 });
     }
 
-    if (!isSystem && district.admin_uid !== callerUid) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    // Approve: link region to district and clear the pending request
-    await adminDb
+    const { error } = await adminDb
       .from("regions")
       .update({
-        district_id: districtSelectedId,
-        district_selected_id: null,
-        district_status: "approved",
+        district_selected_id: districtId,
+        district_status: "pending",
+        district_id: null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", regionId);
 
+    if (error) throw error;
+
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("district-approval/approve error:", err);
+    console.error("region/request-district error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

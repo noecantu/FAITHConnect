@@ -55,18 +55,31 @@ export default function PendingRegionsPage() {
       title: "Region Approved",
       description: "This region is now officially part of your district.",
     });
+    setPending((prev) => prev.filter((r) => r.id !== regionId));
   }
 
   async function handleReject(regionId: string) {
-    await getSupabaseClient()
-      .from("regions")
-      .update({ district_status: "rejected", updated_at: new Date().toISOString() })
-      .eq("id", regionId);
+    const res = await fetch("/api/district-approval/reject", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ regionId }),
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast({
+        title: "Error",
+        description: data.error ?? "Could not reject region.",
+      });
+      return;
+    }
 
     toast({
       title: "Region Rejected",
       description: "The region request has been rejected.",
     });
+    setPending((prev) => prev.filter((r) => r.id !== regionId));
   }
 
   if (permLoading) {
@@ -102,15 +115,15 @@ export default function PendingRegionsPage() {
           <DashboardApprovalRequestCard
             key={region.id}
             name={region.name || "Unknown Region"}
-            logoUrl={region.logoUrl ?? null}
+            logoUrl={region.logo_url ?? null}
             logoAlt={`${region.name || "Region"} logo`}
             fallback={String(region.name || "RG")
               .split(' ')
               .map((word) => word[0]?.toUpperCase())
               .join('')
               .slice(0, 2)}
-            subtitle={region.regionAdminTitle || region.regionAdminName
-              ? `${region.regionAdminTitle ? `${region.regionAdminTitle} ` : ''}${region.regionAdminName ?? ''}`
+            subtitle={region.region_admin_title || region.region_admin_name
+              ? `${region.region_admin_title ? `${region.region_admin_title} ` : ''}${region.region_admin_name ?? ''}`
               : null}
             meta={region.state ?? null}
             onApprove={() => handleApprove(region.id)}

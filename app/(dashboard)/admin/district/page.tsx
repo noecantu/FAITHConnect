@@ -65,7 +65,10 @@ export default function DistrictDashboardPage() {
 
   // Load district details
   useEffect(() => {
-    if (!districtId) return;
+    if (!districtId) {
+      setLoading(false);
+      return;
+    }
     let active = true;
 
     getSupabaseClient()
@@ -193,7 +196,7 @@ export default function DistrictDashboardPage() {
 
   if (permLoading) return <div className="p-6 text-muted-foreground">Loading…</div>;
 
-  if (!isDistrictAdmin) {
+  if (!isDistrictAdmin || !districtId) {
     return (
       <div className="p-6">
         <h1 className="text-xl font-semibold">Unauthorized</h1>

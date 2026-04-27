@@ -181,6 +181,10 @@ export async function GET() {
           ((metadata as Record<string, unknown>).churchId as string | null | undefined) ??
           ((metadata as Record<string, unknown>).church_id as string | null | undefined) ??
           null,
+        districtId:
+          ((metadata as Record<string, unknown>).districtId as string | null | undefined) ??
+          ((metadata as Record<string, unknown>).district_id as string | null | undefined) ??
+          null,
         regionId:
           ((metadata as Record<string, unknown>).regionId as string | null | undefined) ??
           ((metadata as Record<string, unknown>).region_id as string | null | undefined) ??
@@ -259,6 +263,7 @@ export async function GET() {
       roles: effectiveRoles,
       permissions,
       churchId: user.church_id ?? null,
+      districtId: user.district_id ?? null,
       regionId: user.region_id ?? null,
       regionName: user.region_name ?? null,
       managedChurchIds: user.managed_church_ids ?? [],
