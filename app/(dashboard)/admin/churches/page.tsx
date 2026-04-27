@@ -2,25 +2,25 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { getSupabaseClient } from "@/app/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 import Link from "next/link";
 import { Input } from "@/app/components/ui/input";
 import { Card, CardContent } from "@/app/components/ui/card";
 import { PageHeader } from "@/app/components/page-header";
-
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/app/components/ui/select";
+import { Button } from "@/app/components/ui/button";
+import { Label } from "@/app/components/ui/label";
+import TimezoneSelect from "@/app/components/settings/TimezoneSelect";
+import { useToast } from "@/app/hooks/use-toast";
+import { Plus, X } from "lucide-react";
 
 import type { Church } from "@/app/lib/types";
 import { formatPhone } from "@/app/lib/formatters";
 
 export default function GlobalChurchListPage() {
   const PAGE_SIZE = 10;
+  const router = useRouter();
+  const { toast } = useToast();
 
   // -----------------------------
   // STATE
@@ -29,7 +29,16 @@ export default function GlobalChurchListPage() {
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
-  const [sortField, setSortField] = useState<"name" | "createdAt">("name");
+  const [sortField] = useState<"name" | "createdAt">("name");
+
+  // Create form
+  const [showCreate, setShowCreate] = useState(false);
+  const [churchName, setChurchName] = useState("");
+  const [timezone, setTimezone] = useState("");
+  const [address, setAddress] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [adminEmail, setAdminEmail] = useState("");
+  const [saving, setSaving] = useState(false);
 
   // -----------------------------
   // LOAD INITIAL DATA
@@ -62,6 +71,53 @@ export default function GlobalChurchListPage() {
   }, [sortField]);
 
   // -----------------------------
+  // CREATE CHURCH
+  // -----------------------------
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!churchName.trim() || !timezone) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/churches", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: churchName.trim(),
+          timezone,
+          address: address.trim() || null,
+          logo_url: logoUrl.trim() || null,
+          adminEmail: adminEmail.trim() || null,
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json();
+        throw new Error(body.error ?? "Create failed");
+      }
+
+      const body = await res.json();
+
+      if (body.warning) {
+        toast({ title: "Church Created", description: body.warning, variant: "destructive" });
+      } else {
+        toast({
+          title: "Church Created",
+          description: `${churchName.trim()} has been added.${adminEmail.trim() ? " Invite sent." : ""}`,
+        });
+      }
+
+      // Navigate to the new church's detail page
+      router.push(`/admin/churches/${body.church.id}`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // -----------------------------
   // SEARCH FILTER
   // -----------------------------
   const filtered = useMemo(() => {
@@ -81,7 +137,7 @@ export default function GlobalChurchListPage() {
         subtitle="Manage every church in the FAITH Connect system."
       />
 
-      {/* Search + Sort */}
+      {/* Search + New */}
       <div className="flex flex-col md:flex-row md:items-center gap-4 w-full">
         <Input
           placeholder="Search churches..."
@@ -90,28 +146,76 @@ export default function GlobalChurchListPage() {
           className="flex-1"
         />
 
-        <Select
-          value={sortField}
-          onValueChange={(v) => setSortField(v as "name" | "createdAt")}
+        <Button
+          variant="outline"
+          className="shrink-0 gap-2"
+          onClick={() => setShowCreate((v) => !v)}
         >
-          <SelectTrigger
-            className="
-              w-[140px] h-9
-              bg-black/80 border border-white/20 backdrop-blur-xl
-              text-white/80
-              hover:bg-white/5 hover:border-white/20
-              transition
-            "
-          >
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectItem value="name">Sort by Name</SelectItem>
-            <SelectItem value="createdAt">Sort by Created Date</SelectItem>
-          </SelectContent>
-        </Select>
+          {showCreate ? (
+            <><X className="h-4 w-4" /> Cancel</>
+          ) : (
+            <><Plus className="h-4 w-4" /> New Church</>
+          )}
+        </Button>
       </div>
+
+      {/* Create Form */}
+      {showCreate && (
+        <Card className="border-white/15 bg-black/40 backdrop-blur-xl">
+          <CardContent className="p-6">
+            <h2 className="text-base font-semibold mb-4">Create New Church</h2>
+            <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="c-name">Church Name *</Label>
+                <Input
+                  id="c-name"
+                  value={churchName}
+                  onChange={(e) => setChurchName(e.target.value)}
+                  placeholder="e.g., Grace Community Church"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="c-timezone">Timezone *</Label>
+                <TimezoneSelect value={timezone} onChange={setTimezone} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="c-address">Address</Label>
+                <Input
+                  id="c-address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="123 Main St, City, State"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="c-logo">Logo URL (optional)</Label>
+                <Input
+                  id="c-logo"
+                  value={logoUrl}
+                  onChange={(e) => setLogoUrl(e.target.value)}
+                  placeholder="https://…"
+                />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label htmlFor="c-admin">Admin Email (optional — sends invite)</Label>
+                <Input
+                  id="c-admin"
+                  type="email"
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                  placeholder="admin@church.org"
+                />
+              </div>
+              <div className="sm:col-span-2 flex justify-end">
+                <Button type="submit" disabled={saving || !churchName.trim() || !timezone}>
+                  {saving ? "Creating…" : "Create Church"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Church Grid */}
       {loading ? (

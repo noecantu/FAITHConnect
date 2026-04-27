@@ -126,7 +126,7 @@ export default function AdminHomeClient({
             Platform
           </h2>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           <StatCard icon={<Building2 className="h-4 w-4 text-emerald-500" />} label="Churches" value={churchCount} description="Churches across the platform" />
           <StatCard icon={<MapPinned className="h-4 w-4 text-indigo-500" />} label="Districts" value={districtCount} description="Districts configured in the platform" />
           <StatCard icon={<Map className="h-4 w-4 text-sky-500" />} label="Regions" value={regionCount} description="Regions configured in the platform" />
