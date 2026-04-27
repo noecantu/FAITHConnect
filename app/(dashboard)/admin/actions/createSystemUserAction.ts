@@ -4,10 +4,17 @@ import { adminDb } from "@/app/lib/supabase/admin";
 import { logSystemEvent } from "@/app/lib/system/logging";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+let supabaseAdmin: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseAdmin() {
+  if (!supabaseAdmin) {
+    supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+  }
+  return supabaseAdmin;
+}
 
 export interface CreateSystemUserInput {
   first_name: string;
@@ -21,7 +28,7 @@ export interface CreateSystemUserInput {
 export async function createSystemUserAction(input: CreateSystemUserInput) {
   const { first_name, last_name, email, password, actorUid, actorName } = input;
 
-  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+  const { data: authData, error: authError } = await getSupabaseAdmin().auth.admin.createUser({
     email,
     password,
     email_confirm: true,

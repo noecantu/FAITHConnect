@@ -2,23 +2,30 @@ import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { adminDb } from "@/app/lib/supabase/admin";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+let supabaseAdmin: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseAdmin() {
+  if (!supabaseAdmin) {
+    supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+  }
+  return supabaseAdmin;
+}
 
 const ROOT_EMAIL = "root@faithconnect.app";
 const ROOT_CHURCH_ID = "system";
 
 export async function recoverRootAdmin() {
   // Try to find existing user
-  const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+  const { data: { users }, error: listError } = await getSupabaseAdmin().auth.admin.listUsers();
   if (listError) throw listError;
 
   let user = users.find((u) => u.email === ROOT_EMAIL);
 
   if (!user) {
-    const { data: created, error: createError } = await supabaseAdmin.auth.admin.createUser({
+    const { data: created, error: createError } = await getSupabaseAdmin().auth.admin.createUser({
       email: ROOT_EMAIL,
       password: "TempRoot123!",
       email_confirm: true,
@@ -42,7 +49,7 @@ export async function recoverRootAdmin() {
   }, { onConflict: "id" });
 
   // Generate a real password reset link
-  const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+  const { data: linkData, error: linkError } = await getSupabaseAdmin().auth.admin.generateLink({
     type: "recovery",
     email: ROOT_EMAIL,
     options: {

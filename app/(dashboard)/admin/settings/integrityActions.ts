@@ -9,10 +9,17 @@ import { can } from "@/app/lib/auth/permissions";
 import { logSystemEvent } from "@/app/lib/system/logging";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+let supabaseAdmin: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseAdmin() {
+  if (!supabaseAdmin) {
+    supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+  }
+  return supabaseAdmin;
+}
 
 function isChurchActiveForIntegrity(data: Record<string, unknown>): boolean {
   const rawStatus = typeof data.status === "string" ? data.status.trim().toLowerCase() : "";
@@ -64,7 +71,7 @@ export async function deleteStrayUser(uid: string) {
     }
   }
 
-  const { error } = await supabaseAdmin.auth.admin.deleteUser(uid);
+  const { error } = await getSupabaseAdmin().auth.admin.deleteUser(uid);
   if (error && !error.message.includes("not found")) throw error;
   await adminDb.from("users").delete().eq("id", uid);
 
@@ -167,7 +174,7 @@ export async function repairInvalidUserRoles(uid: string) {
 export async function scanForStrayAuthUsers() {
   await requireSystemManager();
 
-  const { data: { users: authUsers } } = await supabaseAdmin.auth.admin.listUsers();
+  const { data: { users: authUsers } } = await getSupabaseAdmin().auth.admin.listUsers();
   const { data: dbUsers } = await adminDb.from("users").select("id");
   const dbUserIds = new Set((dbUsers ?? []).map((u) => u.id));
 
@@ -189,7 +196,7 @@ export async function deleteStrayAuthUser(uid: string) {
   const { data: dbUser } = await adminDb.from("users").select("id").eq("id", uid).single();
   if (dbUser) throw new Error("This uid has a user profile. Use standard user deletion instead.");
 
-  const { error } = await supabaseAdmin.auth.admin.deleteUser(uid);
+  const { error } = await getSupabaseAdmin().auth.admin.deleteUser(uid);
   if (error) throw error;
   return { success: true, uid };
 }
