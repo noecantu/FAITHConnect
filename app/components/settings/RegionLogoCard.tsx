@@ -49,7 +49,7 @@ export default function RegionLogoCard({
 
   async function uploadLogoViaApi(file: File): Promise<string> {
     const formData = new FormData();
-    formData.append("region_id", region_id);
+    formData.append("regionId", region_id);
     formData.append("file", file);
 
     const res = await fetch("/api/region/logo/upload", {
@@ -78,7 +78,7 @@ export default function RegionLogoCard({
     const res = await fetch("/api/region/settings/update", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ region_id, logo_url: nextLogoUrl }),
+      body: JSON.stringify({ regionId: region_id, logoUrl: nextLogoUrl }),
     });
 
     const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -124,7 +124,11 @@ export default function RegionLogoCard({
         const pathMatch = removedLogoUrl.match(/\/storage\/v1\/object\/public\/([^\/]+)\/(.*?)(?:\?|$)/);
         if (pathMatch && pathMatch[2]) {
           const filePath = decodeURIComponent(pathMatch[2]);
-          await supabase.storage.from("regions").remove([filePath]);
+          await fetch("/api/logos/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ filePath }),
+          });
         }
       } catch (storageError) {
         console.warn("Logo file cleanup skipped:", storageError);
@@ -214,13 +218,22 @@ export default function RegionLogoCard({
           label="Upload Region Logo"
           path={uploadPath}
           uploadHandler={uploadLogoViaApi}
-          onUploaded={(url) => {
-            setLogoUrl(url);
-            setUploadPath(`regions/${region_id}/logo/logo-${Date.now()}.png`);
-            toast({
-              title: "Logo uploaded",
-              description: "Preview updated. Click the checkmark to save.",
-            });
+          onUploaded={async (url) => {
+            try {
+              await persistLogo(url);
+              setLogoUrl(url);
+              setOriginalLogoUrl(url);
+              setUploadPath(`regions/${region_id}/logo/logo-${Date.now()}.png`);
+              toast({
+                title: "Logo uploaded",
+                description: "Region logo saved successfully.",
+              });
+            } catch (error) {
+              toast({
+                title: "Save failed",
+                description: error instanceof Error ? error.message : "Could not save region logo.",
+              });
+            }
           }}
           onError={(error) => {
             toast({

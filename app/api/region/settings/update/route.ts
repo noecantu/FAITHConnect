@@ -28,7 +28,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing regionId." }, { status: 400 });
     }
 
-    const roles = user.user_metadata?.roles ?? [];
+    const { data: profile } = await adminDb
+      .from("users")
+      .select("roles, region_id")
+      .eq("id", user.id)
+      .single();
+
+    const roles = profile?.roles ?? [];
     const canManageSystem = can(roles, "system.manage");
     const canManageRegion = can(roles, "region.manage");
 
@@ -36,7 +42,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Forbidden." }, { status: 403 });
     }
 
-    if (!canManageSystem && user.user_metadata?.regionId !== regionId) {
+    if (!canManageSystem && profile?.region_id !== regionId) {
       return NextResponse.json({ error: "Forbidden." }, { status: 403 });
     }
 

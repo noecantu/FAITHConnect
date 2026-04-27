@@ -28,7 +28,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing districtId." }, { status: 400 });
     }
 
-    const roles = user.user_metadata?.roles ?? [];
+    const { data: profile } = await adminDb
+      .from("users")
+      .select("roles, district_id")
+      .eq("id", user.id)
+      .single();
+
+    const roles = profile?.roles ?? [];
     const canManageSystem = can(roles, "system.manage");
     const canManageDistrict = can(roles, "district.manage");
 
@@ -36,8 +42,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Forbidden." }, { status: 403 });
     }
 
-    // Note: Assuming user metadata contains districtId for simpler check
-    if (!canManageSystem && user.user_metadata?.districtId !== districtId) {
+    if (!canManageSystem && profile?.district_id !== districtId) {
       return NextResponse.json({ error: "Forbidden." }, { status: 403 });
     }
 

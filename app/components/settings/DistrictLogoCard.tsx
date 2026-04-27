@@ -118,12 +118,15 @@ export default function DistrictLogoCard({ districtId, districtName }: Props) {
       setShowConfirmRemove(false);
 
       try {
-        const supabase = getSupabaseClient();
         // Extract path from Supabase public URL: .../storage/v1/object/public/logos/path
         const urlParts = removedLogoUrl.split("/storage/v1/object/public/logos/");
         if (urlParts[1]) {
           const storagePath = decodeURIComponent(urlParts[1].split("?")[0]);
-          await supabase.storage.from("logos").remove([storagePath]);
+          await fetch("/api/logos/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ filePath: storagePath }),
+          });
         }
       } catch (storageError) {
         console.warn("Logo file cleanup skipped:", storageError);

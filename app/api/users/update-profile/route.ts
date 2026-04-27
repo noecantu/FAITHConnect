@@ -32,7 +32,9 @@ export async function POST(req: Request) {
     };
     if (typeof firstName === "string") updates.first_name = firstName;
     if (typeof lastName === "string") updates.last_name = lastName;
-    if (typeof profilePhotoUrl === "string") updates.profile_photo_url = profilePhotoUrl;
+    if (typeof profilePhotoUrl === "string" || profilePhotoUrl === null) {
+      updates.profile_photo_url = profilePhotoUrl;
+    }
 
     const { error: updateError } = await adminDb
       .from("users")

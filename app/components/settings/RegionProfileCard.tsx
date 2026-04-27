@@ -5,7 +5,7 @@ import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
 import { Input } from "@/app/components/ui/input";
-import { Button } from "@/app/components/ui/button";
+import { Check } from "lucide-react";
 import { useToast } from "@/app/hooks/use-toast";
 
 interface Props {
@@ -74,9 +74,9 @@ export default function RegionProfileCard({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          region_id,
+          regionId: region_id,
           name,
-          region_admin_title: title,
+          regionAdminTitle: title,
           state,
         }),
       });
@@ -105,8 +105,28 @@ export default function RegionProfileCard({
   return (
     <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
       <CardHeader>
-        <CardTitle>Region Profile</CardTitle>
-        <CardDescription>Update region display details for easier identification.</CardDescription>
+        <div className="flex items-start justify-between w-full">
+          <div>
+            <CardTitle>Region Profile</CardTitle>
+            <CardDescription>Update region display details for easier identification.</CardDescription>
+          </div>
+
+          <button
+            onClick={handleSave}
+            disabled={loading || saving || !hasChanges}
+            className={`
+              p-2 rounded-md border bg-muted/20 transition
+              focus:outline-none focus:ring-2 focus:ring-primary
+              ${loading || saving || !hasChanges ? "opacity-40 cursor-not-allowed" : "hover:bg-muted"}
+            `}
+          >
+            {saving ? (
+              <div className="h-5 w-5 animate-spin border-2 border-white/30 border-t-white rounded-full" />
+            ) : (
+              <Check className="h-5 w-5 text-white" />
+            )}
+          </button>
+        </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -139,10 +159,6 @@ export default function RegionProfileCard({
             disabled={loading}
           />
         </div>
-
-        <Button onClick={handleSave} disabled={loading || saving || !hasChanges}>
-          {saving ? "Saving..." : "Save Profile"}
-        </Button>
       </CardContent>
     </Card>
   );
