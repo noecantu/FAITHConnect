@@ -1,12 +1,27 @@
 import { adminDb } from "@/app/lib/supabase/admin";
 import ActivityLogTable from "./ActivityLogTable";
+import type { LogEntry } from "@/app/lib/types";
 
 export default async function ActivityLogsPage() {
-  const { data: logs } = await adminDb
+  const { data: rows } = await adminDb
     .from("logs")
     .select("*")
-    .order("timestamp", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(200);
+
+  const logs: LogEntry[] = (rows ?? []).map((r) => ({
+    id: r.id,
+    type: r.type,
+    message: r.message,
+    actorUid: r.actor_uid ?? null,
+    actorName: r.actor_name ?? null,
+    targetId: r.target_id ?? null,
+    targetType: r.target_type ?? null,
+    timestamp: r.created_at ?? null,
+    before: r.before ?? null,
+    after: r.after ?? null,
+    metadata: r.metadata ?? null,
+  }));
 
   return (
     <>
@@ -14,7 +29,7 @@ export default async function ActivityLogsPage() {
       <p className="text-muted-foreground">
         System-level audit trail of all administrative actions.
       </p>
-      <ActivityLogTable logs={logs ?? []} />
+      <ActivityLogTable logs={logs} />
     </>
   );
 }

@@ -28,12 +28,12 @@ export default async function AllUsersPage() {
     .map((u) => ({
       uid: u.id,
       email: u.email ?? "",
-      first_name: u.first_name ?? "",
-      last_name: u.last_name ?? "",
+      firstName: u.first_name ?? "",
+      lastName: u.last_name ?? "",
       roles: (u.roles ?? []) as Role[],
-      church_id: u.church_id ?? null,
+      churchId: u.church_id ?? null,
       churchName: u.church_id ? (churchNameById.get(u.church_id) ?? null) : null,
-      created_at: u.created_at ?? null,
+      createdAt: u.created_at ?? null,
     }));
 
   return <AllUsersClient users={nonSystemUsers} />;
