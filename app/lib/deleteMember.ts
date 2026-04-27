@@ -22,7 +22,7 @@ export async function deleteMember(
 
     // 2. Delete Storage files (photo + QR) — ignore errors for missing files
     const photoPaths = [
-      `churches/${churchId}/members/${memberId}/photo.jpg`,
+      `churches/${churchId}/members/${memberId}/profile.jpg`,
       `churches/${churchId}/members/${memberId}/qr.png`,
     ];
 

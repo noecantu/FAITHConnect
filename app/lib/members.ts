@@ -15,69 +15,41 @@ function getReciprocalType(type: string): string {
   return RECIPROCAL_TYPES[type] || type;
 }
 
+function normalizeDateInput(value: string | null | undefined): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 export async function addMember(
   churchId: string,
   data: Partial<Omit<Member, "id">> & { id: string }
 ) {
-  const supabase = getSupabaseClient();
-  const relationships = data.relationships || [];
-
-  // Build member row
-  const payload: Record<string, unknown> = removeUndefineds({
-    id: data.id,
-    church_id: churchId,
-    user_id: data.userId ?? null,
-    check_in_code: data.checkInCode ?? "",
-    qr_code: data.qrCode ?? "",
-    first_name: data.firstName ?? "",
-    last_name: data.lastName ?? "",
-    email: data.email ?? "",
-    phone_number: data.phoneNumber ?? "",
-    profile_photo_url: data.profilePhotoUrl ?? "",
-    status: data.status ?? "",
-    address: data.address ?? null,
-    birthday: data.birthday ?? null,
-    baptism_date: data.baptismDate ?? null,
-    anniversary: data.anniversary ?? null,
-    family_id: data.familyId ?? null,
-    notes: data.notes ?? "",
-    relationships: relationships,
+  const normalized = removeUndefineds({
+    ...data,
+    birthday: normalizeDateInput(data.birthday),
+    baptismDate: normalizeDateInput(data.baptismDate),
+    anniversary: normalizeDateInput(data.anniversary),
   });
 
-  const { error } = await supabase.from("members").insert(payload);
-  if (error) throw error;
+  const res = await fetch("/api/members/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      churchId,
+      member: normalized,
+    }),
+  });
 
-  // Update reciprocal relationships
-  await Promise.all(
-    relationships.map(async (rel) => {
-      const relatedId = rel.memberIds[1];
-      if (!relatedId) return;
-
-      const { data: relatedRow } = await supabase
-        .from("members")
-        .select("id, relationships")
-        .eq("id", relatedId)
-        .eq("church_id", churchId)
-        .single();
-
-      if (!relatedRow) return;
-
-      const existingRels: Relationship[] = relatedRow.relationships ?? [];
-      if (existingRels.some((r) => r.memberIds[1] === data.id)) return;
-
-      const reciprocal: Relationship = {
-        memberIds: [relatedId, data.id],
-        type: getReciprocalType(rel.type),
-      };
-      if (rel.anniversary) reciprocal.anniversary = rel.anniversary;
-
-      await supabase
-        .from("members")
-        .update({ relationships: [...existingRels, reciprocal] })
-        .eq("id", relatedId)
-        .eq("church_id", churchId);
-    })
-  );
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const message =
+      typeof body?.error === "string"
+        ? body.error
+        : `Failed to create member (${res.status})`;
+    throw new Error(message);
+  }
 }
 
 export async function updateMember(
@@ -95,9 +67,9 @@ export async function updateMember(
   if (data.profilePhotoUrl !== undefined) updatePayload.profile_photo_url = data.profilePhotoUrl;
   if (data.status !== undefined) updatePayload.status = data.status;
   if (data.address !== undefined) updatePayload.address = data.address;
-  if (data.birthday !== undefined) updatePayload.birthday = data.birthday;
-  if (data.baptismDate !== undefined) updatePayload.baptism_date = data.baptismDate;
-  if (data.anniversary !== undefined) updatePayload.anniversary = data.anniversary;
+  if (data.birthday !== undefined) updatePayload.birthday = normalizeDateInput(data.birthday);
+  if (data.baptismDate !== undefined) updatePayload.baptism_date = normalizeDateInput(data.baptismDate);
+  if (data.anniversary !== undefined) updatePayload.anniversary = normalizeDateInput(data.anniversary);
   if (data.familyId !== undefined) updatePayload.family_id = data.familyId;
   if (data.notes !== undefined) updatePayload.notes = data.notes;
   if (data.checkInCode !== undefined) updatePayload.check_in_code = data.checkInCode;

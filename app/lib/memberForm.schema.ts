@@ -31,7 +31,13 @@ export const memberSchema = z.object({
       street: z.string().optional(),
       city: z.string().optional(),
       state: z.string().optional(),
-      zip: z.string().optional(),
+      zip: z.preprocess(
+        (val) =>
+          typeof val === "string"
+            ? val.replace(/\D/g, "").slice(0, 5)
+            : val,
+        z.string().regex(/^\d{5}$/, "Zip code must be 5 digits").optional().or(z.literal(""))
+      ),
     })
     .optional(),
 

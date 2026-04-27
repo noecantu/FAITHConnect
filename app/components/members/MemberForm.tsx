@@ -16,7 +16,6 @@ import { memberSchema } from "@/app/lib/memberForm.schema";
 import { useMemberRelationships } from "@/app/hooks/useMemberRelationships";
 import { usePhotoCapture } from "@/app/hooks/usePhotoCapture";
 import QRCode from "qrcode";
-import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { generateCheckInCode } from "@/app/lib/utils/generateCheckInCode";
 
 import {
@@ -46,6 +45,20 @@ import { useRouter } from "next/navigation";
 import { deleteMember } from "@/app/lib/deleteMember";
 import { addMember, updateMember } from "@/app/lib/members";
 import { CheckInCodeSection } from "./CheckInCodeSection";
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) return error.message;
+
+  if (error && typeof error === "object") {
+    const maybe = error as Record<string, unknown>;
+    const parts = [maybe.message, maybe.code, maybe.details]
+      .filter((part): part is string => typeof part === "string" && part.trim().length > 0);
+
+    if (parts.length > 0) return parts.join(" | ");
+  }
+
+  return "Failed to save member.";
+}
 
 /* -------------------------------------------------------
    FAB MENU COMPONENT
@@ -263,31 +276,44 @@ export default function MemberForm({
         // ⭐ Generate QR code
         const qrValue = `${window.location.origin}/check-in/${churchId}?code=${checkInCode}`;
         const qrBase64 = await QRCode.toDataURL(qrValue);
-        const safeFirst = cleanValues.firstName.replace(/\s+/g, "");
-        const safeLast = cleanValues.lastName.replace(/\s+/g, "");
-        const fileName = `QRCode_${safeFirst}${safeLast}.png`;
-
-        // Upload QR code to Supabase Storage
-        const supabase = getSupabaseClient();
         const base64Data = qrBase64.replace(/^data:image\/png;base64,/, "");
         const byteArray = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
-        const storagePath = `churches/${churchId}/members/${newId}/${fileName}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("member-photos")
-          .upload(storagePath, byteArray, { contentType: "image/png", upsert: true });
-        if (uploadError) throw uploadError;
-        const { data: { publicUrl: qrUrl } } = supabase.storage
-          .from("member-photos")
-          .getPublicUrl(uploadData.path);
+        const qrBlob = new Blob([byteArray], { type: "image/png" });
+        const qrFile = new File([qrBlob], "qr.png", { type: "image/png" });
 
-        // ⭐ Update QR code URL
-        await updateMember(churchId, newId, { qrCode: qrUrl });
+        // Upload QR code through server API (avoids client storage RLS failures).
+        const formData = new FormData();
+        formData.append("file", qrFile);
+        formData.append("churchId", churchId);
+        formData.append("memberId", newId);
+        formData.append("kind", "qr");
+
+        try {
+          const uploadRes = await fetch("/api/members/media/upload", {
+            method: "POST",
+            body: formData,
+            credentials: "include",
+          });
+
+          if (uploadRes.ok) {
+            const body = await uploadRes.json();
+            if (typeof body?.url === "string" && body.url.length > 0) {
+              await updateMember(churchId, newId, { qrCode: body.url });
+            }
+          } else {
+            const body = await uploadRes.json().catch(() => ({}));
+            console.error("QR upload failed:", body?.error ?? uploadRes.statusText);
+          }
+        } catch (uploadErr) {
+          console.error("QR upload error:", uploadErr);
+        }
 
         onSuccess?.(newId);
       }
     } catch (err) {
-      console.error(err);
-      toast({ title: "Error", description: "Failed to save member." });
+      const message = getErrorMessage(err);
+      console.error("Member save failed:", message);
+      toast({ title: "Error", description: message });
     } finally {
       setIsLoading(false);
     }

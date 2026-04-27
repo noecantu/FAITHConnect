@@ -69,22 +69,31 @@ export function usePhotoCapture({
       }
 
       try {
-        // 3. Upload using the stable ID (real or temp)
-        const supabase = getSupabaseClient();
-        const path = `churches/${churchId}/members/${id}/profile.jpg`;
+        // 3. Upload via server API to avoid client-side Storage RLS failures.
+        const formData = new FormData();
+        formData.append("file", photoFile);
+        formData.append("churchId", churchId);
+        formData.append("memberId", id);
+        formData.append("kind", "profile");
 
-        const { error: uploadError } = await supabase.storage
-          .from("member-photos")
-          .upload(path, photoFile, { upsert: true, contentType: "image/jpeg" });
+        const uploadRes = await fetch("/api/members/media/upload", {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        });
 
-        if (uploadError) throw uploadError;
+        if (!uploadRes.ok) {
+          const body = await uploadRes.json().catch(() => ({}));
+          throw new Error(body?.error ?? `Upload failed (${uploadRes.status})`);
+        }
 
-        const { data: urlData } = supabase.storage
-          .from("member-photos")
-          .getPublicUrl(path);
+        const body = await uploadRes.json();
+        if (typeof body?.url !== "string" || body.url.length === 0) {
+          throw new Error("Upload failed: missing file URL");
+        }
 
         // 4. Save the URL to the form
-        form.setValue("profilePhotoUrl", urlData.publicUrl, { shouldDirty: true });
+        form.setValue("profilePhotoUrl", body.url, { shouldDirty: true });
       } catch (err) {
         console.error("Photo upload failed:", err);
         toast({

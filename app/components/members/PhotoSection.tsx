@@ -18,6 +18,7 @@ import { Camera, Trash } from "lucide-react";
 import ImageDropzone from "@/app/components/settings/ImageDropzone";
 import type { UseFormReturn } from "react-hook-form";
 import type { MemberFormValues } from "@/app/lib/memberForm.schema";
+import { useToast } from "@/app/hooks/use-toast";
 
 type Props = {
   churchId: string;
@@ -36,7 +37,40 @@ export function PhotoSection({
   setIsTakingPhoto,
   handleRemovePhoto,
 }: Props) {
+  const { toast } = useToast();
   const memberId = form.watch("tempId");
+
+  const uploadMemberPhotoViaApi = async (file: File) => {
+    const resolvedMemberId = memberId ?? form.getValues("tempId");
+
+    if (!resolvedMemberId) {
+      throw new Error("Missing member ID for photo upload.");
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("churchId", churchId);
+    formData.append("memberId", resolvedMemberId);
+    formData.append("kind", "profile");
+
+    const uploadRes = await fetch("/api/members/media/upload", {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+    });
+
+    if (!uploadRes.ok) {
+      const body = await uploadRes.json().catch(() => ({}));
+      throw new Error(body?.error ?? `Upload failed (${uploadRes.status})`);
+    }
+
+    const body = await uploadRes.json();
+    if (typeof body?.url !== "string" || body.url.length === 0) {
+      throw new Error("Upload failed: missing image URL.");
+    }
+
+    return body.url;
+  };
 
   return (
     <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
@@ -65,9 +99,16 @@ export function PhotoSection({
         <ImageDropzone
           label="Upload Photo"
           path={`churches/${churchId}/members/${memberId}/profile.jpg`}
+          uploadHandler={uploadMemberPhotoViaApi}
           onUploaded={(url) => {
             form.setValue("profilePhotoUrl", url);
             form.setValue("photoFile", null);
+          }}
+          onError={(error) => {
+            toast({
+              title: "Upload failed",
+              description: error.message || "Could not upload member photo.",
+            });
           }}
         />
 

@@ -226,7 +226,16 @@ export function MemberInfoSection({ form }: Props) {
               <FormItem>
                 <FormLabel>Zip</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input
+                    {...field}
+                    inputMode="numeric"
+                    maxLength={5}
+                    pattern="[0-9]*"
+                    onChange={(e) => {
+                      const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 5);
+                      field.onChange(digitsOnly);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
