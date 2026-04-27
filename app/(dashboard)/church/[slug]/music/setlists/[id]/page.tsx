@@ -13,7 +13,7 @@ import { format } from 'date-fns';
 import { Fab } from '@/app/components/ui/fab';
 import { useRouter } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu';
-import { Copy, FileText, Music, Pencil, Trash } from 'lucide-react';
+import { Copy, FileText, Music2, Pencil, Trash } from 'lucide-react';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/app/components/ui/alert-dialog';
 import { getSectionColor } from '@/app/lib/sectionColors';
 import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dialog';
@@ -194,7 +194,7 @@ export default function SetListDetailPage() {
                           <FileText size={16} className="text-blue-500/80" />
                         )}
                         {fullSong?.chords && (
-                          <Music size={16} className="text-emerald-500/80" />
+                          <Music2 size={16} className="text-emerald-500/80" />
                         )}
                       </div>
                     </div>

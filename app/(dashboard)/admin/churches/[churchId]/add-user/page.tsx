@@ -13,7 +13,7 @@ import { ROLE_LABELS, ALL_ROLES, SYSTEM_ROLE_LIST } from "@/app/lib/auth/roles";
 
 export default function AddUserPage() {
   const params = useParams();
-  const churchIdRaw = params?.church_id;
+  const churchIdRaw = params?.churchId;
   const churchIdStr = Array.isArray(churchIdRaw) ? churchIdRaw[0] : churchIdRaw;
   const router = useRouter();
   const { toast } = useToast();

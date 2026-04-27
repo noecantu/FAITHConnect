@@ -282,8 +282,8 @@ export default function DistrictDashboardPage() {
         {/* Check-ins */}
         <DashboardMetricCard title="Check-ins" value={metrics.checkinCount} description="Attendance entries across district churches" icon={<Activity className="h-4 w-4 text-amber-500" />} />
 
-        {/* Music Items */}
-        <DashboardMetricCard title="Music Items" value={metrics.musicItemCount} description="Songs across district churches" icon={<Music4 className="h-4 w-4 text-emerald-500" />} />
+        {/* Music2 Items */}
+        <DashboardMetricCard title="Music2 Items" value={metrics.musicItemCount} description="Songs across district churches" icon={<Music4 className="h-4 w-4 text-emerald-500" />} />
 
         {/* Setlists */}
         <DashboardMetricCard title="Setlists" value={metrics.setlistCount} description="Setlists across district churches" icon={<ListMusic className="h-4 w-4 text-emerald-500" />} />

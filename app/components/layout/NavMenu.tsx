@@ -11,7 +11,7 @@ import {
   Settings,
   LogOut,
   FileText,
-  Music,
+  Music2,
   ListMusic,
   CalendarHeart,
   CreditCard,
@@ -144,7 +144,7 @@ export function NavMenu() {
     { href: `/church/${churchId}/calendar`, label: "Calendar", icon: Calendar },
     { href: `/church/${churchId}/contributions`, label: "Contributions", icon: HandCoins, permission: canSeeContributions },
     { href: `/church/${churchId}/members`, label: "Members", icon: Users },
-    { href: `/church/${churchId}/music`, label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
+    { href: `/church/${churchId}/music`, label: "Music", icon: Music2, permission: canAccessMusic, isSubmenu: true },
     { href: `/church/${churchId}/service-plan`, label: "Service Plans", icon: CalendarHeart, permission: canAccessServicePlan },
     { href: `/church/${churchId}/reports`, label: "Reports", icon: FileText, permission: canSeeReports },
     { href: `/admin/church/${churchId}/settings`, label: "Settings", icon: Settings },
@@ -154,7 +154,7 @@ export function NavMenu() {
     { href: `/church/${churchId}/user`, label: "Dashboard", icon: Home, exact: true },
     { href: `/church/${churchId}/calendar`, label: "Calendar", icon: Calendar },
     { href: `/church/${churchId}/contributions`, label: "Contributions", icon: HandCoins, permission: canSeeContributions },
-    { href: `/church/${churchId}/music`, label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
+    { href: `/church/${churchId}/music`, label: "Music", icon: Music2, permission: canAccessMusic, isSubmenu: true },
     { href: `/church/${churchId}/reports`, label: "Reports", icon: FileText, permission: canSeeReports },
     { href: `/church/${churchId}/user/settings`, label: "Settings", icon: Settings },
   ];
@@ -197,7 +197,7 @@ export function NavMenu() {
 
                 <Link href={`/church/${churchId}/music/songs`}>
                   <DropdownMenuItem className={isActive(`/church/${churchId}/music/songs`) ? "bg-accent" : ""}>
-                    <Music className="mr-2 h-4 w-4 text-emerald-500" />
+                    <Music2 className="mr-2 h-4 w-4 text-emerald-500" />
                     <span>Songs</span>
                   </DropdownMenuItem>
                 </Link>

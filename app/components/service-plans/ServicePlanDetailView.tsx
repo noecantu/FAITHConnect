@@ -103,7 +103,7 @@ export function ServicePlanDetailView({
                 {hasSongs && (
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-foreground">
-                      Music ({section.songIds.length}{' '}
+                      Music2 ({section.songIds.length}{' '}
                       {section.songIds.length === 1 ? 'Song' : 'Songs'})
                     </p>
 

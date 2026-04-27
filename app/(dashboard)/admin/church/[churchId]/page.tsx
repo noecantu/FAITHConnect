@@ -20,7 +20,7 @@ import {
   CalendarHeart,
   Calendar,
   FileText,
-  Music,
+  ListMusic,
   Music2,
   UserPlus,
   HandCoins,
@@ -271,7 +271,7 @@ export default function ChurchAdminDashboard() {
     { href: `/church/${churchId}/members`, label: "Members", icon: <UserPlus className="h-5 w-5 text-blue-500" /> },
     { href: `/church/${churchId}/reports`, label: "Reports", icon: <FileText className="h-5 w-5 text-orange-500" /> },
     { href: `/church/${churchId}/service-plan`, label: "Service Plans", icon: <CalendarHeart className="h-5 w-5 text-violet-500" /> },
-    { href: `/church/${churchId}/music/setlists`, label: "Set Lists", icon: <Music className="h-5 w-5 text-emerald-500" /> },
+    { href: `/church/${churchId}/music/setlists`, label: "Set Lists", icon: <ListMusic className="h-5 w-5 text-emerald-500" /> },
     { href: `/church/${churchId}/music/songs`, label: "Songs", icon: <Music2 className="h-5 w-5 text-emerald-500" /> },
   ];
 

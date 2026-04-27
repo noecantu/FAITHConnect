@@ -76,44 +76,68 @@ export default function ConfirmRegionPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">Confirm Region</h1>
-      <p className="text-muted-foreground">
-        Please confirm that this is the correct region for your church.
-      </p>
+    <div className="p-6 space-y-6 max-w-xl">
+      <div>
+        <h1 className="text-2xl font-semibold">Confirm Region</h1>
+        <p className="text-muted-foreground mt-1">
+          Please confirm that this is the correct region for your church.
+        </p>
+      </div>
 
-      <Card className="p-6 bg-black/60 border-white/20 backdrop-blur-xl space-y-3">
-        {region.logo_url ? (
-          <img
-            src={region.logo_url}
-            alt={`${region.name} logo`}
-            className="h-16 w-16 rounded-md object-cover border border-white/20"
-          />
-        ) : null}
+      {/* Region detail card */}
+      <Card className="p-6 bg-black/60 border-white/20 backdrop-blur-xl">
+        <div className="flex items-center gap-4">
+          {region.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={region.logo_url}
+              alt={`${region.name} logo`}
+              className="h-16 w-16 shrink-0 rounded-md object-cover border border-white/20"
+            />
+          ) : (
+            <div className="h-16 w-16 shrink-0 rounded-md bg-white/10 flex items-center justify-center text-lg font-semibold border border-white/20">
+              {String(region.name || 'RG')
+                .split(' ')
+                .map((w: string) => w[0]?.toUpperCase())
+                .join('')
+                .slice(0, 2)}
+            </div>
+          )}
 
-        <p className="text-xl font-semibold">{region.name}</p>
-
-        {region.region_admin_title && region.region_admin_name && (
-          <p className="text-sm text-muted-foreground">
-            {region.region_admin_title}: {region.region_admin_name}
-          </p>
-        )}
+          <div className="space-y-0.5 min-w-0">
+            <p className="text-xl font-semibold truncate">{region.name}</p>
+            {region.state && (
+              <p className="text-sm text-muted-foreground">{region.state}</p>
+            )}
+            {(region.region_admin_title || region.region_admin_name) && (
+              <p className="text-sm text-muted-foreground">
+                {region.region_admin_title ? `${region.region_admin_title}: ` : ''}
+                {region.region_admin_name ?? ''}
+              </p>
+            )}
+          </div>
+        </div>
       </Card>
 
-      <div className="flex gap-4">
+      {/* Approval explanation */}
+      <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm space-y-1">
+        <p className="font-medium text-amber-300">Pending Approval</p>
+        <p className="text-muted-foreground">Submitting this request will notify the regional administrator. Your church will remain in a <span className="text-amber-400 font-medium">Pending</span> state until they approve your membership. You can change your selection at any time before approval.</p>
+      </div>
+
+      <div className="flex gap-3">
         <Button
           onClick={handleConfirm}
           disabled={saving}
-          className="bg-primary text-white"
         >
-          {saving ? 'Saving…' : 'Confirm Region'}
+          {saving ? 'Submitting…' : 'Submit Request'}
         </Button>
 
         <Button
           variant="outline"
           onClick={() => router.push(`/admin/church/${churchId}/select-region`)}
         >
-          Cancel
+          Back
         </Button>
       </div>
     </div>

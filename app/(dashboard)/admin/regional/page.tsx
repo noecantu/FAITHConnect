@@ -242,7 +242,7 @@ export default function RegionalDashboardPage() {
         <DashboardMetricCard title="Admins" value={metrics.adminCount} description="User accounts with Admin access" icon={<Shield className="h-4 w-4 text-fuchsia-500" />} />
         <DashboardMetricCard title="Events" value={metrics.eventCount} description="Events across region churches" icon={<Calendar className="h-4 w-4 text-sky-500" />} />
         <DashboardMetricCard title="Check-ins" value={metrics.checkinCount} description="Attendance entries across region churches" icon={<Activity className="h-4 w-4 text-amber-500" />} />
-        <DashboardMetricCard title="Music Items" value={metrics.musicItemCount} description="Songs across region churches" icon={<Music4 className="h-4 w-4 text-emerald-500" />} />
+        <DashboardMetricCard title="Music2 Items" value={metrics.musicItemCount} description="Songs across region churches" icon={<Music4 className="h-4 w-4 text-emerald-500" />} />
         <DashboardMetricCard title="Setlists" value={metrics.setlistCount} description="Setlists across region churches" icon={<ListMusic className="h-4 w-4 text-emerald-500" />} />
         <DashboardMetricCard title="Church Leaders" value={metrics.churchLeaderCount} description="Approved churches with leadership assigned" icon={<Users className="h-4 w-4 text-blue-500" />} />
         <DashboardMetricCard title="Finance Managers" value={metrics.financeCount} description="User accounts with Finance access" icon={<DollarSign className="h-4 w-4 text-teal-500" />} />
