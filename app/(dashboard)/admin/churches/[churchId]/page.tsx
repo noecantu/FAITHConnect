@@ -69,7 +69,12 @@ export default async function MasterChurchDetailsPage({
 
   return (
     <MasterChurchDetailsClient
-      church={church}
+      church={{
+        ...church,
+        logoUrl: church.logo_url ?? church.logoUrl ?? null,
+        leaderName: church.leader_name ?? church.leaderName ?? null,
+        leaderTitle: church.leader_title ?? church.leaderTitle ?? null,
+      }}
       memberCount={memberCount ?? 0}
       serviceCount={serviceCount ?? 0}
       eventCount={eventCount ?? 0}

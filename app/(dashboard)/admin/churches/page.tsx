@@ -47,7 +47,14 @@ export default function GlobalChurchListPage() {
         .limit(PAGE_SIZE);
 
       const { data } = await queryBuilder;
-      setChurches((data ?? []) as unknown as Church[]);
+      setChurches(
+        (data ?? []).map((row) => ({
+          ...row,
+          logoUrl: row.logo_url ?? row.logoUrl ?? null,
+          leaderName: row.leader_name ?? row.leaderName ?? null,
+          leaderTitle: row.leader_title ?? row.leaderTitle ?? null,
+        })) as unknown as Church[]
+      );
       setLoading(false);
     }
 

@@ -18,11 +18,6 @@ const DEFAULT_SETTINGS: SystemSettings = {
   supportEmail: "support@example.com",
   defaultTimezone: "America/Chicago",
   defaultLocale: "en-US",
-  branding: {
-    primaryColor: "#1E40AF",
-    logoUrl: "",
-    loginBackgroundUrl: ""
-  },
   maintenanceMode: false,
   maintenanceMessage: "",
   allowRegistrations: true,
@@ -60,10 +55,6 @@ export async function loadSystemSettings(): Promise<SystemSettings> {
   return {
     ...DEFAULT_SETTINGS,
     ...settings,
-    branding: {
-      ...DEFAULT_SETTINGS.branding,
-      ...(settings.branding || {})
-    },
     emailTemplates: {
       ...DEFAULT_SETTINGS.emailTemplates,
       ...(settings.emailTemplates || {})

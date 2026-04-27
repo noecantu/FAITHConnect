@@ -37,7 +37,6 @@ import { ChurchDisabledNotice } from "@/app/components/layout/ChurchDisabledNoti
 import { BillingLapsedNotice } from "@/app/components/layout/BillingLapsedNotice";
 
 export default function ChurchAdminDashboard() {
-  const supabase = getSupabaseClient();
   const params = useParams();
   const churchId = typeof params?.churchId === "string" ? params.churchId : null;
   const { user, loading: userLoading } = useAuth();
@@ -76,6 +75,7 @@ export default function ChurchAdminDashboard() {
     async function load() {
       setLoading(true);
       setChurchNotFound(false);
+      const supabase = getSupabaseClient();
       try {
         // ---------------------------
         // Compute week range FIRST
@@ -106,7 +106,15 @@ export default function ChurchAdminDashboard() {
         }
         const churchData = await churchRes.json();
 
-        setChurch(churchData as Church);
+        // Map snake_case DB fields to camelCase expected by the Church type
+        setChurch({
+          ...churchData,
+          logoUrl: churchData.logo_url ?? churchData.logoUrl ?? null,
+          leaderName: churchData.leader_name ?? churchData.leaderName ?? null,
+          leaderTitle: churchData.leader_title ?? churchData.leaderTitle ?? null,
+          createdAt: churchData.created_at ?? churchData.createdAt ?? null,
+          updatedAt: churchData.updated_at ?? churchData.updatedAt ?? null,
+        } as Church);
 
         if (churchData.status === "disabled") {
           return;

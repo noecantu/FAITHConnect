@@ -301,11 +301,6 @@ export interface SystemSettings {
   supportEmail: string;
   defaultTimezone: string;
   defaultLocale: string;
-  branding: {
-    primaryColor: string;
-    logoUrl: string;
-    loginBackgroundUrl: string;
-  };
   maintenanceMode: boolean;
   maintenanceMessage: string;
   allowRegistrations: boolean;

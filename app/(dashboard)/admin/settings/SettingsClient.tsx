@@ -9,7 +9,6 @@ import type { SystemSettings } from '@/app/lib/types';
 import { saveSystemSettings } from './actions';
 
 import SectionIdentity from './sections/SectionIdentity';
-import SectionBranding from './sections/SectionBranding';
 import SectionMaintenance from './sections/SectionMaintenance';
 import SectionFeatureFlags from './sections/SectionFeatureFlags';
 import SectionSecurity from './sections/SectionSecurity';
@@ -46,9 +45,8 @@ export default function RootAdminSettingsPage({ initialSettings }: { initialSett
     <>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <SectionIdentity settings={settings} updateSettings={updateSettings} />
-        <SectionBranding settings={settings} updateSettings={updateSettings} />
-        <SectionDeveloperTools settings={settings} updateSettings={updateSettings} />
         <SectionSecurity settings={settings} updateSettings={updateSettings} />
+        <SectionDeveloperTools settings={settings} updateSettings={updateSettings} />
         <SectionFeatureFlags settings={settings} updateSettings={updateSettings} />
         <SectionMaintenance settings={settings} updateSettings={updateSettings} />
         <SectionIntegrityTools />
