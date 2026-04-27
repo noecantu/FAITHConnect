@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Users,
   Calendar,
-  DollarSign,
+  HandCoins,
   Menu,
   Settings,
   LogOut,
@@ -142,7 +142,7 @@ export function NavMenu() {
     { href: `/admin/church/${churchId}`, label: "Dashboard", icon: Home, exact: true },
     { href: `/church/${churchId}/attendance`, label: "Attendance", icon: CalendarCheck, permission: canSeeAttendance, isSubmenu: true },
     { href: `/church/${churchId}/calendar`, label: "Calendar", icon: Calendar },
-    { href: `/church/${churchId}/contributions`, label: "Contributions", icon: DollarSign, permission: canSeeContributions },
+    { href: `/church/${churchId}/contributions`, label: "Contributions", icon: HandCoins, permission: canSeeContributions },
     { href: `/church/${churchId}/members`, label: "Members", icon: Users },
     { href: `/church/${churchId}/music`, label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
     { href: `/church/${churchId}/service-plan`, label: "Service Plans", icon: CalendarHeart, permission: canAccessServicePlan },
@@ -153,7 +153,7 @@ export function NavMenu() {
   const userMenu = [
     { href: `/church/${churchId}/user`, label: "Dashboard", icon: Home, exact: true },
     { href: `/church/${churchId}/calendar`, label: "Calendar", icon: Calendar },
-    { href: `/church/${churchId}/contributions`, label: "Contributions", icon: DollarSign, permission: canSeeContributions },
+    { href: `/church/${churchId}/contributions`, label: "Contributions", icon: HandCoins, permission: canSeeContributions },
     { href: `/church/${churchId}/music`, label: "Music", icon: Music, permission: canAccessMusic, isSubmenu: true },
     { href: `/church/${churchId}/reports`, label: "Reports", icon: FileText, permission: canSeeReports },
     { href: `/church/${churchId}/user/settings`, label: "Settings", icon: Settings },

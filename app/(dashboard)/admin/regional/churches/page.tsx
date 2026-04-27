@@ -3,29 +3,64 @@
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/app/components/page-header';
 import { usePermissions } from '@/app/hooks/usePermissions';
-import { getSupabaseClient } from "@/app/lib/supabase/client";
 import Link from 'next/link';
 import { formatPhone } from '@/app/lib/formatters';
+
+type RegionalChurch = {
+  id: string;
+  name: string;
+  logo_url?: string | null;
+  leader_name?: string | null;
+  leader_title?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip?: string | null;
+  phone?: string | null;
+  timezone?: string | null;
+};
 
 export default function RegionalChurchesPage() {
   const { isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
 
-  const [churches, setChurches] = useState<any[]>([]);
+  const [churches, setChurches] = useState<RegionalChurch[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!regionId) return;
+    if (!regionId) {
+      setChurches([]);
+      setLoading(false);
+      return;
+    }
+
     let active = true;
 
-    getSupabaseClient()
-      .from('churches')
-      .select('*')
-      .eq('region_id', regionId)
-      .then(({ data }) => {
+    const load = async () => {
+      setLoading(true);
+
+      try {
+        const res = await fetch(`/api/region/churches?regionId=${encodeURIComponent(regionId)}`, {
+          credentials: 'include',
+          cache: 'no-store',
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to load regional churches (${res.status})`);
+        }
+
+        const body = await res.json();
         if (!active) return;
-        setChurches(data ?? []);
-        setLoading(false);
-      });
+
+        setChurches(Array.isArray(body?.churches) ? body.churches : []);
+      } catch (error) {
+        console.error('regional churches load error:', error);
+        if (active) setChurches([]);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    load();
 
     return () => { active = false; };
   }, [regionId]);
@@ -43,7 +78,7 @@ export default function RegionalChurchesPage() {
     <div className="p-6 space-y-6">
       <PageHeader
         title="Regional Churches"
-        subtitle="Churches assigned to your region."
+        subtitle="Approved churches assigned to your region."
       />
 
       {loading && (
@@ -99,10 +134,10 @@ export default function RegionalChurchesPage() {
                 <div className="flex min-w-0 flex-col space-y-1">
                   <h2 className="text-lg font-semibold truncate">{church.name}</h2>
 
-                  {(church.leaderTitle || church.leaderName) && (
+                  {(church.leader_title || church.leader_name) && (
                     <p className="text-sm text-muted-foreground truncate">
-                      {church.leaderTitle ? church.leaderTitle + " " : ""}
-                      {church.leaderName ?? ""}
+                      {church.leader_title ? church.leader_title + " " : ""}
+                      {church.leader_name ?? ""}
                     </p>
                   )}
 

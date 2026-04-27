@@ -2,15 +2,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from '@/app/hooks/usePermissions';
-import { getUsersByChurchIds } from '@/app/lib/regional-users';
 import { PageHeader } from '@/app/components/page-header';
 import Link from 'next/link';
-
-type RegionalChurch = {
-  id: string;
-};
 
 type RegionalUser = {
   uid: string;
@@ -23,72 +17,49 @@ type RegionalUser = {
 
 export default function RegionalUsersPage() {
   const { isRootAdmin, isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
-  const [churches, setChurches] = useState<RegionalChurch[]>([]);
   const [users, setUsers] = useState<RegionalUser[]>([]);
-  const [churchesLoading, setChurchesLoading] = useState(true);
-  const [usersLoading, setUsersLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!regionId) return;
-
-    let active = true;
-
-    (async () => {
-      try {
-        const { data } = await getSupabaseClient()
-          .from('churches')
-          .select('id')
-          .eq('region_id', regionId);
-
-        if (!active) return;
-        setChurches((data ?? []) as RegionalChurch[]);
-      } catch (error) {
-        console.error('regional churches load error:', error);
-        if (active) setChurches([]);
-      } finally {
-        if (active) setChurchesLoading(false);
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, [regionId]);
-
-  useEffect(() => {
-    if (churchesLoading) return;
-
-    const churchIds = churches.map((church) => church.id);
-
-    if (churchIds.length === 0) {
+    if (!regionId) {
       setUsers([]);
-      setUsersLoading(false);
+      setLoading(false);
       return;
     }
 
     let active = true;
 
-    const loadUsers = async () => {
-      setUsersLoading(true);
+    const load = async () => {
+      setLoading(true);
 
       try {
-        const regionUsers = await getUsersByChurchIds(churchIds);
+        const res = await fetch(`/api/region/users?regionId=${encodeURIComponent(regionId)}`, {
+          credentials: 'include',
+          cache: 'no-store',
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to load regional users (${res.status})`);
+        }
+
+        const body = await res.json();
+
         if (!active) return;
-        setUsers(regionUsers as RegionalUser[]);
+        setUsers(Array.isArray(body?.users) ? body.users : []);
       } catch (error) {
         console.error('regional users load error:', error);
         if (active) setUsers([]);
       } finally {
-        if (active) setUsersLoading(false);
+        if (active) setLoading(false);
       }
     };
 
-    loadUsers();
+    load();
 
     return () => {
       active = false;
     };
-  }, [churches, churchesLoading]);
+  }, [regionId]);
 
   // Block unauthorized access
   if (permLoading) {
@@ -115,11 +86,11 @@ export default function RegionalUsersPage() {
         subtitle="User accounts belonging to churches in your region."
       />
 
-      {(churchesLoading || usersLoading) && (
+      {loading && (
         <div className="text-muted-foreground">Loading users…</div>
       )}
 
-      {!churchesLoading && !usersLoading && users.length === 0 && (
+      {!loading && users.length === 0 && (
         <div className="text-muted-foreground">
           No users found in your region.
         </div>

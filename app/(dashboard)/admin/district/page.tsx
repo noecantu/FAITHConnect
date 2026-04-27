@@ -21,7 +21,7 @@ import {
   UserCheck,
   UserCog,
   Users,
-  Wallet,
+  DollarSign,
 } from "lucide-react";
 
 type DistrictRegion = { id: string; name: string };
@@ -292,7 +292,7 @@ export default function DistrictDashboardPage() {
         <DashboardMetricCard title="Church Leaders" value={metrics.churchLeaderCount} description="Approved churches with leadership assigned" icon={<Users className="h-4 w-4 text-blue-500" />} />
 
         {/* Finance Managers */}
-        <DashboardMetricCard title="Finance Managers" value={metrics.financeCount} description="User accounts with Finance access" icon={<Wallet className="h-4 w-4 text-teal-500" />} />
+        <DashboardMetricCard title="Finance Managers" value={metrics.financeCount} description="User accounts with Finance access" icon={<DollarSign className="h-4 w-4 text-teal-500" />} />
       </div>
 
       {/* Quick Actions */}

@@ -23,7 +23,7 @@ import {
   Music,
   Music2,
   UserPlus,
-  DollarSign,
+  HandCoins,
   Users,
   Church as ChurchIcon,
   Activity,
@@ -266,7 +266,7 @@ export default function ChurchAdminDashboard() {
   const quickActions = [
     { href: `/church/${churchId}/attendance`, label: "Attendance", icon: <CalendarCheck className="h-5 w-5 text-amber-500" /> },
     { href: `/church/${churchId}/attendance/history`, label: "Attendance History", icon: <Activity className="h-5 w-5 text-amber-500" /> },
-    { href: `/church/${churchId}/contributions`, label: "Contributions", icon: <DollarSign className="h-5 w-5 text-emerald-500" /> },
+    { href: `/church/${churchId}/contributions`, label: "Contributions", icon: <HandCoins className="h-5 w-5 text-emerald-500" /> },
     { href: `/church/${churchId}/calendar`, label: "Events", icon: <Calendar className="h-5 w-5 text-sky-500" /> },
     { href: `/church/${churchId}/members`, label: "Members", icon: <UserPlus className="h-5 w-5 text-blue-500" /> },
     { href: `/church/${churchId}/reports`, label: "Reports", icon: <FileText className="h-5 w-5 text-orange-500" /> },

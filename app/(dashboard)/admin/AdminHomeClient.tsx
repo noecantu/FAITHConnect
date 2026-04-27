@@ -19,7 +19,7 @@ import {
   Music2,
   ListMusic,
   UserCog,
-  Banknote,
+  DollarSign,
   ChevronRight,
   ScrollText,
   Activity,
@@ -133,7 +133,7 @@ export default function AdminHomeClient({
           <StatCard icon={<Users className="h-4 w-4 text-blue-500" />} label="Total Users" value={userCount} description="All non-system and system users" />
           <StatCard icon={<ShieldCheck className="h-4 w-4 text-fuchsia-500" />} label="Church Administrators" value={adminCount} description="Users with church admin access" />
           <StatCard icon={<UserCog className="h-4 w-4 text-cyan-500" />} label="Church Leaders" value={churchLeaderCount} description="Churches with leader information" />
-          <StatCard icon={<Banknote className="h-4 w-4 text-teal-500" />} label="Finance Managers" value={financeCount} description="Users with finance access" />
+          <StatCard icon={<DollarSign className="h-4 w-4 text-teal-500" />} label="Finance Managers" value={financeCount} description="Users with finance access" />
         </div>
       </section>
 
