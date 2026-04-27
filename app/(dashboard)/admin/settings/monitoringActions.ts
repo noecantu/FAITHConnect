@@ -363,15 +363,15 @@ export async function getSystemLogsHealth() {
 
     const [totalResult, recentResult, latestResult, sampleResult] = await Promise.all([
       adminDb.from("logs").select("id", { count: "exact", head: true }),
-      adminDb.from("logs").select("id", { count: "exact", head: true }).gte("timestamp", since24hIso),
-      adminDb.from("logs").select("id, type, message, timestamp").order("timestamp", { ascending: false }).limit(1),
-      adminDb.from("logs").select("type").order("timestamp", { ascending: false }).limit(200),
+      adminDb.from("logs").select("id", { count: "exact", head: true }).gte("created_at", since24hIso),
+      adminDb.from("logs").select("id, type, message, created_at").order("created_at", { ascending: false }).limit(1),
+      adminDb.from("logs").select("type").order("created_at", { ascending: false }).limit(200),
     ]);
 
     const totalLogs = totalResult.count ?? 0;
     const logsLast24h = recentResult.count ?? 0;
 
-    const latestRow = latestResult.data?.[0] as { id?: string; type?: string; message?: string; timestamp?: string } | undefined;
+    const latestRow = latestResult.data?.[0] as { id?: string; type?: string; message?: string; created_at?: string } | undefined;
 
     const typeCounts: Record<string, number> = {};
     let sampleErrorCount = 0;
@@ -399,7 +399,7 @@ export async function getSystemLogsHealth() {
         logsLast24h,
         latestLog: {
           id: latestRow?.id ?? null,
-          timestamp: latestRow?.timestamp ?? null,
+          timestamp: latestRow?.created_at ?? null,
           type: latestRow?.type ?? null,
           message: latestRow?.message ?? null,
         },

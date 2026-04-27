@@ -50,11 +50,9 @@ export async function POST(req: Request) {
           id: regionId,
           name: regionName,
           state: state || null,
-          region_admin_uid: userId,
+          admin_uid: userId,
           region_admin_name: `${firstName} ${lastName}`.trim(),
           region_admin_title: title || null,
-          created_by: actorUid,
-          created_by_name: actorName,
           created_at: new Date().toISOString(),
         });
 
@@ -69,15 +67,10 @@ export async function POST(req: Request) {
         .insert({
           id: districtId,
           name: districtName,
-          region_admin_id: userId,
-          region_admin_uid: userId,
+          admin_uid: userId,
           region_admin_name: `${firstName} ${lastName}`.trim(),
           region_admin_title: districtTitle || null,
           state: districtState || null,
-          region_ids: [],
-          church_ids: [],
-          created_by: actorUid,
-          created_by_name: actorName,
           created_at: new Date().toISOString(),
         });
 
@@ -85,9 +78,11 @@ export async function POST(req: Request) {
     }
 
     // 3. Create Supabase user profile
+    // Use upsert because the on_auth_user_created trigger may have already
+    // inserted a stub row (id, email) before we get here.
     const { error: userError } = await adminDb
       .from("users")
-      .insert({
+      .upsert({
         id: userId,
         first_name: firstName,
         last_name: lastName,
@@ -104,7 +99,7 @@ export async function POST(req: Request) {
         district_state: districtState || null,
         church_id: null,
         created_at: new Date().toISOString(),
-      });
+      }, { onConflict: "id" });
 
     if (userError) throw userError;
 

@@ -48,7 +48,7 @@ export async function POST(req: Request) {
 
     const uid = user.id;
 
-    const { error: profileError } = await adminDb.from("users").insert({
+    const { error: profileError } = await adminDb.from("users").upsert({
       id: uid,
       email: email.trim().toLowerCase(),
       first_name: firstName?.trim() ?? "",
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
       onboarding_step: "complete",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-    });
+    }, { onConflict: "id" });
 
     if (profileError) {
       await getAdminClient().auth.admin.deleteUser(uid);

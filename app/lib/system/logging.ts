@@ -49,7 +49,6 @@ export async function logSystemEvent(event: SystemLogEvent) {
     before: before,
     after: after,
     metadata: metadata,
-    timestamp: new Date().toISOString(),
   });
 
   if (error) {
