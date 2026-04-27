@@ -58,9 +58,9 @@ export default function RegionalSettingsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RegionProfileCard region_id={regionId} />
+        <ChangePasswordCard />
         <RegionLogoCard region_id={regionId} regionName={regionName} />
         <ProfilePhotoCard user={user} />
-        <ChangePasswordCard />
       </div>
 
       <DistrictMembershipCard regionId={regionId} />

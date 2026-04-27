@@ -232,7 +232,7 @@ export function DashboardApprovalBanner({
             <p className="text-[11px] uppercase tracking-wide text-yellow-100/70">{countLabel}</p>
           </div>
 
-          <Button asChild className="bg-yellow-500 text-black hover:bg-yellow-400">
+          <Button asChild className="dashboard-button-polish bg-yellow-500 text-black hover:bg-yellow-400">
             <Link href={href}>{actionLabel}</Link>
           </Button>
         </div>
@@ -279,8 +279,8 @@ export function DashboardQuickActionsCard({
             variant={action.variant === "default" ? "default" : "outline"}
             className={
               action.variant === "default"
-                ? "justify-start bg-yellow-500 text-black hover:bg-yellow-400"
-                : "justify-start border-white/15 bg-white/5 hover:bg-white/10"
+                ? "dashboard-button-polish justify-start bg-yellow-500 text-black hover:bg-yellow-400"
+                : "dashboard-button-polish justify-start border-white/15 bg-white/5 hover:bg-white/10"
             }
           >
             <Link href={action.href}>{action.label}</Link>
@@ -315,7 +315,7 @@ export function DashboardIconQuickActionsCard({
             key={action.href}
             asChild
             variant="outline"
-            className="justify-start gap-3 border-white/15 bg-white/5 text-white/85 hover:bg-white/10"
+            className="dashboard-button-polish justify-start gap-3 border-white/15 bg-white/5 text-white/85 hover:bg-white/10"
           >
             <Link href={action.href}>
               {action.icon}
@@ -380,10 +380,10 @@ export function DashboardApprovalRequestCard({
 
       {/* Action buttons */}
       <div className="flex gap-3 px-5 pt-3 pb-5">
-        <Button className="flex-1 bg-green-600 text-white hover:bg-green-500" onClick={onApprove}>
+        <Button className="dashboard-button-polish flex-1 bg-green-600 text-white hover:bg-green-500" onClick={onApprove}>
           {approveLabel}
         </Button>
-        <Button className="flex-1 bg-red-600 text-white hover:bg-red-500" onClick={onReject}>
+        <Button className="dashboard-button-polish flex-1 bg-red-600 text-white hover:bg-red-500" onClick={onReject}>
           {rejectLabel}
         </Button>
       </div>
