@@ -332,7 +332,7 @@ export default function MemberForm({
 
           <RelationshipsSection
             form={form}
-            currentMemberId={member?.id ?? ""}
+            currentMemberId={member?.id ?? form.getValues("tempId") ?? ""}
             allMembers={relationships.allMembers}
             availableMembers={relationships.availableMembers}
             relationshipOptions={relationships.relationshipOptions}

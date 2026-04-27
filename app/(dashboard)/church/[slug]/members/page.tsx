@@ -53,11 +53,14 @@ export default function MembersPage() {
     const term = search.toLowerCase();
 
     return members.filter((m) => {
-      const name = `${m.first_name} ${m.last_name}`.toLowerCase();
+      const fullName = `${m.firstName ?? m.first_name ?? ""} ${m.lastName ?? m.last_name ?? ""}`.toLowerCase();
+      const reverseName = `${m.lastName ?? m.last_name ?? ""}, ${m.firstName ?? m.first_name ?? ""}`.toLowerCase();
       const email = m.email?.toLowerCase() ?? '';
       const phone = m.phoneNumber ?? '';
       return (
-        name.includes(term) ||
+        fullName.includes(term) ||
+        reverseName.includes(term) ||
+        m.id.toLowerCase().includes(term) ||
         email.includes(term) ||
         phone.includes(term)
       );
@@ -67,8 +70,8 @@ export default function MembersPage() {
   // Sorting
   const sortedMembers = useMemo(() => {
     return [...filteredMembers].sort((a, b) => {
-      const nameA = `${a.last_name}, ${a.first_name}`.toLowerCase();
-      const nameB = `${b.last_name}, ${b.first_name}`.toLowerCase();
+      const nameA = `${a.lastName ?? a.last_name ?? ''}, ${a.firstName ?? a.first_name ?? ''}`.toLowerCase();
+      const nameB = `${b.lastName ?? b.last_name ?? ''}, ${b.firstName ?? b.first_name ?? ''}`.toLowerCase();
       return nameA.localeCompare(nameB);
     });
   }, [filteredMembers]);
@@ -138,7 +141,7 @@ export default function MembersPage() {
       />
 
       {/* MEMBERS GRID */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+      <div className="grid items-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
         {sortedMembers.map((member) => (
         <MemberCard
           key={member.id}

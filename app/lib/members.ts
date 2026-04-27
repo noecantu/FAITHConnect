@@ -21,6 +21,23 @@ function normalizeDateInput(value: string | null | undefined): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function normalizeRelationship(rel: Record<string, unknown>) {
+  const idsFromCamel = rel.memberIds;
+  const idsFromSnake = rel.member_ids;
+  const rawIds = Array.isArray(idsFromCamel)
+    ? idsFromCamel
+    : Array.isArray(idsFromSnake)
+    ? idsFromSnake
+    : [];
+
+  const memberIds = rawIds.slice(0, 2).map((id) => String(id)) as [string, string];
+
+  return {
+    ...rel,
+    memberIds,
+  };
+}
+
 export async function addMember(
   churchId: string,
   data: Partial<Omit<Member, "id">> & { id: string }
@@ -57,114 +74,21 @@ export async function updateMember(
   memberId: string,
   data: Partial<Omit<Member, "id">>
 ) {
-  const supabase = getSupabaseClient();
+  const res = await fetch("/api/members/update", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ churchId, memberId, data }),
+  });
 
-  const updatePayload: Record<string, unknown> = {};
-  if (data.firstName !== undefined) updatePayload.first_name = data.firstName;
-  if (data.lastName !== undefined) updatePayload.last_name = data.lastName;
-  if (data.email !== undefined) updatePayload.email = data.email;
-  if (data.phoneNumber !== undefined) updatePayload.phone_number = data.phoneNumber;
-  if (data.profilePhotoUrl !== undefined) updatePayload.profile_photo_url = data.profilePhotoUrl;
-  if (data.status !== undefined) updatePayload.status = data.status;
-  if (data.address !== undefined) updatePayload.address = data.address;
-  if (data.birthday !== undefined) updatePayload.birthday = normalizeDateInput(data.birthday);
-  if (data.baptismDate !== undefined) updatePayload.baptism_date = normalizeDateInput(data.baptismDate);
-  if (data.anniversary !== undefined) updatePayload.anniversary = normalizeDateInput(data.anniversary);
-  if (data.familyId !== undefined) updatePayload.family_id = data.familyId;
-  if (data.notes !== undefined) updatePayload.notes = data.notes;
-  if (data.checkInCode !== undefined) updatePayload.check_in_code = data.checkInCode;
-  if (data.qrCode !== undefined) updatePayload.qr_code = data.qrCode;
-  if (data.userId !== undefined) updatePayload.user_id = data.userId;
-
-  if (data.relationships === undefined) {
-    // Simple update — no relationship sync needed
-    const { error } = await supabase
-      .from("members")
-      .update(updatePayload)
-      .eq("id", memberId)
-      .eq("church_id", churchId);
-    if (error) throw error;
-    return;
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const message =
+      typeof body?.error === "string"
+        ? body.error
+        : `Failed to update member (${res.status})`;
+    throw new Error(message);
   }
-
-  const newRels = data.relationships;
-  updatePayload.relationships = newRels;
-
-  // Get current member for old relationships
-  const { data: currentRow } = await supabase
-    .from("members")
-    .select("relationships")
-    .eq("id", memberId)
-    .eq("church_id", churchId)
-    .single();
-
-  const oldRels: Relationship[] = currentRow?.relationships ?? [];
-  const oldIds = oldRels.map((r) => r.memberIds[1]);
-  const newIds = newRels.map((r) => r.memberIds[1]);
-  const allRelatedIds = Array.from(new Set([...oldIds, ...newIds])).filter(Boolean);
-
-  // Update main member
-  const { error } = await supabase
-    .from("members")
-    .update(updatePayload)
-    .eq("id", memberId)
-    .eq("church_id", churchId);
-  if (error) throw error;
-
-  // Sync reciprocal relationships
-  await Promise.all(
-    allRelatedIds.map(async (relatedId) => {
-      const { data: relatedRow } = await supabase
-        .from("members")
-        .select("id, relationships")
-        .eq("id", relatedId)
-        .eq("church_id", churchId)
-        .single();
-
-      if (!relatedRow) return;
-
-      let relatedRels: Relationship[] = relatedRow.relationships ?? [];
-      const oldRel = oldRels.find((r) => r.memberIds[1] === relatedId);
-      const newRel = newRels.find((r) => r.memberIds[1] === relatedId);
-      let changed = false;
-
-      if (newRel && !oldRel) {
-        const reciprocal: Relationship = {
-          memberIds: [relatedId, memberId],
-          type: getReciprocalType(newRel.type),
-        };
-        if (newRel.anniversary) reciprocal.anniversary = newRel.anniversary;
-        relatedRels.push(reciprocal);
-        changed = true;
-      } else if (!newRel && oldRel) {
-        const len = relatedRels.length;
-        relatedRels = relatedRels.filter((r) => r.memberIds[1] !== memberId);
-        if (relatedRels.length !== len) changed = true;
-      } else if (newRel && oldRel) {
-        if (newRel.type !== oldRel.type || newRel.anniversary !== oldRel.anniversary) {
-          const newType = getReciprocalType(newRel.type);
-          relatedRels = relatedRels.map((r) => {
-            if (r.memberIds[1] === memberId) {
-              const updated: Relationship = { ...r, type: newType };
-              if (newRel.anniversary) updated.anniversary = newRel.anniversary;
-              else delete updated.anniversary;
-              return updated;
-            }
-            return r;
-          });
-          changed = true;
-        }
-      }
-
-      if (changed) {
-        await supabase
-          .from("members")
-          .update({ relationships: relatedRels })
-          .eq("id", relatedId)
-          .eq("church_id", churchId);
-      }
-    })
-  );
 }
 
 export async function deleteMember(churchId: string, memberId: string) {
@@ -252,10 +176,9 @@ export function listenToMembers(
         familyId: row.family_id ?? null,
         notes: row.notes ?? "",
         relationships: Array.isArray(row.relationships)
-          ? row.relationships.map((rel: Record<string, unknown>) => ({
-              ...rel,
-              memberIds: rel.memberIds as [string, string],
-            }))
+          ? row.relationships
+              .map((rel: Record<string, unknown>) => normalizeRelationship(rel))
+              .filter((rel) => Array.isArray(rel.memberIds) && rel.memberIds.length === 2)
           : [],
       }));
 

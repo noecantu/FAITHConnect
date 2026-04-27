@@ -29,6 +29,19 @@ import { usePermissions } from '@/app/hooks/usePermissions';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useRouter } from 'next/navigation';
 
+function relationshipIds(rel: unknown): string[] {
+  if (!rel || typeof rel !== 'object') return [];
+
+  const row = rel as Record<string, unknown>;
+  const ids = Array.isArray(row.memberIds)
+    ? row.memberIds
+    : Array.isArray(row.member_ids)
+    ? row.member_ids
+    : [];
+
+  return ids.map((id) => String(id));
+}
+
 //
 // STATUS BADGE
 //
@@ -226,12 +239,14 @@ export default function MemberCard({
 
             <div className="space-y-2 text-sm text-muted-foreground w-full">
               {member.relationships.map((rel, index) => {
-                const relatedMemberId = rel.memberIds.find(id => id !== member.id)
+                const ids = relationshipIds(rel)
+                const relatedMemberId = ids.find(id => id !== member.id)
                 const relatedMember = allMembers.find(m => m.id === relatedMemberId)
+                const relType = (rel as { type?: string }).type ?? 'Related'
 
                 return (
-                  <div key={`${rel.type}-${rel.memberIds.join("-")}-${index}`}>
-                    <span className="font-medium text-foreground">{rel.type}</span>
+                  <div key={`${relType}-${ids.join("-")}-${index}`}>
+                    <span className="font-medium text-foreground">{relType}</span>
                     <span>
                       {' '}of{' '}
                       {relatedMember ? (
@@ -364,12 +379,14 @@ export default function MemberCard({
 
           <div className="space-y-2 text-sm text-muted-foreground w-full">
             {member.relationships.map((rel, index) => {
-              const relatedMemberId = rel.memberIds.find(id => id !== member.id)
+              const ids = relationshipIds(rel)
+              const relatedMemberId = ids.find(id => id !== member.id)
               const relatedMember = allMembers.find(m => m.id === relatedMemberId)
+              const relType = (rel as { type?: string }).type ?? 'Related'
 
               return (
-                <div key={`${rel.type}-${rel.memberIds.join("-")}-${index}`}>
-                  <span className="font-medium text-foreground">{rel.type}</span>
+                <div key={`${relType}-${ids.join("-")}-${index}`}>
+                  <span className="font-medium text-foreground">{relType}</span>
                   <span>
                     {' '}of{' '}
                     {relatedMember ? (
@@ -377,7 +394,9 @@ export default function MemberCard({
                         className="text-blue-600 hover:underline p-0 bg-transparent border-none"
                         onClick={(e) => {
                           e.stopPropagation()
-                          searchAction?.(relatedMember.id)
+                          searchAction?.(
+                            `${relatedMember.firstName} ${relatedMember.lastName}`
+                          )
                         }}
                       >
                         {relatedMember.firstName} {relatedMember.lastName}

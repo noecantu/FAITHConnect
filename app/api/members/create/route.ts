@@ -15,6 +15,7 @@ const RECIPROCAL_TYPES: Record<string, string> = {
 
 type IncomingRelationship = {
   memberIds?: [string, string] | string[];
+  member_ids?: [string, string] | string[];
   type?: string;
   anniversary?: string;
 };
@@ -54,7 +55,11 @@ function parseRelationships(raw: unknown): Array<{ memberIds: [string, string]; 
   return raw
     .map((item) => {
       const rel = item as IncomingRelationship;
-      const ids = rel.memberIds;
+      const ids = Array.isArray(rel.memberIds)
+        ? rel.memberIds
+        : Array.isArray(rel.member_ids)
+        ? rel.member_ids
+        : undefined;
       const type = typeof rel.type === "string" ? rel.type : "";
 
       if (!Array.isArray(ids) || ids.length < 2 || !ids[0] || !ids[1] || !type) {
@@ -174,8 +179,14 @@ export async function POST(req: Request) {
           : [];
 
         const alreadyExists = existingRels.some((r) => {
-          const row = r as { memberIds?: [string, string] | string[] };
-          return Array.isArray(row.memberIds) && row.memberIds[1] === memberId;
+          const row = r as { memberIds?: [string, string] | string[]; member_ids?: [string, string] | string[] };
+          const ids = Array.isArray(row.memberIds)
+            ? row.memberIds
+            : Array.isArray(row.member_ids)
+            ? row.member_ids
+            : [];
+
+          return Array.isArray(ids) && ids[1] === memberId;
         });
 
         if (alreadyExists) return;
