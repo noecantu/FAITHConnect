@@ -1,5 +1,5 @@
 import { getSupabaseClient } from "@/app/lib/supabase/client";
-import type { Song } from "./types";
+import type { Song, SongInput } from "./types";
 
 function rowToSong(row: Record<string, unknown>): Song {
   return {
@@ -8,11 +8,12 @@ function rowToSong(row: Record<string, unknown>): Song {
     title: row.title as string,
     artist: (row.artist as string) ?? "",
     key: (row.key as string) ?? "",
-    tempo: (row.tempo as string | number) ?? "",
-    notes: (row.notes as string) ?? "",
+    bpm: typeof row.tempo === "number" ? row.tempo : undefined,
+    timeSignature: (row.time_sig as string) ?? "",
     lyrics: (row.lyrics as string) ?? "",
+    chords: (row.notes as string) ?? "",
     tags: (row.tags as string[]) ?? [],
-    createdBy: (row.created_by as string) ?? "",
+    createdBy: "",
     createdAt: row.created_at ? new Date(row.created_at as string) : new Date(),
     updatedAt: row.updated_at ? new Date(row.updated_at as string) : new Date(),
   } as Song;
@@ -40,22 +41,34 @@ export function listenToSongs(
 
 export async function createSong(
   churchId: string,
-  data: Omit<Song, "id" | "churchId" | "createdAt" | "updatedAt">
+  data: SongInput
 ): Promise<Song> {
-  const supabase = getSupabaseClient();
+  const payload = {
+    title: data.title,
+    artist: data.artist || null,
+    key: data.key || null,
+    tempo: data.bpm ?? null,
+    time_sig: data.timeSignature || null,
+    lyrics: data.lyrics || null,
+    notes: data.chords || null,
+    tags: data.tags ?? [],
+  };
 
-  const cleaned = Object.fromEntries(
-    Object.entries(data).filter(([, v]) => v !== undefined)
-  );
+  const res = await fetch("/api/songs/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ churchId, song: payload }),
+  });
 
-  const { data: row, error } = await supabase
-    .from("songs")
-    .insert({ ...cleaned, church_id: churchId })
-    .select()
-    .single();
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok || !body?.song) {
+    throw new Error(
+      typeof body?.error === "string" ? body.error : `Failed to create song (${res.status})`
+    );
+  }
 
-  if (error || !row) throw error ?? new Error("Failed to create song");
-  return rowToSong(row);
+  return rowToSong(body.song as Record<string, unknown>);
 }
 
 export async function getSongs(churchId: string): Promise<Song[]> {
@@ -72,15 +85,31 @@ export async function getSongs(churchId: string): Promise<Song[]> {
 export async function updateSong(
   churchId: string,
   songId: string,
-  data: Partial<Omit<Song, "id" | "churchId" | "createdAt" | "updatedAt">>
+  data: Partial<SongInput>
 ): Promise<void> {
-  const { error } = await getSupabaseClient()
-    .from("songs")
-    .update({ ...data })
-    .eq("id", songId)
-    .eq("church_id", churchId);
+  const payload: Record<string, unknown> = {};
+  if (data.title !== undefined) payload.title = data.title;
+  if (data.artist !== undefined) payload.artist = data.artist || null;
+  if (data.key !== undefined) payload.key = data.key || null;
+  if (data.bpm !== undefined) payload.tempo = data.bpm ?? null;
+  if (data.timeSignature !== undefined) payload.time_sig = data.timeSignature || null;
+  if (data.lyrics !== undefined) payload.lyrics = data.lyrics || null;
+  if (data.chords !== undefined) payload.notes = data.chords || null;
+  if (data.tags !== undefined) payload.tags = data.tags;
 
-  if (error) throw error;
+  const res = await fetch("/api/songs/update", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ churchId, songId, song: payload }),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(
+      typeof body?.error === "string" ? body.error : `Failed to update song (${res.status})`
+    );
+  }
 }
 
 export async function deleteSong(churchId: string, songId: string): Promise<void> {

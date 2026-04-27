@@ -68,32 +68,34 @@ export async function createServicePlan(
     timeString: string;
     notes: string;
     sections: ServicePlanSection[];
-    createdBy: string;
+    createdBy?: string;
   }
 ): Promise<ServicePlan> {
-  const supabase = getSupabaseClient();
-  const now = Date.now();
-
-  const { data: row, error } = await supabase
-    .from("service_plans")
-    .insert({
-      church_id: churchId,
+  const res = await fetch("/api/service-plans/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      churchId,
       title: data.title,
-      date_string: data.dateString,
-      time_string: data.timeString,
+      dateString: data.dateString,
+      timeString: data.timeString,
       notes: data.notes,
       sections: data.sections,
-      is_public: false,
-      groups: [],
-      created_by: data.createdBy,
-      created_at: now,
-      updated_at: now,
-    })
-    .select()
-    .single();
+      createdBy: data.createdBy,
+    }),
+  });
 
-  if (error || !row) throw error ?? new Error("Failed to create service plan");
-  return rowToServicePlan(row);
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(
+      typeof body?.error === "string"
+        ? body.error
+        : `Failed to create service plan (${res.status})`
+    );
+  }
+
+  return rowToServicePlan(body.row as Record<string, unknown>);
 }
 
 export async function updateServicePlan(
@@ -107,22 +109,25 @@ export async function updateServicePlan(
     sections: ServicePlanSection[];
   }>
 ): Promise<void> {
-  const supabase = getSupabaseClient();
-  const updatePayload: Record<string, unknown> = { updated_at: Date.now() };
+  const res = await fetch("/api/service-plans/update", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      churchId,
+      planId: id,
+      ...data,
+    }),
+  });
 
-  if (data.title !== undefined) updatePayload.title = data.title;
-  if (data.dateString !== undefined) updatePayload.date_string = data.dateString;
-  if (data.timeString !== undefined) updatePayload.time_string = data.timeString;
-  if (data.notes !== undefined) updatePayload.notes = data.notes;
-  if (data.sections !== undefined) updatePayload.sections = data.sections;
-
-  const { error } = await supabase
-    .from("service_plans")
-    .update(updatePayload)
-    .eq("id", id)
-    .eq("church_id", churchId);
-
-  if (error) throw error;
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(
+      typeof body?.error === "string"
+        ? body.error
+        : `Failed to update service plan (${res.status})`
+    );
+  }
 }
 
 export async function deleteServicePlan(churchId: string, id: string): Promise<void> {

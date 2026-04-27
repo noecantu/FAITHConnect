@@ -56,6 +56,7 @@ export default function NewServicePlanPage() {
   const { members } = useMembers();
 
   const [isSectionNameDialogOpen, setIsSectionNameDialogOpen] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -123,23 +124,28 @@ export default function NewServicePlanPage() {
   }
 
   const handleCreate = async (values: FormValues) => {
-    const created = await createServicePlan(churchId, {
-      title: values.title.trim(),
-      dateString: values.dateString,
-      timeString: values.timeString,
-      notes: values.notes?.trim() ?? '',
-      sections: values.sections.map((s) => ({
-        id: s.id ?? crypto.randomUUID(),
-        title: s.title,
-        personId: s.personId ?? null,
-        notes: s.notes ?? '',
-        songIds: Array.isArray(s.songIds) ? s.songIds : [],
-        color: s.color,
-      })),
-      createdBy: 'system',
-    });
+    try {
+      setSaveError(null);
 
-    router.push(`/church/${churchId}/service-plan/${created.id}`);
+      const created = await createServicePlan(churchId, {
+        title: values.title.trim(),
+        dateString: values.dateString,
+        timeString: values.timeString,
+        notes: values.notes?.trim() ?? '',
+        sections: values.sections.map((s) => ({
+          id: s.id ?? crypto.randomUUID(),
+          title: s.title,
+          personId: s.personId ?? null,
+          notes: s.notes ?? '',
+          songIds: Array.isArray(s.songIds) ? s.songIds : [],
+          color: s.color,
+        })),
+      });
+
+      router.push(`/church/${churchId}/service-plan/${created.id}`);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save service plan');
+    }
   };
 
   return (
@@ -147,6 +153,7 @@ export default function NewServicePlanPage() {
       <PageHeader title="Create New Service Plan" />
 
       <Card className="p-6 space-y-4 relative bg-black/80 border-white/20 backdrop-blur-xl">
+        {saveError && <p className="text-sm text-destructive">{saveError}</p>}
         <Form {...form}>
           <form
             id="new-service-plan-form"

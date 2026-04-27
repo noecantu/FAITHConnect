@@ -41,6 +41,8 @@ export function ServicePlanDetailView({
   router,
   churchId
 }: ServicePlanDetailViewProps) {
+    const hasServiceNotes = plan.notes.trim().length > 0;
+
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -51,6 +53,20 @@ export function ServicePlanDetailView({
             </Button>
           )}
         </div>
+
+        {hasServiceNotes && (
+          <Card className="p-4 space-y-2 bg-black border-white/25">
+            <h2 className="text-lg font-semibold">Overview</h2>
+
+            <div className="space-y-1 rounded-md border border-white/15 bg-black/60 p-3 backdrop-blur-xl">
+              <p className="text-sm font-medium text-foreground">Service Notes</p>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                {plan.notes}
+              </p>
+            </div>
+          </Card>
+        )}
+
         <div className="space-y-6">
           {plan.sections.map((section) => {
             const member = members.find((m) => m.id === section.personId);

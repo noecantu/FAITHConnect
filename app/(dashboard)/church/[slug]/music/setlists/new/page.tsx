@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { PageHeader } from '@/app/components/page-header';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { usePermissions } from '@/app/hooks/usePermissions';
@@ -14,12 +14,15 @@ import { Card } from '@/app/components/ui/card';
 
 export default function NewSetListPage() {
   const router = useRouter();
+  const params = useParams();
+  const slug = typeof params?.slug === 'string' ? params.slug : '';
   const { churchId } = useChurchId();
   const { songs: allSongs } = useSongs(churchId);
   const { canManageMusic, loading: permissionsLoading } = usePermissions();
   const canCreate = canManageMusic;
 
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [canSave, setCanSave] = useState(false);
   const [submitForm, setSubmitForm] = useState<() => void>(() => () => {});
 
@@ -71,7 +74,7 @@ export default function NewSetListPage() {
       dateString: data.dateString,
       timeString: data.timeString,
       sections: data.sections,
-      createdBy: "system",
+      createdBy: undefined,
       serviceType: data.serviceType,
       serviceNotes: {
         theme: data.serviceNotes.theme,
@@ -80,8 +83,13 @@ export default function NewSetListPage() {
       },
     };
 
-    const created = await createSetList(churchId, newSetList);
-    router.push(`/music/setlists/${created.id}`);
+    try {
+      const created = await createSetList(churchId, newSetList);
+      router.push(`/church/${slug}/music/setlists/${created.id}`);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Failed to save set list");
+      setSaving(false);
+    }
   };
 
   return (
@@ -90,6 +98,9 @@ export default function NewSetListPage() {
 
       <Card className="p-6 space-y-4 relative bg-black/80 border-white/20 backdrop-blur-xl">
 
+        {saveError && (
+          <p className="text-sm text-destructive">{saveError}</p>
+        )}
         <SetListForm
           mode="create"
           initial={undefined}

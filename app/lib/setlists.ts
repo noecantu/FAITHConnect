@@ -3,6 +3,34 @@ import type { SetList, SetListSection } from "./types";
 import { nanoid } from "nanoid";
 import { fromDateString, toDateTime } from "./date-utils";
 
+async function syncSectionNames(churchId: string, sections: SetListSection[]) {
+  const titles = Array.from(
+    new Set(
+      sections
+        .map((section) => section.title.trim())
+        .filter((title) => title.length > 0)
+    )
+  );
+
+  if (titles.length === 0) return;
+
+  const res = await fetch("/api/section-names", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ churchId, titles }),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(
+      typeof body?.error === "string"
+        ? body.error
+        : `Failed to sync section names (${res.status})`
+    );
+  }
+}
+
 function rowToSetList(row: Record<string, unknown>): SetList {
   const dateString = (row.date_string ?? row.date ?? '') as string;
   const timeString = (row.time_string ?? '') as string;
@@ -80,7 +108,7 @@ export async function createSetList(
     dateString: string;
     timeString: string;
     sections: SetListSection[];
-    createdBy: string;
+    createdBy?: string;
     serviceType: string | null;
     serviceNotes?: {
       theme?: string | null;
@@ -91,25 +119,29 @@ export async function createSetList(
 ): Promise<SetList> {
   if (!churchId) throw new Error("churchId is required");
 
-  const supabase = getSupabaseClient();
-
-  const { data: row, error } = await supabase
-    .from("setlists")
-    .insert({
-      church_id: churchId,
+  const res = await fetch("/api/setlists/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      churchId,
       title: data.title,
-      date_string: data.dateString,
-      time_string: data.timeString,
+      dateString: data.dateString,
+      timeString: data.timeString,
       sections: data.sections,
-      created_by: data.createdBy,
-      service_type: data.serviceType ?? null,
-      service_notes: data.serviceNotes ?? null,
-    })
-    .select()
-    .single();
+      createdBy: data.createdBy,
+      serviceType: data.serviceType ?? null,
+      serviceNotes: data.serviceNotes ?? null,
+    }),
+  });
 
-  if (error || !row) throw error ?? new Error("Failed to create set list");
-  return rowToSetList(row);
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(typeof body?.error === "string" ? body.error : `Failed to create set list (${res.status})`);
+  }
+
+  await syncSectionNames(churchId, data.sections);
+  return rowToSetList(body.row as Record<string, unknown>);
 }
 
 export async function updateSetList(
@@ -130,21 +162,25 @@ export async function updateSetList(
 ): Promise<void> {
   if (!churchId) throw new Error("churchId is required");
 
-  const payload: Record<string, unknown> = {};
-  if (data.title !== undefined) payload.title = data.title;
-  if (data.dateString !== undefined) payload.date_string = data.dateString;
-  if (data.timeString !== undefined) payload.time_string = data.timeString;
-  if (data.sections !== undefined) payload.sections = data.sections;
-  if (data.serviceType !== undefined) payload.service_type = data.serviceType;
-  if (data.serviceNotes !== undefined) payload.service_notes = data.serviceNotes;
+  const res = await fetch("/api/setlists/update", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      churchId,
+      setListId,
+      ...data,
+    }),
+  });
 
-  const { error } = await getSupabaseClient()
-    .from("setlists")
-    .update(payload)
-    .eq("id", setListId)
-    .eq("church_id", churchId);
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(typeof body?.error === "string" ? body.error : `Failed to update set list (${res.status})`);
+  }
 
-  if (error) throw error;
+  if (data.sections) {
+    await syncSectionNames(churchId, data.sections);
+  }
 }
 
 export async function deleteSetList(

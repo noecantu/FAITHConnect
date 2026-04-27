@@ -58,6 +58,7 @@ export default function EditServicePlanPage() {
   const { members } = useMembers();
   const { plan, loading } = useServicePlan(churchId ?? undefined, id as string);
   const [isSectionNameDialogOpen, setIsSectionNameDialogOpen] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -153,22 +154,28 @@ export default function EditServicePlanPage() {
   }
 
   const handleUpdate = async (values: FormValues) => {
-    await updateServicePlan(churchId, plan.id, {
-      title: values.title.trim(),
-      dateString: values.dateString,
-      timeString: values.timeString,
-      notes: values.notes?.trim() ?? '',
-      sections: values.sections.map((section) => ({
-        id: section.id ?? crypto.randomUUID(),
-        title: section.title,
-        personId: section.personId ?? null,
-        notes: section.notes ?? '',
-        songIds: Array.isArray(section.songIds) ? section.songIds : [],
-        color: section.color,
-      })),
-    });
+    try {
+      setSaveError(null);
 
-    router.push(`/church/${churchId}/service-plan/${plan.id}`);
+      await updateServicePlan(churchId, plan.id, {
+        title: values.title.trim(),
+        dateString: values.dateString,
+        timeString: values.timeString,
+        notes: values.notes?.trim() ?? '',
+        sections: values.sections.map((section) => ({
+          id: section.id ?? crypto.randomUUID(),
+          title: section.title,
+          personId: section.personId ?? null,
+          notes: section.notes ?? '',
+          songIds: Array.isArray(section.songIds) ? section.songIds : [],
+          color: section.color,
+        })),
+      });
+
+      router.push(`/church/${churchId}/service-plan/${plan.id}`);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save service plan');
+    }
   };
 
   return (
@@ -181,6 +188,7 @@ export default function EditServicePlanPage() {
       </div>
 
       <Card className="p-6 space-y-4 relative bg-black/80 border-white/20 backdrop-blur-xl">
+        {saveError && <p className="text-sm text-destructive">{saveError}</p>}
         <Form {...form}>
           <form
             id="edit-service-plan-form"

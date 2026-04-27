@@ -23,6 +23,7 @@ export default function EditSetListPage() {
   const [setList, setSetList] = useState<SetList | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [submitForm, setSubmitForm] = useState<() => void>(() => () => {});
 
   useEffect(() => {
@@ -98,20 +99,24 @@ export default function EditSetListPage() {
     }) => {
     setSaving(true);
 
-    await updateSetList(churchId, setList.id, {
-      title: data.title,
-      dateString: data.dateString,
-      timeString: data.timeString,
-      sections: data.sections,
-      serviceType: data.serviceType,
-      serviceNotes: {
-        theme: data.serviceNotes.theme,
-        scripture: data.serviceNotes.scripture,
-        notes: data.serviceNotes.notes,
-      },
-    });
-
-    router.push(`/church/${churchId}/music/setlists/${setList.id}`);
+    try {
+      await updateSetList(churchId, setList.id, {
+        title: data.title,
+        dateString: data.dateString,
+        timeString: data.timeString,
+        sections: data.sections,
+        serviceType: data.serviceType,
+        serviceNotes: {
+          theme: data.serviceNotes.theme,
+          scripture: data.serviceNotes.scripture,
+          notes: data.serviceNotes.notes,
+        },
+      });
+      router.push(`/church/${churchId}/music/setlists/${setList.id}`);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Failed to save set list");
+      setSaving(false);
+    }
   };
 
   return (
@@ -119,6 +124,9 @@ export default function EditSetListPage() {
       <PageHeader title="Edit Set List" />
 
       <Card className="p-6 space-y-4">
+        {saveError && (
+          <p className="text-sm text-destructive">{saveError}</p>
+        )}
         <SetListForm
           mode="edit"
           initial={setList}

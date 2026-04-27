@@ -327,6 +327,20 @@ create or replace trigger setlists_updated_at
 create index if not exists setlists_church_id_idx on public.setlists (church_id);
 
 -- ============================================================
+-- SECTION NAMES
+-- ============================================================
+
+create table if not exists public.section_names (
+  id          uuid primary key default uuid_generate_v4(),
+  church_id   text not null references public.churches (id) on delete cascade,
+  title       text not null,
+  created_at  timestamptz not null default now(),
+  unique (church_id, title)
+);
+
+create index if not exists section_names_church_id_idx on public.section_names (church_id);
+
+-- ============================================================
 -- ATTENDANCE
 -- ============================================================
 

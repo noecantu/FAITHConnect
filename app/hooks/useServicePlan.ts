@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { getSupabaseClient } from "@/app/lib/supabase/client";
+import { getServicePlanById } from "@/app/lib/servicePlans";
+import type { ServicePlan } from "@/app/lib/types";
 
 export function useServicePlan(churchId: string | undefined, planId: string | undefined) {
-  const [plan, setPlan] = useState<any>(null);
+  const [plan, setPlan] = useState<ServicePlan | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -11,18 +12,9 @@ export function useServicePlan(churchId: string | undefined, planId: string | un
       return;
     }
 
-    const supabase = getSupabaseClient();
     async function fetchPlan() {
-      const { data, error } = await supabase
-        .from("service_plans")
-        .select("*")
-        .eq("id", planId)
-        .eq("church_id", churchId)
-        .single();
-
-      if (!error) {
-        setPlan(data);
-      }
+      const data = await getServicePlanById(churchId, planId);
+      setPlan(data);
       setLoading(false);
     }
 

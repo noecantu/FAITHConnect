@@ -1,21 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { Card } from '../ui/card';
-import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { ChevronUp, ChevronDown, Trash2, Palette } from 'lucide-react';
 
 import { SetListSection, SetListSongEntry, Song } from '@/app/lib/types';
 import { SectionSongList } from './SectionSongList';
-
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select';
 
 import {
   Popover,
@@ -25,8 +16,6 @@ import {
 
 import { getSectionColor, SECTION_COLOR_PALETTE } from '@/app/lib/sectionColors';
 import { useChurchId } from '@/app/hooks/useChurchId';
-
-import { getSupabaseClient } from "@/app/lib/supabase/client";
 
 import SectionNameSelectionDialog from '@/app/components/music/SectionNameSelectionDialog';
 import SongSelectionDialog from '@/app/components/music/SongSelectionDialog';
@@ -39,48 +28,18 @@ interface Props {
   allSongs: Song[];
 }
 
-interface SectionName {
-  id: string;
-  title: string;
-}
-
 export function SetListSectionEditor({
   sections,
   onChange,
   allSongs,
 }: Props) {
-  const supabase = getSupabaseClient();
   const { church_id, loading: churchLoading } = useChurchId();
 
-  const [sectionNames, setSectionNames] = useState<SectionName[]>([]);
   const [isSectionNameDialogOpen, setIsSectionNameDialogOpen] = useState(false);
+  const [activeSectionTitleId, setActiveSectionTitleId] = useState<string | null>(null);
 
   const [isSongDialogOpen, setIsSongDialogOpen] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
-
-  /* ---------------------------------------------
-     Fetch Section Names
-  ---------------------------------------------- */
-  const fetchSectionNames = useCallback(async () => {
-    if (!church_id) return;
-
-    try {
-      const { data } = await supabase
-        .from("section_names")
-        .select("id, title")
-        .eq("church_id", church_id)
-        .order("title", { ascending: true });
-
-      setSectionNames((data ?? []) as SectionName[]);
-    } catch (err) {
-      console.error('Error fetching section names:', err);
-      setSectionNames([]);
-    }
-  }, [church_id, supabase]);
-
-  useEffect(() => {
-    if (church_id) fetchSectionNames();
-  }, [church_id, fetchSectionNames]);
 
   /* ---------------------------------------------
      Section Helpers
@@ -107,19 +66,15 @@ export function SetListSectionEditor({
     <div className="space-y-4">
 
       {/* Add Section */}
-      <Button onClick={() => setIsSectionNameDialogOpen(true)}>
+      <Button onClick={() => {
+        setActiveSectionTitleId(null);
+        setIsSectionNameDialogOpen(true);
+      }}>
         + Add Section
       </Button>
 
       <div className="space-y-4">
         {sections.map((section, index) => (
-          (() => {
-            const isCustomTitle = section.title.trim().length > 0
-              && !sectionNames.some((sn) => sn.title === section.title);
-            const showCustomInput = isCustomTitle || section.title === '';
-            const selectValue = showCustomInput ? '__custom' : section.title;
-
-            return (
           <Card
             key={section.id}
             className="p-4 space-y-4"
@@ -212,43 +167,16 @@ export function SetListSectionEditor({
             </div>
 
             {/* Section Title */}
-            <Select
-              value={selectValue}
-              onValueChange={(value) => {
-                if (value === '__custom') {
-                  if (!isCustomTitle) {
-                    updateSection(section.id, { title: '' });
-                  }
-                  return;
-                }
-                updateSection(section.id, { title: value });
+            <button
+              type="button"
+              onClick={() => {
+                setActiveSectionTitleId(section.id);
+                setIsSectionNameDialogOpen(true);
               }}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-left font-medium hover:bg-accent transition-colors"
             >
-              <SelectTrigger className="font-medium">
-                <SelectValue placeholder="Select section" />
-              </SelectTrigger>
-
-              <SelectContent>
-                {sectionNames.map((sn) => (
-                  <SelectItem key={sn.id} value={sn.title}>
-                    {sn.title}
-                  </SelectItem>
-                ))}
-                <SelectItem value="__custom">Custom…</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {showCustomInput && (
-              <Input
-                autoFocus
-                placeholder="Custom section name"
-                value={section.title}
-                onChange={(e) =>
-                  updateSection(section.id, { title: e.target.value })
-                }
-                className="font-medium mt-2"
-              />
-            )}
+              {section.title?.trim().length > 0 ? section.title : 'Select section name'}
+            </button>
 
             {/* Add Song */}
             <Button
@@ -269,8 +197,6 @@ export function SetListSectionEditor({
               allSongs={allSongs}
             />
           </Card>
-            );
-          })()
         ))}
       </div>
 
@@ -281,6 +207,12 @@ export function SetListSectionEditor({
         onSelect={(selectedTitle) => {
           if (!selectedTitle) return;
 
+          if (activeSectionTitleId) {
+            updateSection(activeSectionTitleId, { title: selectedTitle });
+            setActiveSectionTitleId(null);
+            return;
+          }
+
           const newSection: SetListSection = {
             id: nanoid(),
             title: selectedTitle,
@@ -290,6 +222,11 @@ export function SetListSectionEditor({
 
           onChange([...sections, newSection]);
         }}
+        currentTitle={
+          activeSectionTitleId
+            ? sections.find((s) => s.id === activeSectionTitleId)?.title ?? null
+            : null
+        }
         church_id={church_id}
       />
 

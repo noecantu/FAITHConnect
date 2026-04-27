@@ -20,9 +20,10 @@ interface SongFormProps {
     tags: string[];
   }) => Promise<void>;  
   saving: boolean;
+  onTitleChange?: (title: string) => void;
 }
 
-export function SongForm({ initialData, onSave }: SongFormProps) {
+export function SongForm({ initialData, onSave, onTitleChange }: SongFormProps) {
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
   const [key, setKey] = useState('');
@@ -45,6 +46,10 @@ export function SongForm({ initialData, onSave }: SongFormProps) {
       setTags(initialData.tags?.join(', ') || '');
     }
   }, [initialData]);
+
+  useEffect(() => {
+    onTitleChange?.(title);
+  }, [onTitleChange, title]);
 
   const handleSubmit = async () => {
     if (!title.trim()) return;

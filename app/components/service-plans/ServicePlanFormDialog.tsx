@@ -63,7 +63,8 @@ async function handleServicePlanSubmit(
   values: FormValues,
   plan: ServicePlan | null,
   churchId: string,
-  onClose: () => void
+  onClose: () => void,
+  setSaveError: (message: string | null) => void
 ) {
 
   const normalizedSections: ServicePlanSection[] = values.sections.map((s) => ({
@@ -80,18 +81,24 @@ async function handleServicePlanSubmit(
     timeString: values.timeString,
     notes: values.notes?.trim() ?? '',
     sections: normalizedSections,
-    createdBy: plan?.createdBy ?? 'system',
+    createdBy: plan?.createdBy,
     isPublic: plan?.isPublic ?? true,
     groups: plan?.groups ?? [],
   };
 
-  if (plan) {
-    await updateServicePlan(churchId, plan.id, payload);
-  } else {
-    await createServicePlan(churchId, payload);
-  }
+  try {
+    setSaveError(null);
 
-  onClose();
+    if (plan) {
+      await updateServicePlan(churchId, plan.id, payload);
+    } else {
+      await createServicePlan(churchId, payload);
+    }
+
+    onClose();
+  } catch (err) {
+    setSaveError(err instanceof Error ? err.message : 'Failed to save service plan');
+  }
 }
 
 // COMPONENT
@@ -113,6 +120,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
     plan?.timeString ?? "10:00"
   );
   const [isSectionNameDialogOpen, setIsSectionNameDialogOpen] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const { members } = useMembers();
 
   const form = useForm<FormValues>({
@@ -177,11 +185,13 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                   },
                   plan,
                   churchId,
-                  onClose
+                  onClose,
+                  setSaveError
                 )
               )}
               className="space-y-6"
             >
+              {saveError && <p className="text-sm text-destructive">{saveError}</p>}
               {/* Date & Time */}
               <FormItem>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

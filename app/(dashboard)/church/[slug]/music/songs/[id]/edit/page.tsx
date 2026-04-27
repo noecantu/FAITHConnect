@@ -9,6 +9,17 @@ import { usePermissions } from '@/app/hooks/usePermissions';
 import { getSongById, updateSong } from '@/app/lib/songs';
 import type { Song, SongInput } from '@/app/lib/types';
 import { Fab } from '@/app/components/ui/fab';
+import { toast } from '@/app/hooks/use-toast';
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === 'string') return error;
+  if (error && typeof error === 'object') {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === 'string' && message) return message;
+  }
+  return 'Failed to save song.';
+}
 
 export default function EditSongPage() {
   const { id } = useParams();
@@ -22,6 +33,7 @@ export default function EditSongPage() {
   const [song, setSong] = useState<Song | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [title, setTitle] = useState('');
 
   useEffect(() => {
     if (!churchId || !id) return;
@@ -85,11 +97,17 @@ export default function EditSongPage() {
   const handleUpdate = async (data: SongInput) => {
     setSaving(true);
 
-    await updateSong(churchId, song.id, {
-      ...data,
-    });
-
-    router.push(`/music/songs/${song.id}`);
+    try {
+      await updateSong(churchId, song.id, data);
+      router.push(`/church/${churchId}/music/songs/${song.id}`);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: getErrorMessage(error),
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -102,11 +120,12 @@ export default function EditSongPage() {
         initialData={song}
         onSave={handleUpdate}
         saving={saving}
+        onTitleChange={setTitle}
       />
 
       <Fab
         type="save"
-        disabled={saving}
+        disabled={saving || !title.trim()}
         onClick={() => {
           const submitButton = document.querySelector('[data-songform-submit]');
           (submitButton as HTMLButtonElement)?.click();
