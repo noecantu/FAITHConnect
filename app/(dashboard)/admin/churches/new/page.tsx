@@ -11,7 +11,6 @@ import { Label } from "@/app/components/ui/label";
 import { Button } from "@/app/components/ui/button";
 
 export default function NewChurchPage() {
-  const supabase = getSupabaseClient();
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -22,6 +21,7 @@ export default function NewChurchPage() {
   const [loading, setLoading] = useState(false);
 
   async function generateUniqueSlug(base: string) {
+    const supabase = getSupabaseClient();
     let slug = base;
     let counter = 1;
 
@@ -44,6 +44,7 @@ export default function NewChurchPage() {
     setLoading(true);
 
     try {
+      const supabase = getSupabaseClient();
       const baseSlug = slugify(name);
       const slug = await generateUniqueSlug(baseSlug);
 
