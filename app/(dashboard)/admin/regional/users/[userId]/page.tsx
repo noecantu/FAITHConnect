@@ -14,7 +14,6 @@ import { Badge } from '@/app/components/ui/badge';
 import Link from 'next/link';
 
 export default function RegionalUserDetailPage() {
-  const supabase = getSupabaseClient();
   const { userId } = useParams();
   const { isRootAdmin, isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
 
@@ -24,6 +23,7 @@ export default function RegionalUserDetailPage() {
 
   useEffect(() => {
     async function loadUser() {
+      const supabase = getSupabaseClient();
       const { data } = await supabase
         .from('users')
         .select('*')
@@ -65,7 +65,7 @@ export default function RegionalUserDetailPage() {
     }
 
     loadUser();
-  }, [userId, regionId, isRootAdmin, supabase]);
+  }, [userId, regionId, isRootAdmin]);
 
   if (permLoading) {
     return <div className="p-6 text-muted-foreground">Loading…</div>;

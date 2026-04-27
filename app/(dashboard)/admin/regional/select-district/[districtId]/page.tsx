@@ -10,7 +10,6 @@ import { Button } from "@/app/components/ui/button";
 import { useToast } from "@/app/hooks/use-toast";
 
 export default function ConfirmDistrictPage() {
-  const supabase = getSupabaseClient();
   const { districtId } = useParams() as { districtId: string };
   const router = useRouter();
   const { toast } = useToast();
@@ -22,6 +21,7 @@ export default function ConfirmDistrictPage() {
 
   useEffect(() => {
     async function load() {
+      const supabase = getSupabaseClient();
       const { data } = await supabase.from("districts").select("*").eq("id", districtId).single();
       setDistrict(data ?? null);
       setLoading(false);

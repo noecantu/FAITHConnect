@@ -12,7 +12,6 @@ import RegionLogoCard from "@/app/components/settings/RegionLogoCard";
 import DistrictMembershipCard from "@/app/components/settings/DistrictMembershipCard";
 
 export default function RegionalSettingsPage() {
-  const supabase = getSupabaseClient();
   const { isRegionalAdmin, regionId, loading: permLoading } = usePermissions();
   const { user, loading: userLoading } = useCurrentUser();
 
@@ -22,6 +21,7 @@ export default function RegionalSettingsPage() {
     if (!regionId) return;
 
     const load = async () => {
+      const supabase = getSupabaseClient();
       const { data: regionData } = await supabase.from("regions").select('name').eq('id', regionId).single();
       if (!regionData) return;
 
@@ -30,7 +30,7 @@ export default function RegionalSettingsPage() {
     };
 
     load();
-  }, [regionId, supabase]);
+  }, [regionId]);
 
   if (permLoading || userLoading) {
     return <div className="p-6 text-muted-foreground">Loading…</div>;
