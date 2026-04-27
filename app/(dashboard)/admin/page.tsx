@@ -1,4 +1,6 @@
 // app/admin/page.tsx
+export const dynamic = "force-dynamic";
+
 import { adminDb } from "@/app/lib/supabase/admin";
 import AdminHomeClient from "./AdminHomeClient";
 import { redirect } from "next/navigation";

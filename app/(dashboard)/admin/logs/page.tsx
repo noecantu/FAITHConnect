@@ -1,5 +1,7 @@
 import { adminDb } from "@/app/lib/supabase/admin";
 import ActivityLogTable from "./ActivityLogTable";
+
+export const dynamic = "force-dynamic";
 import type { LogEntry } from "@/app/lib/types";
 
 export default async function ActivityLogsPage() {

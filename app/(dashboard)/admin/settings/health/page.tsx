@@ -1,4 +1,5 @@
 // app/admin/settings/health/page.tsx
+export const dynamic = "force-dynamic";
 
 import { adminDb } from "@/app/lib/supabase/admin";
 import { createClient } from "@supabase/supabase-js";
