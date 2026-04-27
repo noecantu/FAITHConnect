@@ -22,6 +22,7 @@ type DistrictUser = {
   roles?: string[];
   churchId?: string | null;
   churchName?: string;
+  churchLogoUrl?: string | null;
 };
 
 export default function DistrictUsersPage() {
@@ -128,7 +129,21 @@ export default function DistrictUsersPage() {
                   {user.email ?? "—"}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {user.churchName ?? "—"}
+                  <div className="flex items-center gap-2">
+                    {user.churchLogoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={user.churchLogoUrl}
+                        alt={`${user.churchName ?? "Church"} logo`}
+                        className="h-6 w-6 rounded object-cover flex-shrink-0"
+                      />
+                    ) : user.churchName ? (
+                      <div className="h-6 w-6 rounded bg-white/10 flex items-center justify-center flex-shrink-0 text-xs font-semibold">
+                        {user.churchName[0]?.toUpperCase() ?? "C"}
+                      </div>
+                    ) : null}
+                    {user.churchName ?? "—"}
+                  </div>
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">
                   {Array.isArray(user.roles) && user.roles.length > 0

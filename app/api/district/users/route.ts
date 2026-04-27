@@ -13,6 +13,7 @@ type DistrictUser = {
   roles?: string[];
   church_id?: string | null;
   churchName?: string;
+  churchLogoUrl?: string | null;
 };
 
 export async function GET(req: Request) {
@@ -59,7 +60,7 @@ export async function GET(req: Request) {
 
     const { data: churches } = await adminDb
       .from("churches")
-      .select("id, name")
+      .select("id, name, logo_url")
       .in("region_id", regionIds);
 
     const churchList = churches ?? [];
@@ -70,6 +71,7 @@ export async function GET(req: Request) {
 
     const churchIds = churchList.map((c) => c.id);
     const churchNameById = new Map(churchList.map((c) => [c.id, c.name]));
+    const churchLogoById = new Map(churchList.map((c) => [c.id, c.logo_url ?? null]));
 
     const { data: userRows } = await adminDb
       .from("users")
@@ -84,6 +86,7 @@ export async function GET(req: Request) {
       roles: Array.isArray(u.roles) ? u.roles : [],
       church_id: u.church_id,
       churchName: u.church_id ? churchNameById.get(u.church_id) ?? u.church_id : undefined,
+      churchLogoUrl: u.church_id ? (churchLogoById.get(u.church_id) ?? null) : null,
     }));
 
     return NextResponse.json({ users });

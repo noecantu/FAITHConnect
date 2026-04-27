@@ -1,4 +1,4 @@
-//app/(dashboard)/admin/regions/page.tsx
+//app/(dashboard)/admin/districts/page.tsx
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
@@ -7,37 +7,22 @@ import { Input } from "@/app/components/ui/input";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/app/components/ui/select";
 import { useToast } from "@/app/hooks/use-toast";
 import { MapPinned, Plus, X } from "lucide-react";
 
-type Region = {
+type District = {
   id: string;
   name: string;
   state?: string | null;
   logo_url?: string | null;
   region_admin_name?: string | null;
   region_admin_title?: string | null;
-  district_id?: string | null;
-  district_name?: string | null;
   created_at?: string;
 };
 
-type District = {
-  id: string;
-  name: string;
-};
-
-export default function AdminRegionsPage() {
+export default function AdminDistrictsPage() {
   const { toast } = useToast();
 
-  const [regions, setRegions] = useState<Region[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -49,58 +34,44 @@ export default function AdminRegionsPage() {
   const [logoUrl, setLogoUrl] = useState("");
   const [adminName, setAdminName] = useState("");
   const [adminTitle, setAdminTitle] = useState("");
-  const [districtId, setDistrictId] = useState("none");
   const [saving, setSaving] = useState(false);
 
-  async function loadRegions() {
+  async function loadDistricts() {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/regions", { credentials: "include", cache: "no-store" });
-      if (!res.ok) throw new Error(`Failed to load regions (${res.status})`);
+      const res = await fetch("/api/admin/districts", { credentials: "include", cache: "no-store" });
+      if (!res.ok) throw new Error(`Failed to load districts (${res.status})`);
       const body = await res.json();
-      setRegions(Array.isArray(body.regions) ? body.regions : []);
+      setDistricts(Array.isArray(body.districts) ? body.districts : []);
     } catch (err) {
       console.error(err);
-      toast({ title: "Error", description: "Could not load regions.", variant: "destructive" });
+      toast({ title: "Error", description: "Could not load districts.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   }
 
-  async function loadDistricts() {
-    try {
-      const res = await fetch("/api/admin/districts", { credentials: "include", cache: "no-store" });
-      if (!res.ok) return;
-      const body = await res.json();
-      setDistricts(Array.isArray(body.districts) ? body.districts : []);
-    } catch {
-      // non-fatal: district select will just be empty
-    }
-  }
-
   useEffect(() => {
-    loadRegions();
     loadDistricts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filtered = useMemo(() => {
     const term = search.toLowerCase();
-    return regions.filter(
-      (r) =>
-        r.name.toLowerCase().includes(term) ||
-        (r.state ?? "").toLowerCase().includes(term) ||
-        (r.region_admin_name ?? "").toLowerCase().includes(term) ||
-        (r.district_name ?? "").toLowerCase().includes(term)
+    return districts.filter(
+      (d) =>
+        d.name.toLowerCase().includes(term) ||
+        (d.state ?? "").toLowerCase().includes(term) ||
+        (d.region_admin_name ?? "").toLowerCase().includes(term)
     );
-  }, [regions, search]);
+  }, [districts, search]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
     setSaving(true);
     try {
-      const res = await fetch("/api/admin/regions", {
+      const res = await fetch("/api/admin/districts", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -110,7 +81,6 @@ export default function AdminRegionsPage() {
           logo_url: logoUrl.trim() || null,
           region_admin_name: adminName.trim() || null,
           region_admin_title: adminTitle.trim() || null,
-          district_id: districtId === "none" ? null : districtId,
         }),
       });
       if (!res.ok) {
@@ -118,21 +88,13 @@ export default function AdminRegionsPage() {
         throw new Error(body.error ?? "Create failed");
       }
       const body = await res.json();
-      const newRegion: Region = {
-        ...body.region,
-        district_name:
-          districtId !== "none"
-            ? (districts.find((d) => d.id === districtId)?.name ?? null)
-            : null,
-      };
-      setRegions((prev) => [newRegion, ...prev].sort((a, b) => a.name.localeCompare(b.name)));
-      toast({ title: "Region Created", description: `${name.trim()} has been added.` });
+      setDistricts((prev) => [body.district, ...prev].sort((a, b) => a.name.localeCompare(b.name)));
+      toast({ title: "District Created", description: `${name.trim()} has been added.` });
       setName("");
       setState("");
       setLogoUrl("");
       setAdminName("");
       setAdminTitle("");
-      setDistrictId("none");
       setShowCreate(false);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Unknown error";
@@ -145,14 +107,14 @@ export default function AdminRegionsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Regions"
-        subtitle="All regions configured in the FAITH Connect platform."
+        title="Districts"
+        subtitle="All districts configured in the FAITH Connect platform."
       />
 
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <Input
-          placeholder="Search regions…"
+          placeholder="Search districts…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1"
@@ -165,7 +127,7 @@ export default function AdminRegionsPage() {
           {showCreate ? (
             <><X className="h-4 w-4" /> Cancel</>
           ) : (
-            <><Plus className="h-4 w-4" /> New Region</>
+            <><Plus className="h-4 w-4" /> New District</>
           )}
         </Button>
       </div>
@@ -174,68 +136,49 @@ export default function AdminRegionsPage() {
       {showCreate && (
         <Card className="border-white/15 bg-black/40 backdrop-blur-xl">
           <CardContent className="p-6">
-            <h2 className="text-base font-semibold mb-4">Create New Region</h2>
+            <h2 className="text-base font-semibold mb-4">Create New District</h2>
             <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="r-name">Region Name *</Label>
+                <Label htmlFor="d-name">District Name *</Label>
                 <Input
-                  id="r-name"
+                  id="d-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g., Gulf Coast Region"
+                  placeholder="e.g., Southwest District"
                   required
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="r-state">State</Label>
+                <Label htmlFor="d-state">State</Label>
                 <Input
-                  id="r-state"
+                  id="d-state"
                   value={state}
                   onChange={(e) => setState(e.target.value)}
-                  placeholder="e.g., Louisiana"
+                  placeholder="e.g., Texas"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="r-admin-title">Admin Title</Label>
+                <Label htmlFor="d-admin-title">Admin Title</Label>
                 <Input
-                  id="r-admin-title"
+                  id="d-admin-title"
                   value={adminTitle}
                   onChange={(e) => setAdminTitle(e.target.value)}
-                  placeholder="e.g., Regional Director"
+                  placeholder="e.g., Superintendent"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="r-admin-name">Admin Name</Label>
+                <Label htmlFor="d-admin-name">Admin Name</Label>
                 <Input
-                  id="r-admin-name"
+                  id="d-admin-name"
                   value={adminName}
                   onChange={(e) => setAdminName(e.target.value)}
-                  placeholder="e.g., Jane Doe"
+                  placeholder="e.g., John Smith"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="r-district">District (optional)</Label>
-                <Select value={districtId} onValueChange={setDistrictId}>
-                  <SelectTrigger
-                    id="r-district"
-                    className="bg-black/80 border border-white/20 backdrop-blur-xl text-white/80 hover:bg-white/5 hover:border-white/20 transition"
-                  >
-                    <SelectValue placeholder="Select a district" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {districts.map((d) => (
-                      <SelectItem key={d.id} value={d.id}>
-                        {d.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="r-logo">Logo URL (optional)</Label>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label htmlFor="d-logo">Logo URL (optional)</Label>
                 <Input
-                  id="r-logo"
+                  id="d-logo"
                   value={logoUrl}
                   onChange={(e) => setLogoUrl(e.target.value)}
                   placeholder="https://…"
@@ -243,7 +186,7 @@ export default function AdminRegionsPage() {
               </div>
               <div className="sm:col-span-2 flex justify-end">
                 <Button type="submit" disabled={saving || !name.trim()}>
-                  {saving ? "Creating…" : "Create Region"}
+                  {saving ? "Creating…" : "Create District"}
                 </Button>
               </div>
             </form>
@@ -253,60 +196,55 @@ export default function AdminRegionsPage() {
 
       {/* List */}
       {loading ? (
-        <p className="text-muted-foreground">Loading regions…</p>
+        <p className="text-muted-foreground">Loading districts…</p>
       ) : filtered.length === 0 ? (
         <p className="text-muted-foreground">
-          {search ? "No regions match your search." : "No regions found."}
+          {search ? "No districts match your search." : "No districts found."}
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((region) => (
+          {filtered.map((district) => (
             <Card
-              key={region.id}
+              key={district.id}
               className="bg-black/40 backdrop-blur-xl border-white/10"
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
                   {/* Logo / Initials */}
                   <div className="flex-shrink-0">
-                    {region.logo_url ? (
+                    {district.logo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={region.logo_url}
-                        alt={`${region.name} logo`}
+                        src={district.logo_url}
+                        alt={`${district.name} logo`}
                         className="h-14 w-14 rounded-md object-cover bg-white shadow-md"
                       />
                     ) : (
                       <div className="h-14 w-14 rounded-md flex items-center justify-center bg-white/10 text-lg font-semibold">
-                        {region.name
+                        {district.name
                           .split(" ")
                           .map((w) => w[0]?.toUpperCase())
                           .join("")
-                          .slice(0, 2) || "R"}
+                          .slice(0, 2) || "D"}
                       </div>
                     )}
                   </div>
 
                   {/* Info */}
                   <div className="min-w-0 flex-1 space-y-0.5">
-                    <h3 className="font-semibold truncate">{region.name}</h3>
-                    {region.state && (
+                    <h3 className="font-semibold truncate">{district.name}</h3>
+                    {district.state && (
                       <p className="text-sm text-muted-foreground flex items-center gap-1 truncate">
                         <MapPinned className="h-3 w-3 shrink-0" />
-                        {region.state}
+                        {district.state}
                       </p>
                     )}
-                    {(region.region_admin_title || region.region_admin_name) && (
+                    {(district.region_admin_title || district.region_admin_name) && (
                       <p className="text-sm text-muted-foreground truncate">
-                        {region.region_admin_title
-                          ? `${region.region_admin_title}: `
+                        {district.region_admin_title
+                          ? `${district.region_admin_title}: `
                           : ""}
-                        {region.region_admin_name ?? ""}
-                      </p>
-                    )}
-                    {region.district_name && (
-                      <p className="text-xs text-muted-foreground truncate">
-                        District: {region.district_name}
+                        {district.region_admin_name ?? ""}
                       </p>
                     )}
                   </div>

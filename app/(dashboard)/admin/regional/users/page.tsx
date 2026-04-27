@@ -13,6 +13,8 @@ type RegionalUser = {
   email?: string;
   roles?: string[];
   profile_photo_url?: string | null;
+  church_name?: string | null;
+  church_logo_url?: string | null;
 };
 
 export default function RegionalUsersPage() {
@@ -132,7 +134,24 @@ export default function RegionalUsersPage() {
                 </div>
               </div>
 
-              <p className="text-sm text-muted-foreground mt-3">
+              {user.church_name && (
+                <div className="flex items-center gap-2 mt-3">
+                  {user.church_logo_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={user.church_logo_url}
+                      alt={`${user.church_name} logo`}
+                      className="h-5 w-5 rounded object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="h-5 w-5 rounded bg-white/10 flex items-center justify-center flex-shrink-0 text-xs font-semibold">
+                      {user.church_name[0]?.toUpperCase() ?? 'C'}
+                    </div>
+                  )}
+                  <p className="text-sm text-muted-foreground truncate">{user.church_name}</p>
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground mt-1">
                 Roles: {Array.isArray(user.roles) ? user.roles.join(', ') : 'None'}
               </p>
             </div>

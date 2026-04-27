@@ -13,6 +13,8 @@ type RegionalUser = {
   roles: string[];
   profile_photo_url?: string | null;
   church_id?: string | null;
+  church_name?: string | null;
+  church_logo_url?: string | null;
 };
 
 export async function GET(req: Request) {
@@ -48,7 +50,7 @@ export async function GET(req: Request) {
 
     const { data: churches, error: churchesError } = await adminDb
       .from("churches")
-      .select("id")
+      .select("id, name, logo_url")
       .eq("region_id", regionId)
       .eq("region_status", "approved");
 
@@ -56,10 +58,14 @@ export async function GET(req: Request) {
       throw churchesError;
     }
 
-    const churchIds = (churches ?? []).map((church) => church.id);
+    const churchList = churches ?? [];
+    const churchIds = churchList.map((church) => church.id);
     if (churchIds.length === 0) {
       return NextResponse.json({ users: [] as RegionalUser[] });
     }
+
+    const churchNameById = new Map(churchList.map((c) => [c.id, c.name ?? null]));
+    const churchLogoById = new Map(churchList.map((c) => [c.id, c.logo_url ?? null]));
 
     const { data: users, error: usersError } = await adminDb
       .from("users")
@@ -80,6 +86,8 @@ export async function GET(req: Request) {
       roles: Array.isArray(user.roles) ? user.roles : [],
       profile_photo_url: user.profile_photo_url,
       church_id: user.church_id,
+      church_name: user.church_id ? (churchNameById.get(user.church_id) ?? null) : null,
+      church_logo_url: user.church_id ? (churchLogoById.get(user.church_id) ?? null) : null,
     }));
 
     return NextResponse.json({ users: mapped });

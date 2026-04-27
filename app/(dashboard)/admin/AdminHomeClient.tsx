@@ -169,6 +169,18 @@ export default function AdminHomeClient({
             description="Create, edit, and manage all churches."
           />
           <ToolCard
+            href="/admin/regions"
+            icon={<Map className="h-5 w-5" />}
+            title="Regions"
+            description="Create and manage all regions."
+          />
+          <ToolCard
+            href="/admin/districts"
+            icon={<MapPinned className="h-5 w-5" />}
+            title="Districts"
+            description="Create and manage all districts."
+          />
+          <ToolCard
             href="/admin/all-users"
             icon={<Users className="h-5 w-5" />}
             title="All Users"

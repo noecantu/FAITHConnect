@@ -6,12 +6,13 @@ import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { PageHeader } from "@/app/components/page-header";
 import { Card, CardContent } from "@/app/components/ui/card";
-import { Building2, MapPinned } from "lucide-react";
+import { Building2 } from "lucide-react";
 import Link from "next/link";
 
 type DistrictRegion = {
   id: string;
   name: string;
+  logoUrl?: string | null;
   regionAdminName?: string | null;
   regionAdminTitle?: string | null;
   state?: string | null;
@@ -34,7 +35,7 @@ export default function DistrictRegionsPage() {
 
     supabase
       .from("regions")
-      .select("id, name, region_admin_name, region_admin_title, state")
+      .select("id, name, logo_url, region_admin_name, region_admin_title, state")
       .eq("district_id", districtId)
       .then(async ({ data }) => {
         if (!active) return;
@@ -42,6 +43,7 @@ export default function DistrictRegionsPage() {
         const regionList = (data ?? []).map((d) => ({
           id: d.id,
           name: d.name || "Unknown Region",
+          logoUrl: d.logo_url ?? null,
           regionAdminName: d.region_admin_name ?? null,
           regionAdminTitle: d.region_admin_title ?? null,
           state: d.state ?? null,
@@ -128,8 +130,19 @@ export default function DistrictRegionsPage() {
           {regions.map((region) => (
             <Card key={region.id}>
               <CardContent className="pt-5 space-y-2">
-                <div className="flex items-center gap-2">
-                  <MapPinned className="h-4 w-4 text-muted-foreground" />
+                <div className="flex items-center gap-3">
+                  {region.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={region.logoUrl}
+                      alt={`${region.name} logo`}
+                      className="h-10 w-10 rounded-md object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="h-10 w-10 rounded-md bg-white/10 flex items-center justify-center flex-shrink-0 text-sm font-semibold">
+                      {region.name.split(" ").map((w) => w[0]?.toUpperCase()).join("").slice(0, 2) || "R"}
+                    </div>
+                  )}
                   <span className="font-semibold">{region.name}</span>
                 </div>
                 {region.state && (
