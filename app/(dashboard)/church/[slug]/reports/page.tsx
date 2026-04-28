@@ -45,6 +45,8 @@ export default function ReportsPage() {
     canReadMembersReports,
     canReadContributionsReports,
     canReadAttendanceReports,
+    canReadSetListsReports,
+    canReadServicePlansReports,
     isDistrictAdmin,
     isRegionalAdmin,
   } = usePermissions();
@@ -94,8 +96,8 @@ export default function ReportsPage() {
   const [isExportingExcel, setIsExportingExcel] = useState(false);
   const [isCopyingSetList, setIsCopyingSetList] = useState(false);
 
-  const canAccessSetListReport = !needsScopedContributions && canReadMusic;
-  const canAccessServicePlanReport = !needsScopedContributions && canReadServicePlans;
+  const canAccessSetListReport = !needsScopedContributions && canReadSetListsReports;
+  const canAccessServicePlanReport = !needsScopedContributions && canReadServicePlansReports;
 
   const setListYearOptions = useMemo(() => {
     const years = new Set<string>();

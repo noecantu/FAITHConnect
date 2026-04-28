@@ -11,6 +11,8 @@ import {
   Users,
   ClipboardList,
   BarChart2,
+  ListMusic,
+  CalendarHeart,
 } from 'lucide-react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -27,6 +29,7 @@ interface ModuleConfig {
 
 interface ReportConfig {
   label: string;
+  icon: LucideIcon;
   permission: Permission;
 }
 
@@ -42,9 +45,11 @@ const MODULES: ModuleConfig[] = [
 ];
 
 const REPORTS: ReportConfig[] = [
-  { label: 'Attendance',    permission: 'reports.attendance'    },
-  { label: 'Contributions', permission: 'reports.contributions' },
-  { label: 'Members',       permission: 'reports.members'       },
+  { label: 'Attendance',     icon: CheckSquare2,  permission: 'reports.attendance'    },
+  { label: 'Contributions',  icon: DollarSign,    permission: 'reports.contributions' },
+  { label: 'Members',        icon: Users,         permission: 'reports.members'       },
+  { label: 'Service Plans',  icon: CalendarHeart, permission: 'reports.serviceplans'  },
+  { label: 'Set Lists',      icon: ListMusic,     permission: 'reports.setlists'      },
 ];
 
 const MODULE_LEVELS: { value: ModuleLevel; label: string }[] = [
@@ -211,9 +216,10 @@ export default function PermissionSelector({ selectedPermissions, onChange, disa
                 i < REPORTS.length - 1 && 'border-b border-white/[0.06]'
               )}
             >
-              <span className={cn('text-sm transition-opacity', !active && 'opacity-40')}>
-                {report.label}
-              </span>
+              <div className={cn('flex items-center gap-2.5 transition-opacity', !active && 'opacity-40')}>
+                <report.icon className="h-3.5 w-3.5 flex-shrink-0" />
+                <span className="text-sm">{report.label}</span>
+              </div>
               <SegmentedToggle
                 options={[
                   { value: 'none' as ReportLevel, label: 'None' },

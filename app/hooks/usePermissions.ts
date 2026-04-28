@@ -46,6 +46,8 @@ export function usePermissions() {
     canReadAttendanceReports: can(roles, "reports.attendance", grants),
     canReadContributionsReports: can(roles, "reports.contributions", grants),
     canReadMembersReports: can(roles, "reports.members", grants),
+    canReadSetListsReports: can(roles, "reports.setlists", grants),
+    canReadServicePlansReports: can(roles, "reports.serviceplans", grants),
     canManageServicePlans: can(roles, "servicePlans.manage", grants),
     canReadServicePlans: can(roles, "servicePlans.read", grants),
     canManageAttendance: can(roles, "attendance.manage", grants),

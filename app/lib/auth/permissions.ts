@@ -21,7 +21,9 @@ export type Permission =
   | "reports.read"
   | "reports.attendance"
   | "reports.contributions"
-  | "reports.members";
+  | "reports.members"
+  | "reports.setlists"
+  | "reports.serviceplans";
 
 import type { Role } from "./roles";
 
@@ -153,11 +155,23 @@ export function can(roles: Role[], permission: Permission, grants?: Permission[]
 
     // reports.read is satisfied by any specific report grant
     if (permission === "reports.read") {
-      if (grants.some((g) => g === "reports.attendance" || g === "reports.contributions" || g === "reports.members")) return true;
+      if (grants.some((g) =>
+        g === "reports.attendance" ||
+        g === "reports.contributions" ||
+        g === "reports.members" ||
+        g === "reports.setlists" ||
+        g === "reports.serviceplans"
+      )) return true;
     }
 
     // Specific report sub-permissions are satisfied by the umbrella reports.read grant
-    if (permission === "reports.attendance" || permission === "reports.contributions" || permission === "reports.members") {
+    if (
+      permission === "reports.attendance" ||
+      permission === "reports.contributions" ||
+      permission === "reports.members" ||
+      permission === "reports.setlists" ||
+      permission === "reports.serviceplans"
+    ) {
       if (grants.includes("reports.read")) return true;
     }
   }
@@ -176,7 +190,13 @@ export function can(roles: Role[], permission: Permission, grants?: Permission[]
     }
 
     // roles with reports.read also satisfy specific report sub-permissions
-    if (permission === "reports.attendance" || permission === "reports.contributions" || permission === "reports.members") {
+    if (
+      permission === "reports.attendance" ||
+      permission === "reports.contributions" ||
+      permission === "reports.members" ||
+      permission === "reports.setlists" ||
+      permission === "reports.serviceplans"
+    ) {
       return perms.includes("reports.read");
     }
 
