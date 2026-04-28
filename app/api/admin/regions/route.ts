@@ -12,6 +12,12 @@ function splitPersonName(fullName: string): { first: string; last: string } {
   return { first: parts[0], last: parts.slice(1).join(" ") };
 }
 
+function isMissingColumnError(err: unknown): boolean {
+  const msg = err && typeof err === "object" && "message" in err ? String((err as { message?: unknown }).message ?? "") : "";
+  const code = err && typeof err === "object" && "code" in err ? String((err as { code?: unknown }).code ?? "") : "";
+  return code === "42703" || msg.toLowerCase().includes("column") || msg.toLowerCase().includes("does not exist");
+}
+
 async function requireRootAdmin() {
   const authUser = await getServerUser();
   if (!authUser) return null;
@@ -33,12 +39,25 @@ export async function GET() {
     const user = await requireRootAdmin();
     if (!user) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const { data, error } = await adminDb
-      .from("regions")
-      .select("id, name, state, logo_url, region_admin_name, region_admin_first_name, region_admin_last_name, region_admin_title, district_id, created_at")
-      .order("name", { ascending: true });
+    let data: Record<string, unknown>[] | null = null;
+    {
+      const primary = await adminDb
+        .from("regions")
+        .select("id, name, state, logo_url, region_admin_name, region_admin_first_name, region_admin_last_name, region_admin_title, district_id, created_at")
+        .order("name", { ascending: true });
 
-    if (error) throw error;
+      if (primary.error) {
+        if (!isMissingColumnError(primary.error)) throw primary.error;
+        const fallback = await adminDb
+          .from("regions")
+          .select("id, name, state, logo_url, region_admin_name, region_admin_title, district_id, created_at")
+          .order("name", { ascending: true });
+        if (fallback.error) throw fallback.error;
+        data = (fallback.data ?? []) as Record<string, unknown>[];
+      } else {
+        data = (primary.data ?? []) as Record<string, unknown>[];
+      }
+    }
 
     // Fetch district names for enrichment
     const districtIds = [...new Set((data ?? []).map((r) => r.district_id).filter(Boolean))] as string[];
@@ -107,22 +126,44 @@ export async function POST(req: Request) {
     const normalizedLast = adminLast || parsedLegacy.last || null;
     const normalizedFull = adminFullFromParts || adminLegacyFull || null;
 
-    const { data, error } = await adminDb
-      .from("regions")
-      .insert({
-        name: name.trim(),
-        state: state?.trim() || null,
-        logo_url: logo_url?.trim() || null,
-        region_admin_name: normalizedFull,
-        region_admin_first_name: normalizedFirst,
-        region_admin_last_name: normalizedLast,
-        region_admin_title: region_admin_title?.trim() || null,
-        district_id: district_id?.trim() || null,
-      })
-      .select("id, name, state, logo_url, region_admin_name, region_admin_first_name, region_admin_last_name, region_admin_title, district_id, created_at")
-      .single();
+    let data: Record<string, unknown> | null = null;
 
-    if (error) throw error;
+    {
+      const primary = await adminDb
+        .from("regions")
+        .insert({
+          name: name.trim(),
+          state: state?.trim() || null,
+          logo_url: logo_url?.trim() || null,
+          region_admin_name: normalizedFull,
+          region_admin_first_name: normalizedFirst,
+          region_admin_last_name: normalizedLast,
+          region_admin_title: region_admin_title?.trim() || null,
+          district_id: district_id?.trim() || null,
+        })
+        .select("id, name, state, logo_url, region_admin_name, region_admin_first_name, region_admin_last_name, region_admin_title, district_id, created_at")
+        .single();
+
+      if (primary.error) {
+        if (!isMissingColumnError(primary.error)) throw primary.error;
+        const fallback = await adminDb
+          .from("regions")
+          .insert({
+            name: name.trim(),
+            state: state?.trim() || null,
+            logo_url: logo_url?.trim() || null,
+            region_admin_name: normalizedFull,
+            region_admin_title: region_admin_title?.trim() || null,
+            district_id: district_id?.trim() || null,
+          })
+          .select("id, name, state, logo_url, region_admin_name, region_admin_title, district_id, created_at")
+          .single();
+        if (fallback.error) throw fallback.error;
+        data = (fallback.data ?? null) as Record<string, unknown> | null;
+      } else {
+        data = (primary.data ?? null) as Record<string, unknown> | null;
+      }
+    }
 
     return NextResponse.json({ region: data }, { status: 201 });
   } catch (err) {

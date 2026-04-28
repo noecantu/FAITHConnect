@@ -38,7 +38,7 @@ export async function GET(req: Request) {
 
     const { data: churches, error } = await adminDb
       .from("churches")
-      .select("id, name, logo_url, leader_name, leader_title, address, city, state, zip, phone, timezone")
+      .select("id, name, logo_url, leader_name, leader_title, address, address_1, address_2, city, state, zip, phone, timezone")
       .eq("region_id", regionId)
       .eq("region_status", "approved")
       .order("name", { ascending: true });

@@ -196,15 +196,6 @@ export default function AdminDistrictsPage() {
                   placeholder="e.g., Smith"
                 />
               </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="d-logo">Logo URL (optional)</Label>
-                <Input
-                  id="d-logo"
-                  value={logoUrl}
-                  onChange={(e) => setLogoUrl(e.target.value)}
-                  placeholder="https://…"
-                />
-              </div>
               <div className="sm:col-span-2 flex justify-end">
                 <Button type="submit" disabled={saving || !name.trim()}>
                   {saving ? "Creating…" : "Create District"}

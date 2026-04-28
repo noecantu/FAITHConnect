@@ -13,6 +13,8 @@ type RegionalChurch = {
   leader_name?: string | null;
   leader_title?: string | null;
   address?: string | null;
+  address_1?: string | null;
+  address_2?: string | null;
   city?: string | null;
   state?: string | null;
   zip?: string | null;
@@ -141,9 +143,17 @@ export default function RegionalChurchesPage() {
                     </p>
                   )}
 
-                  {church.address && (
-                    <p className="text-sm text-muted-foreground truncate">{church.address}</p>
-                  )}
+                  {(() => {
+                    const line1 = (church.address_1 ?? church.address ?? "").trim();
+                    const line2 = (church.address_2 ?? "").trim();
+                    if (!line1 && !line2) return null;
+                    return (
+                      <>
+                        {line1 && <p className="text-sm text-muted-foreground truncate">{line1}</p>}
+                        {line2 && <p className="text-sm text-muted-foreground truncate">{line2}</p>}
+                      </>
+                    );
+                  })()}
 
                   {(church.city || church.state || church.zip) && (
                     <p className="text-sm text-muted-foreground truncate">

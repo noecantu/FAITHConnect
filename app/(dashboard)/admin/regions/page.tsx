@@ -253,15 +253,6 @@ export default function AdminRegionsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="r-logo">Logo URL (optional)</Label>
-                <Input
-                  id="r-logo"
-                  value={logoUrl}
-                  onChange={(e) => setLogoUrl(e.target.value)}
-                  placeholder="https://…"
-                />
-              </div>
               <div className="sm:col-span-2 flex justify-end">
                 <Button type="submit" disabled={saving || !name.trim()}>
                   {saving ? "Creating…" : "Create Region"}

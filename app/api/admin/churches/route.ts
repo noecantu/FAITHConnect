@@ -5,6 +5,16 @@ import { NextResponse } from "next/server";
 import { getServerUser } from "@/app/lib/supabase/server";
 import { adminDb } from "@/app/lib/supabase/admin";
 
+function isMissingColumnError(err: unknown): boolean {
+  const msg = err && typeof err === "object" && "message" in err
+    ? String((err as { message?: unknown }).message ?? "")
+    : "";
+  const code = err && typeof err === "object" && "code" in err
+    ? String((err as { code?: unknown }).code ?? "")
+    : "";
+  return code === "42703" || msg.toLowerCase().includes("column") || msg.toLowerCase().includes("does not exist");
+}
+
 function slugify(name: string): string {
   return name
     .toLowerCase()
@@ -53,7 +63,7 @@ export async function POST(req: Request) {
     if (!authUser) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body = await req.json();
-    const { name, timezone, address, logo_url, adminEmail } = body as Record<string, string | undefined>;
+    const { name, timezone, address, address_1, address_2, city, state, zip, logo_url, adminEmail } = body as Record<string, string | undefined>;
 
     if (!name?.trim()) {
       return NextResponse.json({ error: "name is required" }, { status: 400 });
@@ -65,23 +75,59 @@ export async function POST(req: Request) {
     const baseSlug = slugify(name.trim());
     const slug = await generateUniqueSlug(baseSlug);
 
-    const { data: church, error: churchError } = await adminDb
-      .from("churches")
-      .insert({
-        id: slug,
-        name: name.trim(),
-        slug,
-        timezone: timezone.trim(),
-        address: address?.trim() || null,
-        logo_url: logo_url?.trim() || null,
-        created_at: new Date().toISOString(),
-        created_by: authUser.id,
-        settings: {},
-      })
-      .select("id, name, slug, timezone, address, logo_url, created_at")
-      .single();
+    const normalizedAddress1 = (address_1 ?? address ?? "").trim() || null;
+    const normalizedAddress2 = (address_2 ?? "").trim() || null;
+    const normalizedCity = (city ?? "").trim() || null;
+    const normalizedState = (state ?? "").trim() || null;
+    const normalizedZip = (zip ?? "").trim() || null;
 
-    if (churchError) throw churchError;
+    let church: Record<string, unknown> | null = null;
+
+    {
+      const primary = await adminDb
+        .from("churches")
+        .insert({
+          id: slug,
+          name: name.trim(),
+          slug,
+          timezone: timezone.trim(),
+          address: normalizedAddress1,
+          address_1: normalizedAddress1,
+          address_2: normalizedAddress2,
+          city: normalizedCity,
+          state: normalizedState,
+          zip: normalizedZip,
+          logo_url: logo_url?.trim() || null,
+          created_at: new Date().toISOString(),
+          created_by: authUser.id,
+          settings: {},
+        })
+        .select("id, name, slug, timezone, address, address_1, address_2, city, state, zip, logo_url, created_at")
+        .single();
+
+      if (primary.error) {
+        if (!isMissingColumnError(primary.error)) throw primary.error;
+        const fallback = await adminDb
+          .from("churches")
+          .insert({
+            id: slug,
+            name: name.trim(),
+            slug,
+            timezone: timezone.trim(),
+            address: normalizedAddress1,
+            logo_url: logo_url?.trim() || null,
+            created_at: new Date().toISOString(),
+            created_by: authUser.id,
+            settings: {},
+          })
+          .select("id, name, slug, timezone, address, logo_url, created_at")
+          .single();
+        if (fallback.error) throw fallback.error;
+        church = fallback.data as Record<string, unknown>;
+      } else {
+        church = primary.data as Record<string, unknown>;
+      }
+    }
 
     // Optionally create initial admin user
     if (adminEmail?.trim()) {

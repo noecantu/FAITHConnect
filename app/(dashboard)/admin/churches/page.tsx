@@ -35,10 +35,21 @@ export default function GlobalChurchListPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [churchName, setChurchName] = useState("");
   const [timezone, setTimezone] = useState("");
-  const [address, setAddress] = useState("");
+  const [address1, setAddress1] = useState("");
+  const [address2, setAddress2] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zip, setZip] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [saving, setSaving] = useState(false);
+
+  function formatChurchAddress(church: Church): string {
+    const line1 = (church.address_1 ?? church.address ?? "").trim();
+    const line2 = (church.address_2 ?? "").trim();
+    const cityStateZip = [church.city, church.state, church.zip].filter(Boolean).join(", ");
+    return [line1, line2, cityStateZip].filter(Boolean).join("\n");
+  }
 
   // -----------------------------
   // LOAD INITIAL DATA
@@ -85,7 +96,12 @@ export default function GlobalChurchListPage() {
         body: JSON.stringify({
           name: churchName.trim(),
           timezone,
-          address: address.trim() || null,
+          address: address1.trim() || null,
+          address_1: address1.trim() || null,
+          address_2: address2.trim() || null,
+          city: city.trim() || null,
+          state: state.trim() || null,
+          zip: zip.trim() || null,
           logo_url: logoUrl.trim() || null,
           adminEmail: adminEmail.trim() || null,
         }),
@@ -180,24 +196,51 @@ export default function GlobalChurchListPage() {
                 <TimezoneSelect value={timezone} onChange={setTimezone} />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="c-address">Address</Label>
+                <Label htmlFor="c-address-1">Address 1</Label>
                 <Input
-                  id="c-address"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="123 Main St, City, State"
+                  id="c-address-1"
+                  value={address1}
+                  onChange={(e) => setAddress1(e.target.value)}
+                  placeholder="123 Main St"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="c-logo">Logo URL (optional)</Label>
+                <Label htmlFor="c-address-2">Address 2</Label>
                 <Input
-                  id="c-logo"
-                  value={logoUrl}
-                  onChange={(e) => setLogoUrl(e.target.value)}
-                  placeholder="https://…"
+                  id="c-address-2"
+                  value={address2}
+                  onChange={(e) => setAddress2(e.target.value)}
+                  placeholder="Suite 400 or PO Box 123"
                 />
               </div>
-              <div className="space-y-1.5 sm:col-span-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="c-city">City</Label>
+                <Input
+                  id="c-city"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="Springfield"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="c-state">State</Label>
+                <Input
+                  id="c-state"
+                  value={state}
+                  onChange={(e) => setState(e.target.value)}
+                  placeholder="IL"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="c-zip">ZIP Code</Label>
+                <Input
+                  id="c-zip"
+                  value={zip}
+                  onChange={(e) => setZip(e.target.value)}
+                  placeholder="62701"
+                />
+              </div>
+              <div className="space-y-1.5">
                 <Label htmlFor="c-admin">Admin Email (optional — sends invite)</Label>
                 <Input
                   id="c-admin"
@@ -274,8 +317,8 @@ export default function GlobalChurchListPage() {
                         Phone: {formatPhone(church.phone ?? undefined)}
                       </p>
 
-                      <p className="text-sm text-muted-foreground truncate">
-                        Address: {church.address ?? "N/A"}
+                      <p className="text-sm text-muted-foreground">
+                        {formatChurchAddress(church) || "No address"}
                       </p>
 
                       <p className="text-xs text-muted-foreground truncate">

@@ -27,120 +27,107 @@ export default function ChurchProfileCard({
   const supabase = getSupabaseClient();
   const { toast } = useToast();
 
-  // Display-only name
   const [name, setName] = useState('');
-
-  // Editable fields
   const [timezone, setTimezone] = useState('');
-  const [address, setAddress] = useState('');
+  const [address1, setAddress1] = useState('');
+  const [address2, setAddress2] = useState('');
   const [city, setCity] = useState('');
   const [addressState, setAddressState] = useState('');
   const [zip, setZip] = useState('');
   const [country, setCountry] = useState('');
   const [email, setEmail] = useState('');
-
-  // NEW: Leader fields
-  const [leaderName, setLeaderName] = useState('');
+  const [leaderFirstName, setLeaderFirstName] = useState('');
+  const [leaderLastName, setLeaderLastName] = useState('');
   const [leaderTitle, setLeaderTitle] = useState('');
 
-  // Phone (via hook)
   const phone = usePhoneInput();
   const [originalPhone, setOriginalPhone] = useState('');
-
-  // Originals for change detection
   const [originalTimezone, setOriginalTimezone] = useState('');
-  const [originalAddress, setOriginalAddress] = useState('');
+  const [originalAddress1, setOriginalAddress1] = useState('');
+  const [originalAddress2, setOriginalAddress2] = useState('');
   const [originalCity, setOriginalCity] = useState('');
   const [originalAddressState, setOriginalAddressState] = useState('');
   const [originalZip, setOriginalZip] = useState('');
   const [originalCountry, setOriginalCountry] = useState('');
   const [originalEmail, setOriginalEmail] = useState('');
-  const [originalLeaderName, setOriginalLeaderName] = useState('');
+  const [originalLeaderFirstName, setOriginalLeaderFirstName] = useState('');
+  const [originalLeaderLastName, setOriginalLeaderLastName] = useState('');
   const [originalLeaderTitle, setOriginalLeaderTitle] = useState('');
-
   const [saving, setSaving] = useState(false);
-
   const [region_id, setRegionId] = useState("");
 
   useEffect(() => {
     if (!church_id) return;
-
     const load = async () => {
       const { data, error } = await supabase.from('churches').select('*').eq('id', church_id).maybeSingle();
       if (error) { console.error('ChurchProfileCard load error:', error); return; }
       if (!data) return;
 
-      // Set region from church data
       setRegionId(data.region_id ?? "");
-
-      // Identity
       setName(data.name ?? '');
-
-      // Editable fields
       setTimezone(data.timezone ?? '');
-      setAddress(data.address ?? '');
+      setAddress1(data.address_1 ?? data.address ?? '');
+      setAddress2(data.address_2 ?? '');
       setCity(data.city ?? '');
       setAddressState(data.state ?? '');
       setZip(data.zip ?? '');
       setCountry(data.country ?? '');
       setEmail(data.email ?? '');
-
-      // Leader fields
-      setLeaderName(data.leader_name ?? '');
+      setLeaderFirstName(data.leader_first_name ?? '');
+      setLeaderLastName(data.leader_last_name ?? '');
       setLeaderTitle(data.leader_title ?? '');
-
-      // Phone
       phone.setDigits(data.phone ?? '');
       setOriginalPhone(data.phone ?? '');
-
-      // Originals
       setOriginalTimezone(data.timezone ?? '');
-      setOriginalAddress(data.address ?? '');
+      setOriginalAddress1(data.address_1 ?? data.address ?? '');
+      setOriginalAddress2(data.address_2 ?? '');
       setOriginalCity(data.city ?? '');
       setOriginalAddressState(data.state ?? '');
       setOriginalZip(data.zip ?? '');
       setOriginalCountry(data.country ?? '');
       setOriginalEmail(data.email ?? '');
-      setOriginalLeaderName(data.leader_name ?? '');
+      setOriginalLeaderFirstName(data.leader_first_name ?? '');
+      setOriginalLeaderLastName(data.leader_last_name ?? '');
       setOriginalLeaderTitle(data.leader_title ?? '');
     };
-
     load();
   }, [church_id]);
 
-  // Detect unsaved changes
   const hasChanges =
     timezone !== originalTimezone ||
-    address !== originalAddress ||
+    address1 !== originalAddress1 ||
+    address2 !== originalAddress2 ||
     city !== originalCity ||
     addressState !== originalAddressState ||
     zip !== originalZip ||
     country !== originalCountry ||
     email !== originalEmail ||
     phone.digits !== originalPhone ||
-    leaderName !== originalLeaderName ||
+    leaderFirstName !== originalLeaderFirstName ||
+    leaderLastName !== originalLeaderLastName ||
     leaderTitle !== originalLeaderTitle;
 
-  // Save handler
   const handleSave = async () => {
     if (!hasChanges || saving) return;
-
     setSaving(true);
-
     try {
       const res = await fetch(`/api/church/${encodeURIComponent(church_id)}/profile`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           timezone,
-          address,
+          address: address1,
+          address_1: address1,
+          address_2: address2,
           city,
           state: addressState,
           zip,
           country,
           email,
           phone: phone.digits,
-          leader_name: leaderName,
+          leader_first_name: leaderFirstName,
+          leader_last_name: leaderLastName,
+          leader_name: [leaderFirstName, leaderLastName].filter(Boolean).join(' ') || null,
           leader_title: leaderTitle,
           region_id: region_id || null,
         }),
@@ -149,33 +136,23 @@ export default function ChurchProfileCard({
         const body = await res.json().catch(() => ({}));
         throw new Error(typeof body.error === 'string' ? body.error : `HTTP ${res.status}`);
       }
-
-      // Update originals
       setOriginalTimezone(timezone);
-      setOriginalAddress(address);
+      setOriginalAddress1(address1);
+      setOriginalAddress2(address2);
       setOriginalCity(city);
       setOriginalAddressState(addressState);
       setOriginalZip(zip);
       setOriginalCountry(country);
       setOriginalEmail(email);
       setOriginalPhone(phone.digits);
-      setOriginalLeaderName(leaderName);
+      setOriginalLeaderFirstName(leaderFirstName);
+      setOriginalLeaderLastName(leaderLastName);
       setOriginalLeaderTitle(leaderTitle);
-
-      toast({
-        title: "Saved",
-        description: "Church profile updated.",
-      });
+      toast({ title: "Saved", description: "Church profile updated." });
     } catch (err: unknown) {
-      let message = "Something went wrong.";
-
-      if (err instanceof Error) {
-        message = err.message;
-      }
-
       toast({
         title: "Error",
-        description: message,
+        description: err instanceof Error ? err.message : "Something went wrong.",
       });
     } finally {
       setSaving(false);
@@ -191,22 +168,13 @@ export default function ChurchProfileCard({
               {name || "Church Profile"}
             </CardTitle>
             <CardDescription className="text-sm opacity-80">
-              Manage your church’s identity and details.
+              Manage your church&apos;s identity and details.
             </CardDescription>
           </div>
-
-          {/* Save Icon */}
           <button
             onClick={handleSave}
             disabled={!hasChanges || saving}
-            className={`
-              p-2 rounded-md border border-white/20
-              bg-white/5 transition
-              focus:outline-none focus:ring-2 focus:ring-primary
-              ${!hasChanges || saving 
-                ? "opacity-40 cursor-not-allowed" 
-                : "hover:bg-white/10"}
-            `}
+            className={`p-2 rounded-md border border-white/20 bg-white/5 transition focus:outline-none focus:ring-2 focus:ring-primary ${!hasChanges || saving ? "opacity-40 cursor-not-allowed" : "hover:bg-white/10"}`}
           >
             {saving ? (
               <div className="h-5 w-5 animate-spin border-2 border-white/30 border-t-white rounded-full" />
@@ -217,63 +185,45 @@ export default function ChurchProfileCard({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-8 pt-6">
-                {/* Leader Name + Title */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <div className="grid gap-2">
-            <Label className="text-sm font-medium">Church Leader Name</Label>
-            <Input
-              value={leaderName}
-              onChange={(e) => setLeaderName(e.target.value)}
-              className="bg-black/40 border-white/20"
-            />
+      <CardContent className="pt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          {/* Row 1 */}
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium">Church Leader First Name</Label>
+            <Input value={leaderFirstName} onChange={(e) => setLeaderFirstName(e.target.value)} className="bg-black/40 border-white/20" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium">Church Leader Last Name</Label>
+            <Input value={leaderLastName} onChange={(e) => setLeaderLastName(e.target.value)} className="bg-black/40 border-white/20" />
           </div>
 
-          <div className="grid gap-2">
+          {/* Row 2 */}
+          <div className="space-y-1.5">
             <Label className="text-sm font-medium">Church Leader Title</Label>
-            <Input
-              value={leaderTitle}
-              onChange={(e) => setLeaderTitle(e.target.value)}
-              className="bg-black/40 border-white/20"
-            />
+            <Input value={leaderTitle} onChange={(e) => setLeaderTitle(e.target.value)} className="bg-black/40 border-white/20" />
           </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <div className="grid gap-2">
-            <Label className="text-sm font-medium">Street Address</Label>
-            <Input
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="123 Main St"
-              className="bg-black/40 border-white/20"
-            />
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium">Address 1</Label>
+            <Input value={address1} onChange={(e) => setAddress1(e.target.value)} placeholder="123 Main St" className="bg-black/40 border-white/20" />
           </div>
 
-          <div className="grid gap-2">
+          {/* Row 3 */}
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium">Address 2</Label>
+            <Input value={address2} onChange={(e) => setAddress2(e.target.value)} placeholder="Suite 400 or PO Box 123" className="bg-black/40 border-white/20" />
+          </div>
+          <div className="space-y-1.5">
             <Label className="text-sm font-medium">City</Label>
-            <Input
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="Springfield"
-              className="bg-black/40 border-white/20"
-            />
+            <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Springfield" className="bg-black/40 border-white/20" />
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-
-          <div className="grid gap-2">
+          {/* Row 4 */}
+          <div className="space-y-1.5">
             <Label className="text-sm font-medium">State</Label>
-            <Input
-              value={addressState}
-              onChange={(e) => setAddressState(e.target.value)}
-              placeholder="TX"
-              className="bg-black/40 border-white/20"
-            />
+            <Input value={addressState} onChange={(e) => setAddressState(e.target.value)} placeholder="TX" className="bg-black/40 border-white/20" />
           </div>
-
-          <div className="grid gap-2">
+          <div className="space-y-1.5">
             <Label className="text-sm font-medium">ZIP</Label>
             <Input
               value={zip}
@@ -284,10 +234,9 @@ export default function ChurchProfileCard({
               className="bg-black/40 border-white/20"
             />
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <div className="grid gap-2">
+          {/* Row 5 */}
+          <div className="space-y-1.5">
             <Label className="text-sm font-medium">Country</Label>
             <Select value={country} onValueChange={setCountry}>
               <SelectTrigger className="bg-black/40 border-white/20">
@@ -328,37 +277,21 @@ export default function ChurchProfileCard({
               </SelectContent>
             </Select>
           </div>
-
-          <div className="grid gap-2">
+          <div className="space-y-1.5">
             <Label className="text-sm font-medium">Email</Label>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="info@mychurch.org"
-              className="bg-black/40 border-white/20"
-            />
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="info@mychurch.org" className="bg-black/40 border-white/20" />
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <div className="grid gap-2">
+          {/* Row 6 */}
+          <div className="space-y-1.5">
             <Label className="text-sm font-medium">Phone Number</Label>
-            <Input
-              value={phone.display}
-              onChange={(e) => phone.handleChange(e.target.value)}
-              placeholder="(555) 123‑4567"
-              className="bg-black/40 border-white/20"
-            />
+            <Input value={phone.display} onChange={(e) => phone.handleChange(e.target.value)} placeholder="(555) 123‑4567" className="bg-black/40 border-white/20" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium">Timezone</Label>
+            <TimezoneSelect value={timezone} onChange={setTimezone} />
           </div>
 
-          <div className="grid gap-2">
-            <Label className="text-sm font-medium">Timezone</Label>
-            <TimezoneSelect
-              value={timezone}
-              onChange={setTimezone}
-            />
-          </div>
         </div>
       </CardContent>
     </Card>

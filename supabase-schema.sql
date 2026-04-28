@@ -100,12 +100,16 @@ create table if not exists public.churches (
   logo_url                text,
   description             text,
   address                 text,
+  address_1               text,
+  address_2               text,
   city                    text,
   state                   text,
   zip                     text,
   country                 text,
   email                   text,
   phone                   text,
+  leader_first_name       text,
+  leader_last_name        text,
   leader_name             text,
   leader_title            text,
 
@@ -141,6 +145,14 @@ create or replace trigger churches_updated_at
   for each row execute function public.set_updated_at();
 
 create index if not exists churches_slug_idx on public.churches (slug);
+
+-- Add newer church address columns for existing databases
+do $$ begin
+  begin alter table public.churches add column address_1 text; exception when duplicate_column then null; end;
+  begin alter table public.churches add column address_2 text; exception when duplicate_column then null; end;
+  begin alter table public.churches add column leader_first_name text; exception when duplicate_column then null; end;
+  begin alter table public.churches add column leader_last_name text; exception when duplicate_column then null; end;
+end $$;
 
 -- ============================================================
 -- MEMBERS

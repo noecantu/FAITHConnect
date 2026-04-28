@@ -321,9 +321,17 @@ export default function ChurchAdminDashboard() {
                     {church.leaderName ?? ""}
                   </p>
                 )}
-                {church.address && (
-                  <p className="text-sm text-muted-foreground">{church.address}</p>
-                )}
+                {(() => {
+                  const line1 = (church.address_1 ?? church.address ?? "").trim();
+                  const line2 = (church.address_2 ?? "").trim();
+                  if (!line1 && !line2) return null;
+                  return (
+                    <>
+                      {line1 && <p className="text-sm text-muted-foreground">{line1}</p>}
+                      {line2 && <p className="text-sm text-muted-foreground">{line2}</p>}
+                    </>
+                  );
+                })()}
                 {(church.city || church.state || church.zip) && (
                   <p className="text-sm text-muted-foreground">
                     {[church.city, church.state].filter(Boolean).join(", ")}

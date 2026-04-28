@@ -42,6 +42,8 @@ export interface Church {
   enabledAt?: Date | { seconds: number } | null;
   disabledAt?: Date | { seconds: number } | null;
   address?: string | null;
+  address_1?: string | null;
+  address_2?: string | null;
   city?: string | null;
   state?: string | null;
   zip?: string | null;
@@ -50,6 +52,8 @@ export interface Church {
   phone?: string | null;
   leaderName?: string | null;
   leaderTitle?: string | null;
+  leader_first_name?: string | null;
+  leader_last_name?: string | null;
   leader_name?: string | null;
   leader_title?: string | null;
   // Billing

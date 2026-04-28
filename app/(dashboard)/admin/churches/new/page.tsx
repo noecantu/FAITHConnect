@@ -15,7 +15,11 @@ export default function NewChurchPage() {
 
   const [name, setName] = useState("");
   const [timezone, setTimezone] = useState("");
-  const [address, setAddress] = useState("");
+  const [address1, setAddress1] = useState("");
+  const [address2, setAddress2] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zip, setZip] = useState("");
   const [logo_url, setLogoUrl] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -55,7 +59,12 @@ export default function NewChurchPage() {
         name,
         slug,
         timezone,
-        address: address || null,
+        address: address1 || null,
+        address_1: address1 || null,
+        address_2: address2 || null,
+        city: city || null,
+        state: state || null,
+        zip: zip || null,
         logo_url: logo_url || null,
         created_at: new Date().toISOString(),
         created_by: currentUser?.id ?? null,
@@ -123,20 +132,48 @@ export default function NewChurchPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="address">Address (optional)</Label>
+              <Label htmlFor="address1">Address 1 (optional)</Label>
               <Input
-                id="address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
+                id="address1"
+                value={address1}
+                onChange={(e) => setAddress1(e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="logo_url">Logo URL (optional)</Label>
+              <Label htmlFor="address2">Address 2 (optional)</Label>
               <Input
-                id="logo_url"
-                value={logo_url}
-                onChange={(e) => setLogoUrl(e.target.value)}
+                id="address2"
+                value={address2}
+                onChange={(e) => setAddress2(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="city">City (optional)</Label>
+              <Input
+                id="city"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="state">State (optional)</Label>
+              <Input
+                id="state"
+                value={state}
+                onChange={(e) => setState(e.target.value)}
+                placeholder="e.g., IL"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="zip">ZIP Code (optional)</Label>
+              <Input
+                id="zip"
+                value={zip}
+                onChange={(e) => setZip(e.target.value)}
               />
             </div>
 

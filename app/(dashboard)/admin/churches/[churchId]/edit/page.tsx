@@ -135,16 +135,6 @@ export default function EditChurchPage() {
           {/* Timezone (reusable component) */}
           <TimezoneSelect value={timezone} onChange={setTimezone} />
 
-          {/* Logo URL */}
-          <div className="space-y-2">
-            <Label>Logo URL</Label>
-            <Input
-              value={logoUrl}
-              onChange={(e) => setLogoUrl(e.target.value)}
-              placeholder="https://example.com/logo.png"
-            />
-          </div>
-
           {/* Description */}
           <div className="space-y-2">
             <Label>Description</Label>
