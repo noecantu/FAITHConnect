@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
 import { PageHeader } from '@/app/components/page-header';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Fab } from '@/app/components/ui/fab';
 import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
 
@@ -140,19 +142,63 @@ export default function MembersPage() {
         placeholder="Search Members..."
       />
 
-      {/* MEMBERS GRID */}
-      <div className="grid items-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-        {sortedMembers.map((member) => (
-        <MemberCard
-          key={member.id}
-          member={member}
-          allMembers={members}
-          showPhoto={cardView === 'show'}
-          readOnly={isReadOnly}
-          searchAction={setSearch}
-        />
-        ))}
-      </div>
+      {/* MEMBERS GRID / EMPTY STATE */}
+      {sortedMembers.length === 0 ? (
+        <Card className="relative overflow-hidden bg-gradient-to-b from-black/85 to-black/70 border-white/20 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_35%)]" />
+          <CardHeader className="relative">
+            <CardTitle className="text-xl tracking-tight">All Members</CardTitle>
+          </CardHeader>
+
+          <CardContent className="relative">
+            <div className="rounded-xl border border-dashed border-white/25 bg-black/35 px-6 py-12 text-center">
+              <div className="mx-auto max-w-md space-y-3">
+                <p className="text-base font-medium text-white/90">
+                  {members.length === 0 ? 'No members yet' : 'No members match your search'}
+                </p>
+                <p className="text-sm text-white/60">
+                  {members.length === 0
+                    ? 'Create your first member to start tracking your church community.'
+                    : 'Try adjusting your search to find the member you need.'}
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                  {search && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="border-white/30 bg-white/5 hover:bg-white/10"
+                      onClick={() => setSearch('')}
+                    >
+                      Reset Search
+                    </Button>
+                  )}
+                  {canEdit && members.length === 0 && (
+                    <Button
+                      type="button"
+                      onClick={() => router.push(`/church/${church_id}/members/new`)}
+                    >
+                      Create Member
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid items-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+          {sortedMembers.map((member) => (
+            <MemberCard
+              key={member.id}
+              member={member}
+              allMembers={members}
+              showPhoto={cardView === 'show'}
+              readOnly={isReadOnly}
+              searchAction={setSearch}
+            />
+          ))}
+        </div>
+      )}
 
       {/* FAB */}
       {canEdit && (

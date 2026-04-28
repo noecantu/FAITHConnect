@@ -159,7 +159,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const churchId = typeof body?.churchId === "string" ? body.churchId : null;
     const title = typeof body?.title === "string" ? body.title.trim() : null;
-    const titles = Array.isArray(body?.titles)
+    const titles: string[] | null = Array.isArray(body?.titles)
       ? body.titles.filter((value: unknown): value is string => typeof value === "string")
       : null;
 

@@ -83,7 +83,7 @@ export async function GET() {
         region_admin_name: full,
         region_admin_first_name: first || null,
         region_admin_last_name: last || null,
-        district_name: row.district_id ? (districtNameById.get(row.district_id) ?? null) : null,
+        district_name: row.district_id ? (districtNameById.get(row.district_id as string) ?? null) : null,
       };
     });
 

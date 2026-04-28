@@ -47,7 +47,7 @@ export function useCalendarEvents(churchId: string | undefined) {
               date,
               description: row.description ?? undefined,
               notes: row.notes ?? undefined,
-              visibility: row.visibility === "public" ? "public" : "private",
+              visibility: (row.visibility === "public" ? "public" : "private") as "public" | "private",
               groups: Array.isArray(row.groups) ? row.groups : [],
             };
           })

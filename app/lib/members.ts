@@ -176,9 +176,9 @@ export function listenToMembers(
         familyId: row.family_id ?? null,
         notes: row.notes ?? "",
         relationships: Array.isArray(row.relationships)
-          ? row.relationships
-              .map((rel: Record<string, unknown>) => normalizeRelationship(rel))
-              .filter((rel) => Array.isArray(rel.memberIds) && rel.memberIds.length === 2)
+          ? (row.relationships as Record<string, unknown>[])
+              .map((rel) => normalizeRelationship(rel))
+              .filter((rel): rel is Relationship => Array.isArray(rel.memberIds) && rel.memberIds.length === 2)
           : [],
       }));
 

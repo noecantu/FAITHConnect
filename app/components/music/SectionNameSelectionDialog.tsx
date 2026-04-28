@@ -51,7 +51,7 @@ export default function SectionNameDialog({
       const body = await res.json().catch(() => ({}));
       const data = Array.isArray(body?.items) ? body.items : [];
 
-      const fetched = (data ?? []).map((d: { id: string; title: string }) => ({
+      const fetched: Array<{ id: string; title: string }> = (data ?? []).map((d: { id: string; title: string }) => ({
         id: d.id,
         title: d.title,
       }));

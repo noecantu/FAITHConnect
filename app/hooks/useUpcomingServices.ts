@@ -67,7 +67,7 @@ export function useUpcomingServices(churchId: string | null | undefined) {
               updatedAt: Number(row.updated_at ?? Date.now()),
               date,
               dateTime,
-              visibility: row.is_public ? "public" : "private",
+              visibility: (row.is_public ? "public" : "private") as "public" | "private",
             };
           })
           .filter((service) => service.dateString.length > 0 && isValidDate(service.date) && isValidDate(service.dateTime));

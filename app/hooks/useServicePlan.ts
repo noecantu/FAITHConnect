@@ -13,7 +13,7 @@ export function useServicePlan(churchId: string | undefined, planId: string | un
     }
 
     async function fetchPlan() {
-      const data = await getServicePlanById(churchId, planId);
+      const data = await getServicePlanById(churchId!, planId!);
       setPlan(data);
       setLoading(false);
     }

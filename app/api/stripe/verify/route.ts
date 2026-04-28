@@ -32,8 +32,8 @@ export async function GET(req: Request) {
     const authEmail = (authUser.email ?? "").trim().toLowerCase();
     const customerEmail =
       (session.customer_details?.email ??
-        (typeof session.customer === "object" && session.customer
-          ? session.customer.email
+        (typeof session.customer === "object" && session.customer && 'email' in session.customer
+          ? (session.customer as { email: string | null }).email
           : null) ??
         "")
         .trim()
