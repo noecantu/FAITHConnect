@@ -27,8 +27,12 @@ type ContributionBreakdownOption = {
 };
 
 interface ReportFiltersPanelProps {
-  reportType: "members" | "contributions" | "attendance";
-  setReportType: (v: "members" | "contributions" | "attendance") => void;
+  reportType: "members" | "contributions" | "attendance" | "setlists";
+  setReportType: (v: "members" | "contributions" | "attendance" | "setlists") => void;
+
+  setListOptions: Array<{ label: string; value: string }>;
+  selectedSetListId: string | null;
+  setSelectedSetListId: (v: string | null) => void;
 
   members: any[];
   memberOptions?: Array<{ label: string; value: string }>;
@@ -67,6 +71,7 @@ interface ReportFiltersPanelProps {
   canReadMembers: boolean;
   canReadContributions: boolean;
   canReadAttendance: boolean;
+  canReadSetLists: boolean;
 
   onResetFilters: () => void;
 }
@@ -74,6 +79,10 @@ interface ReportFiltersPanelProps {
 export function ReportFiltersPanel({
   reportType,
   setReportType,
+
+  setListOptions,
+  selectedSetListId,
+  setSelectedSetListId,
 
   members,
   memberOptions,
@@ -108,9 +117,13 @@ export function ReportFiltersPanel({
   canReadMembers,
   canReadContributions,
   canReadAttendance,
+  canReadSetLists,
   onResetFilters,
 }: ReportFiltersPanelProps) {
   const activeFilters = [
+    reportType === "setlists" && selectedSetListId
+      ? setListOptions.find((opt) => opt.value === selectedSetListId)?.label ?? "Selected set list"
+      : null,
     selectedMembers.length > 0 ? `${selectedMembers.length} member${selectedMembers.length === 1 ? "" : "s"}` : null,
     selectedChurches.length > 0 ? `${selectedChurches.length} church${selectedChurches.length === 1 ? "" : "es"}` : null,
     selectedStatus.length > 0 ? `${selectedStatus.length} status` : null,
@@ -164,8 +177,38 @@ export function ReportFiltersPanel({
             canReadMembers={canReadMembers}
             canReadContributions={canReadContributions}
             canReadAttendance={canReadAttendance}
+            canReadSetLists={canReadSetLists}
           />
         </div>
+
+        {reportType === "setlists" && (
+          <div className="space-y-2 rounded-lg border border-white/15 bg-black/50 p-3 transition-colors duration-200">
+            <Label className="text-sm font-medium">Set List</Label>
+            <select
+              className="
+                w-full
+                h-10
+                rounded-md
+                border border-white/20
+                bg-black/80
+                text-white text-sm
+                px-3
+                focus:outline-none
+                focus:ring-2
+                focus:ring-white/30
+              "
+              value={selectedSetListId ?? ""}
+              onChange={(e) => setSelectedSetListId(e.target.value || null)}
+            >
+              <option value="">Select a set list</option>
+              {setListOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* STATUS (Members Report Only) */}
         {reportType === "members" && (
@@ -241,21 +284,23 @@ export function ReportFiltersPanel({
         )}
 
         {/* MEMBER SELECT */}
-        <div className="space-y-2 rounded-lg border border-white/15 bg-black/50 p-3 transition-colors duration-200">
-          <MemberSelect
-            members={members}
-            options={memberOptions}
-            value={selectedMembers}
-            onChange={setSelectedMembers}
-          />
-          {memberOptions && (
-            <p className="text-xs text-muted-foreground">
-              {selectedMembers.length === 0
-                ? "All members in scope are included."
-                : `${selectedMembers.length} member${selectedMembers.length === 1 ? "" : "s"} selected.`}
-            </p>
-          )}
-        </div>
+        {reportType !== "setlists" && (
+          <div className="space-y-2 rounded-lg border border-white/15 bg-black/50 p-3 transition-colors duration-200">
+            <MemberSelect
+              members={members}
+              options={memberOptions}
+              value={selectedMembers}
+              onChange={setSelectedMembers}
+            />
+            {memberOptions && (
+              <p className="text-xs text-muted-foreground">
+                {selectedMembers.length === 0
+                  ? "All members in scope are included."
+                  : `${selectedMembers.length} member${selectedMembers.length === 1 ? "" : "s"} selected.`}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* MEMBER FIELD SELECT (Members Report Only) */}
         {reportType === "members" && (

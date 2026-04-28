@@ -8,14 +8,18 @@ import { useChurchId } from "@/app/hooks/useChurchId";
 import { useAttendanceForReports } from "@/app/hooks/useAttendanceForReports";
 import { useReportFilters } from "@/app/hooks/useReportFilters";
 import { useReportExports } from "@/app/hooks/useReportExports";
+import { useSetLists } from "@/app/hooks/useSetLists";
 import type { ContributionBreakdown } from "@/app/hooks/useContributionReport";
+import type { SetList } from "@/app/lib/types";
 import { PageHeader } from "@/app/components/page-header";
 import { ReportFiltersPanel } from "@/app/components/reports/ReportFiltersPanel";
 import { MemberPreviewTable } from "@/app/components/reports/MemberPreviewTable";
 import { AttendancePreviewTable } from "@/app/components/reports/AttendancePreviewTable";
 import { ContributionPreviewTable } from "@/app/components/reports/ContributionPreviewTable";
+import { SetListPreviewReport } from "@/app/components/reports/SetListPreviewReport";
 import { Button } from "@/app/components/ui/button";
 import { FileText, Loader2, Sheet } from "lucide-react";
+import { format } from "date-fns";
 
 import { usePermissions } from "@/app/hooks/usePermissions";
 
@@ -31,12 +35,15 @@ export default function ReportsPage() {
   const {
     loading: permissionsLoading,
     canReadReports,
+    canReadMusic,
     canReadMembersReports,
     canReadContributionsReports,
     canReadAttendanceReports,
     isDistrictAdmin,
     isRegionalAdmin,
   } = usePermissions();
+
+  const { lists: setLists, loading: setListsLoading } = useSetLists(churchId);
 
   const needsScopedContributions = isDistrictAdmin || isRegionalAdmin;
   const {
@@ -53,7 +60,9 @@ export default function ReportsPage() {
   // 2. LOCAL STATE HOOKS
   // -------------------------------------------------------
   const [reportType, setReportType] =
-    useState<"members" | "contributions" | "attendance">("contributions");
+    useState<"members" | "contributions" | "attendance" | "setlists">("contributions");
+
+  const [selectedSetListId, setSelectedSetListId] = useState<string | null>(null);
 
   const [timeFrame, setTimeFrame] =
     useState<"month" | "year">("year");
@@ -71,6 +80,8 @@ export default function ReportsPage() {
   const [isExportingPDF, setIsExportingPDF] = useState(false);
   const [isExportingExcel, setIsExportingExcel] = useState(false);
 
+  const canAccessSetListReport = !needsScopedContributions && canReadMusic;
+
   // -------------------------------------------------------
   // 3. AUTO-SELECT FIRST ALLOWED REPORT TYPE
   // -------------------------------------------------------
@@ -83,13 +94,45 @@ export default function ReportsPage() {
       setReportType("members");
     } else if (canReadAttendanceReports) {
       setReportType("attendance");
+    } else if (canAccessSetListReport) {
+      setReportType("setlists");
     }
   }, [
     permissionsLoading,
     canReadMembersReports,
     canReadContributionsReports,
-    canReadAttendanceReports
+    canReadAttendanceReports,
+    canAccessSetListReport,
   ]);
+
+  useEffect(() => {
+    if (setLists.length === 0) {
+      setSelectedSetListId(null);
+      return;
+    }
+
+    if (!selectedSetListId) {
+      setSelectedSetListId(setLists[0].id);
+      return;
+    }
+
+    const stillExists = setLists.some((list) => list.id === selectedSetListId);
+    if (!stillExists) {
+      setSelectedSetListId(setLists[0].id);
+    }
+  }, [setLists, selectedSetListId]);
+
+  const selectedSetList = useMemo<SetList | null>(() => {
+    if (!selectedSetListId) return null;
+    return setLists.find((list) => list.id === selectedSetListId) ?? null;
+  }, [setLists, selectedSetListId]);
+
+  const setListOptions = useMemo(() => {
+    return setLists.map((list) => ({
+      value: list.id,
+      label: `${list.title} • ${format(list.dateTime, "MMM d, yyyy h:mm a")}`,
+    }));
+  }, [setLists]);
 
   const contributionBreakdownOptions = useMemo(() => {
     if (isDistrictAdmin) {
@@ -263,6 +306,17 @@ export default function ReportsPage() {
       return `Attendance • ${periodLabel}`;
     }
 
+    if (reportType === "setlists") {
+      if (!selectedSetList) {
+        return "Set Lists • Select a set list to preview.";
+      }
+
+      return `Set Lists • ${selectedSetList.title} • ${format(
+        selectedSetList.dateTime,
+        "MMM d, yyyy h:mm a"
+      )}`;
+    }
+
     return "Members • Filter and export your directory data.";
   }, [
     reportType,
@@ -305,6 +359,7 @@ export default function ReportsPage() {
     filteredAttendance,
     selectedFields,
     members,
+    selectedSetList,
     contributionExportContext,
     contributionUseGroupedView: scopedContributionOnly,
     contributionBreakdownRows,
@@ -315,12 +370,13 @@ export default function ReportsPage() {
   // 6. SAFE REPORT TYPE SWITCHING
   // -------------------------------------------------------
   const safeSetReportType = (
-    type: "members" | "contributions" | "attendance"
+    type: "members" | "contributions" | "attendance" | "setlists"
   ) => {
     if (scopedContributionOnly && type !== "contributions") return;
     if (type === "members" && !canReadMembersReports) return;
     if (type === "contributions" && !canReadContributionsReports) return;
     if (type === "attendance" && !canReadAttendanceReports) return;
+    if (type === "setlists" && !canAccessSetListReport) return;
     setReportType(type);
   };
 
@@ -357,18 +413,25 @@ export default function ReportsPage() {
   const canExport =
     (reportType === "members" && canReadMembersReports) ||
     (reportType === "contributions" && canReadContributionsReports) ||
-    (reportType === "attendance" && canReadAttendanceReports);
+    (reportType === "attendance" && canReadAttendanceReports) ||
+    (reportType === "setlists" && canAccessSetListReport && !!selectedSetList);
 
   const canReadAnyReport =
     canReadReports ||
     canReadMembersReports ||
     canReadContributionsReports ||
-    canReadAttendanceReports;
+    canReadAttendanceReports ||
+    canAccessSetListReport;
 
   // -------------------------------------------------------
   // 9. EARLY PERMISSION GATE (AFTER ALL HOOKS)
   // -------------------------------------------------------
-  if (permissionsLoading || scopedContributionsLoading || (!churchId && !needsScopedContributions)) {
+  if (
+    permissionsLoading ||
+    scopedContributionsLoading ||
+    (reportType === "setlists" && setListsLoading) ||
+    (!churchId && !needsScopedContributions)
+  ) {
     return (
       <>
         <PageHeader title="Reports" />
@@ -451,6 +514,9 @@ export default function ReportsPage() {
         <ReportFiltersPanel
           reportType={reportType}
           setReportType={safeSetReportType}
+          setListOptions={setListOptions}
+          selectedSetListId={selectedSetListId}
+          setSelectedSetListId={setSelectedSetListId}
           members={members}
           memberOptions={memberOptions}
           selectedMembers={selectedMembers}
@@ -478,6 +544,7 @@ export default function ReportsPage() {
           canReadMembers={!scopedContributionOnly && canReadMembersReports}
           canReadContributions={canReadContributionsReports}
           canReadAttendance={!scopedContributionOnly && canReadAttendanceReports}
+          canReadSetLists={canAccessSetListReport}
           onResetFilters={resetFilters}
         />
 
@@ -540,6 +607,10 @@ export default function ReportsPage() {
               members={filteredMembers}
               selectedFields={selectedFields}
             />
+          )}
+
+          {reportType === "setlists" && canAccessSetListReport && (
+            <SetListPreviewReport setList={selectedSetList} />
           )}
         </div>
       </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo } from 'react';
-import { Member, Contribution, AttendanceRecord } from '@/app/lib/types';
+import { Member, Contribution, AttendanceRecord, SetList } from '@/app/lib/types';
 import type {
   ContributionBreakdown,
   ContributionBreakdownRow,
@@ -14,6 +14,8 @@ import {
   generateContributionsExcel,
   generateAttendancePDF,
   generateAttendanceExcel,
+  generateSetListPDF,
+  generateSetListExcel,
 } from '@/app/lib/reports';
 
 import {
@@ -22,7 +24,7 @@ import {
 } from '@/app/lib/reportMapping/contributionRows';
 
 interface UseReportExportsProps {
-  reportType: 'members' | 'contributions' | 'attendance';
+  reportType: 'members' | 'contributions' | 'attendance' | 'setlists';
   filteredMembers: Member[];
   filteredContributions: Contribution[];
   filteredAttendance: AttendanceRecord[];
@@ -35,6 +37,7 @@ interface UseReportExportsProps {
   contributionUseGroupedView?: boolean;
   contributionBreakdownRows?: ContributionBreakdownRow[];
   contributionBreakdown?: ContributionBreakdown;
+  selectedSetList?: SetList | null;
 }
 
 export function useReportExports({
@@ -48,6 +51,7 @@ export function useReportExports({
   contributionUseGroupedView = false,
   contributionBreakdownRows = [],
   contributionBreakdown = "member",
+  selectedSetList,
 }: UseReportExportsProps) {
 
   // -----------------------------------------
@@ -158,6 +162,11 @@ export function useReportExports({
 
     if (reportType === "attendance") {
       generateAttendancePDF(filteredAttendance, logoBase64);
+      return;
+    }
+
+    if (reportType === "setlists" && selectedSetList) {
+      generateSetListPDF(selectedSetList, logoBase64);
     }
   }, [
     reportType,
@@ -169,6 +178,7 @@ export function useReportExports({
     contributionFieldsForExport,
     contributionExportContext,
     contributionFieldLabelOverrides,
+    selectedSetList,
   ]);
 
   // -----------------------------------------
@@ -194,6 +204,11 @@ export function useReportExports({
 
     if (reportType === "attendance") {
       generateAttendanceExcel(filteredAttendance);
+      return;
+    }
+
+    if (reportType === "setlists" && selectedSetList) {
+      generateSetListExcel(selectedSetList);
     }
   }, [
     reportType,
@@ -204,6 +219,7 @@ export function useReportExports({
     contributionFieldsForExport,
     contributionExportContext,
     contributionFieldLabelOverrides,
+    selectedSetList,
   ]);
 
   return {

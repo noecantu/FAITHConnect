@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import type { Member, AttendanceRecord } from './types';
+import type { Member, AttendanceRecord, SetList } from './types';
 import { format } from 'date-fns';
 import { FieldValue } from '../lib/report-types';
 import { Address } from '../lib/types';
@@ -591,4 +591,136 @@ export function generateAttendanceExcel(records: AttendanceRecord[]) {
   XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
 
   XLSX.writeFile(workbook, `${datePrefix} Attendance Report.xlsx`);
+}
+
+export function generateSetListPDF(setList: SetList, logoBase64?: string) {
+  const datePrefix = format(new Date(), "yyyy-MM-dd");
+
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "pt",
+    format: "letter",
+  });
+
+  if (logoBase64) {
+    doc.addImage(logoBase64, "PNG", 40, 20, 100, 0);
+  }
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  doc.setFontSize(18);
+  doc.text("Set List Report", pageWidth / 2, 50, { align: "center" });
+
+  doc.setFontSize(12);
+  doc.text(setList.title, 40, 90);
+  doc.setFontSize(10);
+  doc.text(`Service Date: ${format(setList.dateTime, "MM/dd/yyyy h:mm a")}`, 40, 108);
+
+  const overviewLines: string[] = [];
+  if (setList.serviceType) overviewLines.push(`Service Type: ${setList.serviceType}`);
+  if (setList.serviceNotes?.theme) overviewLines.push(`Theme: ${setList.serviceNotes.theme}`);
+  if (setList.serviceNotes?.scripture) overviewLines.push(`Scripture: ${setList.serviceNotes.scripture}`);
+  if (setList.serviceNotes?.notes) overviewLines.push(`Notes: ${setList.serviceNotes.notes}`);
+
+  if (overviewLines.length > 0) {
+    doc.setFontSize(10);
+    overviewLines.forEach((line, index) => {
+      const y = 126 + index * 14;
+      const wrapped = doc.splitTextToSize(line, pageWidth - 80);
+      doc.text(wrapped, 40, y);
+    });
+  }
+
+  const tableStartY = overviewLines.length > 0 ? 126 + overviewLines.length * 14 + 18 : 130;
+
+  const rows: Array<string[]> = [];
+  setList.sections.forEach((section) => {
+    if (section.songs.length === 0) {
+      rows.push([section.title, "-", "-", "-", "No songs in this section"]);
+      return;
+    }
+
+    section.songs.forEach((song, index) => {
+      rows.push([
+        index === 0 ? section.title : "",
+        song.title ?? "-",
+        song.key ?? "-",
+        song.bpm != null ? String(song.bpm) : "-",
+        song.notes ?? "",
+      ]);
+    });
+  });
+
+  autoTable(doc, {
+    head: [["Section", "Song", "Key", "BPM", "Notes"]],
+    body: rows,
+    startY: tableStartY,
+    styles: { fontSize: 9, cellWidth: "wrap", valign: "top" },
+    headStyles: { fontStyle: "bold", fillColor: [31, 41, 55] },
+    alternateRowStyles: { fillColor: [245, 245, 245] },
+    columnStyles: {
+      0: { cellWidth: 100 },
+      1: { cellWidth: 180 },
+      2: { cellWidth: 50 },
+      3: { cellWidth: 50, halign: "center" },
+      4: { cellWidth: 150 },
+    },
+  });
+
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+
+    const width = doc.internal.pageSize.getWidth();
+    const height = doc.internal.pageSize.getHeight();
+    const footerY = height - 20;
+
+    doc.setFontSize(10);
+    doc.text(`Generated on ${format(new Date(), "MM/dd/yyyy hh:mm a")}`, 40, footerY);
+    doc.text(`Page ${i} of ${pageCount}`, width - 40, footerY, { align: "right" });
+  }
+
+  doc.save(`${datePrefix} ${setList.title} Set List Report.pdf`);
+}
+
+export function generateSetListExcel(setList: SetList) {
+  const datePrefix = format(new Date(), "yyyy-MM-dd");
+
+  const summaryRows = [
+    { Field: "Title", Value: setList.title },
+    { Field: "Service Date", Value: format(setList.dateTime, "MM/dd/yyyy h:mm a") },
+    { Field: "Service Type", Value: setList.serviceType ?? "" },
+    { Field: "Theme", Value: setList.serviceNotes?.theme ?? "" },
+    { Field: "Scripture", Value: setList.serviceNotes?.scripture ?? "" },
+    { Field: "Notes", Value: setList.serviceNotes?.notes ?? "" },
+  ];
+
+  const songRows = setList.sections.flatMap((section) => {
+    if (section.songs.length === 0) {
+      return [{
+        Section: section.title,
+        Song: "",
+        Key: "",
+        BPM: "",
+        Notes: "No songs in this section",
+      }];
+    }
+
+    return section.songs.map((song) => ({
+      Section: section.title,
+      Song: song.title ?? "",
+      Key: song.key ?? "",
+      BPM: song.bpm ?? "",
+      Notes: song.notes ?? "",
+    }));
+  });
+
+  const workbook = XLSX.utils.book_new();
+
+  const summarySheet = XLSX.utils.json_to_sheet(summaryRows);
+  XLSX.utils.book_append_sheet(workbook, summarySheet, "Set List Overview");
+
+  const songsSheet = XLSX.utils.json_to_sheet(songRows);
+  XLSX.utils.book_append_sheet(workbook, songsSheet, "Set List Songs");
+
+  XLSX.writeFile(workbook, `${datePrefix} ${setList.title} Set List Report.xlsx`);
 }

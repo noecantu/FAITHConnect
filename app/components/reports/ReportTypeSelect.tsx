@@ -1,16 +1,17 @@
 'use client';
 
-import { BarChart3, HandCoins, UsersRound } from "lucide-react";
+import { BarChart3, HandCoins, ListMusic, UsersRound } from "lucide-react";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { cn } from "@/app/lib/utils";
 
 interface Props {
-  value: "members" | "contributions" | "attendance";
-  onChange: (v: "members" | "contributions" | "attendance") => void;
+  value: "members" | "contributions" | "attendance" | "setlists";
+  onChange: (v: "members" | "contributions" | "attendance" | "setlists") => void;
   canReadMembers: boolean;
   canReadContributions: boolean;
   canReadAttendance: boolean;
+  canReadSetLists: boolean;
 }
 
 export function ReportTypeSelect({
@@ -19,6 +20,7 @@ export function ReportTypeSelect({
   canReadMembers,
   canReadContributions,
   canReadAttendance,
+  canReadSetLists,
 }: Props) {
   const options = [
     {
@@ -41,6 +43,13 @@ export function ReportTypeSelect({
       detail: "Directory and profile data",
       icon: UsersRound,
       enabled: canReadMembers,
+    },
+    {
+      key: "setlists" as const,
+      label: "Set Lists",
+      detail: "Selected service set list details",
+      icon: ListMusic,
+      enabled: canReadSetLists,
     },
   ].filter((option) => option.enabled);
 
