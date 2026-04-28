@@ -18,8 +18,9 @@ import { AttendancePreviewTable } from "@/app/components/reports/AttendancePrevi
 import { ContributionPreviewTable } from "@/app/components/reports/ContributionPreviewTable";
 import { SetListPreviewReport } from "@/app/components/reports/SetListPreviewReport";
 import { Button } from "@/app/components/ui/button";
-import { FileText, Loader2, Sheet } from "lucide-react";
+import { FileText, Loader2, Sheet, Copy } from "lucide-react";
 import { format } from "date-fns";
+import { useToast } from "@/app/hooks/use-toast";
 
 import { usePermissions } from "@/app/hooks/usePermissions";
 
@@ -31,6 +32,7 @@ export default function ReportsPage() {
   const { contributions: churchContributions } = useContributions();
   const { churchId } = useChurchId();
   const { attendance } = useAttendanceForReports(churchId, members);
+  const { toast } = useToast();
 
   const {
     loading: permissionsLoading,
@@ -79,6 +81,7 @@ export default function ReportsPage() {
   const [includeVisitors, setIncludeVisitors] = useState(false);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
   const [isExportingExcel, setIsExportingExcel] = useState(false);
+  const [isCopyingSetList, setIsCopyingSetList] = useState(false);
 
   const canAccessSetListReport = !needsScopedContributions && canReadMusic;
 
@@ -349,6 +352,57 @@ export default function ReportsPage() {
     selectedMonth,
   ]);
 
+  const setListShareText = useMemo(() => {
+    if (!selectedSetList) return "";
+
+    const lines: string[] = [];
+    lines.push(`Set List: ${selectedSetList.title}`);
+    lines.push(`When: ${format(selectedSetList.dateTime, "EEEE, MMM d, yyyy h:mm a")}`);
+
+    if (selectedSetList.serviceType) {
+      lines.push(`Service Type: ${selectedSetList.serviceType}`);
+    }
+    if (selectedSetList.serviceNotes?.theme) {
+      lines.push(`Theme: ${selectedSetList.serviceNotes.theme}`);
+    }
+    if (selectedSetList.serviceNotes?.scripture) {
+      lines.push(`Scripture: ${selectedSetList.serviceNotes.scripture}`);
+    }
+
+    lines.push("");
+    lines.push("Sections:");
+
+    selectedSetList.sections.forEach((section) => {
+      lines.push(`- ${section.title}`);
+
+      if (section.songs.length === 0) {
+        lines.push("  (No songs)");
+        return;
+      }
+
+      section.songs.forEach((song, index) => {
+        const details = [
+          song.key ? `Key ${song.key}` : null,
+          song.bpm != null ? `${song.bpm} BPM` : null,
+          song.timeSignature ? `${song.timeSignature} Time` : null,
+        ].filter((part): part is string => Boolean(part));
+
+        lines.push(`  ${index + 1}. ${song.title}${details.length ? ` (${details.join(" | ")})` : ""}`);
+
+        if (song.notes) {
+          lines.push(`     Notes: ${song.notes}`);
+        }
+      });
+    });
+
+    if (selectedSetList.serviceNotes?.notes) {
+      lines.push("");
+      lines.push(`Service Notes: ${selectedSetList.serviceNotes.notes}`);
+    }
+
+    return lines.join("\n");
+  }, [selectedSetList]);
+
   // -------------------------------------------------------
   // 5. EXPORT LOGIC HOOK
   // -------------------------------------------------------
@@ -378,6 +432,26 @@ export default function ReportsPage() {
     if (type === "attendance" && !canReadAttendanceReports) return;
     if (type === "setlists" && !canAccessSetListReport) return;
     setReportType(type);
+  };
+
+  const handleCopySetListText = async () => {
+    if (!selectedSetList || !setListShareText) return;
+
+    try {
+      setIsCopyingSetList(true);
+      await navigator.clipboard.writeText(setListShareText);
+      toast({
+        title: "Set list copied",
+        description: "Share text copied to clipboard.",
+      });
+    } catch {
+      toast({
+        title: "Copy failed",
+        description: "Could not copy to clipboard. Please try again.",
+      });
+    } finally {
+      setIsCopyingSetList(false);
+    }
   };
 
   const resetFilters = () => {
@@ -416,6 +490,8 @@ export default function ReportsPage() {
     (reportType === "attendance" && canReadAttendanceReports) ||
     (reportType === "setlists" && canAccessSetListReport && !!selectedSetList);
 
+  const canCopySetList = reportType === "setlists" && canAccessSetListReport && !!selectedSetList;
+
   const canReadAnyReport =
     canReadReports ||
     canReadMembersReports ||
@@ -434,6 +510,7 @@ export default function ReportsPage() {
   ) {
     return (
       <>
+    selectedSetList,
         <PageHeader title="Reports" />
         <p className="text-muted-foreground">Loading reports…</p>
       </>
@@ -462,6 +539,19 @@ export default function ReportsPage() {
       >
         {canExport && (
           <div className="flex items-center gap-2">
+            {canCopySetList && (
+              <Button
+                onClick={handleCopySetListText}
+                size="sm"
+                variant="outline"
+                className="bg-black/80 border border-white/20 backdrop-blur-xl"
+                disabled={isCopyingSetList || isExportingPDF || isExportingExcel}
+              >
+                {isCopyingSetList ? "Copying..." : "Copy Text"}
+                <Copy className="h-5 w-5" />
+              </Button>
+            )}
+
             <Button
               onClick={async () => {
                 setIsExportingPDF(true);
