@@ -9,35 +9,45 @@ import {
   invalidateCurrentUserCache,
 } from "@/app/lib/currentUserCache";
 
-let logoutTransitionInProgress = false;
-const logoutTransitionListeners = new Set<() => void>();
+let authTransitionInProgress = false;
+const authTransitionListeners = new Set<() => void>();
 
-function emitLogoutTransitionChange() {
-  logoutTransitionListeners.forEach((listener) => listener());
+function emitAuthTransitionChange() {
+  authTransitionListeners.forEach((listener) => listener());
+}
+
+export function startLoginTransition() {
+  authTransitionInProgress = true;
+  invalidateCurrentUserCache();
+  emitAuthTransitionChange();
 }
 
 export function startLogoutTransition() {
-  logoutTransitionInProgress = true;
+  authTransitionInProgress = true;
   invalidateCurrentUserCache();
-  emitLogoutTransitionChange();
+  emitAuthTransitionChange();
+}
+
+export function clearAuthTransition() {
+  if (!authTransitionInProgress) return;
+  authTransitionInProgress = false;
+  emitAuthTransitionChange();
 }
 
 export function clearLogoutTransition() {
-  if (!logoutTransitionInProgress) return;
-  logoutTransitionInProgress = false;
-  emitLogoutTransitionChange();
+  clearAuthTransition();
 }
 
 export function useAuth() {
   const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [logoutLoading, setLogoutLoading] = useState(logoutTransitionInProgress);
+  const [transitionLoading, setTransitionLoading] = useState(authTransitionInProgress);
 
   useEffect(() => {
-    const listener = () => setLogoutLoading(logoutTransitionInProgress);
-    logoutTransitionListeners.add(listener);
+    const listener = () => setTransitionLoading(authTransitionInProgress);
+    authTransitionListeners.add(listener);
     return () => {
-      logoutTransitionListeners.delete(listener);
+      authTransitionListeners.delete(listener);
     };
   }, []);
 
@@ -48,7 +58,7 @@ export function useAuth() {
     } catch {
       setUser(null);
     } finally {
-      clearLogoutTransition();
+      clearAuthTransition();
       setLoading(false);
     }
   }, []);
@@ -62,7 +72,9 @@ export function useAuth() {
         fetchProfile();
       } else {
         setUser(null);
-        setLoading(false);
+        if (!authTransitionInProgress) {
+          setLoading(false);
+        }
       }
     });
 
@@ -72,7 +84,7 @@ export function useAuth() {
         if (event === "SIGNED_OUT" || !session) {
           invalidateCurrentUserCache();
           setUser(null);
-          if (!logoutTransitionInProgress) {
+          if (!authTransitionInProgress) {
             setLoading(false);
           }
           return;
@@ -94,5 +106,5 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, [fetchProfile]);
 
-  return { user, loading: loading || logoutLoading };
+  return { user, loading: loading || transitionLoading };
 }

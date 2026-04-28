@@ -47,7 +47,7 @@ import { useToast } from "@/app/hooks/use-toast";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { useChurchId } from "@/app/hooks/useChurchId";
 import { useChurch } from "@/app/hooks/useChurch";
-import { clearLogoutTransition, startLogoutTransition } from "@/app/hooks/useAuth";
+import { clearAuthTransition, startLogoutTransition } from "@/app/hooks/useAuth";
 import { AlertDialogAction, AlertDialogCancel } from "@radix-ui/react-alert-dialog";
 import { can } from "@/app/lib/auth/permissions";
 import type { Role } from "@/app/lib/auth/roles";
@@ -260,13 +260,12 @@ export function NavMenu() {
       await getSupabaseClient().auth.signOut();
       router.replace("/login");
     } catch (error) {
+      clearAuthTransition();
       console.error("logout error:", error);
       toast({
         title: "Logout failed",
         description: "Please try again.",
       });
-    } finally {
-      clearLogoutTransition();
     }
   };
 

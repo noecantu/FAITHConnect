@@ -1,7 +1,7 @@
 //app/login/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { Button } from "@/app/components/ui/button";
@@ -15,6 +15,7 @@ import {
 } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
 import { useToast } from "@/app/hooks/use-toast";
+import { clearAuthTransition, startLoginTransition } from "@/app/hooks/useAuth";
 import { can } from "@/app/lib/auth/permissions";
 import type { Role } from "@/app/lib/auth/roles";
 import { invalidateCurrentUserCache } from "@/app/lib/currentUserCache";
@@ -27,9 +28,14 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
+  useEffect(() => {
+    clearAuthTransition();
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    startLoginTransition();
 
     try {
       const supabase = getSupabaseClient();
@@ -41,6 +47,7 @@ export default function LoginPage() {
       });
 
       if (error) {
+        clearAuthTransition();
         toast({
           title: "Login Failed",
           description:
@@ -131,6 +138,7 @@ export default function LoginPage() {
         router.replace("/auth-router");
       }
     } catch (err) {
+      clearAuthTransition();
       console.error("Login error:", err);
       toast({
         title: "Error",
