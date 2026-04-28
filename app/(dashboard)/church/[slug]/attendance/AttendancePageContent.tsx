@@ -88,9 +88,11 @@ export default function AttendancePageContent() {
   const loading = membersLoading || attendanceLoading;
 
   // EFFECTIVE MEMBERS (LIVE or SNAPSHOT)
+  // For past dates, prefer the snapshot (who was a member then) but fall back
+  // to live members when there is no saved attendance yet for that date.
   const effectiveMembers =
     mode === "history" || mode === "correction"
-      ? membersSnapshot || []
+      ? (membersSnapshot && membersSnapshot.length > 0 ? membersSnapshot : members)
       : members;
 
   // SORT MEMBERS

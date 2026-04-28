@@ -123,10 +123,11 @@ create table if not exists public.churches (
   -- Settings stored as flexible JSON
   settings                jsonb not null default '{}',
 
-  -- Region membership
+  -- Region & District membership
   region_id               text,
   region_selected_id      text,
   region_status           text,
+  district_id             text,
 
   created_by              uuid references public.users (id) on delete set null,
   created_at              timestamptz not null default now(),
@@ -510,7 +511,28 @@ create policy "members: read if church member" on public.members for select
   using (
     exists (
       select 1 from public.users u
-      where u.id = auth.uid() and u.church_id = members.church_id
+      where u.id = auth.uid()
+        and (
+          -- Direct church member
+          u.church_id = members.church_id
+          -- RegionalAdmin for this church's region
+          or ('RegionalAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = members.church_id
+                  and c.region_id = u.region_id
+              ))
+          -- DistrictAdmin for this church's district
+          or ('DistrictAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = members.church_id
+                  and c.district_id = u.district_id
+              ))
+          -- System admins
+          or 'SystemAdmin' = any(u.roles)
+          or 'RootAdmin' = any(u.roles)
+        )
     )
   );
 
@@ -519,7 +541,28 @@ create policy "events: read if church member" on public.events for select
   using (
     exists (
       select 1 from public.users u
-      where u.id = auth.uid() and u.church_id = events.church_id
+      where u.id = auth.uid()
+        and (
+          -- Direct church member
+          u.church_id = events.church_id
+          -- RegionalAdmin for this church's region
+          or ('RegionalAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = events.church_id
+                  and c.region_id = u.region_id
+              ))
+          -- DistrictAdmin for this church's district
+          or ('DistrictAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = events.church_id
+                  and c.district_id = u.district_id
+              ))
+          -- System admins
+          or 'SystemAdmin' = any(u.roles)
+          or 'RootAdmin' = any(u.roles)
+        )
     )
   );
 
@@ -528,7 +571,28 @@ create policy "service_plans: read if church member" on public.service_plans for
   using (
     exists (
       select 1 from public.users u
-      where u.id = auth.uid() and u.church_id = service_plans.church_id
+      where u.id = auth.uid()
+        and (
+          -- Direct church member
+          u.church_id = service_plans.church_id
+          -- RegionalAdmin for this church's region
+          or ('RegionalAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = service_plans.church_id
+                  and c.region_id = u.region_id
+              ))
+          -- DistrictAdmin for this church's district
+          or ('DistrictAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = service_plans.church_id
+                  and c.district_id = u.district_id
+              ))
+          -- System admins
+          or 'SystemAdmin' = any(u.roles)
+          or 'RootAdmin' = any(u.roles)
+        )
     )
   );
 
@@ -537,7 +601,28 @@ create policy "contributions: read if church member" on public.contributions for
   using (
     exists (
       select 1 from public.users u
-      where u.id = auth.uid() and u.church_id = contributions.church_id
+      where u.id = auth.uid()
+        and (
+          -- Direct church member
+          u.church_id = contributions.church_id
+          -- RegionalAdmin for this church's region
+          or ('RegionalAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = contributions.church_id
+                  and c.region_id = u.region_id
+              ))
+          -- DistrictAdmin for this church's district
+          or ('DistrictAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = contributions.church_id
+                  and c.district_id = u.district_id
+              ))
+          -- System admins
+          or 'SystemAdmin' = any(u.roles)
+          or 'RootAdmin' = any(u.roles)
+        )
     )
   );
 
@@ -546,7 +631,28 @@ create policy "songs: read if church member" on public.songs for select
   using (
     exists (
       select 1 from public.users u
-      where u.id = auth.uid() and u.church_id = songs.church_id
+      where u.id = auth.uid()
+        and (
+          -- Direct church member
+          u.church_id = songs.church_id
+          -- RegionalAdmin for this church's region
+          or ('RegionalAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = songs.church_id
+                  and c.region_id = u.region_id
+              ))
+          -- DistrictAdmin for this church's district
+          or ('DistrictAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = songs.church_id
+                  and c.district_id = u.district_id
+              ))
+          -- System admins
+          or 'SystemAdmin' = any(u.roles)
+          or 'RootAdmin' = any(u.roles)
+        )
     )
   );
 
@@ -555,7 +661,28 @@ create policy "setlists: read if church member" on public.setlists for select
   using (
     exists (
       select 1 from public.users u
-      where u.id = auth.uid() and u.church_id = setlists.church_id
+      where u.id = auth.uid()
+        and (
+          -- Direct church member
+          u.church_id = setlists.church_id
+          -- RegionalAdmin for this church's region
+          or ('RegionalAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = setlists.church_id
+                  and c.region_id = u.region_id
+              ))
+          -- DistrictAdmin for this church's district
+          or ('DistrictAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = setlists.church_id
+                  and c.district_id = u.district_id
+              ))
+          -- System admins
+          or 'SystemAdmin' = any(u.roles)
+          or 'RootAdmin' = any(u.roles)
+        )
     )
   );
 
@@ -564,7 +691,88 @@ create policy "attendance: read if church member" on public.attendance for selec
   using (
     exists (
       select 1 from public.users u
-      where u.id = auth.uid() and u.church_id = attendance.church_id
+      where u.id = auth.uid()
+        and (
+          -- Direct church member
+          u.church_id = attendance.church_id
+          -- RegionalAdmin for this church's region
+          or ('RegionalAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = attendance.church_id
+                  and c.region_id = u.region_id
+              ))
+          -- DistrictAdmin for this church's district
+          or ('DistrictAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = attendance.church_id
+                  and c.district_id = u.district_id
+              ))
+          -- System admins
+          or 'SystemAdmin' = any(u.roles)
+          or 'RootAdmin' = any(u.roles)
+        )
+    )
+  );
+
+drop policy if exists "attendance: insert if church member" on public.attendance;
+create policy "attendance: insert if church member" on public.attendance for insert
+  with check (
+    exists (
+      select 1 from public.users u
+      where u.id = auth.uid()
+        and (
+          -- Direct church member
+          u.church_id = attendance.church_id
+          -- RegionalAdmin for this church's region
+          or ('RegionalAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = attendance.church_id
+                  and c.region_id = u.region_id
+              ))
+          -- DistrictAdmin for this church's district
+          or ('DistrictAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = attendance.church_id
+                  and c.district_id = u.district_id
+              ))
+          -- System admins
+          or 'SystemAdmin' = any(u.roles)
+          or 'RootAdmin' = any(u.roles)
+        )
+    )
+  );
+
+drop policy if exists "attendance: delete if church member" on public.attendance;
+create policy "attendance: delete if church member" on public.attendance for delete
+  using (
+    exists (
+      select 1 from public.users u
+      where u.id = auth.uid()
+        and (
+          -- Direct church member
+          u.church_id = attendance.church_id
+          -- RegionalAdmin for this church's region
+          or ('RegionalAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = attendance.church_id
+                  and c.region_id = u.region_id
+              ))
+          -- DistrictAdmin for this church's district
+          or ('DistrictAdmin' = any(u.roles)
+              and exists (
+                select 1 from public.churches c
+                where c.id = attendance.church_id
+                  and c.district_id = u.district_id
+              ))
+          -- System admins
+          or 'SystemAdmin' = any(u.roles)
+          or 'RootAdmin' = any(u.roles)
+        )
     )
   );
 
