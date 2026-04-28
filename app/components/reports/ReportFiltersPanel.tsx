@@ -183,8 +183,7 @@ export function ReportFiltersPanel({
       <CardHeader className="space-y-4 pb-2">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <CardTitle>Report Setup</CardTitle>
-            <p className="mt-1 text-xs text-white/70">Pick a report type, then narrow the scope.</p>
+            <CardTitle>Selection</CardTitle>
           </div>
           <Button
             type="button"
@@ -197,20 +196,6 @@ export function ReportFiltersPanel({
             Reset
           </Button>
         </div>
-
-        {activeFilters.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {activeFilters.map((filter) => (
-              <Badge
-                key={filter}
-                variant="outline"
-                className="max-w-full break-words border-white/30 bg-black/40 text-white/85"
-              >
-                {filter}
-              </Badge>
-            ))}
-          </div>
-        )}
       </CardHeader>
 
       <CardContent className="space-y-5 sm:space-y-6">

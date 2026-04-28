@@ -64,7 +64,7 @@ export function ReportTypeSelect({
 
   return (
     <div className="space-y-2">
-      <Label className="text-sm font-medium">Report Type</Label>
+      <Label className="text-sm font-medium">Type</Label>
 
       <div className="grid grid-cols-1 gap-2">
         {options.map((option) => {
