@@ -1,14 +1,16 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { adminDb } from "@/app/lib/supabase/admin";
+import { getSupabaseAdminEnv } from "@/app/lib/supabase/env";
 
 let supabaseAdmin: ReturnType<typeof createClient> | null = null;
 
 function getSupabaseAdmin() {
   if (!supabaseAdmin) {
+    const { url, serviceRoleKey } = getSupabaseAdminEnv();
     supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      url,
+      serviceRoleKey
     );
   }
   return supabaseAdmin;

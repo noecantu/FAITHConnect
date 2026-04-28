@@ -2,16 +2,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getSupabasePublicEnv } from "@/app/lib/supabase/env";
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const { url, anonKey } = getSupabasePublicEnv();
 
   // Refresh the Supabase session on every request so it stays alive.
   let proxyResponse = NextResponse.next({ request: req });
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    anonKey,
     {
       cookies: {
         getAll() {
