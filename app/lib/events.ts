@@ -5,7 +5,7 @@ function toErrorMessage(error: unknown, fallback: string): string {
 
   if (error && typeof error === "object") {
     const maybe = error as Record<string, unknown>;
-    const parts = [maybe.message, maybe.code, maybe.details, maybe.hint]
+    const parts = [maybe.error, maybe.message, maybe.code, maybe.details, maybe.hint]
       .filter((part): part is string => typeof part === "string" && part.trim().length > 0);
     if (parts.length > 0) return parts.join(" | ");
   }

@@ -102,6 +102,8 @@ export async function POST(req: Request) {
     if (body.title !== undefined) payload.title = body.title;
     if (body.dateString !== undefined) payload.date_string = body.dateString;
     if (body.date_string !== undefined) payload.date_string = body.date_string;
+    if (body.timeString !== undefined) payload.time_string = body.timeString;
+    if (body.time_string !== undefined) payload.time_string = body.time_string;
     if (body.description !== undefined) payload.description = body.description;
     if (body.notes !== undefined) payload.notes = body.notes;
     if (visibility !== undefined) payload.visibility = visibility;

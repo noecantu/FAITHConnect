@@ -208,6 +208,7 @@ create table if not exists public.events (
 
   title           text not null,
   date_string     text not null,          -- YYYY-MM-DD
+  time_string     text not null default '00:00', -- HH:mm
   description     text,
   notes           text,
   visibility      text not null default 'private', -- 'public' | 'private'
@@ -825,3 +826,4 @@ alter table public.users add column if not exists permissions text[] not null de
 -- Safe to run multiple times (IF NOT EXISTS guard).
 -- ----------------------------------------------------------------
 alter table public.events add column if not exists member_ids text[] not null default '{}';
+alter table public.events add column if not exists time_string text not null default '00:00';

@@ -94,6 +94,7 @@ export async function POST(req: Request) {
         church_id: churchId,
         title: body.title,
         date_string: body.dateString ?? body.date_string,
+        time_string: body.timeString ?? body.time_string ?? '00:00',
         description: body.description ?? null,
         notes: body.notes ?? null,
         visibility,

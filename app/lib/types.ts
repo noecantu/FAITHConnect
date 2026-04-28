@@ -100,6 +100,7 @@ export type Event = {
   id: string;
   title: string;
   dateString: string;
+  timeString?: string;
   date: Date;
   description?: string;
   notes?: string;
@@ -400,6 +401,7 @@ export type UserProfile = {
   displayName?: string;
   profilePhotoUrl?: string;
   roles: Role[];
+  permissions?: Permission[];
   memberIds?: string[];
   churchId: string | null;
   regionId?: string | null;

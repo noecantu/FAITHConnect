@@ -19,6 +19,7 @@ import type { Role } from "@/app/lib/auth/roles";
 import { EVENT_GROUP_OPTIONS } from "@/app/lib/groupOptions";
 import type { Member, UserProfile } from "@/app/lib/types";
 import { can } from "@/app/lib/auth/permissions";
+import type { Permission } from "@/app/lib/auth/permissions";
 
 interface EventEditorProps {
   mode: "create" | "edit";
@@ -123,7 +124,8 @@ export default function EventEditor({
 
   // --- ROLE + GROUP LOGIC ---
   const roles = user?.roles ?? [];
-  const canManageVisibility = can(roles, "events.manage");
+  const grants = (user?.permissions ?? []) as Permission[];
+  const canManageVisibility = can(roles, "events.manage", grants);
   const memberOptions = members
     .filter((member) => member.status !== "Archived")
     .map((member) => ({
@@ -248,7 +250,7 @@ export default function EventEditor({
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-medium mb-3">
             Description
           </label>
           <Textarea
@@ -261,7 +263,7 @@ export default function EventEditor({
 
         {/* Visibility */}
         {canManageVisibility && (
-          <div className="space-y-4 border-t border-white/20 pt-6 mt-6">
+          <div className="border-t border-white/20 pt-6">
             <h3 className="text-lg font-semibold">Visibility</h3>
 
             <div className="space-y-2">
@@ -303,7 +305,7 @@ export default function EventEditor({
             </div>
 
             {!isPublic && (
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2 mt-4">
                 <div className="space-y-2">
                   <label className="text-sm">Visible to Groups</label>
                   <MultiSelect

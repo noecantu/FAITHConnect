@@ -8,6 +8,7 @@ import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 import { useChurchId } from "@/app/hooks/useChurchId";
 import EventEditor from "@/app/components/calendar/EventEditor";
 import { can } from "@/app/lib/auth/permissions";
+import type { Permission } from "@/app/lib/auth/permissions";
 
 import {
   Dialog,
@@ -70,6 +71,9 @@ export default function EditEventPage({
           ...raw,
           id: eventId,
           date: parsedDate ?? new Date(),
+          dateString: raw.date_string ?? "",
+          timeString: raw.time_string ?? "00:00",
+          memberIds: Array.isArray(raw.member_ids) ? raw.member_ids : [],
         });
       } else {
         setEventData(null);
@@ -84,11 +88,12 @@ export default function EditEventPage({
   // Permission logic
   function canEditEvent(event: any): boolean {
     const roles = user?.roles ?? [];
+    const grants = (user?.permissions ?? []) as Permission[];
 
     // Admin / EventManager
-    if (can(roles, "events.manage")) return true;
-    if (can(roles, "church.manage")) return true;
-    if (can(roles, "system.manage")) return true;
+    if (can(roles, "events.manage", grants)) return true;
+    if (can(roles, "church.manage", grants)) return true;
+    if (can(roles, "system.manage", grants)) return true;
 
     // Normalize event groups
     const eventGroups = (event.groups ?? []).map(normalize);
