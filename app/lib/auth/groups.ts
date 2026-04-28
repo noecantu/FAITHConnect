@@ -2,7 +2,7 @@
 // New with redundancy Removal
 
 export const MINISTRY_GROUPS = [
-  "Music2",
+  "Music",
   "Usher",
   "Caretaker",
   "Men",
@@ -13,7 +13,7 @@ export const MINISTRY_GROUPS = [
 export type MinistryGroup = (typeof MINISTRY_GROUPS)[number];
 
 export const GROUP_LABELS: Record<MinistryGroup, string> = {
-  Music2: "Music2 Ministry",
+  Music: "Music Ministry",
   Usher: "Ushers",
   Caretaker: "Caretakers",
   Men: "Men's Group",
@@ -24,7 +24,7 @@ export const GROUP_LABELS: Record<MinistryGroup, string> = {
 export function normalizeGroupName(value: string): MinistryGroup | null {
   const v = value.trim().toLowerCase();
 
-  if (v.startsWith("music")) return "Music2";
+  if (v.startsWith("music")) return "Music";
   if (v.startsWith("usher")) return "Usher";
   if (v.startsWith("caretaker")) return "Caretaker";
   if (v.startsWith("men")) return "Men";
@@ -55,8 +55,8 @@ export const ROLE_GROUP_MAP: Record<Role, MinistryGroup[]> = {
   Minister: [],
   Deacon: [],
 
-  MusicManager: ["Music2"],
-  MusicMember: ["Music2"],
+  MusicManager: ["Music"],
+  MusicMember: ["Music"],
 
   UsherManager: ["Usher"],
   Usher: ["Usher"],

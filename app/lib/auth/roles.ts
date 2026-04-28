@@ -76,8 +76,8 @@ export const ROLE_LABELS: Record<Role, string> = {
   Minister: "Minister",
   Deacon: "Deacon",
 
-  MusicManager: "Music2 Manager",
-  MusicMember: "Music2 Member",
+  MusicManager: "Music Manager",
+  MusicMember: "Music Member",
 
   UsherManager: "Usher Manager",
   Usher: "Usher",

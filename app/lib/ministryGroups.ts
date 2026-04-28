@@ -1,7 +1,7 @@
 // src/lib/ministryGroups.ts
 
 export const MINISTRY_GROUPS = [
-  "Music2",
+  "Music",
   "Usher",
   "Caretaker",
   "Men",
@@ -21,7 +21,7 @@ export function normalizeGroupName(value: string): MinistryGroup | null {
   // Handle common variants
   if (cleaned.startsWith("women")) return "Women";
   if (cleaned.startsWith("men")) return "Men";
-  if (cleaned.startsWith("music")) return "Music2";
+  if (cleaned.startsWith("music")) return "Music";
   if (cleaned.startsWith("usher")) return "Usher";
   if (cleaned.startsWith("caretaker")) return "Caretaker";
   if (cleaned.startsWith("youth")) return "Youth";
