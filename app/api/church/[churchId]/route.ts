@@ -28,5 +28,18 @@ export async function GET(
     return NextResponse.json({ error: "Church not found" }, { status: 404 });
   }
 
-  return NextResponse.json(data);
+  const normalized = {
+    ...data,
+    logoUrl: data.logo_url ?? null,
+    leaderName: data.leader_name ?? null,
+    leaderTitle: data.leader_title ?? null,
+    billingStatus: data.billing_status ?? null,
+    billingDelinquent: data.billing_delinquent ?? null,
+    stripeCustomerId: data.stripe_customer_id ?? null,
+    stripeSubscriptionId: data.stripe_subscription_id ?? null,
+    planId: data.plan_id ?? null,
+    billingOwnerUid: data.billing_owner_uid ?? null,
+  };
+
+  return NextResponse.json(normalized);
 }
