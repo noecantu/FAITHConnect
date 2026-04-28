@@ -255,7 +255,7 @@ export default function SongsPage() {
                 groupRefs.current[groupKey] = el;
               }}
               style={{ animationDelay: `${groupIndex * 40}ms` }}
-              className="relative overflow-hidden p-5 space-y-4 bg-gradient-to-b from-black/80 to-black/60 border-white/20 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.28)] animate-in fade-in slide-in-from-bottom-2 duration-500"
+              className="relative overflow-hidden p-4 space-y-3 bg-gradient-to-b from-black/80 to-black/60 border-white/20 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.28)] animate-in fade-in slide-in-from-bottom-2 duration-500"
             >
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_35%)]" />
               <div className="relative flex items-center justify-between">
@@ -268,19 +268,21 @@ export default function SongsPage() {
               <Separator />
 
               <div className="relative max-h-[320px] overflow-y-auto pr-2">
-                <ul className="space-y-2">
+                <ul className="space-y-2 pt-2">
                   {grouped[groupKey]
                     .sort((a, b) => a.title.localeCompare(b.title))
                     .map((song) => (
                       <li key={song.id}>
                         <Link href={`/church/${church_id}/music/songs/${song.id}`}>
                           <Card
-                            className="group relative p-4 cursor-pointer bg-black/60 backdrop-blur-xl interactive-card interactive-card-focus hover:bg-white/[0.10]"
+                            className="group relative px-3 py-2.5 cursor-pointer bg-black/60 backdrop-blur-xl interactive-card duration-1000 ease-out interactive-card-focus hover:bg-white/[0.10]"
                           >
                             <div className="flex items-center justify-between gap-3">
                               <div className="min-w-0">
-                                <h3 className="font-medium truncate group-hover:text-white transition-colors">{song.title}</h3>
-                                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-white/70">
+                                <h3 className="font-medium leading-6 text-white/95 transition-colors group-hover:text-white">
+                                  <span className="block truncate py-0.5">{song.title}</span>
+                                </h3>
+                                <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-white/70">
                                   <span className="rounded-full border border-white/20 bg-black/35 px-2 py-0.5">Key: {song.key || '—'}</span>
                                   <span className="rounded-full border border-white/20 bg-black/35 px-2 py-0.5">{song.bpm ?? '—'} BPM</span>
                                   <span className="rounded-full border border-white/20 bg-black/35 px-2 py-0.5">{song.timeSignature ?? '—'} Time</span>
