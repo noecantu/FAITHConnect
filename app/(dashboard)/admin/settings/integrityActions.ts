@@ -84,7 +84,7 @@ export async function scanForOrphanedMembers() {
   await requireSystemManager();
 
   const [{ data: churchesData }, { data: usersData }, { data: membersData }] = await Promise.all([
-    adminDb.from("churches").select("id, name, status, active"),
+    adminDb.from("churches").select("id, name, status"),
     adminDb.from("users").select("id"),
     adminDb.from("members").select("id, church_id, first_name, last_name, user_id"),
   ]);

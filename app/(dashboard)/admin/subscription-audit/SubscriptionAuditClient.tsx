@@ -24,6 +24,7 @@ const STATUS_CONFIG: Record<
   incomplete_expired: { label: "Incomplete/Expired", className: "bg-rose-500/15 text-rose-200 border-rose-300/30" },
   paused:             { label: "Paused",             className: "bg-zinc-500/15 text-zinc-300 border-zinc-400/30" },
   no_subscription:    { label: "No Subscription",    className: "bg-rose-500/15 text-rose-200 border-rose-300/30" },
+  root_admin:         { label: "Root Admin",          className: "bg-violet-500/15 text-violet-200 border-violet-300/30" },
   error:              { label: "Lookup Error",       className: "bg-yellow-500/15 text-yellow-200 border-yellow-300/30" },
 };
 
@@ -35,6 +36,7 @@ const PROBLEM_STATUSES: AuditRecord["subscriptionStatus"][] = [
   "unpaid",
   "incomplete",
   "incomplete_expired",
+  // "root_admin" is intentional — not a billing problem
 ];
 
 function StatusBadge({ status }: { status: AuditRecord["subscriptionStatus"] }) {
@@ -49,6 +51,8 @@ function StatusBadge({ status }: { status: AuditRecord["subscriptionStatus"] }) 
             ? "bg-emerald-300"
             : status === "past_due" || status === "paused"
             ? "bg-amber-300"
+            : status === "root_admin"
+            ? "bg-violet-300"
             : "bg-rose-300"
         }`}
       />
@@ -245,7 +249,9 @@ export default function SubscriptionAuditClient({
 
                       {/* Subscription ID */}
                       <td className="px-4 py-3">
-                        {r.stripeSubscriptionId ? (
+                        {r.isRootAdminChurch ? (
+                          <span className="font-mono text-xs text-violet-400">RootAdmin</span>
+                        ) : r.stripeSubscriptionId ? (
                           <span className="font-mono text-xs text-white/60">
                             {r.stripeSubscriptionId.slice(0, 14)}…
                           </span>

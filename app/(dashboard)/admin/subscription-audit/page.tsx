@@ -32,6 +32,8 @@ export type AuditRecord = {
   trialEnd: number | null;
   /** Whether subscription cancels at period end */
   cancelAtPeriodEnd: boolean;
+  /** True when this church was created by the Root Admin (no Stripe subscription required) */
+  isRootAdminChurch: boolean;
   subscriptionStatus:
     | "active"
     | "trialing"
@@ -42,6 +44,7 @@ export type AuditRecord = {
     | "incomplete_expired"
     | "paused"
     | "no_subscription"
+    | "root_admin"
     | "error";
 };
 
@@ -60,6 +63,8 @@ export default async function SubscriptionAuditPage() {
   const churchOwners = (churchRows ?? []).map((row) => ({
     church_id: row.id,
     churchName: typeof row.name === "string" ? row.name : null,
+    billingOwnerUid: typeof row.billing_owner_uid === "string" ? row.billing_owner_uid : null,
+    createdByUid: typeof row.created_by === "string" ? row.created_by : null,
     ownerUid: typeof row.billing_owner_uid === "string"
       ? row.billing_owner_uid
       : typeof row.created_by === "string"
@@ -76,18 +81,39 @@ export default async function SubscriptionAuditPage() {
     new Set(churchOwners.map((c) => c.ownerUid).filter((uid): uid is string => Boolean(uid)))
   );
 
-  const { data: ownerRows } = ownerUids.length > 0
-    ? await adminDb.from("users").select("id, email, first_name, last_name, plan_id, stripe_customer_id, stripe_subscription_id, onboarding_complete").in("id", ownerUids)
+  // Also collect all created_by UIDs so we can check their roles for Root Admin detection
+  const creatorUids = Array.from(
+    new Set(churchOwners.map((c) => c.createdByUid).filter((uid): uid is string => Boolean(uid)))
+  );
+  const allRelevantUids = Array.from(new Set([...ownerUids, ...creatorUids]));
+
+  const rootAdminEmail = (process.env.ROOT_ADMIN_EMAIL ?? "root@faithconnect.app").toLowerCase();
+
+  const { data: ownerRows } = allRelevantUids.length > 0
+    ? await adminDb.from("users").select("id, email, first_name, last_name, plan_id, stripe_customer_id, stripe_subscription_id, onboarding_complete, roles").in("id", allRelevantUids)
     : { data: [] };
 
   const ownersByUid = new Map(
     (ownerRows ?? []).map((u) => [u.id, u as Record<string, unknown>])
   );
 
+  /** Returns true if a uid belongs to a Root/System Admin user */
+  function isRootAdminUid(uid: string | null): boolean {
+    if (!uid) return false;
+    const u = ownersByUid.get(uid);
+    if (!u) return false;
+    const roles: string[] = Array.isArray(u.roles) ? u.roles as string[] : [];
+    if (roles.includes("RootAdmin") || roles.includes("SystemAdmin")) return true;
+    // Fallback: email matches ROOT_ADMIN_EMAIL
+    return typeof u.email === "string" && u.email.toLowerCase() === rootAdminEmail;
+  }
+
   const records: AuditRecord[] = await Promise.all(
     churchOwners.map(async ({
       church_id,
       churchName,
+      billingOwnerUid,
+      createdByUid,
       ownerUid,
       churchPlanId,
       churchStripeCustomerId,
@@ -96,6 +122,10 @@ export default async function SubscriptionAuditPage() {
       churchBillingContactEmail,
     }) => {
       const owner = ownerUid ? ownersByUid.get(ownerUid) : undefined;
+      // A church is a "Root Admin church" when it was created by a RootAdmin/SystemAdmin
+      // AND has no Stripe subscription — regardless of whether billing ownership was later reassigned
+      const isRootAdminChurch = isRootAdminUid(createdByUid) && !churchStripeSubscriptionId;
+
       const subscriptionId =
         churchStripeSubscriptionId ??
         (owner && typeof owner.stripe_subscription_id === "string"
@@ -120,7 +150,10 @@ export default async function SubscriptionAuditPage() {
       let trialEnd: number | null = null;
       let cancelAtPeriodEnd = false;
 
-      if (subscriptionId) {
+      // Root Admin churches bypass Stripe billing entirely
+      if (isRootAdminChurch) {
+        subscriptionStatus = "root_admin";
+      } else if (subscriptionId) {
         try {
           const sub = await stripe.subscriptions.retrieve(subscriptionId, {
             expand: ["items.data.price"],
@@ -141,6 +174,8 @@ export default async function SubscriptionAuditPage() {
         } catch {
           subscriptionStatus = "error";
         }
+      } else if (!isRootAdminChurch) {
+        // subscriptionStatus already set above (no_subscription)
       }
 
       const first_name = owner && typeof owner.first_name === "string" ? owner.first_name : "";
@@ -156,6 +191,7 @@ export default async function SubscriptionAuditPage() {
         name,
         church_id,
         churchName,
+        isRootAdminChurch,
         plan_id:
           churchPlanId ??
           (owner && typeof owner.plan_id === "string" ? owner.plan_id : null),
