@@ -16,7 +16,7 @@ import {
 import { Label } from "@/app/components/ui/label";
 import { useToast } from "@/app/hooks/use-toast";
 import { clearAuthTransition, startLoginTransition } from "@/app/hooks/useAuth";
-import { can } from "@/app/lib/auth/permissions";
+import { getDashboardRoute } from "@/app/lib/auth/dashboardRoute";
 import type { Role } from "@/app/lib/auth/roles";
 import { invalidateCurrentUserCache } from "@/app/lib/currentUserCache";
 
@@ -76,67 +76,24 @@ export default function LoginPage() {
       const profile = await profileRes.json();
 
       const roles = (profile.roles ?? []) as Role[];
-      const isSystemUser =
-        profile.isSystemUser === true || profile.isRootAdmin === true;
 
       toast({
         title: "Login Successful",
         description: "Welcome back!",
       });
 
-      // 3. Redirect logic
-      if (isSystemUser) {
-        router.replace("/admin");
-        return;
-      }
+      const targetRoute = getDashboardRoute({
+        roles,
+        churchId: profile.churchId,
+        districtId: profile.districtId,
+        regionId: profile.regionId,
+        onboardingComplete: profile.onboardingComplete,
+        onboardingStep: profile.onboardingStep,
+        isSystemUser: profile.isSystemUser === true,
+        isRootAdmin: profile.isRootAdmin === true,
+      });
 
-      if (can(roles, "system.manage")) {
-        router.replace("/admin");
-        return;
-      }
-
-      if (roles.includes("DistrictAdmin")) {
-        router.replace("/admin/district");
-        return;
-      }
-
-      if (roles.includes("RegionalAdmin")) {
-        router.replace("/admin/regional");
-        return;
-      }
-
-      if (profile.onboardingComplete === false) {
-        const safeOnboardingStep =
-          profile.onboardingStep === "billing" && !profile.planId
-            ? "choose-plan"
-            : profile.onboardingStep;
-
-        const onboardingStepPaths: Record<string, string> = {
-          "choose-plan": "/onboarding/choose-plan",
-          "confirm-plan": "/onboarding/confirm-plan",
-          "admin-credentials": "/onboarding/admin-credentials",
-          "billing": "/onboarding/billing",
-          "create-church": "/onboarding/create-church",
-        };
-        const stepPath = onboardingStepPaths[safeOnboardingStep as string];
-        router.replace(stepPath ?? "/onboarding/choose-plan");
-        return;
-      }
-
-      if (can(roles, "church.manage")) {
-        if (profile.churchId) {
-          router.replace(`/admin/church/${profile.churchId}`);
-        } else {
-          router.replace("/onboarding/choose-plan");
-        }
-        return;
-      }
-
-      if (profile.churchId) {
-        router.replace(`/church/${profile.churchId}/members`);
-      } else {
-        router.replace("/auth-router");
-      }
+      router.replace(targetRoute);
     } catch (err) {
       clearAuthTransition();
       console.error("Login error:", err);

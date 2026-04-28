@@ -3,6 +3,7 @@
 
 import { useAuth } from "@/app/hooks/useAuth";
 import { useChurchId } from "@/app/hooks/useChurchId";
+import { getDashboardRoute } from "@/app/lib/auth/dashboardRoute";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
@@ -32,6 +33,21 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     if (!isSystemUser && churchLoading) return;
     if (hasRedirected.current) return;
 
+    const targetRoute = user
+      ? getDashboardRoute({
+          roles: user.roles,
+          churchId: churchId ?? user.churchId,
+          districtId: user.districtId,
+          regionId: user.regionId,
+          onboardingComplete: user.onboardingComplete,
+          onboardingStep: user.onboardingStep,
+          isSystemUser:
+            (user as unknown as { isSystemUser?: boolean; isRootAdmin?: boolean }).isSystemUser === true,
+          isRootAdmin:
+            (user as unknown as { isSystemUser?: boolean; isRootAdmin?: boolean }).isRootAdmin === true,
+        })
+      : null;
+
     // 1. Not logged in → trying to access protected route
     if (!user && !isPublic) {
       hasRedirected.current = true;
@@ -41,44 +57,23 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }
 
     // 2. Logged in → visiting login page
-    if (user && isPublic) {
+    if (user && isPublic && targetRoute) {
       hasRedirected.current = true;
       setRedirecting(true);
-      router.replace("/");
+      router.replace(targetRoute);
       return;
     }
 
-    // 3. System users → redirect ONLY when landing on "/" or a public route
-    if (user && isSystemUser && (pathname === "/" || isPublic)) {
+    // 3. Logged-in users landing on root or the wrong onboarding route → dashboard
+    if (
+      user &&
+      targetRoute &&
+      (pathname === "/" ||
+        (targetRoute.startsWith("/onboarding/") && pathname.startsWith("/onboarding/") && !pathname.startsWith(targetRoute)))
+    ) {
       hasRedirected.current = true;
       setRedirecting(true);
-
-      const role = user.roles?.find((r) =>
-        SYSTEM_ROLES.includes(r as SystemRole)
-      ) as SystemRole;
-
-      switch (role) {
-        case "RootAdmin":
-        case "SystemAdmin":
-          router.replace("/admin");
-          break;
-
-        case "DistrictAdmin":
-          router.replace("/admin/district");
-          break;
-
-        case "RegionalAdmin":
-          router.replace("/admin/regional");
-          break;
-
-        case "Support":
-        case "Auditor":
-          router.replace("/support");
-          break;
-
-        default:
-          router.replace("/");
-      }
+      router.replace(targetRoute);
       return;
     }
 
