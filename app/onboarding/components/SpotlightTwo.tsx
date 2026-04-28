@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 export default function SpotlightTwo() {
   return (
     <section className="py-12">
-      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 items-center px-8 md:px-6 lg:px-2">
+      <div className="w-full grid md:grid-cols-2 gap-8 items-center px-6 md:px-10 xl:px-16">
 
         {/* Image */}
         <motion.div

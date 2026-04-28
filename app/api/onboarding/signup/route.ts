@@ -25,18 +25,10 @@ export async function POST(req: Request) {
     if (createError) {
       const msg = createError.message.toLowerCase();
       if (msg.includes("already registered") || msg.includes("already exists") || msg.includes("duplicate")) {
-        // User exists — sign them in to verify credentials
-        const { data: signInData, error: signInError } = await getAdminClient().auth.signInWithPassword({
-          email: normalizedEmail,
-          password,
-        });
-        if (signInError || !signInData.user) {
-          return NextResponse.json(
-            { error: "That email is already registered. Try logging in or reset your password.", alreadyExists: true },
-            { status: 409 }
-          );
-        }
-        uid = signInData.user.id;
+        return NextResponse.json(
+          { error: "That email is already registered. Try logging in or reset your password.", alreadyExists: true },
+          { status: 409 }
+        );
       } else {
         return NextResponse.json({ error: createError.message }, { status: 400 });
       }

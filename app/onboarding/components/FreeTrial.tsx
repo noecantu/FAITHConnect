@@ -16,7 +16,7 @@ export default function FreeTrial() {
   const router = useRouter();
 
   return (
-    <section className="max-w-6xl mx-auto px-8 md:px-6 lg:px-2 py-12">
+    <section className="w-full px-6 md:px-10 xl:px-16 py-12">
       <motion.h2
         initial={{ opacity: 0, y: 12 }}
         whileInView={{ opacity: 1, y: 0 }}

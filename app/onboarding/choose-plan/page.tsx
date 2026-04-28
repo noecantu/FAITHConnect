@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/app/components/ui/card";
+import { Button } from "@/app/components/ui/button";
 import Link from "next/link";
 import { CheckCircle, ArrowLeft } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -22,14 +23,20 @@ export default function OnboardingChoosePlan() {
   );
 
   return (
-    <div className="min-h-screen px-6 py-20">
+    <div className="min-h-screen px-6 md:px-10 xl:px-16 py-20">
 
       {/* BACK BUTTON */}
-      <div className="max-w-5xl mx-auto mb-8">
-        <Link href="/" className="flex items-center text-white/60 hover:text-white transition">
-          <ArrowLeft className="h-5 w-5 mr-2" />
-          Back to Website
-        </Link>
+      <div className="w-full mb-8">
+        <Button
+          asChild
+          variant="outline"
+          className="bg-black/80 border-white/20 text-white/80 hover:bg-white/5"
+        >
+          <Link href="/">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Website
+          </Link>
+        </Button>
       </div>
 
       {/* LOGO HEADER */}
@@ -59,7 +66,7 @@ export default function OnboardingChoosePlan() {
 
       <h1 className="text-4xl font-bold text-center mb-12">Choose Your Plan</h1>
 
-      <div className="max-w-5xl mx-auto mb-8 flex justify-center">
+      <div className="w-full mb-8 flex justify-center">
         <div className="inline-flex rounded-xl border border-white/20 bg-white/5 p-1">
           <button
             type="button"
@@ -82,7 +89,7 @@ export default function OnboardingChoosePlan() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
         {PRICING_PLANS.map((p, i) => (
           <motion.div
             key={p.id}

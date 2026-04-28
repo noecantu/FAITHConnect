@@ -97,13 +97,15 @@ export default function AdminCredentialsPage() {
 
       {/* BACK BUTTON */}
       <div className="absolute top-8 left-8">
-        <button
+        <Button
+          type="button"
+          variant="outline"
+          className="bg-black/80 border-white/20 text-white/80 hover:bg-white/5"
           onClick={() => router.back()}
-          className="flex items-center text-white/60 hover:text-white transition"
         >
-          <ArrowLeft className="h-5 w-5 mr-2" />
+          <ArrowLeft className="h-4 w-4 mr-2" />
           Back
-        </button>
+        </Button>
       </div>
 
       <Card className="relative w-full max-w-md bg-white/5 border-white/20 backdrop-blur-xl p-8 shadow-xl">

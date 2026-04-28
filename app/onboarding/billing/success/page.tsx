@@ -19,26 +19,11 @@ export default function BillingSuccessPage() {
           throw new Error("Missing Stripe session id.");
         }
 
-        const verifyRes = await fetch(`/api/stripe/verify?session_id=${encodeURIComponent(sessionId)}`);
-        if (!verifyRes.ok) throw new Error("Unable to verify payment.");
-
-        const verifyData = await verifyRes.json();
-        const isPaid =
-          verifyData.status === "paid" ||
-          verifyData.status === "no_payment_required";
-
-        if (!isPaid || !verifyData.subscription) {
-          throw new Error("Payment has not been completed.");
-        }
-
-        const res = await fetch("/api/users/update-onboarding-step", {
+        const res = await fetch("/api/onboarding/complete-billing", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            onboardingStep: "create-church",
-            onboardingComplete: false,
-            stripeCustomerId: verifyData.customer ?? null,
-            stripeSubscriptionId: verifyData.subscription ?? null,
+            sessionId,
             planId: plan ?? null,
           }),
         });

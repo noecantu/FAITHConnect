@@ -93,17 +93,19 @@ export default function BillingPage() {
   };
 
   return (
-    <div className="min-h-screen px-6 py-20">
+    <div className="min-h-screen px-6 md:px-10 xl:px-16 py-20">
 
       {/* BACK BUTTON */}
-      <div className="max-w-5xl mx-auto mb-8">
-        <button
+      <div className="w-full mb-8">
+        <Button
+          type="button"
+          variant="outline"
+          className="bg-black/80 border-white/20 text-white/80 hover:bg-white/5"
           onClick={() => router.back()}
-          className="flex items-center text-white/60 hover:text-white transition"
         >
-          <ArrowLeft className="h-5 w-5 mr-2" />
+          <ArrowLeft className="h-4 w-4 mr-2" />
           Back
-        </button>
+        </Button>
       </div>
 
       {/* LOGO HEADER */}

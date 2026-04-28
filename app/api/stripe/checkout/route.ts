@@ -17,12 +17,15 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2023-10-16",
 });
 
-async function getSessionEmail(): Promise<string | undefined> {
+async function getSessionContext(): Promise<{ email?: string; uid?: string }> {
   try {
     const authUser = await getServerUser();
-    return authUser?.email ?? undefined;
+    return {
+      email: authUser?.email ?? undefined,
+      uid: authUser?.id ?? undefined,
+    };
   } catch {
-    return undefined;
+    return {};
   }
 }
 
@@ -82,7 +85,7 @@ export async function POST(req: Request) {
     console.log("BILLING CYCLE:", normalizedCycle);
     console.log("PRICE FOUND:", priceId);
 
-    const customerEmail = await getSessionEmail();
+    const { email: customerEmail, uid } = await getSessionContext();
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -91,7 +94,9 @@ export async function POST(req: Request) {
       subscription_data: isTrialing ? { trial_period_days: 30 } : undefined,
       metadata: {
         plan_id: normalizedPlan,
+        planId: normalizedPlan,
         billingCycle: normalizedCycle,
+        ...(uid ? { uid } : {}),
       },
       success_url: `${process.env.NEXT_PUBLIC_URL}/onboarding/billing/success?plan=${normalizedPlan}&cycle=${normalizedCycle}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_URL}/onboarding/billing?plan=${normalizedPlan}&cycle=${normalizedCycle}`,

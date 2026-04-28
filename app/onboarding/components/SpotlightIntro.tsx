@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export default function SpotlightIntro() {
   return (
-    <section className="max-w-6xl mx-auto px-8 md:px-6 lg:px-2 pt-8 pb-2">
+    <section className="w-full px-6 md:px-10 xl:px-16 pt-8 pb-2">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}

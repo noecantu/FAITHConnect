@@ -235,9 +235,11 @@ export async function GET() {
 
     const onboardingComplete = isSystemUser
       ? true
-      : (user.onboarding_complete === undefined ? true : user.onboarding_complete);
+      : (typeof user.onboarding_complete === "boolean" ? user.onboarding_complete : false);
 
-    const onboardingStep = isSystemUser ? "complete" : (user.onboarding_step ?? "complete");
+    const onboardingStep = isSystemUser
+      ? "complete"
+      : (user.onboarding_step ?? (onboardingComplete ? "complete" : "choose-plan"));
 
     if (isSystemUser && (user.onboarding_complete !== true || user.onboarding_step !== "complete")) {
       await adminDb

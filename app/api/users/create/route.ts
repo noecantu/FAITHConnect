@@ -103,6 +103,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
+    if (authUser.id !== uid) {
+      return NextResponse.json(
+        { error: "Authenticated user does not match requested profile id." },
+        { status: 403 }
+      );
+    }
+
+    if (
+      authUser.email &&
+      String(email).trim().toLowerCase() !== authUser.email.trim().toLowerCase()
+    ) {
+      return NextResponse.json(
+        { error: "Authenticated user email does not match requested profile email." },
+        { status: 403 }
+      );
+    }
+
     const { error: fallbackError } = await adminDb
       .from("users")
       .upsert(baseProfile, { onConflict: "id" });
