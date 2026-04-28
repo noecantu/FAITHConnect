@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     // 2. Fetch inviter's user profile
     const { data: inviter } = await adminDb
       .from("users")
-      .select("roles, church_id")
+      .select("roles, church_id, permissions")
       .eq("id", inviterUid)
       .single();
 
@@ -35,10 +35,11 @@ export async function POST(req: Request) {
     }
 
     const inviterRoles = (inviter.roles ?? []) as Role[];
+    const inviterGrants = (Array.isArray(inviter.permissions) ? inviter.permissions : []) as import("@/app/lib/auth/permissions").Permission[];
     const inviterChurchId: string | null = inviter.church_id || null;
 
     // 3. Only users with members.manage can invite members
-    const canInvite = can(inviterRoles, "members.manage");
+    const canInvite = can(inviterRoles, "members.manage", inviterGrants);
 
     if (!canInvite) {
       return NextResponse.json({ error: "You do not have permission to invite members" }, { status: 403 });

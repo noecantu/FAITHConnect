@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { AppUser, Mode } from '@/app/lib/types';
 import type { Role } from '@/app/lib/auth/roles';
+import type { Permission } from '@/app/lib/auth/permissions';
 
 export function useUserManagement(churchId: string | undefined, { onBillingOwnerTransferred }: { onBillingOwnerTransferred?: () => void } = {}) {
   const [users, setUsers] = useState<AppUser[]>([]);
@@ -14,6 +15,7 @@ export function useUserManagement(churchId: string | undefined, { onBillingOwner
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([]);
+  const [selectedPermissions, setSelectedPermissions] = useState<Permission[]>([]);
   const [regionName, setRegionName] = useState('');
 
   // Async flags
@@ -42,6 +44,7 @@ export function useUserManagement(churchId: string | undefined, { onBillingOwner
             firstName: row.first_name as string | null,
             lastName: row.last_name as string | null,
             roles: (row.roles as Role[]) ?? [],
+            permissions: (row.permissions as Permission[]) ?? [],
             churchId: row.church_id as string | null,
             regionId: row.region_id as string | null,
             districtId: row.district_id as string | null,
@@ -75,6 +78,7 @@ export function useUserManagement(churchId: string | undefined, { onBillingOwner
     setEmail('');
     setPassword('');
     setSelectedRoles([]);
+    setSelectedPermissions([]);
     setRegionName('');
     setMode('create');
   };
@@ -86,6 +90,7 @@ export function useUserManagement(churchId: string | undefined, { onBillingOwner
     setEmail(u.email ?? '');
     setPassword('');
     setSelectedRoles((u.roles ?? []) as Role[]);
+    setSelectedPermissions((u.permissions ?? []) as Permission[]);
     setRegionName('');
     setMode('edit');
   };
@@ -99,6 +104,12 @@ export function useUserManagement(churchId: string | undefined, { onBillingOwner
     );
   };
 
+  const handlePermissionChange = (permission: Permission, checked: boolean) => {
+    setSelectedPermissions((prev) =>
+      checked ? [...prev, permission] : prev.filter((p) => p !== permission)
+    );
+  };
+
   const handleCreateUser = async () => {
     if (!churchId) return;
     setIsCreating(true);
@@ -106,7 +117,7 @@ export function useUserManagement(churchId: string | undefined, { onBillingOwner
       const res = await fetch('/api/church-users/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ churchId, firstName, lastName, email, password, roles: selectedRoles }),
+        body: JSON.stringify({ churchId, firstName, lastName, email, password, roles: selectedRoles, permissions: selectedPermissions }),
       });
       if (res.ok) {
         await fetchUsers();
@@ -127,7 +138,7 @@ export function useUserManagement(churchId: string | undefined, { onBillingOwner
       const res = await fetch(`/api/church-users/${selectedUser.uid}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ churchId, firstName, lastName, roles: selectedRoles }),
+        body: JSON.stringify({ churchId, firstName, lastName, roles: selectedRoles, permissions: selectedPermissions }),
       });
       if (res.ok) {
         await fetchUsers();
@@ -202,6 +213,7 @@ export function useUserManagement(churchId: string | undefined, { onBillingOwner
     email,
     password,
     selectedRoles,
+    selectedPermissions,
     regionName,
 
     setFirstName,
@@ -216,6 +228,7 @@ export function useUserManagement(churchId: string | undefined, { onBillingOwner
     isTransferringBillingOwner,
 
     handleRoleChange,
+    handlePermissionChange,
     handleCreateUser,
     handleSaveUser,
     handleDeleteUser,

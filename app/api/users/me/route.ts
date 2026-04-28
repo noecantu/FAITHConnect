@@ -17,11 +17,16 @@ const ROOT_ADMIN_EMAIL = (
   .trim()
   .toLowerCase();
 
-function resolvePermissions(roles: Role[]) {
+function resolvePermissions(roles: Role[], explicitGrants: string[] = []) {
   const perms = new Set<string>();
+  // Role-derived permissions
   for (const role of roles) {
     const p = ROLE_PERMISSIONS[role] ?? [];
     p.forEach((perm) => perms.add(perm));
+  }
+  // Explicit per-user grants override/augment role-based permissions
+  for (const grant of explicitGrants) {
+    perms.add(grant);
   }
   return Array.from(perms);
 }
@@ -136,7 +141,7 @@ export async function GET() {
           (appMetadata as Record<string, unknown>).user_role
       );
       const effectiveRoles = applyRootBootstrapRoles(authUser.email ?? null, roles);
-      const permissions = resolvePermissions(effectiveRoles);
+      const permissions = resolvePermissions(effectiveRoles, []);
       const isSystemUser = can(effectiveRoles, "system.manage");
       const isRootAdmin =
         (authUser.email ?? "").trim().toLowerCase() === ROOT_ADMIN_EMAIL;
@@ -215,7 +220,8 @@ export async function GET() {
       (appMetadata as Record<string, unknown>).user_role
     );
     const effectiveRoles = applyRootBootstrapRoles(authUser.email ?? null, roles);
-    const permissions = resolvePermissions(effectiveRoles);
+    const explicitGrants: string[] = Array.isArray(user.permissions) ? user.permissions : [];
+    const permissions = resolvePermissions(effectiveRoles, explicitGrants);
     const isSystemUser = can(effectiveRoles, "system.manage");
     const isRootAdmin =
       (authUser.email ?? "").trim().toLowerCase() === ROOT_ADMIN_EMAIL;

@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { email, firstName, lastName, password, roles, churchId } = body;
+    const { email, firstName, lastName, password, roles, permissions, churchId } = body;
 
     if (!email || !churchId) {
       return NextResponse.json({ error: "email and churchId are required" }, { status: 400 });
@@ -54,6 +54,7 @@ export async function POST(req: Request) {
       first_name: firstName?.trim() ?? "",
       last_name: lastName?.trim() ?? "",
       roles: Array.isArray(roles) && roles.length > 0 ? roles : ["Member"],
+      permissions: Array.isArray(permissions) ? permissions : [],
       church_id: churchId,
       onboarding_complete: true,
       onboarding_step: "complete",

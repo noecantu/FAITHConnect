@@ -1,5 +1,6 @@
 //app/lib/types.ts
 import type { Role } from '@/app/lib/auth/roles';
+import type { Permission } from '@/app/lib/auth/permissions';
 
 export type Address = {
   street?: string;
@@ -346,6 +347,8 @@ export interface AppUser {
   districtId?: string | null;
   district_id?: string | null;
   roles?: Role[];
+  /** Explicitly granted module permissions, stored in the users.permissions DB column. */
+  permissions?: Permission[];
   isSystemUser?: boolean;
   isRootAdmin?: boolean;
   rolesByChurch?: {

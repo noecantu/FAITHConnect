@@ -3,10 +3,12 @@
 import { useAuth } from "./useAuth";
 import { can } from "@/app/lib/auth/permissions";
 import type { Role } from "@/app/lib/auth/roles";
+import type { Permission } from "@/app/lib/auth/permissions";
 
 export function usePermissions() {
   const { user, loading } = useAuth();
   const roles = (user?.roles ?? []) as Role[];
+  const grants = (user?.permissions ?? []) as Permission[];
 
   const hasRole = (role: Role) => roles.includes(role);
 
@@ -31,21 +33,24 @@ export function usePermissions() {
     church_id: user?.churchId ?? null,
 
     // Permissions
-    canManageChurch: can(roles, "church.manage"),
-    canManageMembers: can(roles, "members.manage"),
-    canReadMembers: can(roles, "members.read"),
-    canManageContributions: can(roles, "contributions.manage"),
-    canReadContributions: can(roles, "contributions.read"),
-    canManageEvents: can(roles, "events.manage"),
-    canReadEvents: can(roles, "events.read"),
-    canManageMusic: can(roles, "music.manage"),
-    canReadMusic: can(roles, "music.read"),
-    canReadReports: can(roles, "reports.read"),
-    canManageServicePlans: can(roles, "servicePlans.manage"),
-    canReadServicePlans: can(roles, "servicePlans.read"),
-    canManageAttendance: can(roles, "attendance.manage"),
-    canReadAttendance: can(roles, "attendance.read"),
-    canAssignRoles: can(roles, "roles.assign"),
-    canManageSystem: can(roles, "system.manage"),
+    canManageChurch: can(roles, "church.manage", grants),
+    canManageMembers: can(roles, "members.manage", grants),
+    canReadMembers: can(roles, "members.read", grants),
+    canManageContributions: can(roles, "contributions.manage", grants),
+    canReadContributions: can(roles, "contributions.read", grants),
+    canManageEvents: can(roles, "events.manage", grants),
+    canReadEvents: can(roles, "events.read", grants),
+    canManageMusic: can(roles, "music.manage", grants),
+    canReadMusic: can(roles, "music.read", grants),
+    canReadReports: can(roles, "reports.read", grants),
+    canReadAttendanceReports: can(roles, "reports.attendance", grants),
+    canReadContributionsReports: can(roles, "reports.contributions", grants),
+    canReadMembersReports: can(roles, "reports.members", grants),
+    canManageServicePlans: can(roles, "servicePlans.manage", grants),
+    canReadServicePlans: can(roles, "servicePlans.read", grants),
+    canManageAttendance: can(roles, "attendance.manage", grants),
+    canReadAttendance: can(roles, "attendance.read", grants),
+    canAssignRoles: can(roles, "roles.assign", grants),
+    canManageSystem: can(roles, "system.manage", grants),
   };
 }

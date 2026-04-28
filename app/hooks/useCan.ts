@@ -7,8 +7,10 @@ export function useCan(permission: Permission): boolean {
   const { user } = useAuth();
 
   const roles = user?.roles ?? [];
+  const grants = user?.permissions ?? [];
 
   return useMemo(() => {
-    return can(roles, permission);
-  }, [roles, permission]);
+    return can(roles, permission, grants);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roles, permission, grants]);
 }

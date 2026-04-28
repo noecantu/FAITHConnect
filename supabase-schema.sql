@@ -50,6 +50,9 @@ create table if not exists public.users (
   -- Roles (array of role strings matching app/lib/auth/roles.ts)
   roles                   text[] not null default '{}',
 
+  -- Explicit module permissions (granular access grants, independent of role titles)
+  permissions             text[] not null default '{}',
+
   -- Church association
   church_id               text,
   roles_by_church         jsonb  not null default '{}',
@@ -809,3 +812,9 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- ----------------------------------------------------------------
+-- Migration: add permissions column to existing deployments.
+-- Safe to run multiple times (IF NOT EXISTS guard).
+-- ----------------------------------------------------------------
+alter table public.users add column if not exists permissions text[] not null default '{}';

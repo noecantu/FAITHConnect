@@ -3,7 +3,6 @@
 import { Checkbox } from '@/app/components/ui/checkbox';
 import {
   Role,
-  CHURCH_ROLES,
   SYSTEM_ROLES,
   ROLE_LABELS,
 } from '@/app/lib/auth/roles';
@@ -18,6 +17,56 @@ interface Props {
   targetUserId: string;
 }
 
+type RoleGroup = { label: string; roles: Role[] };
+
+const CHURCH_ROLE_GROUPS: RoleGroup[] = [
+  {
+    label: 'Administration',
+    roles: ['Admin', 'Finance', 'MemberManager', 'AttendanceManager', 'EventManager', 'ServiceManager'],
+  },
+  {
+    label: 'Pastoral & Music',
+    roles: ['Pastor', 'Minister', 'Deacon', 'MusicManager', 'MusicMember'],
+  },
+  {
+    label: 'Operations',
+    roles: ['UsherManager', 'Usher', 'CaretakerManager', 'Caretaker'],
+  },
+  {
+    label: 'Groups',
+    roles: ['MensGroupManager', 'MensGroup', 'WomensGroupManager', 'WomensGroup', 'YouthGroupManager', 'YouthGroup', 'GroupManager'],
+  },
+  {
+    label: 'General',
+    roles: ['Member'],
+  },
+];
+
+function RoleCheckbox({
+  role,
+  checked,
+  disabled,
+  onChange,
+}: {
+  role: Role;
+  checked: boolean;
+  disabled: boolean;
+  onChange: (role: Role, checked: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center gap-2 cursor-pointer select-none group">
+      <Checkbox
+        checked={checked}
+        onCheckedChange={(v) => onChange(role, Boolean(v))}
+        disabled={disabled}
+      />
+      <span className="text-sm text-muted-foreground group-hover:text-foreground transition">
+        {ROLE_LABELS[role]}
+      </span>
+    </label>
+  );
+}
+
 export default function RoleSelector({
   selectedRoles,
   onChange,
@@ -28,52 +77,48 @@ export default function RoleSelector({
   const canAssignRoles = can(currentUserRoles, 'roles.assign');
   const isRootAdmin = currentUserRoles.includes('RootAdmin');
   const isSelf = currentUserId === targetUserId;
-  const churchRoles = [...CHURCH_ROLES].sort((a, b) => {
-    if (a === 'Admin') return -1;
-    if (b === 'Admin') return 1;
-    return ROLE_LABELS[a].localeCompare(ROLE_LABELS[b]);
-  });
 
   return (
-    <div className="space-y-0">
-      {/* Church Roles */}
-      <div className="space-y-2 border border-white/10 rounded-md p-3">
-        <p className="text-sm text-muted-foreground">Church Roles</p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {churchRoles.map((role) => (
-            <div key={role} className="flex items-center space-x-2">
-              <Checkbox
-                checked={selectedRoles.includes(role)}
-                onCheckedChange={(checked) =>
-                  onChange(role, Boolean(checked))
-                }
-                disabled={!canAssignRoles}
-              />
-              <span>{ROLE_LABELS[role]}</span>
+    <div className="space-y-3">
+      {/* Church Role Groups */}
+      <div className="border border-white/10 rounded-md divide-y divide-white/5">
+        {CHURCH_ROLE_GROUPS.map((group) => (
+          <div key={group.label} className="px-3 py-2.5 space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+              {group.label}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 gap-x-4">
+              {group.roles.map((role) => (
+                <RoleCheckbox
+                  key={role}
+                  role={role}
+                  checked={selectedRoles.includes(role)}
+                  disabled={!canAssignRoles}
+                  onChange={onChange}
+                />
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
 
       {/* System Roles (Root Admin only) */}
       {isRootAdmin && (
-        <div className="space-y-2 border border-white/10 rounded-md p-3">
-          <p className="text-sm text-muted-foreground">System Roles</p>
-
-          {SYSTEM_ROLES.map((role) => (
-            <div key={role} className="flex items-center space-x-2">
-              <Checkbox
+        <div className="border border-white/10 rounded-md px-3 py-2.5 space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+            System Roles
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 gap-x-4">
+            {SYSTEM_ROLES.map((role) => (
+              <RoleCheckbox
+                key={role}
+                role={role as Role}
                 checked={selectedRoles.includes(role as Role)}
-                onCheckedChange={(checked) =>
-                  onChange(role as Role, Boolean(checked))
-                }
                 disabled={!canAssignRoles || isSelf}
+                onChange={onChange}
               />
-              <span>{ROLE_LABELS[role]}</span>
-            </div>
-          ))}
-
+            ))}
+          </div>
           {isSelf && (
             <p className="text-xs text-muted-foreground">
               You cannot change your own system-level roles.
@@ -84,3 +129,4 @@ export default function RoleSelector({
     </div>
   );
 }
+

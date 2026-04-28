@@ -57,6 +57,7 @@ export default function ChurchSettingsPage() {
     email,
     password,
     selectedRoles,
+    selectedPermissions,
     regionName,
 
     setFirstName,
@@ -71,6 +72,7 @@ export default function ChurchSettingsPage() {
     isTransferringBillingOwner,
 
     handleRoleChange,
+    handlePermissionChange,
     handleCreateUser,
     handleSaveUser,
     handleDeleteUser,
@@ -210,6 +212,7 @@ export default function ChurchSettingsPage() {
           email={email}
           password={password}
           selectedRoles={selectedRoles}
+          selectedPermissions={selectedPermissions}
           regionName={regionName}
           setFirstName={setFirstName}
           setLastName={setLastName}
@@ -217,6 +220,7 @@ export default function ChurchSettingsPage() {
           setPassword={setPassword}
           setRegionName={setRegionName}
           onRoleChange={handleRoleChange}
+          onPermissionChange={handlePermissionChange}
           onCreate={handleCreateUser}
           onSave={handleSaveUser}
           onDelete={startConfirmDelete}
