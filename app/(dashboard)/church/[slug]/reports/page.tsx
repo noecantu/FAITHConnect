@@ -30,10 +30,10 @@ export default function ReportsPage() {
 
   const {
     loading: permissionsLoading,
-    canReadMembers,
-    canReadContributions,
-    canReadAttendance,
     canReadReports,
+    canReadMembersReports,
+    canReadContributionsReports,
+    canReadAttendanceReports,
     isDistrictAdmin,
     isRegionalAdmin,
   } = usePermissions();
@@ -77,18 +77,18 @@ export default function ReportsPage() {
   useEffect(() => {
     if (permissionsLoading) return;
 
-    if (canReadContributions) {
+    if (canReadContributionsReports) {
       setReportType("contributions");
-    } else if (canReadMembers) {
+    } else if (canReadMembersReports) {
       setReportType("members");
-    } else if (canReadAttendance) {
+    } else if (canReadAttendanceReports) {
       setReportType("attendance");
     }
   }, [
     permissionsLoading,
-    canReadMembers,
-    canReadContributions,
-    canReadAttendance
+    canReadMembersReports,
+    canReadContributionsReports,
+    canReadAttendanceReports
   ]);
 
   const contributionBreakdownOptions = useMemo(() => {
@@ -318,9 +318,9 @@ export default function ReportsPage() {
     type: "members" | "contributions" | "attendance"
   ) => {
     if (scopedContributionOnly && type !== "contributions") return;
-    if (type === "members" && !canReadMembers) return;
-    if (type === "contributions" && !canReadContributions) return;
-    if (type === "attendance" && !canReadAttendance) return;
+    if (type === "members" && !canReadMembersReports) return;
+    if (type === "contributions" && !canReadContributionsReports) return;
+    if (type === "attendance" && !canReadAttendanceReports) return;
     setReportType(type);
   };
 
@@ -355,9 +355,15 @@ export default function ReportsPage() {
   // 8. EXPORT BUTTON VISIBILITY
   // -------------------------------------------------------
   const canExport =
-    (reportType === "members" && canReadMembers) ||
-    (reportType === "contributions" && canReadContributions) ||
-    (reportType === "attendance" && canReadAttendance);
+    (reportType === "members" && canReadMembersReports) ||
+    (reportType === "contributions" && canReadContributionsReports) ||
+    (reportType === "attendance" && canReadAttendanceReports);
+
+  const canReadAnyReport =
+    canReadReports ||
+    canReadMembersReports ||
+    canReadContributionsReports ||
+    canReadAttendanceReports;
 
   // -------------------------------------------------------
   // 9. EARLY PERMISSION GATE (AFTER ALL HOOKS)
@@ -371,7 +377,7 @@ export default function ReportsPage() {
     );
   }
 
-  if (!canReadReports) {
+  if (!canReadAnyReport) {
     return (
       <>
         <PageHeader title="Reports" />
@@ -469,15 +475,15 @@ export default function ReportsPage() {
           setSelectedMonth={setSelectedMonth}
           availableYears={availableYears}
           availableMonths={availableMonths}
-          canReadMembers={!scopedContributionOnly && canReadMembers}
-          canReadContributions={canReadContributions}
-          canReadAttendance={!scopedContributionOnly && canReadAttendance}
+          canReadMembers={!scopedContributionOnly && canReadMembersReports}
+          canReadContributions={canReadContributionsReports}
+          canReadAttendance={!scopedContributionOnly && canReadAttendanceReports}
           onResetFilters={resetFilters}
         />
 
         {/* RIGHT PANEL */}
         <div className="animate-fadeIn w-full min-w-0 space-y-6">
-          {reportType === "contributions" && scopedContributionOnly && canReadContributions && (
+          {reportType === "contributions" && scopedContributionOnly && canReadContributionsReports && (
             <div className="rounded-md border border-white/20 bg-black/50 p-4 text-sm text-white/90 backdrop-blur-xl">
               <div className="font-semibold mb-2">Report Scope Summary</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-white/80">
@@ -503,14 +509,14 @@ export default function ReportsPage() {
             </div>
           )}
 
-          {reportType === "attendance" && !scopedContributionOnly && canReadAttendance && (
+          {reportType === "attendance" && !scopedContributionOnly && canReadAttendanceReports && (
             <AttendancePreviewTable
               attendance={filteredAttendance}
               members={members}
             />
           )}
 
-          {reportType === "contributions" && canReadContributions && (
+          {reportType === "contributions" && canReadContributionsReports && (
             <>
               {filteredContributions.length === 0 && (
                 <div className="rounded-md border border-white/20 bg-black/30 p-4 text-sm text-muted-foreground">
@@ -529,7 +535,7 @@ export default function ReportsPage() {
             </>
           )}
 
-          {reportType === "members" && !scopedContributionOnly && canReadMembers && (
+          {reportType === "members" && !scopedContributionOnly && canReadMembersReports && (
             <MemberPreviewTable
               members={filteredMembers}
               selectedFields={selectedFields}

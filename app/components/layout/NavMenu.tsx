@@ -68,7 +68,15 @@ export function NavMenu() {
   const { toast } = useToast();
   const { churchId } = useChurchId();
   const { church } = useChurch(churchId);
-  const { roles = [] } = usePermissions();
+  const {
+    roles = [],
+    canReadMembers,
+    canManageMembers,
+    canReadContributions,
+    canReadMusic,
+    canReadServicePlans,
+    canReadAttendance,
+  } = usePermissions();
 
   const typedRoles = roles as Role[];
 
@@ -82,14 +90,15 @@ export function NavMenu() {
   const isChurchAdmin = can(typedRoles, "church.manage") && !!churchId;
   const isChurchDisabled = church?.status === "disabled";
 
-  const canSeeContributions = can(typedRoles, "contributions.read");
-  const canAccessMusic = can(typedRoles, "music.read");
-  const canAccessServicePlan = can(typedRoles, "servicePlans.read");
-  const canSeeAttendance = can(typedRoles, "attendance.read");
+  const canSeeContributions = canReadContributions;
+  const canAccessMusic = canReadMusic;
+  const canAccessServicePlan = canReadServicePlans;
+  const canSeeAttendance = canReadAttendance;
+  const canSeeMembers = canReadMembers || canManageMembers;
   const canSeeReports =
-    can(typedRoles, "members.read") ||
-    can(typedRoles, "contributions.read") ||
-    can(typedRoles, "attendance.read");
+    canSeeMembers ||
+    canReadContributions ||
+    canReadAttendance;
 
   function isActive(href: string, exact?: boolean) {
     return exact ? pathname === href : pathname.startsWith(href);
@@ -154,6 +163,7 @@ export function NavMenu() {
     { href: `/church/${churchId}/user`, label: "Dashboard", icon: Home, exact: true },
     { href: `/church/${churchId}/calendar`, label: "Calendar", icon: Calendar },
     { href: `/church/${churchId}/contributions`, label: "Contributions", icon: HandCoins, permission: canSeeContributions },
+    { href: `/church/${churchId}/members`, label: "Members", icon: Users, permission: canSeeMembers },
     { href: `/church/${churchId}/music`, label: "Music", icon: Music2, permission: canAccessMusic, isSubmenu: true },
     { href: `/church/${churchId}/reports`, label: "Reports", icon: FileText, permission: canSeeReports },
     { href: `/church/${churchId}/user/settings`, label: "Settings", icon: Settings },
