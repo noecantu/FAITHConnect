@@ -1,7 +1,7 @@
 //app/(dashboard)/calendar/page.tsx
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { PageHeader } from "@/app/components/page-header";
 import { Fab } from "@/app/components/ui/fab";
 import { Button } from "@/app/components/ui/button";
@@ -14,6 +14,7 @@ import { useUpcomingServices } from "@/app/hooks/useUpcomingServices";
 import { useCalendarMonth } from "@/app/hooks/useCalendarMonth";
 import { useCalendarFilters } from "@/app/hooks/useCalendarFilters";
 import { useCalendarView } from "@/app/hooks/useCalendarView";
+import { useUserCalendarSettings } from "@/app/hooks/useUserCalendarSettings";
 import { CalendarControls } from "@/app/components/calendar/CalendarControls";
 import { CalendarViewSwitcher } from "@/app/components/calendar/CalendarViewSwitcher";
 
@@ -29,6 +30,22 @@ import { addDays, format, isToday, isTomorrow } from "date-fns";
 type CalendarItem =
   | (Event & { type: "event" })
   | (ServicePlan & { type: "service" });
+
+type CalendarDensity = "comfortable" | "compact";
+
+function getInitialCalendarDensity(): CalendarDensity {
+  if (typeof window === "undefined") return "comfortable";
+
+  try {
+    const raw = localStorage.getItem("calendarSettings");
+    if (!raw) return "comfortable";
+
+    const parsed = JSON.parse(raw) as { density?: unknown };
+    return parsed?.density === "compact" ? "compact" : "comfortable";
+  } catch {
+    return "comfortable";
+  }
+}
 
 export default function CalendarPage() {
   const router = useRouter();
@@ -105,7 +122,37 @@ export default function CalendarPage() {
   const month = useCalendarMonth();
   const filters = useCalendarFilters<CalendarItem>(visible);
   const [selectedDay, setSelectedDay] = useState<Date>(new Date());
-  const [density, setDensity] = useState<'comfortable' | 'compact'>('comfortable');
+  const [density, setDensity] = useState<CalendarDensity>(getInitialCalendarDensity);
+  const { settings: calendarSettings, loading: loadingCalendarSettings, updateSettings } = useUserCalendarSettings(user?.uid);
+
+  useEffect(() => {
+    if (loadingCalendarSettings) return;
+
+    const savedDensity =
+      typeof calendarSettings?.density === "string"
+        ? calendarSettings.density
+        : null;
+
+    if (savedDensity === "comfortable" || savedDensity === "compact") {
+      setDensity(savedDensity);
+    }
+  }, [calendarSettings, loadingCalendarSettings]);
+
+  const setDensityAndPersist = useCallback(
+    async (nextDensity: CalendarDensity) => {
+      setDensity(nextDensity);
+
+      if (!user?.uid) return;
+
+      const nextSettings = {
+        ...(typeof calendarSettings === "object" && calendarSettings !== null ? calendarSettings : {}),
+        density: nextDensity,
+      };
+
+      await updateSettings(nextSettings);
+    },
+    [calendarSettings, updateSettings, user?.uid]
+  );
 
   const todayKey = dateKey(new Date());
 
@@ -239,7 +286,9 @@ export default function CalendarPage() {
                   variant={density === 'comfortable' ? 'default' : 'outline'}
                   size="sm"
                   className="flex-1"
-                  onClick={() => setDensity('comfortable')}
+                  onClick={() => {
+                    void setDensityAndPersist("comfortable");
+                  }}
                 >
                   Comfortable
                 </Button>
@@ -248,7 +297,9 @@ export default function CalendarPage() {
                   variant={density === 'compact' ? 'default' : 'outline'}
                   size="sm"
                   className="flex-1"
-                  onClick={() => setDensity('compact')}
+                  onClick={() => {
+                    void setDensityAndPersist("compact");
+                  }}
                 >
                   Compact
                 </Button>

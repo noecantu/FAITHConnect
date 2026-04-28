@@ -287,6 +287,10 @@ export async function GET() {
       regionName: user.region_name ?? null,
       managedChurchIds: user.managed_church_ids ?? [],
       rolesByChurch: user.roles_by_church ?? {},
+      settings:
+        typeof user.settings === "object" && user.settings !== null
+          ? user.settings
+          : {},
 
       onboardingStep,
       onboardingComplete,

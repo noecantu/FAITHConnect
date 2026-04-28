@@ -1,10 +1,29 @@
 import { useState, useEffect } from 'react';
-import { getSupabaseClient } from "@/app/lib/supabase/client";
+
+const LOCAL_CALENDAR_SETTINGS_KEY = "calendarSettings";
+
+function readLocalCalendarSettings(): Record<string, unknown> {
+  try {
+    const raw = localStorage.getItem(LOCAL_CALENDAR_SETTINGS_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return typeof parsed === "object" && parsed !== null
+      ? (parsed as Record<string, unknown>)
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeLocalCalendarSettings(value: unknown): void {
+  try {
+    localStorage.setItem(LOCAL_CALENDAR_SETTINGS_KEY, JSON.stringify(value));
+  } catch {}
+}
 
 export function useUserCalendarSettings(userId: string | undefined) {
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = getSupabaseClient();
 
   useEffect(() => {
     if (!userId) {
@@ -13,28 +32,33 @@ export function useUserCalendarSettings(userId: string | undefined) {
     }
 
     async function fetchSettings() {
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", userId)
-        .single();
+      try {
+        const localSettings = readLocalCalendarSettings();
 
-      if (!error && data) {
-        const settingsBlob =
-          typeof data.settings === "object" && data.settings !== null
-            ? data.settings
-            : {};
+        const res = await fetch("/api/users/me", { credentials: "include" });
+        const data = res.ok ? await res.json() : null;
 
-        // Backward compatible read: prefer new JSON settings, fall back to legacy key if present.
-        const calendarSettings =
-          typeof (settingsBlob as Record<string, unknown>).calendarSettings === "object" &&
-          (settingsBlob as Record<string, unknown>).calendarSettings !== null
-            ? (settingsBlob as Record<string, unknown>).calendarSettings
-            : (data as Record<string, unknown>).calendar_settings ?? {};
+        if (data) {
+          const settingsBlob =
+            typeof data.settings === "object" && data.settings !== null
+              ? data.settings
+              : {};
 
-        setSettings(calendarSettings);
+          // Backward compatible read: prefer new JSON settings, fall back to legacy key if present.
+          const calendarSettings =
+            typeof (settingsBlob as Record<string, unknown>).calendarSettings === "object" &&
+            (settingsBlob as Record<string, unknown>).calendarSettings !== null
+              ? (settingsBlob as Record<string, unknown>).calendarSettings
+              : (data as Record<string, unknown>).calendar_settings ?? localSettings;
+
+          setSettings(calendarSettings);
+          writeLocalCalendarSettings(calendarSettings);
+        } else {
+          setSettings(localSettings);
+        }
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
 
     fetchSettings();
@@ -43,29 +67,32 @@ export function useUserCalendarSettings(userId: string | undefined) {
   const updateSettings = async (newSettings: any) => {
     if (!userId) return;
 
-    const { data: current } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", userId)
-      .single();
+    writeLocalCalendarSettings(newSettings);
 
-    const existing =
-      current && typeof current.settings === "object" && current.settings !== null
-        ? current.settings
-        : {};
+    try {
+      const res = await fetch("/api/users/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ calendarSettings: newSettings }),
+      });
 
-    const mergedSettings = {
-      ...(existing as Record<string, unknown>),
-      calendarSettings: newSettings,
-    };
+      if (res.ok) {
+        setSettings(newSettings);
+        return { error: null };
+      }
 
-    const { error } = await supabase
-      .from("users")
-      .update({ settings: mergedSettings })
-      .eq("id", userId);
-    
-    if (!error) setSettings(newSettings);
-    return { error };
+      const body = await res.json().catch(() => ({}));
+      const message =
+        typeof body?.error === "string"
+          ? body.error
+          : `Failed to update calendar settings (${res.status})`;
+
+      return { error: { message } };
+    } catch {
+      setSettings(newSettings);
+      return { error: { message: "Failed to update calendar settings" } };
+    }
   };
 
   return { settings, loading, updateSettings };

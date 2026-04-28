@@ -38,6 +38,7 @@ export function GridCalendar({
   selectedDate,
   density = 'comfortable',
 }: GridCalendarProps) {  
+  const isCompact = density === 'compact';
 
   const eventsByDay = events.reduce((acc, item) => {
     if (!isValid(item.date)) return acc;
@@ -62,12 +63,12 @@ export function GridCalendar({
 
   return (
     <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className={isCompact ? "flex flex-row items-center justify-between py-3" : "flex flex-row items-center justify-between"}>
         <Button variant="ghost" size="icon" onClick={onPrevMonth}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
 
-        <CardTitle className="text-center text-lg sm:text-xl">
+        <CardTitle className={isCompact ? "text-center text-base sm:text-lg" : "text-center text-lg sm:text-xl"}>
           {format(month, 'MMMM yyyy')}
         </CardTitle>
 
@@ -76,10 +77,18 @@ export function GridCalendar({
         </Button>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className={isCompact ? "px-3 pb-3 pt-0" : undefined}>
         {/* Weekday Header */}
         <div
-          className="
+          className={isCompact ? `
+            grid grid-cols-7 
+            text-center text-[10px] font-semibold tracking-wide uppercase
+            text-white/60 
+            bg-white/5 
+            backdrop-blur-sm 
+            border-b border-white/20 
+            py-1
+          ` : `
             grid grid-cols-7 
             text-center text-xs font-semibold tracking-wide uppercase
             text-white/70 
@@ -87,10 +96,10 @@ export function GridCalendar({
             backdrop-blur-sm 
             border-b border-white/20 
             py-2
-          "
+          `}
         >
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-            <div key={day} className="py-2">
+            <div key={day} className={isCompact ? "py-1" : "py-2"}>
               {day}
             </div>
           ))}
@@ -129,9 +138,9 @@ export function GridCalendar({
 
             const dayClass = [
               "relative flex flex-col items-start justify-start border-r border-b aspect-square overflow-hidden",
-              density === 'compact' ? 'p-1.5' : 'p-2',
+              isCompact ? 'p-1' : 'p-2',
               "transition-all duration-150",
-              "hover:bg-white/10 hover:shadow-lg hover:z-10 hover:scale-[1.02]",
+              isCompact ? "hover:bg-white/10" : "hover:bg-white/10 hover:shadow-lg hover:z-10 hover:scale-[1.02]",
               selectedDate && isSameDay(day, selectedDate)
                 ? "ring-2 ring-sky-400/70 ring-inset"
                 : "",
@@ -149,7 +158,7 @@ export function GridCalendar({
                 className={dayClass}
                 onClick={() => onSelectDate(day)}
               >
-                <span className={density === 'compact' ? 'text-xs font-medium' : 'text-sm font-medium'}>{format(day, 'd')}</span>
+                <span className={isCompact ? 'text-[11px] font-medium leading-none' : 'text-sm font-medium'}>{format(day, 'd')}</span>
 
                 {/* Mobile count bubble */}
                 {count > 0 && (
@@ -164,33 +173,29 @@ export function GridCalendar({
 
                 {/* Desktop event chips */}
                 {count > 0 && (
-                  <div className={density === 'compact' ? 'hidden md:flex flex-col items-start w-full mt-1 space-y-1.5' : 'hidden md:flex flex-col items-start w-full mt-1 space-y-2'}>
-                    {dayEvents.slice(0, 2).map((event) => {
+                  <div className={isCompact ? 'hidden md:flex flex-col items-start w-full mt-1 space-y-1' : 'hidden md:flex flex-col items-start w-full mt-1 space-y-2'}>
+                    {(isCompact ? dayEvents.slice(0, 1) : dayEvents.slice(0, 2)).map((event) => {
                       const groups = "groups" in event ? event.groups : [];
                       const color = getGroupColor(groups);
 
                       return (
                         <div
                           key={`${event.id}-${event.dateString}-${"timeString" in event ? "service" : "event"}`}
-                          className="
-                            text-xs text-white 
-                            rounded-sm px-2 py-0.5
-                            truncate w-full text-left 
-                            shadow-sm 
-                            border border-white/20
-                          "
+                          className={isCompact ? "text-[10px] text-white/90 rounded-sm px-1.5 py-px truncate w-full text-left border border-white/15 leading-tight" : "text-xs text-white rounded-sm px-2 py-0.5 truncate w-full text-left shadow-sm border border-white/20"}
                           style={{ backgroundColor: color }}
                         >
                           {"timeString" in event
-                            ? `${format(new Date(`${event.dateString}T${event.timeString}`), "h:mm a")} - ${event.title}`
+                            ? isCompact
+                              ? `${format(new Date(`${event.dateString}T${event.timeString}`), "h:mma")} ${event.title}`
+                              : `${format(new Date(`${event.dateString}T${event.timeString}`), "h:mm a")} - ${event.title}`
                             : `${format(event.date, "h:mm a")} - ${event.title}`}
                         </div>
                       );
                     })}
 
-                    {count > 2 && (
-                      <div className="text-xs text-muted-foreground">
-                        + {count - 2} more
+                    {count > (isCompact ? 1 : 2) && (
+                      <div className={isCompact ? "text-[10px] text-white/55" : "text-xs text-muted-foreground"}>
+                        + {count - (isCompact ? 1 : 2)} more
                       </div>
                     )}
                   </div>
