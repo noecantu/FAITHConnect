@@ -16,6 +16,8 @@ type District = {
   state?: string | null;
   logo_url?: string | null;
   region_admin_name?: string | null;
+  region_admin_first_name?: string | null;
+  region_admin_last_name?: string | null;
   region_admin_title?: string | null;
   created_at?: string;
 };
@@ -32,9 +34,17 @@ export default function AdminDistrictsPage() {
   const [name, setName] = useState("");
   const [state, setState] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
-  const [adminName, setAdminName] = useState("");
+  const [adminFirstName, setAdminFirstName] = useState("");
+  const [adminLastName, setAdminLastName] = useState("");
   const [adminTitle, setAdminTitle] = useState("");
   const [saving, setSaving] = useState(false);
+
+  function getAdminFullName(d: District): string {
+    const first = (d.region_admin_first_name ?? "").trim();
+    const last = (d.region_admin_last_name ?? "").trim();
+    const fromParts = [first, last].filter(Boolean).join(" ");
+    return fromParts || (d.region_admin_name ?? "").trim();
+  }
 
   async function loadDistricts() {
     setLoading(true);
@@ -62,7 +72,7 @@ export default function AdminDistrictsPage() {
       (d) =>
         d.name.toLowerCase().includes(term) ||
         (d.state ?? "").toLowerCase().includes(term) ||
-        (d.region_admin_name ?? "").toLowerCase().includes(term)
+        getAdminFullName(d).toLowerCase().includes(term)
     );
   }, [districts, search]);
 
@@ -79,7 +89,8 @@ export default function AdminDistrictsPage() {
           name: name.trim(),
           state: state.trim() || null,
           logo_url: logoUrl.trim() || null,
-          region_admin_name: adminName.trim() || null,
+          region_admin_first_name: adminFirstName.trim() || null,
+          region_admin_last_name: adminLastName.trim() || null,
           region_admin_title: adminTitle.trim() || null,
         }),
       });
@@ -93,7 +104,8 @@ export default function AdminDistrictsPage() {
       setName("");
       setState("");
       setLogoUrl("");
-      setAdminName("");
+      setAdminFirstName("");
+      setAdminLastName("");
       setAdminTitle("");
       setShowCreate(false);
     } catch (err: unknown) {
@@ -167,12 +179,21 @@ export default function AdminDistrictsPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="d-admin-name">Admin Name</Label>
+                <Label htmlFor="d-admin-first-name">Admin First Name</Label>
                 <Input
-                  id="d-admin-name"
-                  value={adminName}
-                  onChange={(e) => setAdminName(e.target.value)}
-                  placeholder="e.g., John Smith"
+                  id="d-admin-first-name"
+                  value={adminFirstName}
+                  onChange={(e) => setAdminFirstName(e.target.value)}
+                  placeholder="e.g., John"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="d-admin-last-name">Admin Last Name</Label>
+                <Input
+                  id="d-admin-last-name"
+                  value={adminLastName}
+                  onChange={(e) => setAdminLastName(e.target.value)}
+                  placeholder="e.g., Smith"
                 />
               </div>
               <div className="space-y-1.5 sm:col-span-2">
@@ -239,12 +260,12 @@ export default function AdminDistrictsPage() {
                         {district.state}
                       </p>
                     )}
-                    {(district.region_admin_title || district.region_admin_name) && (
+                    {(district.region_admin_title || getAdminFullName(district)) && (
                       <p className="text-sm text-muted-foreground truncate">
                         {district.region_admin_title
                           ? `${district.region_admin_title}: `
                           : ""}
-                        {district.region_admin_name ?? ""}
+                        {getAdminFullName(district)}
                       </p>
                     )}
                   </div>

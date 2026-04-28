@@ -110,6 +110,8 @@ export async function updateUserAction(input: UpdateUserInput) {
       region_id = existingRegion.id;
       await adminDb.from("regions").update({
         region_admin_id: userId,
+        region_admin_first_name: before.first_name ?? "",
+        region_admin_last_name: before.last_name ?? "",
         region_admin_name: `${before.first_name ?? ""} ${before.last_name ?? ""}`.trim(),
       }).eq("id", region_id);
     } else {
@@ -118,6 +120,8 @@ export async function updateUserAction(input: UpdateUserInput) {
         id: region_id,
         name: regionName,
         region_admin_id: userId,
+        region_admin_first_name: before.first_name ?? "",
+        region_admin_last_name: before.last_name ?? "",
         region_admin_name: `${before.first_name ?? ""} ${before.last_name ?? ""}`.trim(),
         created_by: actorUid,
         created_at: new Date().toISOString(),
@@ -140,6 +144,8 @@ export async function updateUserAction(input: UpdateUserInput) {
       district_id = existingDistrict.id;
       await adminDb.from("districts").update({
         region_admin_id: userId,
+        region_admin_first_name: before.first_name ?? "",
+        region_admin_last_name: before.last_name ?? "",
         region_admin_name: `${before.first_name ?? ""} ${before.last_name ?? ""}`.trim(),
         region_admin_title: input.districtTitle?.trim() ?? null,
         state: input.districtState?.trim() ?? null,
@@ -150,6 +156,8 @@ export async function updateUserAction(input: UpdateUserInput) {
         id: district_id,
         name: districtName,
         region_admin_id: userId,
+        region_admin_first_name: before.first_name ?? "",
+        region_admin_last_name: before.last_name ?? "",
         region_admin_name: `${before.first_name ?? ""} ${before.last_name ?? ""}`.trim(),
         region_admin_title: input.districtTitle?.trim() ?? null,
         state: input.districtState?.trim() ?? null,

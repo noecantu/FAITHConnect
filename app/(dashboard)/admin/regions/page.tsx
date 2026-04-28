@@ -23,6 +23,8 @@ type Region = {
   state?: string | null;
   logo_url?: string | null;
   region_admin_name?: string | null;
+  region_admin_first_name?: string | null;
+  region_admin_last_name?: string | null;
   region_admin_title?: string | null;
   district_id?: string | null;
   district_name?: string | null;
@@ -47,10 +49,18 @@ export default function AdminRegionsPage() {
   const [name, setName] = useState("");
   const [state, setState] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
-  const [adminName, setAdminName] = useState("");
+  const [adminFirstName, setAdminFirstName] = useState("");
+  const [adminLastName, setAdminLastName] = useState("");
   const [adminTitle, setAdminTitle] = useState("");
   const [districtId, setDistrictId] = useState("none");
   const [saving, setSaving] = useState(false);
+
+  function getAdminFullName(r: Region): string {
+    const first = (r.region_admin_first_name ?? "").trim();
+    const last = (r.region_admin_last_name ?? "").trim();
+    const fromParts = [first, last].filter(Boolean).join(" ");
+    return fromParts || (r.region_admin_name ?? "").trim();
+  }
 
   async function loadRegions() {
     setLoading(true);
@@ -90,7 +100,7 @@ export default function AdminRegionsPage() {
       (r) =>
         r.name.toLowerCase().includes(term) ||
         (r.state ?? "").toLowerCase().includes(term) ||
-        (r.region_admin_name ?? "").toLowerCase().includes(term) ||
+        getAdminFullName(r).toLowerCase().includes(term) ||
         (r.district_name ?? "").toLowerCase().includes(term)
     );
   }, [regions, search]);
@@ -108,7 +118,8 @@ export default function AdminRegionsPage() {
           name: name.trim(),
           state: state.trim() || null,
           logo_url: logoUrl.trim() || null,
-          region_admin_name: adminName.trim() || null,
+          region_admin_first_name: adminFirstName.trim() || null,
+          region_admin_last_name: adminLastName.trim() || null,
           region_admin_title: adminTitle.trim() || null,
           district_id: districtId === "none" ? null : districtId,
         }),
@@ -130,7 +141,8 @@ export default function AdminRegionsPage() {
       setName("");
       setState("");
       setLogoUrl("");
-      setAdminName("");
+      setAdminFirstName("");
+      setAdminLastName("");
       setAdminTitle("");
       setDistrictId("none");
       setShowCreate(false);
@@ -205,12 +217,21 @@ export default function AdminRegionsPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="r-admin-name">Admin Name</Label>
+                <Label htmlFor="r-admin-first-name">Admin First Name</Label>
                 <Input
-                  id="r-admin-name"
-                  value={adminName}
-                  onChange={(e) => setAdminName(e.target.value)}
-                  placeholder="e.g., Jane Doe"
+                  id="r-admin-first-name"
+                  value={adminFirstName}
+                  onChange={(e) => setAdminFirstName(e.target.value)}
+                  placeholder="e.g., Jane"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="r-admin-last-name">Admin Last Name</Label>
+                <Input
+                  id="r-admin-last-name"
+                  value={adminLastName}
+                  onChange={(e) => setAdminLastName(e.target.value)}
+                  placeholder="e.g., Doe"
                 />
               </div>
               <div className="space-y-1.5">
@@ -296,12 +317,12 @@ export default function AdminRegionsPage() {
                         {region.state}
                       </p>
                     )}
-                    {(region.region_admin_title || region.region_admin_name) && (
+                    {(region.region_admin_title || getAdminFullName(region)) && (
                       <p className="text-sm text-muted-foreground truncate">
                         {region.region_admin_title
                           ? `${region.region_admin_title}: `
                           : ""}
-                        {region.region_admin_name ?? ""}
+                        {getAdminFullName(region)}
                       </p>
                     )}
                     {region.district_name && (

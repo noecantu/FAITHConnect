@@ -5,6 +5,13 @@ import { NextResponse } from "next/server";
 import { getServerUser } from "@/app/lib/supabase/server";
 import { adminDb } from "@/app/lib/supabase/admin";
 
+function splitPersonName(fullName: string): { first: string; last: string } {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { first: "", last: "" };
+  if (parts.length === 1) return { first: parts[0], last: "" };
+  return { first: parts[0], last: parts.slice(1).join(" ") };
+}
+
 async function requireRootAdmin() {
   const authUser = await getServerUser();
   if (!authUser) return null;
@@ -28,12 +35,26 @@ export async function GET() {
 
     const { data, error } = await adminDb
       .from("districts")
-      .select("id, name, state, logo_url, region_admin_name, region_admin_title, created_at")
+      .select("id, name, state, logo_url, region_admin_name, region_admin_first_name, region_admin_last_name, region_admin_title, created_at")
       .order("name", { ascending: true });
 
     if (error) throw error;
 
-    return NextResponse.json({ districts: data ?? [] });
+    const districts = (data ?? []).map((row) => {
+      const first = typeof row.region_admin_first_name === "string" ? row.region_admin_first_name.trim() : "";
+      const last = typeof row.region_admin_last_name === "string" ? row.region_admin_last_name.trim() : "";
+      const fallbackFull = typeof row.region_admin_name === "string" ? row.region_admin_name.trim() : "";
+      const full = [first, last].filter(Boolean).join(" ") || fallbackFull || null;
+
+      return {
+        ...row,
+        region_admin_name: full,
+        region_admin_first_name: first || null,
+        region_admin_last_name: last || null,
+      };
+    });
+
+    return NextResponse.json({ districts });
   } catch (err) {
     console.error("admin districts GET error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -47,11 +68,28 @@ export async function POST(req: Request) {
     if (!user) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body = await req.json();
-    const { name, state, logo_url, region_admin_name, region_admin_title } = body as Record<string, string | undefined>;
+    const {
+      name,
+      state,
+      logo_url,
+      region_admin_name,
+      region_admin_first_name,
+      region_admin_last_name,
+      region_admin_title,
+    } = body as Record<string, string | undefined>;
 
     if (!name?.trim()) {
       return NextResponse.json({ error: "name is required" }, { status: 400 });
     }
+
+    const adminFirst = region_admin_first_name?.trim() ?? "";
+    const adminLast = region_admin_last_name?.trim() ?? "";
+    const adminFullFromParts = [adminFirst, adminLast].filter(Boolean).join(" ");
+    const adminLegacyFull = region_admin_name?.trim() ?? "";
+    const parsedLegacy = adminLegacyFull ? splitPersonName(adminLegacyFull) : { first: "", last: "" };
+    const normalizedFirst = adminFirst || parsedLegacy.first || null;
+    const normalizedLast = adminLast || parsedLegacy.last || null;
+    const normalizedFull = adminFullFromParts || adminLegacyFull || null;
 
     const { data, error } = await adminDb
       .from("districts")
@@ -59,10 +97,12 @@ export async function POST(req: Request) {
         name: name.trim(),
         state: state?.trim() || null,
         logo_url: logo_url?.trim() || null,
-        region_admin_name: region_admin_name?.trim() || null,
+        region_admin_name: normalizedFull,
+        region_admin_first_name: normalizedFirst,
+        region_admin_last_name: normalizedLast,
         region_admin_title: region_admin_title?.trim() || null,
       })
-      .select("id, name, state, logo_url, region_admin_name, region_admin_title, created_at")
+      .select("id, name, state, logo_url, region_admin_name, region_admin_first_name, region_admin_last_name, region_admin_title, created_at")
       .single();
 
     if (error) throw error;
