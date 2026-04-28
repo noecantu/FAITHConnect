@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 
 import { useChurchId } from "@/app/hooks/useChurchId";
+import { useMembers } from "@/app/hooks/useMembers";
 import { useToast } from "@/app/hooks/use-toast";
 import { createEvent, updateEvent } from "@/app/lib/events";
 
@@ -16,14 +17,32 @@ import { MultiSelect } from "@/app/components/ui/multi-select";
 
 import type { Role } from "@/app/lib/auth/roles";
 import { EVENT_GROUP_OPTIONS } from "@/app/lib/groupOptions";
-import type { UserProfile } from "@/app/lib/types";
+import type { Member, UserProfile } from "@/app/lib/types";
 import { can } from "@/app/lib/auth/permissions";
 
 interface EventEditorProps {
   mode: "create" | "edit";
-  initialEvent: any | null;
+  initialEvent: {
+    id: string;
+    date?: Date;
+    dateString?: string;
+    timeString?: string;
+    title?: string;
+    description?: string;
+    isPublic?: boolean;
+    visibility?: "public" | "private";
+    groups?: string[];
+    memberIds?: string[];
+  } | null;
   onCancel: () => void;
   onSaved: () => void;
+}
+
+function getMemberOptionLabel(member: Member): string {
+  const fullName = `${member.firstName ?? ""} ${member.lastName ?? ""}`.trim();
+  if (fullName && member.email) return `${fullName} (${member.email})`;
+  if (fullName) return fullName;
+  return member.email ?? "Unnamed member";
 }
 
 export default function EventEditor({
@@ -33,6 +52,7 @@ export default function EventEditor({
   onSaved,
 }: EventEditorProps) {
   const { churchId } = useChurchId();
+  const { members } = useMembers();
   const { toast } = useToast();
 
   // --- USER STATE ---
@@ -58,11 +78,19 @@ export default function EventEditor({
   );
 
   const [isPublic, setIsPublic] = useState(
-    initialEvent?.isPublic ?? true
+    typeof initialEvent?.isPublic === "boolean"
+      ? initialEvent.isPublic
+      : initialEvent?.visibility === "private"
+      ? false
+      : true
   );
 
   const [groups, setGroups] = useState<string[]>(
     initialEvent?.groups ?? []
+  );
+
+  const [memberIds, setMemberIds] = useState<string[]>(
+    initialEvent?.memberIds ?? []
   );
 
   const [saving, setSaving] = useState(false);
@@ -95,11 +123,13 @@ export default function EventEditor({
 
   // --- ROLE + GROUP LOGIC ---
   const roles = user?.roles ?? [];
-  const admin = can(roles, "events.manage");
-
-  const userGroups = user ? extractUserGroups(user) : [];
-  const isManager = user && !admin && userGroups.length === 1;
-  const managerGroup = isManager ? userGroups[0].toLowerCase() : null;
+  const canManageVisibility = can(roles, "events.manage");
+  const memberOptions = members
+    .filter((member) => member.status !== "Archived")
+    .map((member) => ({
+      label: getMemberOptionLabel(member),
+      value: member.id,
+    }));
 
   // --- LOADING UI ---
   if (!user) {
@@ -113,12 +143,15 @@ export default function EventEditor({
     setSaving(true);
     setSaveError(null);
 
-    let finalIsPublic = isPublic;
-    let finalGroups = groups;
-
-    if (isManager) {
-      finalIsPublic = false;
-      finalGroups = [managerGroup!];
+    if (!isPublic && groups.length === 0 && memberIds.length === 0) {
+      const message = "Private events must be visible to at least one group or member.";
+      setSaveError(message);
+      toast({
+        title: "Missing audience",
+        description: message,
+      });
+      setSaving(false);
+      return;
     }
 
     const combinedDate = new Date(
@@ -131,14 +164,16 @@ export default function EventEditor({
       dateString: localDateString,
       timeString: localTimeString,
       date: combinedDate,
-      isPublic: finalIsPublic,
-      groups: finalIsPublic ? [] : finalGroups,
+      visibility: isPublic ? "public" : "private",
+      groups: isPublic ? [] : groups,
+      memberIds: isPublic ? [] : memberIds,
     };
 
     try {
       if (mode === "create") {
         await createEvent(churchId!, payload);
       } else {
+        if (!initialEvent?.id) throw new Error("Missing event id");
         await updateEvent(churchId!, initialEvent.id, payload);
       }
 
@@ -225,7 +260,7 @@ export default function EventEditor({
         </div>
 
         {/* Visibility */}
-        {admin && (
+        {canManageVisibility && (
           <div className="space-y-4 border-t border-white/20 pt-6 mt-6">
             <h3 className="text-lg font-semibold">Visibility</h3>
 
@@ -240,6 +275,7 @@ export default function EventEditor({
                   onClick={() => {
                     setIsPublic(true);
                     setGroups([]);
+                    setMemberIds([]);
                   }}
                   className={
                     "flex-1 px-3 py-2 text-sm font-medium " +
@@ -267,22 +303,30 @@ export default function EventEditor({
             </div>
 
             {!isPublic && (
-              <div className="space-y-2">
-                <label className="text-sm">Visible to Groups</label>
-                <MultiSelect
-                  options={EVENT_GROUP_OPTIONS}
-                  value={groups}
-                  onChange={setGroups}
-                />
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm">Visible to Groups</label>
+                  <MultiSelect
+                    options={EVENT_GROUP_OPTIONS}
+                    value={groups}
+                    onChange={setGroups}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm">Visible to Members</label>
+                  <MultiSelect
+                    options={memberOptions}
+                    value={memberIds}
+                    onChange={setMemberIds}
+                  />
+                </div>
+
+                <p className="text-xs text-white/60 md:col-span-2">
+                  Choose one or both. Leave both empty only for public events.
+                </p>
               </div>
             )}
-          </div>
-        )}
-
-        {isManager && (
-          <div className="space-y-2 border-t border-white/20 pt-4 mt-4">
-            <label className="text-sm">Group</label>
-            <div className="text-sm text-white/70">{managerGroup}</div>
           </div>
         )}
       </div>

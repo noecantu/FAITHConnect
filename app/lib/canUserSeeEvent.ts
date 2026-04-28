@@ -6,11 +6,13 @@ import type { Role } from "@/app/lib/auth/roles";
 
 export interface UserLike {
   roles: Role[];
+  memberIds?: string[] | null;
 }
 
 export interface EventLike {
   visibility: "public" | "private";
   groups?: string[] | null;
+  memberIds?: string[] | null;
 }
 
 export function canUserSeeEvent(
@@ -38,6 +40,18 @@ export function canUserSeeEvent(
 
   // ⭐ Public events are visible to everyone
   if (event.visibility === "public") return true;
+
+  const linkedMemberIds = Array.isArray(user.memberIds)
+    ? user.memberIds.filter((id): id is string => typeof id === "string" && id.length > 0)
+    : [];
+
+  const explicitMemberIds = Array.isArray(event.memberIds)
+    ? event.memberIds.filter((id): id is string => typeof id === "string" && id.length > 0)
+    : [];
+
+  if (linkedMemberIds.some((memberId) => explicitMemberIds.includes(memberId))) {
+    return true;
+  }
 
   // ⭐ Private events require group intersection
   const userGroups = getGroupsForRoles(roles);

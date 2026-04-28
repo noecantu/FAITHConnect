@@ -212,6 +212,7 @@ create table if not exists public.events (
   notes           text,
   visibility      text not null default 'private', -- 'public' | 'private'
   groups          text[] not null default '{}',
+  member_ids      text[] not null default '{}',
 
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now()
@@ -818,3 +819,9 @@ create trigger on_auth_user_created
 -- Safe to run multiple times (IF NOT EXISTS guard).
 -- ----------------------------------------------------------------
 alter table public.users add column if not exists permissions text[] not null default '{}';
+
+-- ----------------------------------------------------------------
+-- Migration: add event member targeting to existing deployments.
+-- Safe to run multiple times (IF NOT EXISTS guard).
+-- ----------------------------------------------------------------
+alter table public.events add column if not exists member_ids text[] not null default '{}';

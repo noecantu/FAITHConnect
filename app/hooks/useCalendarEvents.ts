@@ -11,6 +11,7 @@ type EventRow = {
   notes?: string | null;
   visibility?: "public" | "private" | null;
   groups?: string[] | null;
+  member_ids?: string[] | null;
 };
 
 function isValidDate(value: Date) {
@@ -49,6 +50,7 @@ export function useCalendarEvents(churchId: string | undefined) {
               notes: row.notes ?? undefined,
               visibility: (row.visibility === "public" ? "public" : "private") as "public" | "private",
               groups: Array.isArray(row.groups) ? row.groups : [],
+              memberIds: Array.isArray(row.member_ids) ? row.member_ids : [],
             };
           })
           .filter((event) => event.dateString.length > 0 && isValidDate(event.date));

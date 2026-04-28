@@ -121,6 +121,15 @@ export async function GET() {
 
     const uid = authUser.id;
 
+    const { data: linkedMembers } = await adminDb
+      .from("members")
+      .select("id")
+      .eq("user_id", uid);
+
+    const memberIds = (linkedMembers ?? [])
+      .map((member) => (typeof member.id === "string" ? member.id : null))
+      .filter((memberId): memberId is string => Boolean(memberId));
+
     const { data: user, error } = await adminDb
       .from("users")
       .select("*")
@@ -172,6 +181,7 @@ export async function GET() {
         email: authUser.email ?? null,
         firstName: (metadata as Record<string, unknown>).firstName ?? null,
         lastName: (metadata as Record<string, unknown>).lastName ?? null,
+        memberIds,
         profilePhotoUrl: null,
         planId: null,
         stripeCustomerId: null,
@@ -260,6 +270,7 @@ export async function GET() {
       email: user.email ?? null,
       firstName: user.first_name ?? null,
       lastName: user.last_name ?? null,
+      memberIds,
       profilePhotoUrl: user.profile_photo_url ?? null,
       planId: user.plan_id ?? null,
       stripeCustomerId: user.stripe_customer_id ?? null,

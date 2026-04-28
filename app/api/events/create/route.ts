@@ -4,6 +4,15 @@ import { NextResponse } from "next/server";
 import { getServerUser } from "@/app/lib/supabase/server";
 import { adminDb } from "@/app/lib/supabase/admin";
 
+function normalizeStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}
+
 function canManageChurch(params: {
   roles: string[];
   callerChurchId: string | null;
@@ -47,9 +56,32 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const churchId = typeof body?.churchId === "string" ? body.churchId : null;
+    const groups = normalizeStringArray(body?.groups);
+    const memberIds = normalizeStringArray(body?.memberIds ?? body?.member_ids);
+    const visibility = body?.visibility === "public" ? "public" : "private";
 
     if (!churchId) {
       return NextResponse.json({ error: "Missing churchId" }, { status: 400 });
+    }
+
+    if (visibility === "private" && groups.length === 0 && memberIds.length === 0) {
+      return NextResponse.json({ error: "Private events must target at least one group or member" }, { status: 400 });
+    }
+
+    if (memberIds.length > 0) {
+      const { data: memberRows, error: memberError } = await adminDb
+        .from("members")
+        .select("id")
+        .eq("church_id", churchId)
+        .in("id", memberIds);
+
+      if (memberError) {
+        return NextResponse.json({ error: memberError.message }, { status: 400 });
+      }
+
+      if ((memberRows ?? []).length !== memberIds.length) {
+        return NextResponse.json({ error: "One or more selected members do not belong to this church" }, { status: 400 });
+      }
     }
 
     if (!canManageChurch({ roles, callerChurchId: caller.church_id ?? null, managedChurchIds, targetChurchId: churchId })) {
@@ -64,8 +96,9 @@ export async function POST(req: Request) {
         date_string: body.dateString ?? body.date_string,
         description: body.description ?? null,
         notes: body.notes ?? null,
-        visibility: body.visibility ?? "private",
-        groups: body.groups ?? [],
+        visibility,
+        groups,
+        member_ids: memberIds,
       })
       .select()
       .single();

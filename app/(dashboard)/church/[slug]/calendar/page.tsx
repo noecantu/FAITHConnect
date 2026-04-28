@@ -97,6 +97,7 @@ export default function CalendarPage() {
       canUserSeeEvent(user, {
         visibility: item.visibility,
         groups: item.groups,
+        memberIds: "memberIds" in item ? item.memberIds : [],
       })
     );
   }, [merged, user, isRegionalAdmin, isAuditor]);

@@ -105,6 +105,7 @@ export type Event = {
   notes?: string;
   visibility: "public" | "private";
   groups: string[];
+  memberIds: string[];
 };
 
 export type Family = {
@@ -399,6 +400,7 @@ export type UserProfile = {
   displayName?: string;
   profilePhotoUrl?: string;
   roles: Role[];
+  memberIds?: string[];
   churchId: string | null;
   regionId?: string | null;
 };
