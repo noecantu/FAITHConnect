@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { PageHeader } from '@/app/components/page-header';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { useAuth } from '@/app/hooks/useAuth';
@@ -28,6 +28,23 @@ export default function ChurchSettingsPage() {
   const [hasLoadedUsage, setHasLoadedUsage] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [billingOwnerUid, setBillingOwnerUid] = useState<string | null>(null);
+
+  const fetchBillingOwner = useCallback(() => {
+    if (!church_id) { setBillingOwnerUid(null); return; }
+    fetch(`/api/church/${encodeURIComponent(church_id)}`)
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (!data) return;
+        const uid =
+          typeof data.billing_owner_uid === 'string'
+            ? data.billing_owner_uid
+            : typeof data.created_by === 'string'
+            ? data.created_by
+            : null;
+        setBillingOwnerUid(uid);
+      })
+      .catch(() => setBillingOwnerUid(null));
+  }, [church_id]);
 
   const {
     users,
@@ -65,29 +82,13 @@ export default function ChurchSettingsPage() {
     goBackToList,
 
     getSortedUsers,
-  } = useUserManagement(church_id ?? undefined);
+  } = useUserManagement(church_id ?? undefined, { onBillingOwnerTransferred: fetchBillingOwner });
 
   // ---------- BILLING OWNER ----------
 
   useEffect(() => {
-    if (!church_id) {
-      setBillingOwnerUid(null);
-      return;
-    }
-    fetch(`/api/church/${encodeURIComponent(church_id)}`)
-      .then((res) => res.ok ? res.json() : null)
-      .then((data) => {
-        if (!data) return;
-        const uid =
-          typeof data.billing_owner_uid === 'string'
-            ? data.billing_owner_uid
-            : typeof data.created_by === 'string'
-            ? data.created_by
-            : null;
-        setBillingOwnerUid(uid);
-      })
-      .catch(() => setBillingOwnerUid(null));
-  }, [church_id]);
+    fetchBillingOwner();
+  }, [fetchBillingOwner]);
 
   // ---------- STORAGE USAGE ----------
 

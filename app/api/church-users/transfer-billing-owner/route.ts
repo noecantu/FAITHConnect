@@ -56,7 +56,7 @@ export async function POST(req: Request) {
 
     const billingContactEmail = typeof target.email === "string" ? target.email : null;
 
-    await adminDb
+    const { error: updateError } = await adminDb
       .from("churches")
       .update({
         billing_owner_uid: uid,
@@ -64,6 +64,11 @@ export async function POST(req: Request) {
         billing_updated_at: new Date().toISOString(),
       })
       .eq("id", targetChurchId);
+
+    if (updateError) {
+      console.error("transfer-billing-owner update error:", updateError);
+      return NextResponse.json({ error: updateError.message }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

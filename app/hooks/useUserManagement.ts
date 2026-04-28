@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getSupabaseClient } from "@/app/lib/supabase/client";
 import type { AppUser, Mode } from '@/app/lib/types';
 import type { Role } from '@/app/lib/auth/roles';
 
-export function useUserManagement(churchId: string | undefined) {
+export function useUserManagement(churchId: string | undefined, { onBillingOwnerTransferred }: { onBillingOwnerTransferred?: () => void } = {}) {
   const [users, setUsers] = useState<AppUser[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,28 +29,35 @@ export function useUserManagement(churchId: string | undefined) {
       setLoading(false);
       return;
     }
-    const supabase = getSupabaseClient();
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("church_id", churchId);
-    if (!error) {
-      // Normalize: Supabase rows use snake_case, map to AppUser camelCase shape
-      setUsers(
-        (data || []).map((row: Record<string, unknown>) => ({
-          uid: row.id as string,
-          email: row.email as string,
-          firstName: row.first_name as string | null,
-          lastName: row.last_name as string | null,
-          roles: (row.roles as Role[]) ?? [],
-          churchId: row.church_id as string | null,
-          regionId: row.region_id as string | null,
-          districtId: row.district_id as string | null,
-          managedChurchIds: (row.managed_church_ids as string[]) ?? [],
-          profilePhotoUrl: row.profile_photo_url as string | undefined,
-          settings: row.settings as AppUser['settings'],
-        }))
-      );
+    try {
+      const res = await fetch(`/api/church-users/list?churchId=${encodeURIComponent(churchId)}`, {
+        credentials: 'include',
+      });
+      if (res.ok) {
+        const data: Record<string, unknown>[] = await res.json();
+        setUsers(
+          data.map((row) => ({
+            uid: row.id as string,
+            email: row.email as string,
+            firstName: row.first_name as string | null,
+            lastName: row.last_name as string | null,
+            roles: (row.roles as Role[]) ?? [],
+            churchId: row.church_id as string | null,
+            regionId: row.region_id as string | null,
+            districtId: row.district_id as string | null,
+            managedChurchIds: (row.managed_church_ids as string[]) ?? [],
+            profilePhotoUrl: row.profile_photo_url as string | undefined,
+            settings: row.settings as AppUser['settings'],
+          }))
+        );
+      } else {
+        const payload = await res.text();
+        console.error('fetchUsers failed:', res.status, payload);
+        setUsers([]);
+      }
+    } catch (err) {
+      console.error('fetchUsers error:', err);
+      setUsers([]);
     }
     setLoading(false);
   }, [churchId]);
@@ -97,7 +103,7 @@ export function useUserManagement(churchId: string | undefined) {
     if (!churchId) return;
     setIsCreating(true);
     try {
-      const res = await fetch('/api/church-users/invite', {
+      const res = await fetch('/api/church-users/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ churchId, firstName, lastName, email, password, roles: selectedRoles }),
@@ -160,14 +166,18 @@ export function useUserManagement(churchId: string | undefined) {
     if (!selectedUser?.uid || !churchId) return;
     setIsTransferringBillingOwner(true);
     try {
-      const res = await fetch('/api/church/transfer-billing-owner', {
+      const res = await fetch('/api/church-users/transfer-billing-owner', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ churchId, newOwnerId: selectedUser.uid }),
+        body: JSON.stringify({ uid: selectedUser.uid }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         console.error('Transfer billing owner failed:', body.error ?? res.status);
+      } else {
+        await fetchUsers();
+        onBillingOwnerTransferred?.();
+        goBackToList();
       }
     } finally {
       setIsTransferringBillingOwner(false);
