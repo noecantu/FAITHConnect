@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo } from 'react';
-import { Member, Contribution, AttendanceRecord, SetList } from '@/app/lib/types';
+import { Member, Contribution, AttendanceRecord, SetList, ServicePlan, Song } from '@/app/lib/types';
 import type {
   ContributionBreakdown,
   ContributionBreakdownRow,
@@ -16,6 +16,8 @@ import {
   generateAttendanceExcel,
   generateSetListPDF,
   generateSetListExcel,
+  generateServicePlanPDF,
+  generateServicePlanExcel,
 } from '@/app/lib/reports';
 
 import {
@@ -24,7 +26,7 @@ import {
 } from '@/app/lib/reportMapping/contributionRows';
 
 interface UseReportExportsProps {
-  reportType: 'members' | 'contributions' | 'attendance' | 'setlists';
+  reportType: 'none' | 'members' | 'contributions' | 'attendance' | 'setlists' | 'serviceplans';
   filteredMembers: Member[];
   filteredContributions: Contribution[];
   filteredAttendance: AttendanceRecord[];
@@ -38,6 +40,8 @@ interface UseReportExportsProps {
   contributionBreakdownRows?: ContributionBreakdownRow[];
   contributionBreakdown?: ContributionBreakdown;
   selectedSetList?: SetList | null;
+  selectedServicePlan?: ServicePlan | null;
+  servicePlanSongs?: Song[];
 }
 
 export function useReportExports({
@@ -52,6 +56,8 @@ export function useReportExports({
   contributionBreakdownRows = [],
   contributionBreakdown = "member",
   selectedSetList,
+  selectedServicePlan,
+  servicePlanSongs = [],
 }: UseReportExportsProps) {
 
   // -----------------------------------------
@@ -167,6 +173,11 @@ export function useReportExports({
 
     if (reportType === "setlists" && selectedSetList) {
       generateSetListPDF(selectedSetList, logoBase64);
+      return;
+    }
+
+    if (reportType === "serviceplans" && selectedServicePlan) {
+      generateServicePlanPDF(selectedServicePlan, members, servicePlanSongs, logoBase64);
     }
   }, [
     reportType,
@@ -179,6 +190,9 @@ export function useReportExports({
     contributionExportContext,
     contributionFieldLabelOverrides,
     selectedSetList,
+    selectedServicePlan,
+    servicePlanSongs,
+    members,
   ]);
 
   // -----------------------------------------
@@ -209,6 +223,11 @@ export function useReportExports({
 
     if (reportType === "setlists" && selectedSetList) {
       generateSetListExcel(selectedSetList);
+      return;
+    }
+
+    if (reportType === "serviceplans" && selectedServicePlan) {
+      generateServicePlanExcel(selectedServicePlan, members, servicePlanSongs);
     }
   }, [
     reportType,
@@ -220,6 +239,9 @@ export function useReportExports({
     contributionExportContext,
     contributionFieldLabelOverrides,
     selectedSetList,
+    selectedServicePlan,
+    servicePlanSongs,
+    members,
   ]);
 
   return {

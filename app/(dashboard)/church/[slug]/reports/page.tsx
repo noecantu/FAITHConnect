@@ -9,14 +9,17 @@ import { useAttendanceForReports } from "@/app/hooks/useAttendanceForReports";
 import { useReportFilters } from "@/app/hooks/useReportFilters";
 import { useReportExports } from "@/app/hooks/useReportExports";
 import { useSetLists } from "@/app/hooks/useSetLists";
+import { useServicePlans } from "@/app/hooks/useServicePlans";
+import { useSongs } from "@/app/hooks/useSongs";
 import type { ContributionBreakdown } from "@/app/hooks/useContributionReport";
-import type { SetList } from "@/app/lib/types";
+import type { ServicePlan, SetList } from "@/app/lib/types";
 import { PageHeader } from "@/app/components/page-header";
 import { ReportFiltersPanel } from "@/app/components/reports/ReportFiltersPanel";
 import { MemberPreviewTable } from "@/app/components/reports/MemberPreviewTable";
 import { AttendancePreviewTable } from "@/app/components/reports/AttendancePreviewTable";
 import { ContributionPreviewTable } from "@/app/components/reports/ContributionPreviewTable";
 import { SetListPreviewReport } from "@/app/components/reports/SetListPreviewReport";
+import { ServicePlanPreviewReport } from "@/app/components/reports/ServicePlanPreviewReport";
 import { Button } from "@/app/components/ui/button";
 import { FileText, Loader2, Sheet, Copy } from "lucide-react";
 import { format } from "date-fns";
@@ -38,6 +41,7 @@ export default function ReportsPage() {
     loading: permissionsLoading,
     canReadReports,
     canReadMusic,
+    canReadServicePlans,
     canReadMembersReports,
     canReadContributionsReports,
     canReadAttendanceReports,
@@ -46,6 +50,8 @@ export default function ReportsPage() {
   } = usePermissions();
 
   const { lists: setLists, loading: setListsLoading } = useSetLists(churchId);
+  const { plans: servicePlans, loading: servicePlansLoading } = useServicePlans(churchId);
+  const { songs: servicePlanSongs, loading: servicePlanSongsLoading } = useSongs(churchId);
 
   const needsScopedContributions = isDistrictAdmin || isRegionalAdmin;
   const {
@@ -62,9 +68,14 @@ export default function ReportsPage() {
   // 2. LOCAL STATE HOOKS
   // -------------------------------------------------------
   const [reportType, setReportType] =
-    useState<"members" | "contributions" | "attendance" | "setlists">("contributions");
+    useState<"none" | "members" | "contributions" | "attendance" | "setlists" | "serviceplans">("none");
 
   const [selectedSetListId, setSelectedSetListId] = useState<string | null>(null);
+  const [selectedServicePlanId, setSelectedServicePlanId] = useState<string | null>(null);
+  const [selectedSetListYear, setSelectedSetListYear] = useState<string | null>(null);
+  const [selectedSetListMonth, setSelectedSetListMonth] = useState<string | null>(null);
+  const [selectedServicePlanYear, setSelectedServicePlanYear] = useState<string | null>(null);
+  const [selectedServicePlanMonth, setSelectedServicePlanMonth] = useState<string | null>(null);
 
   const [timeFrame, setTimeFrame] =
     useState<"month" | "year">("year");
@@ -84,58 +95,171 @@ export default function ReportsPage() {
   const [isCopyingSetList, setIsCopyingSetList] = useState(false);
 
   const canAccessSetListReport = !needsScopedContributions && canReadMusic;
+  const canAccessServicePlanReport = !needsScopedContributions && canReadServicePlans;
 
-  // -------------------------------------------------------
-  // 3. AUTO-SELECT FIRST ALLOWED REPORT TYPE
-  // -------------------------------------------------------
+  const setListYearOptions = useMemo(() => {
+    const years = new Set<string>();
+    setLists.forEach((list) => {
+      years.add(String(new Date(list.dateTime).getFullYear()));
+    });
+
+    return [...years].sort((a, b) => Number(b) - Number(a));
+  }, [setLists]);
+
+  const setListMonthOptions = useMemo(() => {
+    if (!selectedSetListYear) return [];
+
+    const months = new Set<string>();
+    setLists.forEach((list) => {
+      const date = new Date(list.dateTime);
+      if (String(date.getFullYear()) !== selectedSetListYear) return;
+      months.add(String(date.getMonth() + 1).padStart(2, "0"));
+    });
+
+    return [...months].sort((a, b) => Number(b) - Number(a));
+  }, [setLists, selectedSetListYear]);
+
+  const filteredSetLists = useMemo(() => {
+    return setLists.filter((list) => {
+      const date = new Date(list.dateTime);
+      const year = String(date.getFullYear());
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+
+      if (selectedSetListYear && year !== selectedSetListYear) return false;
+      if (selectedSetListMonth && month !== selectedSetListMonth) return false;
+      return true;
+    });
+  }, [setLists, selectedSetListYear, selectedSetListMonth]);
+
+  const servicePlanYearOptions = useMemo(() => {
+    const years = new Set<string>();
+    servicePlans.forEach((plan) => {
+      years.add(String(new Date(plan.dateTime).getFullYear()));
+    });
+
+    return [...years].sort((a, b) => Number(b) - Number(a));
+  }, [servicePlans]);
+
+  const servicePlanMonthOptions = useMemo(() => {
+    if (!selectedServicePlanYear) return [];
+
+    const months = new Set<string>();
+    servicePlans.forEach((plan) => {
+      const date = new Date(plan.dateTime);
+      if (String(date.getFullYear()) !== selectedServicePlanYear) return;
+      months.add(String(date.getMonth() + 1).padStart(2, "0"));
+    });
+
+    return [...months].sort((a, b) => Number(b) - Number(a));
+  }, [servicePlans, selectedServicePlanYear]);
+
+  const filteredServicePlans = useMemo(() => {
+    return servicePlans.filter((plan) => {
+      const date = new Date(plan.dateTime);
+      const year = String(date.getFullYear());
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+
+      if (selectedServicePlanYear && year !== selectedServicePlanYear) return false;
+      if (selectedServicePlanMonth && month !== selectedServicePlanMonth) return false;
+      return true;
+    });
+  }, [servicePlans, selectedServicePlanYear, selectedServicePlanMonth]);
+
   useEffect(() => {
-    if (permissionsLoading) return;
-
-    if (canReadContributionsReports) {
-      setReportType("contributions");
-    } else if (canReadMembersReports) {
-      setReportType("members");
-    } else if (canReadAttendanceReports) {
-      setReportType("attendance");
-    } else if (canAccessSetListReport) {
-      setReportType("setlists");
-    }
-  }, [
-    permissionsLoading,
-    canReadMembersReports,
-    canReadContributionsReports,
-    canReadAttendanceReports,
-    canAccessSetListReport,
-  ]);
-
-  useEffect(() => {
-    if (setLists.length === 0) {
+    if (setListYearOptions.length === 0) {
+      setSelectedSetListYear(null);
+      setSelectedSetListMonth(null);
       setSelectedSetListId(null);
       return;
     }
 
-    if (!selectedSetListId) {
-      setSelectedSetListId(setLists[0].id);
+    if (!selectedSetListYear || !setListYearOptions.includes(selectedSetListYear)) {
+      setSelectedSetListYear(setListYearOptions[0]);
+      setSelectedSetListMonth(null);
+    }
+  }, [setListYearOptions, selectedSetListYear]);
+
+  useEffect(() => {
+    if (!selectedSetListYear) {
+      setSelectedSetListMonth(null);
       return;
     }
 
-    const stillExists = setLists.some((list) => list.id === selectedSetListId);
-    if (!stillExists) {
-      setSelectedSetListId(setLists[0].id);
+    if (selectedSetListMonth && !setListMonthOptions.includes(selectedSetListMonth)) {
+      setSelectedSetListMonth(null);
     }
-  }, [setLists, selectedSetListId]);
+  }, [selectedSetListYear, selectedSetListMonth, setListMonthOptions]);
+
+  useEffect(() => {
+    if (filteredSetLists.length === 0) {
+      setSelectedSetListId(null);
+      return;
+    }
+
+    if (!selectedSetListId || !filteredSetLists.some((list) => list.id === selectedSetListId)) {
+      setSelectedSetListId(filteredSetLists[0].id);
+    }
+  }, [filteredSetLists, selectedSetListId]);
+
+  useEffect(() => {
+    if (servicePlanYearOptions.length === 0) {
+      setSelectedServicePlanYear(null);
+      setSelectedServicePlanMonth(null);
+      setSelectedServicePlanId(null);
+      return;
+    }
+
+    if (!selectedServicePlanYear || !servicePlanYearOptions.includes(selectedServicePlanYear)) {
+      setSelectedServicePlanYear(servicePlanYearOptions[0]);
+      setSelectedServicePlanMonth(null);
+    }
+  }, [servicePlanYearOptions, selectedServicePlanYear]);
+
+  useEffect(() => {
+    if (!selectedServicePlanYear) {
+      setSelectedServicePlanMonth(null);
+      return;
+    }
+
+    if (selectedServicePlanMonth && !servicePlanMonthOptions.includes(selectedServicePlanMonth)) {
+      setSelectedServicePlanMonth(null);
+    }
+  }, [selectedServicePlanYear, selectedServicePlanMonth, servicePlanMonthOptions]);
+
+  useEffect(() => {
+    if (filteredServicePlans.length === 0) {
+      setSelectedServicePlanId(null);
+      return;
+    }
+
+    if (!selectedServicePlanId || !filteredServicePlans.some((plan) => plan.id === selectedServicePlanId)) {
+      setSelectedServicePlanId(filteredServicePlans[0].id);
+    }
+  }, [filteredServicePlans, selectedServicePlanId]);
 
   const selectedSetList = useMemo<SetList | null>(() => {
     if (!selectedSetListId) return null;
     return setLists.find((list) => list.id === selectedSetListId) ?? null;
   }, [setLists, selectedSetListId]);
 
+  const selectedServicePlan = useMemo<ServicePlan | null>(() => {
+    if (!selectedServicePlanId) return null;
+    return servicePlans.find((plan) => plan.id === selectedServicePlanId) ?? null;
+  }, [servicePlans, selectedServicePlanId]);
+
   const setListOptions = useMemo(() => {
-    return setLists.map((list) => ({
+    return filteredSetLists.map((list) => ({
       value: list.id,
       label: `${list.title} • ${format(list.dateTime, "MMM d, yyyy h:mm a")}`,
     }));
-  }, [setLists]);
+  }, [filteredSetLists]);
+
+  const servicePlanOptions = useMemo(() => {
+    return filteredServicePlans.map((plan) => ({
+      value: plan.id,
+      label: `${plan.title} • ${format(plan.dateTime, "MMM d, yyyy h:mm a")}`,
+    }));
+  }, [filteredServicePlans]);
 
   const contributionBreakdownOptions = useMemo(() => {
     if (isDistrictAdmin) {
@@ -266,14 +390,17 @@ export default function ReportsPage() {
     return filteredContributions.reduce((sum, contribution) => sum + contribution.amount, 0);
   }, [filteredContributions]);
 
+  const monthLabelForYearMonth = (year: string, month: string) =>
+    new Date(Number(year), Number(month) - 1, 1).toLocaleString("default", {
+      month: "long",
+    });
+
   const reportSubtitle = useMemo(() => {
     if (reportType === "contributions") {
       const periodLabel =
         timeFrame === "month"
           ? selectedYear && selectedMonth
-            ? `${new Date(`${selectedYear}-${selectedMonth}-01`).toLocaleString("default", {
-                month: "long",
-              })} ${selectedYear}`
+            ? `${monthLabelForYearMonth(selectedYear, selectedMonth)} ${selectedYear}`
             : "All Months"
           : selectedYear
           ? `Year ${selectedYear}`
@@ -298,9 +425,7 @@ export default function ReportsPage() {
       const periodLabel =
         timeFrame === "month"
           ? selectedYear && selectedMonth
-            ? `${new Date(`${selectedYear}-${selectedMonth}-01`).toLocaleString("default", {
-                month: "long",
-              })} ${selectedYear}`
+            ? `${monthLabelForYearMonth(selectedYear, selectedMonth)} ${selectedYear}`
             : "All Months"
           : selectedYear
           ? `Year ${selectedYear}`
@@ -320,6 +445,21 @@ export default function ReportsPage() {
       )}`;
     }
 
+    if (reportType === "serviceplans") {
+      if (!selectedServicePlan) {
+        return "Service Plans • Select a service plan to preview.";
+      }
+
+      return `Service Plans • ${selectedServicePlan.title} • ${format(
+        selectedServicePlan.dateTime,
+        "MMM d, yyyy h:mm a"
+      )}`;
+    }
+
+    if (reportType === "none") {
+      return "Choose a report type to get started.";
+    }
+
     return "Members • Filter and export your directory data.";
   }, [
     reportType,
@@ -329,15 +469,15 @@ export default function ReportsPage() {
     needsScopedContributions,
     selectedChurches.length,
     selectedMembers.length,
+    selectedSetList,
+    selectedServicePlan,
   ]);
 
   const contributionExportContext = useMemo(() => {
     const timeframe =
       timeFrame === "month"
         ? selectedYear && selectedMonth
-          ? `${new Date(`${selectedYear}-${selectedMonth}-01`).toLocaleString("default", {
-              month: "long",
-            })} ${selectedYear}`
+          ? `${monthLabelForYearMonth(selectedYear, selectedMonth)} ${selectedYear}`
           : "All Months"
         : selectedYear
         ? selectedYear
@@ -403,6 +543,46 @@ export default function ReportsPage() {
     return lines.join("\n");
   }, [selectedSetList]);
 
+  const servicePlanShareText = useMemo(() => {
+    if (!selectedServicePlan) return "";
+
+    const lines: string[] = [];
+    lines.push(`Service Plan: ${selectedServicePlan.title}`);
+    lines.push(`When: ${format(selectedServicePlan.dateTime, "EEEE, MMM d, yyyy h:mm a")}`);
+
+    if (selectedServicePlan.notes.trim().length > 0) {
+      lines.push(`Service Notes: ${selectedServicePlan.notes}`);
+    }
+
+    lines.push("");
+    lines.push("Sections:");
+
+    selectedServicePlan.sections.forEach((section) => {
+      lines.push(`- ${section.title}`);
+
+      if (section.personId) {
+        const member = members.find((m) => m.id === section.personId);
+        lines.push(`  Person: ${member ? `${member.firstName} ${member.lastName}` : "Unknown Member"}`);
+      }
+
+      if (section.songIds.length === 0) {
+        lines.push("  Music: No songs");
+      } else {
+        lines.push("  Music:");
+        section.songIds.forEach((songId, index) => {
+          const song = servicePlanSongs.find((s) => s.id === songId);
+          lines.push(`    ${index + 1}. ${song ? song.title : "Unknown Song"}`);
+        });
+      }
+
+      if (section.notes.trim().length > 0) {
+        lines.push(`  Notes: ${section.notes}`);
+      }
+    });
+
+    return lines.join("\n");
+  }, [selectedServicePlan, members, servicePlanSongs]);
+
   // -------------------------------------------------------
   // 5. EXPORT LOGIC HOOK
   // -------------------------------------------------------
@@ -414,6 +594,8 @@ export default function ReportsPage() {
     selectedFields,
     members,
     selectedSetList,
+    selectedServicePlan,
+    servicePlanSongs,
     contributionExportContext,
     contributionUseGroupedView: scopedContributionOnly,
     contributionBreakdownRows,
@@ -424,24 +606,36 @@ export default function ReportsPage() {
   // 6. SAFE REPORT TYPE SWITCHING
   // -------------------------------------------------------
   const safeSetReportType = (
-    type: "members" | "contributions" | "attendance" | "setlists"
+    type: "none" | "members" | "contributions" | "attendance" | "setlists" | "serviceplans"
   ) => {
+    if (type === "none") {
+      setReportType("none");
+      return;
+    }
     if (scopedContributionOnly && type !== "contributions") return;
     if (type === "members" && !canReadMembersReports) return;
     if (type === "contributions" && !canReadContributionsReports) return;
     if (type === "attendance" && !canReadAttendanceReports) return;
     if (type === "setlists" && !canAccessSetListReport) return;
+    if (type === "serviceplans" && !canAccessServicePlanReport) return;
     setReportType(type);
   };
 
-  const handleCopySetListText = async () => {
-    if (!selectedSetList || !setListShareText) return;
+  const handleCopyPlanText = async () => {
+    const textToCopy =
+      reportType === "setlists"
+        ? setListShareText
+        : reportType === "serviceplans"
+        ? servicePlanShareText
+        : "";
+
+    if (!textToCopy) return;
 
     try {
       setIsCopyingSetList(true);
-      await navigator.clipboard.writeText(setListShareText);
+      await navigator.clipboard.writeText(textToCopy);
       toast({
-        title: "Set list copied",
+        title: reportType === "serviceplans" ? "Service plan copied" : "Set list copied",
         description: "Share text copied to clipboard.",
       });
     } catch {
@@ -488,16 +682,20 @@ export default function ReportsPage() {
     (reportType === "members" && canReadMembersReports) ||
     (reportType === "contributions" && canReadContributionsReports) ||
     (reportType === "attendance" && canReadAttendanceReports) ||
-    (reportType === "setlists" && canAccessSetListReport && !!selectedSetList);
+    (reportType === "setlists" && canAccessSetListReport && !!selectedSetList) ||
+    (reportType === "serviceplans" && canAccessServicePlanReport && !!selectedServicePlan);
 
-  const canCopySetList = reportType === "setlists" && canAccessSetListReport && !!selectedSetList;
+  const canCopyPlan =
+    (reportType === "setlists" && canAccessSetListReport && !!selectedSetList) ||
+    (reportType === "serviceplans" && canAccessServicePlanReport && !!selectedServicePlan);
 
   const canReadAnyReport =
     canReadReports ||
     canReadMembersReports ||
     canReadContributionsReports ||
     canReadAttendanceReports ||
-    canAccessSetListReport;
+    canAccessSetListReport ||
+    canAccessServicePlanReport;
 
   // -------------------------------------------------------
   // 9. EARLY PERMISSION GATE (AFTER ALL HOOKS)
@@ -506,11 +704,11 @@ export default function ReportsPage() {
     permissionsLoading ||
     scopedContributionsLoading ||
     (reportType === "setlists" && setListsLoading) ||
+    (reportType === "serviceplans" && (servicePlansLoading || servicePlanSongsLoading)) ||
     (!churchId && !needsScopedContributions)
   ) {
     return (
       <>
-    selectedSetList,
         <PageHeader title="Reports" />
         <p className="text-muted-foreground">Loading reports…</p>
       </>
@@ -539,9 +737,9 @@ export default function ReportsPage() {
       >
         {canExport && (
           <div className="flex items-center gap-2">
-            {canCopySetList && (
+            {canCopyPlan && (
               <Button
-                onClick={handleCopySetListText}
+                onClick={handleCopyPlanText}
                 size="sm"
                 variant="outline"
                 className="bg-black/80 border border-white/20 backdrop-blur-xl"
@@ -605,8 +803,23 @@ export default function ReportsPage() {
           reportType={reportType}
           setReportType={safeSetReportType}
           setListOptions={setListOptions}
+          setListYearOptions={setListYearOptions}
+          selectedSetListYear={selectedSetListYear}
+          setSelectedSetListYear={setSelectedSetListYear}
+          setListMonthOptions={setListMonthOptions}
+          selectedSetListMonth={selectedSetListMonth}
+          setSelectedSetListMonth={setSelectedSetListMonth}
           selectedSetListId={selectedSetListId}
           setSelectedSetListId={setSelectedSetListId}
+          servicePlanOptions={servicePlanOptions}
+          servicePlanYearOptions={servicePlanYearOptions}
+          selectedServicePlanYear={selectedServicePlanYear}
+          setSelectedServicePlanYear={setSelectedServicePlanYear}
+          servicePlanMonthOptions={servicePlanMonthOptions}
+          selectedServicePlanMonth={selectedServicePlanMonth}
+          setSelectedServicePlanMonth={setSelectedServicePlanMonth}
+          selectedServicePlanId={selectedServicePlanId}
+          setSelectedServicePlanId={setSelectedServicePlanId}
           members={members}
           memberOptions={memberOptions}
           selectedMembers={selectedMembers}
@@ -635,11 +848,18 @@ export default function ReportsPage() {
           canReadContributions={canReadContributionsReports}
           canReadAttendance={!scopedContributionOnly && canReadAttendanceReports}
           canReadSetLists={canAccessSetListReport}
+          canReadServicePlans={canAccessServicePlanReport}
           onResetFilters={resetFilters}
         />
 
         {/* RIGHT PANEL */}
         <div className="animate-fadeIn w-full min-w-0 space-y-6">
+          {reportType === "none" && (
+            <div className="rounded-md border border-white/20 bg-black/30 p-4 text-sm text-muted-foreground">
+              Select a report type on the left to begin.
+            </div>
+          )}
+
           {reportType === "contributions" && scopedContributionOnly && canReadContributionsReports && (
             <div className="rounded-md border border-white/20 bg-black/50 p-4 text-sm text-white/90 backdrop-blur-xl">
               <div className="font-semibold mb-2">Report Scope Summary</div>
@@ -701,6 +921,14 @@ export default function ReportsPage() {
 
           {reportType === "setlists" && canAccessSetListReport && (
             <SetListPreviewReport setList={selectedSetList} />
+          )}
+
+          {reportType === "serviceplans" && canAccessServicePlanReport && (
+            <ServicePlanPreviewReport
+              plan={selectedServicePlan}
+              members={members}
+              songs={servicePlanSongs}
+            />
           )}
         </div>
       </div>

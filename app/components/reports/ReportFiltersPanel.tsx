@@ -27,12 +27,28 @@ type ContributionBreakdownOption = {
 };
 
 interface ReportFiltersPanelProps {
-  reportType: "members" | "contributions" | "attendance" | "setlists";
-  setReportType: (v: "members" | "contributions" | "attendance" | "setlists") => void;
+  reportType: "none" | "members" | "contributions" | "attendance" | "setlists" | "serviceplans";
+  setReportType: (v: "none" | "members" | "contributions" | "attendance" | "setlists" | "serviceplans") => void;
 
   setListOptions: Array<{ label: string; value: string }>;
+  setListYearOptions: string[];
+  selectedSetListYear: string | null;
+  setSelectedSetListYear: (v: string | null) => void;
+  setListMonthOptions: string[];
+  selectedSetListMonth: string | null;
+  setSelectedSetListMonth: (v: string | null) => void;
   selectedSetListId: string | null;
   setSelectedSetListId: (v: string | null) => void;
+
+  servicePlanOptions: Array<{ label: string; value: string }>;
+  servicePlanYearOptions: string[];
+  selectedServicePlanYear: string | null;
+  setSelectedServicePlanYear: (v: string | null) => void;
+  servicePlanMonthOptions: string[];
+  selectedServicePlanMonth: string | null;
+  setSelectedServicePlanMonth: (v: string | null) => void;
+  selectedServicePlanId: string | null;
+  setSelectedServicePlanId: (v: string | null) => void;
 
   members: any[];
   memberOptions?: Array<{ label: string; value: string }>;
@@ -72,6 +88,7 @@ interface ReportFiltersPanelProps {
   canReadContributions: boolean;
   canReadAttendance: boolean;
   canReadSetLists: boolean;
+  canReadServicePlans: boolean;
 
   onResetFilters: () => void;
 }
@@ -81,8 +98,23 @@ export function ReportFiltersPanel({
   setReportType,
 
   setListOptions,
+  setListYearOptions,
+  selectedSetListYear,
+  setSelectedSetListYear,
+  setListMonthOptions,
+  selectedSetListMonth,
+  setSelectedSetListMonth,
   selectedSetListId,
   setSelectedSetListId,
+  servicePlanOptions,
+  servicePlanYearOptions,
+  selectedServicePlanYear,
+  setSelectedServicePlanYear,
+  servicePlanMonthOptions,
+  selectedServicePlanMonth,
+  setSelectedServicePlanMonth,
+  selectedServicePlanId,
+  setSelectedServicePlanId,
 
   members,
   memberOptions,
@@ -118,17 +150,32 @@ export function ReportFiltersPanel({
   canReadContributions,
   canReadAttendance,
   canReadSetLists,
+  canReadServicePlans,
   onResetFilters,
 }: ReportFiltersPanelProps) {
+  const monthLabel = (monthValue: string) =>
+    new Date(2000, Number(monthValue) - 1, 1).toLocaleString("default", { month: "long" });
+
   const activeFilters = [
-    reportType === "setlists" && selectedSetListId
+    reportType !== "none" && reportType === "setlists" && selectedSetListId
       ? setListOptions.find((opt) => opt.value === selectedSetListId)?.label ?? "Selected set list"
       : null,
-    selectedMembers.length > 0 ? `${selectedMembers.length} member${selectedMembers.length === 1 ? "" : "s"}` : null,
-    selectedChurches.length > 0 ? `${selectedChurches.length} church${selectedChurches.length === 1 ? "" : "es"}` : null,
-    selectedStatus.length > 0 ? `${selectedStatus.length} status` : null,
-    selectedYear ? `Year ${selectedYear}` : null,
-    selectedMonth && timeFrame === "month" ? `Month ${selectedMonth}` : null,
+    reportType === "setlists" && selectedSetListYear ? `Set Lists ${selectedSetListYear}` : null,
+    reportType === "setlists" && selectedSetListMonth
+      ? `Set Lists ${monthLabel(selectedSetListMonth)}`
+      : null,
+    reportType !== "none" && reportType === "serviceplans" && selectedServicePlanId
+      ? servicePlanOptions.find((opt) => opt.value === selectedServicePlanId)?.label ?? "Selected service plan"
+      : null,
+    reportType === "serviceplans" && selectedServicePlanYear ? `Service Plans ${selectedServicePlanYear}` : null,
+    reportType === "serviceplans" && selectedServicePlanMonth
+      ? `Service Plans ${monthLabel(selectedServicePlanMonth)}`
+      : null,
+    reportType !== "none" && selectedMembers.length > 0 ? `${selectedMembers.length} member${selectedMembers.length === 1 ? "" : "s"}` : null,
+    reportType !== "none" && selectedChurches.length > 0 ? `${selectedChurches.length} church${selectedChurches.length === 1 ? "" : "es"}` : null,
+    reportType !== "none" && selectedStatus.length > 0 ? `${selectedStatus.length} status` : null,
+    reportType !== "none" && selectedYear ? `Year ${selectedYear}` : null,
+    reportType !== "none" && selectedMonth && timeFrame === "month" ? `Month ${selectedMonth}` : null,
   ].filter((value): value is string => Boolean(value));
 
   return (
@@ -139,7 +186,6 @@ export function ReportFiltersPanel({
             <CardTitle>Report Setup</CardTitle>
             <p className="mt-1 text-xs text-white/70">Pick a report type, then narrow the scope.</p>
           </div>
-
           <Button
             type="button"
             variant="ghost"
@@ -178,11 +224,157 @@ export function ReportFiltersPanel({
             canReadContributions={canReadContributions}
             canReadAttendance={canReadAttendance}
             canReadSetLists={canReadSetLists}
+            canReadServicePlans={canReadServicePlans}
           />
         </div>
 
+        {reportType === "none" && (
+          <div className="rounded-lg border border-white/15 bg-black/50 p-3 text-xs text-white/70">
+            Select a report type to configure filters.
+          </div>
+        )}
+
+        {reportType === "serviceplans" && (
+          <div className="space-y-3 rounded-lg border border-white/15 bg-black/50 p-3 transition-colors duration-200">
+            <Label className="text-sm font-medium">Service Plan Period</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                className="
+                  w-full
+                  h-10
+                  rounded-md
+                  border border-white/20
+                  bg-black/80
+                  text-white text-sm
+                  px-3
+                  focus:outline-none
+                  focus:ring-2
+                  focus:ring-white/30
+                "
+                value={selectedServicePlanYear ?? ""}
+                onChange={(e) => {
+                  setSelectedServicePlanYear(e.target.value || null);
+                  setSelectedServicePlanMonth(null);
+                }}
+              >
+                <option value="">Select Year</option>
+                {servicePlanYearOptions.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="
+                  w-full
+                  h-10
+                  rounded-md
+                  border border-white/20
+                  bg-black/80
+                  text-white text-sm
+                  px-3
+                  focus:outline-none
+                  focus:ring-2
+                  focus:ring-white/30
+                "
+                value={selectedServicePlanMonth ?? ""}
+                onChange={(e) => setSelectedServicePlanMonth(e.target.value || null)}
+                disabled={!selectedServicePlanYear}
+              >
+                <option value="">All Months</option>
+                {servicePlanMonthOptions.map((month) => (
+                  <option key={month} value={month}>
+                    {monthLabel(month)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Label className="text-sm font-medium">Service Plan</Label>
+            <select
+              className="
+                w-full
+                h-10
+                rounded-md
+                border border-white/20
+                bg-black/80
+                text-white text-sm
+                px-3
+                focus:outline-none
+                focus:ring-2
+                focus:ring-white/30
+              "
+              value={selectedServicePlanId ?? ""}
+              onChange={(e) => setSelectedServicePlanId(e.target.value || null)}
+            >
+              <option value="">Select a service plan</option>
+              {servicePlanOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {reportType === "setlists" && (
-          <div className="space-y-2 rounded-lg border border-white/15 bg-black/50 p-3 transition-colors duration-200">
+          <div className="space-y-3 rounded-lg border border-white/15 bg-black/50 p-3 transition-colors duration-200">
+            <Label className="text-sm font-medium">Set List Period</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                className="
+                  w-full
+                  h-10
+                  rounded-md
+                  border border-white/20
+                  bg-black/80
+                  text-white text-sm
+                  px-3
+                  focus:outline-none
+                  focus:ring-2
+                  focus:ring-white/30
+                "
+                value={selectedSetListYear ?? ""}
+                onChange={(e) => {
+                  setSelectedSetListYear(e.target.value || null);
+                  setSelectedSetListMonth(null);
+                }}
+              >
+                <option value="">Select Year</option>
+                {setListYearOptions.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="
+                  w-full
+                  h-10
+                  rounded-md
+                  border border-white/20
+                  bg-black/80
+                  text-white text-sm
+                  px-3
+                  focus:outline-none
+                  focus:ring-2
+                  focus:ring-white/30
+                "
+                value={selectedSetListMonth ?? ""}
+                onChange={(e) => setSelectedSetListMonth(e.target.value || null)}
+                disabled={!selectedSetListYear}
+              >
+                <option value="">All Months</option>
+                {setListMonthOptions.map((month) => (
+                  <option key={month} value={month}>
+                    {monthLabel(month)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <Label className="text-sm font-medium">Set List</Label>
             <select
               className="
@@ -284,7 +476,7 @@ export function ReportFiltersPanel({
         )}
 
         {/* MEMBER SELECT */}
-        {reportType !== "setlists" && (
+        {reportType !== "none" && reportType !== "setlists" && reportType !== "serviceplans" && (
           <div className="space-y-2 rounded-lg border border-white/15 bg-black/50 p-3 transition-colors duration-200">
             <MemberSelect
               members={members}
@@ -436,9 +628,7 @@ export function ReportFiltersPanel({
                   <option value="">Select Month</option>
                   {availableMonths.map((m) => (
                     <option key={m} value={m}>
-                      {new Date(`${selectedYear}-${m}-01`).toLocaleString("default", {
-                        month: "long",
-                      })}
+                      {monthLabel(m)}
                     </option>
                   ))}
                 </select>

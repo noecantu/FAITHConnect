@@ -6,7 +6,7 @@ import { Member, Contribution } from "../lib/types";
 import type { AttendanceRecord } from "../lib/types";
 
 export type ReportRouterProps = {
-  reportType: "members" | "contributions" | "attendance" | "setlists";
+  reportType: "none" | "members" | "contributions" | "attendance" | "setlists" | "serviceplans";
 
   // Shared
   members: Member[];

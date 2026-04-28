@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import type { Member, AttendanceRecord, SetList } from './types';
+import type { Member, AttendanceRecord, SetList, ServicePlan, Song } from './types';
 import { format } from 'date-fns';
 import { FieldValue } from '../lib/report-types';
 import { Address } from '../lib/types';
@@ -723,4 +723,147 @@ export function generateSetListExcel(setList: SetList) {
   XLSX.utils.book_append_sheet(workbook, songsSheet, "Set List Songs");
 
   XLSX.writeFile(workbook, `${datePrefix} ${setList.title} Set List Report.xlsx`);
+}
+
+export function generateServicePlanPDF(
+  servicePlan: ServicePlan,
+  members: Member[],
+  songs: Song[],
+  logoBase64?: string
+) {
+  const datePrefix = format(new Date(), "yyyy-MM-dd");
+
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "pt",
+    format: "letter",
+  });
+
+  if (logoBase64) {
+    doc.addImage(logoBase64, "PNG", 40, 20, 100, 0);
+  }
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  doc.setFontSize(18);
+  doc.text("Service Plan Report", pageWidth / 2, 50, { align: "center" });
+
+  doc.setFontSize(12);
+  doc.text(servicePlan.title, 40, 90);
+  doc.setFontSize(10);
+  doc.text(`Service Date: ${format(servicePlan.dateTime, "MM/dd/yyyy h:mm a")}`, 40, 108);
+
+  const hasNotes = servicePlan.notes.trim().length > 0;
+  let tableStartY = 130;
+  if (hasNotes) {
+    const wrapped = doc.splitTextToSize(`Service Notes: ${servicePlan.notes}`, pageWidth - 80);
+    doc.text(wrapped, 40, 126);
+    tableStartY = 126 + wrapped.length * 12 + 12;
+  }
+
+  const rows: Array<string[]> = [];
+  servicePlan.sections.forEach((section) => {
+    const member = members.find((m) => m.id === section.personId);
+    const personName = section.personId
+      ? member
+        ? `${member.firstName} ${member.lastName}`
+        : "Unknown Member"
+      : "";
+
+    if (section.songIds.length === 0) {
+      rows.push([section.title, personName, "No songs", section.notes ?? ""]);
+      return;
+    }
+
+    section.songIds.forEach((songId, index) => {
+      const song = songs.find((s) => s.id === songId);
+      rows.push([
+        index === 0 ? section.title : "",
+        index === 0 ? personName : "",
+        song ? song.title : "Unknown Song",
+        index === 0 ? (section.notes ?? "") : "",
+      ]);
+    });
+  });
+
+  autoTable(doc, {
+    head: [["Section", "Person", "Music", "Section Notes"]],
+    body: rows,
+    startY: tableStartY,
+    styles: { fontSize: 9, cellWidth: "wrap", valign: "top" },
+    headStyles: { fontStyle: "bold", fillColor: [31, 41, 55] },
+    alternateRowStyles: { fillColor: [245, 245, 245] },
+    columnStyles: {
+      0: { cellWidth: 120 },
+      1: { cellWidth: 120 },
+      2: { cellWidth: 160 },
+      3: { cellWidth: 140 },
+    },
+  });
+
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+
+    const width = doc.internal.pageSize.getWidth();
+    const height = doc.internal.pageSize.getHeight();
+    const footerY = height - 20;
+
+    doc.setFontSize(10);
+    doc.text(`Generated on ${format(new Date(), "MM/dd/yyyy hh:mm a")}`, 40, footerY);
+    doc.text(`Page ${i} of ${pageCount}`, width - 40, footerY, { align: "right" });
+  }
+
+  doc.save(`${datePrefix} ${servicePlan.title} Service Plan Report.pdf`);
+}
+
+export function generateServicePlanExcel(
+  servicePlan: ServicePlan,
+  members: Member[],
+  songs: Song[]
+) {
+  const datePrefix = format(new Date(), "yyyy-MM-dd");
+
+  const summaryRows = [
+    { Field: "Title", Value: servicePlan.title },
+    { Field: "Service Date", Value: format(servicePlan.dateTime, "MM/dd/yyyy h:mm a") },
+    { Field: "Service Notes", Value: servicePlan.notes ?? "" },
+  ];
+
+  const sectionRows = servicePlan.sections.flatMap((section) => {
+    const member = members.find((m) => m.id === section.personId);
+    const personName = section.personId
+      ? member
+        ? `${member.firstName} ${member.lastName}`
+        : "Unknown Member"
+      : "";
+
+    if (section.songIds.length === 0) {
+      return [{
+        Section: section.title,
+        Person: personName,
+        Music: "No songs",
+        SectionNotes: section.notes ?? "",
+      }];
+    }
+
+    return section.songIds.map((songId, index) => {
+      const song = songs.find((s) => s.id === songId);
+      return {
+        Section: index === 0 ? section.title : "",
+        Person: index === 0 ? personName : "",
+        Music: song ? song.title : "Unknown Song",
+        SectionNotes: index === 0 ? (section.notes ?? "") : "",
+      };
+    });
+  });
+
+  const workbook = XLSX.utils.book_new();
+
+  const summarySheet = XLSX.utils.json_to_sheet(summaryRows);
+  XLSX.utils.book_append_sheet(workbook, summarySheet, "Service Plan Overview");
+
+  const sectionsSheet = XLSX.utils.json_to_sheet(sectionRows);
+  XLSX.utils.book_append_sheet(workbook, sectionsSheet, "Service Plan Sections");
+
+  XLSX.writeFile(workbook, `${datePrefix} ${servicePlan.title} Service Plan Report.xlsx`);
 }
