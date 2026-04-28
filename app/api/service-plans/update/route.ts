@@ -67,6 +67,38 @@ export async function POST(req: Request) {
     if (body.notes !== undefined) payload.notes = body.notes;
     if (body.sections !== undefined) payload.sections = body.sections;
 
+    const hasIsPublic = typeof body?.isPublic === "boolean";
+    const hasGroups = Array.isArray(body?.groups);
+    if (hasIsPublic || hasGroups) {
+      let isPublic = hasIsPublic ? Boolean(body.isPublic) : false;
+      let groups = hasGroups
+        ? body.groups.filter((group: unknown): group is string => typeof group === "string" && group.trim().length > 0)
+        : [];
+
+      if (!hasIsPublic) {
+        const { data: existing } = await adminDb
+          .from("service_plans")
+          .select("is_public, groups")
+          .eq("id", planId)
+          .eq("church_id", churchId)
+          .single();
+
+        isPublic = existing?.is_public === true;
+        if (!hasGroups) {
+          groups = Array.isArray(existing?.groups)
+            ? existing.groups.filter((group: unknown): group is string => typeof group === "string" && group.trim().length > 0)
+            : [];
+        }
+      }
+
+      if (!isPublic && groups.length === 0) {
+        return NextResponse.json({ error: "Private service plans require at least one group" }, { status: 400 });
+      }
+
+      payload.is_public = isPublic;
+      payload.groups = isPublic ? [] : groups;
+    }
+
     const { error } = await adminDb
       .from("service_plans")
       .update(payload)

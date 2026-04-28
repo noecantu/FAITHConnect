@@ -14,6 +14,7 @@ import { Fab } from '@/app/components/ui/fab';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
+import { MultiSelect } from '@/app/components/ui/multi-select';
 import {
   Form,
   FormControl,
@@ -30,6 +31,7 @@ import { useMembers } from '@/app/hooks/useMembers';
 import { updateServicePlan } from '@/app/lib/servicePlans';
 import { SectionEditor } from '@/app/components/service-plans/SectionEditor';
 import SectionNameDialog from '@/app/components/music/SectionNameSelectionDialog';
+import { EVENT_GROUP_OPTIONS } from '@/app/lib/groupOptions';
 
 const sectionSchema = z.object({
   id: z.string().optional(),
@@ -45,7 +47,17 @@ const formSchema = z.object({
   dateString: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date'),
   timeString: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time'),
   notes: z.string().optional(),
+  isPublic: z.boolean().default(true),
+  groups: z.array(z.string()).default([]),
   sections: z.array(sectionSchema),
+}).superRefine((value, ctx) => {
+  if (!value.isPublic && value.groups.length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Select at least one group for private service plans',
+      path: ['groups'],
+    });
+  }
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -67,6 +79,8 @@ export default function EditServicePlanPage() {
       dateString: '',
       timeString: '',
       notes: '',
+      isPublic: true,
+      groups: [],
       sections: [],
     },
   });
@@ -79,6 +93,8 @@ export default function EditServicePlanPage() {
       dateString: plan.dateString ?? '',
       timeString: plan.timeString ?? '',
       notes: plan.notes ?? '',
+      isPublic: plan.isPublic ?? true,
+      groups: plan.groups ?? [],
       sections: plan.sections?.map((section: any) => ({
         id: section.id,
         title: section.title,
@@ -98,15 +114,19 @@ export default function EditServicePlanPage() {
   const watchedTitle = form.watch('title');
   const watchedDate = form.watch('dateString');
   const watchedTime = form.watch('timeString');
+  const watchedIsPublic = form.watch('isPublic');
+  const watchedGroups = form.watch('groups');
   const watchedSections = form.watch('sections');
   const hasValidSectionTitles = (watchedSections ?? []).every(
     (section) => section.title.trim().length > 0
   );
+  const hasPrivateAudience = watchedIsPublic || (watchedGroups ?? []).length > 0;
   const canSave =
     watchedTitle.trim().length > 0 &&
     watchedDate.trim().length > 0 &&
     watchedTime.trim().length > 0 &&
-    hasValidSectionTitles;
+    hasValidSectionTitles &&
+    hasPrivateAudience;
 
   if (churchLoading || loading) {
     return (
@@ -162,6 +182,8 @@ export default function EditServicePlanPage() {
         dateString: values.dateString,
         timeString: values.timeString,
         notes: values.notes?.trim() ?? '',
+        isPublic: values.isPublic,
+        groups: values.isPublic ? [] : values.groups,
         sections: values.sections.map((section) => ({
           id: section.id ?? crypto.randomUUID(),
           title: section.title,
@@ -247,6 +269,73 @@ export default function EditServicePlanPage() {
                 </FormItem>
               )}
             />
+
+            <div className="space-y-4 border-t border-white/20 pt-6 mt-6">
+              <h3 className="text-lg font-semibold">Visibility</h3>
+
+              <FormField
+                control={form.control}
+                name="isPublic"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel>Who should be able to see this service plan?</FormLabel>
+                    <FormControl>
+                      <div className="flex rounded-md overflow-hidden border border-white/20 bg-black/80">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            field.onChange(true);
+                            form.setValue('groups', []);
+                          }}
+                          className={
+                            `flex-1 px-3 py-2 text-sm font-medium transition-colors ${
+                              field.value
+                                ? 'bg-slate-600 text-white'
+                                : 'text-white/60 hover:bg-white/10'
+                            }`
+                          }
+                        >
+                          Public
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => field.onChange(false)}
+                          className={
+                            `flex-1 px-3 py-2 text-sm font-medium transition-colors ${
+                              !field.value
+                                ? 'bg-slate-600 text-white'
+                                : 'text-white/60 hover:bg-white/10'
+                            }`
+                          }
+                        >
+                          Private
+                        </button>
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {!watchedIsPublic && (
+                <FormField
+                  control={form.control}
+                  name="groups"
+                  render={({ field }) => (
+                    <FormItem className="space-y-2">
+                      <FormLabel>Visible to Groups</FormLabel>
+                      <FormControl>
+                        <MultiSelect
+                          options={EVENT_GROUP_OPTIONS}
+                          value={field.value ?? []}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </div>
 
             <div className="space-y-4">
               <div className="flex justify-between items-center">

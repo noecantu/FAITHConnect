@@ -238,7 +238,7 @@ create table if not exists public.service_plans (
   date_string     text not null,   -- YYYY-MM-DD
   time_string     text not null,   -- HH:MM (24h)
   notes           text not null default '',
-  is_public       boolean not null default false,
+  is_public       boolean not null default true,
   groups          text[] not null default '{}',
 
   -- Sections: [{ id, title, personId, songIds, notes, color }]

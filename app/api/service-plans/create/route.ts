@@ -60,6 +60,14 @@ export async function POST(req: Request) {
     const createdBy = typeof body.createdBy === "string" && body.createdBy.trim().length > 0
       ? body.createdBy
       : authUser.id;
+    const isPublic = typeof body?.isPublic === "boolean" ? body.isPublic : true;
+    const groups = Array.isArray(body?.groups)
+      ? body.groups.filter((group: unknown): group is string => typeof group === "string" && group.trim().length > 0)
+      : [];
+
+    if (!isPublic && groups.length === 0) {
+      return NextResponse.json({ error: "Private service plans require at least one group" }, { status: 400 });
+    }
 
     const { data: row, error } = await adminDb
       .from("service_plans")
@@ -70,8 +78,8 @@ export async function POST(req: Request) {
         time_string: body.timeString,
         notes: body.notes ?? "",
         sections: body.sections ?? [],
-        is_public: false,
-        groups: [],
+        is_public: isPublic,
+        groups: isPublic ? [] : groups,
         created_by: createdBy,
         created_at: now,
         updated_at: now,

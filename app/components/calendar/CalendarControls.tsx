@@ -48,22 +48,18 @@ export function CalendarControls({
   filters,
 }: CalendarControlsProps) {
 
+  const currentYear = new Date().getFullYear();
   const years = Array.from(
-    new Set(events.map(e => e.date.getFullYear()))
+    new Set([
+      ...Array.from({ length: 5 }, (_, i) => currentYear - 2 + i),
+      ...events.map(e => e.date.getFullYear()),
+    ])
   ).sort((a, b) => a - b);
 
-  const months = Array.from(
-    new Set(
-      events
-        .filter(e => e.date.getFullYear() === month.month.getFullYear())
-        .map(e => e.date.getMonth())
-    )
-  )
-    .sort((a, b) => a - b)
-    .map(m => ({
-      value: m,
-      label: format(new Date(0, m), 'MMMM'),
-    }));
+  const months = Array.from({ length: 12 }, (_, m) => ({
+    value: m,
+    label: format(new Date(2000, m, 1), 'MMMM'),
+  }));
 
   return (
     <div className="space-y-4 mb-4">

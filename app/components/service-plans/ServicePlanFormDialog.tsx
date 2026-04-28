@@ -26,10 +26,12 @@ import {
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Button } from '../ui/button';
+import { MultiSelect } from '../ui/multi-select';
 
 import { createServicePlan, updateServicePlan } from '@/app/lib/servicePlans';
 import type { ServicePlan, ServicePlanSection } from '@/app/lib/types';
 import { useMembers } from '@/app/hooks/useMembers';
+import { EVENT_GROUP_OPTIONS } from '@/app/lib/groupOptions';
 
 import dayjs from 'dayjs';
 import { SectionEditor } from './SectionEditor';
@@ -53,7 +55,17 @@ const formSchema = z.object({
   timeString: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time'),
 
   notes: z.string().optional(),
+  isPublic: z.boolean().default(true),
+  groups: z.array(z.string()).default([]),
   sections: z.array(sectionSchema),
+}).superRefine((value, ctx) => {
+  if (!value.isPublic && value.groups.length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Select at least one group for private service plans',
+      path: ['groups'],
+    });
+  }
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -81,9 +93,9 @@ async function handleServicePlanSubmit(
     timeString: values.timeString,
     notes: values.notes?.trim() ?? '',
     sections: normalizedSections,
+    isPublic: values.isPublic,
+    groups: values.isPublic ? [] : values.groups,
     createdBy: plan?.createdBy,
-    isPublic: plan?.isPublic ?? true,
-    groups: plan?.groups ?? [],
   };
 
   try {
@@ -132,6 +144,8 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
       timeString: plan?.timeString ?? '10:00',
 
       notes: plan?.notes ?? '',
+      isPublic: plan?.isPublic ?? true,
+      groups: plan?.groups ?? [],
       sections:
         plan?.sections?.map((s) => ({
           id: s.id,
@@ -149,15 +163,19 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
   });
 
   const watchedTitle = form.watch('title');
+  const watchedIsPublic = form.watch('isPublic');
+  const watchedGroups = form.watch('groups');
   const watchedSections = form.watch('sections');
   const hasValidSectionTitles = (watchedSections ?? []).every(
     (section) => section.title.trim().length > 0
   );
+  const hasPrivateAudience = watchedIsPublic || (watchedGroups ?? []).length > 0;
   const canSubmit =
     watchedTitle.trim().length > 0 &&
     localDateString.trim().length > 0 &&
     localTimeString.trim().length > 0 &&
-    hasValidSectionTitles;
+    hasValidSectionTitles &&
+    hasPrivateAudience;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose} modal={false}>
@@ -259,6 +277,73 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                   </FormItem>
                 )}
               />
+
+              <div className="space-y-4 border-t border-white/20 pt-6 mt-6">
+                <h3 className="text-lg font-semibold">Visibility</h3>
+
+                <FormField
+                  control={form.control}
+                  name="isPublic"
+                  render={({ field }) => (
+                    <FormItem className="space-y-2">
+                      <FormLabel>Who should be able to see this service plan?</FormLabel>
+                      <FormControl>
+                        <div className="flex rounded-md overflow-hidden border border-white/20 bg-black/80">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              field.onChange(true);
+                              form.setValue('groups', []);
+                            }}
+                            className={
+                              `flex-1 px-3 py-2 text-sm font-medium transition-colors ${
+                                field.value
+                                  ? 'bg-slate-600 text-white'
+                                  : 'text-white/60 hover:bg-white/10'
+                              }`
+                            }
+                          >
+                            Public
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => field.onChange(false)}
+                            className={
+                              `flex-1 px-3 py-2 text-sm font-medium transition-colors ${
+                                !field.value
+                                  ? 'bg-slate-600 text-white'
+                                  : 'text-white/60 hover:bg-white/10'
+                              }`
+                            }
+                          >
+                            Private
+                          </button>
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {!watchedIsPublic && (
+                  <FormField
+                    control={form.control}
+                    name="groups"
+                    render={({ field }) => (
+                      <FormItem className="space-y-2">
+                        <FormLabel>Visible to Groups</FormLabel>
+                        <FormControl>
+                          <MultiSelect
+                            options={EVENT_GROUP_OPTIONS}
+                            value={field.value ?? []}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
 
               {/* Sections */}
               <div className="space-y-4">

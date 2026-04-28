@@ -122,6 +122,14 @@ export default function CalendarPage() {
   const month = useCalendarMonth();
   const filters = useCalendarFilters<CalendarItem>(visible);
   const [selectedDay, setSelectedDay] = useState<Date>(new Date());
+
+  const composedMonth = useMemo(() => ({
+    ...month,
+    goToday: () => {
+      month.goToday();
+      setSelectedDay(new Date());
+    },
+  }), [month]);
   const [density, setDensity] = useState<CalendarDensity>(getInitialCalendarDensity);
   const { settings: calendarSettings, loading: loadingCalendarSettings, updateSettings } = useUserCalendarSettings(user?.uid);
 
@@ -236,7 +244,7 @@ export default function CalendarPage() {
       </PageHeader>
 
       <CalendarControls
-        month={month}
+        month={composedMonth}
         view={viewControls}
         filters={filters}
         user={user}

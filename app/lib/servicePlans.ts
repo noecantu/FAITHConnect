@@ -12,7 +12,7 @@ function toDateTime(dateString: string, timeString: string): Date {
 function rowToServicePlan(row: Record<string, unknown>): ServicePlan {
   const dateString = row.date_string as string;
   const timeString = row.time_string as string;
-  const isPublic = (row.is_public as boolean) ?? false;
+  const isPublic = row.is_public === true;
 
   return {
     id: row.id as string,
@@ -67,6 +67,8 @@ export async function createServicePlan(
     dateString: string;
     timeString: string;
     notes: string;
+    isPublic: boolean;
+    groups: string[];
     sections: ServicePlanSection[];
     createdBy?: string;
   }
@@ -81,6 +83,8 @@ export async function createServicePlan(
       dateString: data.dateString,
       timeString: data.timeString,
       notes: data.notes,
+      isPublic: data.isPublic,
+      groups: data.groups,
       sections: data.sections,
       createdBy: data.createdBy,
     }),
@@ -106,6 +110,8 @@ export async function updateServicePlan(
     dateString: string;
     timeString: string;
     notes: string;
+    isPublic: boolean;
+    groups: string[];
     sections: ServicePlanSection[];
   }>
 ): Promise<void> {
@@ -159,6 +165,8 @@ export async function duplicateServicePlan(
     dateString: plan.dateString,
     timeString: plan.timeString,
     notes: plan.notes,
+    isPublic: plan.isPublic,
+    groups: plan.groups,
     sections: copiedSections,
     createdBy: plan.createdBy,
   });
