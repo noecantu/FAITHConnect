@@ -18,6 +18,7 @@ import ChurchLogoCard from '@/app/components/settings/ChurchLogoCard';
 import ChurchProfileCard from '@/app/components/settings/ChurchProfileCard';
 import RegionMembershipCard from '@/app/components/settings/RegionMembershipCard';
 import ChurchDataWarningsCard from '@/app/components/settings/ChurchDataWarningsCard';
+import { ChangePasswordCard } from '@/app/components/settings/ChangePasswordCard';
 
 export default function ChurchSettingsPage() {
   const { churchId: church_id } = useChurchId();
@@ -183,9 +184,11 @@ export default function ChurchSettingsPage() {
             <ChurchLogoCard churchId={church_id!} churchName="" />
 
             <ChurchProfileCard church_id={church_id!} />
-          </div>
 
-          <RegionMembershipCard churchId={church_id!} />
+            <ChangePasswordCard />
+
+            <RegionMembershipCard churchId={church_id!} />
+          </div>
 
           <StorageUsageCard
             storageUsed={storageUsed}
