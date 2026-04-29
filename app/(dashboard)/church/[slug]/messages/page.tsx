@@ -7,7 +7,6 @@ import { Switch } from '@/app/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
-import { Fab } from '@/app/components/ui/fab';
 import { Button } from '@/app/components/ui/button';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { usePermissions } from '@/app/hooks/usePermissions';
@@ -276,6 +275,7 @@ export default function MessagesModulePage() {
       selectedMessage?.message.trim() ||
       selectedMessage?.reference.trim()
   );
+  const selectedHasMessageText = Boolean(selectedMessage?.message.trim());
 
   const updatedLabel = selectedMessage?.updatedAt
     ? new Date(selectedMessage.updatedAt).toLocaleString()
@@ -527,8 +527,35 @@ export default function MessagesModulePage() {
 
       <Card className="relative border-white/20 bg-black/80 backdrop-blur-xl">
         <CardHeader>
-          <CardTitle>Message Configuration</CardTitle>
-          <CardDescription>Editing {selectedMessage.title.trim() || 'selected message'}.</CardDescription>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <CardTitle>Message Configuration</CardTitle>
+              <CardDescription>Editing {selectedMessage.title.trim() || 'selected message'}.</CardDescription>
+            </div>
+            {canManageMessages && (
+              <button
+                type="button"
+                onClick={() => void handleSave()}
+                disabled={saving || !isDirty || hasAnyInvalidSchedule || !selectedHasMessageText}
+                className={`
+                  p-2 rounded-md border bg-muted/20 transition
+                  focus:outline-none focus:ring-2 focus:ring-primary
+                  ${(saving || !isDirty || hasAnyInvalidSchedule || !selectedHasMessageText)
+                    ? 'opacity-40 cursor-not-allowed'
+                    : 'hover:bg-muted'}
+                `}
+                aria-label="Save message settings"
+              >
+                {saving ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-white" />
+                ) : showCheck ? (
+                  <Check className="h-5 w-5 animate-pulse text-white" />
+                ) : (
+                  <Check className="h-5 w-5 text-white" />
+                )}
+              </button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -672,21 +699,6 @@ export default function MessagesModulePage() {
         </CardContent>
       </Card>
 
-      {canManageMessages && (
-        <Fab
-          type="save"
-          onClick={() => void handleSave()}
-          disabled={(!isDirty && !saving) || hasAnyInvalidSchedule}
-          className={`
-            transition-all duration-500
-            ${((!isDirty && !saving) || hasAnyInvalidSchedule) ? 'opacity-40' : 'opacity-100'}
-          `}
-        >
-          {saving && <Loader2 className="h-5 w-5 animate-spin" />}
-          {!saving && showCheck && <Check className="h-5 w-5 animate-pulse" />}
-          {!saving && !showCheck && <Check className="h-5 w-5" />}
-        </Fab>
-      )}
     </>
   );
 }
