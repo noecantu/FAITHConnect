@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { PageHeader } from '@/app/components/page-header';
 import { useChurchId } from '@/app/hooks/useChurchId';
+import { CalendarDays, BarChart2 } from 'lucide-react';
+import { cn } from '@/app/lib/utils';
 import { useAttendanceHistory } from '@/app/hooks/useAttendanceHistory';
 import { summarizeAttendance } from '@/app/lib/attendance-summary';
 import { AttendanceChart } from '@/app/components/attendance/attendance-chart';
@@ -257,19 +258,17 @@ export default function AttendanceHistoryPage() {
   // ------------------------------
   if (authLoading || churchLoading || loading) {
     return (
-      <>
-        <PageHeader title="Attendance History" />
-        <p className="text-muted-foreground">Loading attendance history…</p>
-      </>
+      <div className="rounded-2xl border border-white/15 bg-gradient-to-br from-black/90 via-black/75 to-black/60 backdrop-blur-xl p-8 text-center">
+        <p className="text-white/40">Loading attendance history…</p>
+      </div>
     );
   }
 
   if (!canView) {
     return (
-      <>
-        <PageHeader title="Attendance History" />
-        <p className="text-muted-foreground">You do not have permission to view attendance.</p>
-      </>
+      <div className="rounded-2xl border border-white/15 bg-gradient-to-br from-black/90 via-black/75 to-black/60 backdrop-blur-xl p-8 text-center">
+        <p className="text-white/40">You do not have permission to view attendance.</p>
+      </div>
     );
   }
 
@@ -286,131 +285,99 @@ export default function AttendanceHistoryPage() {
   return (
     <>
       <ThemeProvider theme={darkTheme}>
-        <PageHeader
-          title="Attendance History"
-          subtitle={summaryText}
-          className="mb-2"
-        >
-          <div className="flex flex-col gap-4">
-          {/* Breakdown Controls */}
-            <div className="flex flex-wrap justify-end items-center gap-4 mt-2 w-full">
-              <span className="text-sm font-medium text-muted-foreground">
-                Breakdown:
-              </span>
-
-              <RadioGroup
-                value={timeFrame}
-                onValueChange={(v) => setBreakdownPersisted(v as "year" | "month" | "week")}
-                className="flex items-center gap-4"
-              >
-                <div className="flex items-center gap-1">
-                  <RadioGroupItem value="year" id="tf-year" />
-                  <label htmlFor="tf-year" className="text-sm text-muted-foreground">Year</label>
+        {/* ── HERO CARD ── */}
+          <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-black/90 via-black/75 to-black/60 backdrop-blur-xl shadow-2xl mb-6">
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{ background: "radial-gradient(ellipse at 60% 0%, rgba(255,255,255,0.06) 0%, transparent 70%)" }}
+            />
+            <div className="relative p-6">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <span className="rounded-full border border-white/20 bg-white/[0.07] px-2.5 py-0.5 text-xs text-white/50 font-semibold">
+                      History
+                    </span>
+                    {filteredAttendance.length > 0 && (
+                      <span className="rounded-full border border-white/15 bg-white/[0.05] px-2.5 py-0.5 text-xs text-white/40">
+                        {filteredAttendance.length} records
+                      </span>
+                    )}
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-1.5">
+                    Attendance History
+                  </h1>
+                  <div className="flex items-center gap-1.5 text-white/50 text-sm">
+                    <CalendarDays size={14} />
+                    <span>{summaryText}</span>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-1">
-                  <RadioGroupItem value="month" id="tf-month" />
-                  <label htmlFor="tf-month" className="text-sm text-muted-foreground">Month</label>
+                {/* Controls */}
+                <div className="flex flex-col gap-3 shrink-0">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="text-xs font-medium text-white/40">Breakdown:</span>
+                    <RadioGroup
+                      value={timeFrame}
+                      onValueChange={(v) => setBreakdownPersisted(v as "year" | "month" | "week")}
+                      className="flex items-center gap-3"
+                    >
+                      {(["year", "month", "week"] as const).map((tf) => (
+                        <div key={tf} className="flex items-center gap-1.5">
+                          <RadioGroupItem value={tf} id={`tf-${tf}`} />
+                          <label htmlFor={`tf-${tf}`} className="text-xs text-white/60 capitalize cursor-pointer">{tf}</label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Select value={selectedYear ? String(selectedYear) : ""} onValueChange={(v) => setYearPersisted(Number(v))}>
+                      <SelectTrigger className="h-8 w-[110px] bg-black/60 border border-white/20 text-white/80 text-xs hover:bg-white/5 transition">
+                        <SelectValue placeholder="Year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableYears.map((year) => (
+                          <SelectItem key={year} value={String(year)}>{year}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {timeFrame === "month" && (
+                      <Select value={selectedMonth ? String(selectedMonth) : ""} onValueChange={(v) => setMonthPersisted(Number(v))}>
+                        <SelectTrigger className="h-8 w-[120px] bg-black/60 border border-white/20 text-white/80 text-xs hover:bg-white/5 transition">
+                          <SelectValue placeholder="Month" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableMonths.map((month) => (
+                            <SelectItem key={month} value={String(month)}>
+                              {new Date(0, month - 1).toLocaleString("default", { month: "long" })}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    {timeFrame === "week" && (
+                      <Select value={selectedWeek ? String(selectedWeek) : ""} onValueChange={(v) => setWeekPersisted(Number(v))}>
+                        <SelectTrigger className="h-8 w-[110px] bg-black/60 border border-white/20 text-white/80 text-xs hover:bg-white/5 transition">
+                          <SelectValue placeholder="Week" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableWeeks.map((week) => (
+                            <SelectItem key={week} value={String(week)}>Week {week}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
                 </div>
-              </RadioGroup>
-            </div>
-
-            {/* Dynamic Dropdowns */}
-            <div className="flex flex-row justify-end items-center gap-4 w-full">
-
-              {/* Year */}
-              <Select
-                value={selectedYear ? String(selectedYear) : ""}
-                onValueChange={(v) => setYearPersisted(Number(v))}
-              >
-                <SelectTrigger
-                  className="
-                    h-9
-                    flex-1 min-[360px]:flex-none min-[360px]:w-1/2 sm:w-[140px]
-                    bg-black/80 border border-white/20 backdrop-blur-xl
-                    text-white/80
-                    hover:bg-white/5 hover:border-white/20
-                    transition
-                  "
-                >
-                  <SelectValue placeholder="Year" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  {availableYears.map(year => (
-                    <SelectItem key={year} value={String(year)}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Month */}
-              {timeFrame === "month" && (
-                <Select
-                  value={selectedMonth ? String(selectedMonth) : ""}
-                  onValueChange={(v) => setMonthPersisted(Number(v))}
-                >
-                  <SelectTrigger
-                    className="
-                      h-9
-                      flex-1 min-[360px]:flex-none min-[360px]:w-1/2 sm:w-[140px]
-                      bg-black/80 border border-white/20 backdrop-blur-xl
-                      text-white/80
-                      hover:bg-white/5 hover:border-white/20
-                      transition
-                    "
-                  >
-                    <SelectValue placeholder="Month" />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    {availableMonths.map(month => (
-                      <SelectItem key={month} value={String(month)}>
-                        {new Date(0, month - 1).toLocaleString('default', { month: 'long' })}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-              {/* Week */}
-              {timeFrame === "week" && (
-                <Select
-                  value={selectedWeek ? String(selectedWeek) : ""}
-                  onValueChange={(v) => setWeekPersisted(Number(v))}
-                >
-                  <SelectTrigger
-                    className="
-                      h-9
-                      flex-1 min-[360px]:flex-none min-[360px]:w-1/2 sm:w-[140px]
-                      bg-black/80 border border-white/20 backdrop-blur-xl
-                      text-white/80
-                      hover:bg-white/5 hover:border-white/20
-                      transition
-                    "
-                  >
-                    <SelectValue placeholder="Week" />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    {availableWeeks.map(week => (
-                      <SelectItem key={week} value={String(week)}>
-                        Week {week}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
+              </div>
             </div>
           </div>
-      </PageHeader>
-
-      {/* CHART (matches Contributions layout) */}
-      <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
-        <CardHeader>
-          <CardTitle>Attendance Overview</CardTitle>
+      <Card className="relative bg-black/60 border-white/15 backdrop-blur-xl mb-6">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <BarChart2 size={15} className="text-white/40" />
+            <CardTitle className="text-base font-semibold text-white/80">Attendance Overview</CardTitle>
+          </div>
         </CardHeader>
         <CardContent className="flex-1">
           {timeFrame === "year" || timeFrame === "month" || timeFrame === "week" ? (
@@ -422,25 +389,15 @@ export default function AttendanceHistoryPage() {
       </Card>
 
       {/* CARD WRAPPER */}
-      <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
-
-        {/* HEADER WITH SORT DROPDOWN */}
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Attendance Records</CardTitle>
-
+      <Card className="relative bg-black/60 border-white/15 backdrop-blur-xl">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <CardTitle className="text-base font-semibold text-white/80">Attendance Records</CardTitle>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-white/60">Sort:</span>
-
+            <span className="text-xs text-white/40">Sort:</span>
             <select
               value={sortKey}
               onChange={(e) => setSortKey(e.target.value)}
-              className="
-                bg-black/40 text-white/80 text-sm
-                border border-white/20 rounded-md
-                px-2 py-1
-                hover:border-white/40
-                focus:outline-none focus:ring-2 focus:ring-white/30
-              "
+              className="bg-black/50 text-white/70 text-xs border border-white/20 rounded-md px-2 py-1 hover:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
             >
               <option value="date-desc">Date ↓</option>
               <option value="date-asc">Date ↑</option>
@@ -451,41 +408,38 @@ export default function AttendanceHistoryPage() {
           </div>
         </CardHeader>
 
-        <Separator />
+        <Separator className="opacity-20" />
 
-        {/* CONTENT */}
-        <CardContent className="space-y-4">
-
-          {/* SCROLL WRAPPER */}
+        <CardContent className="space-y-4 pt-4">
           <div className="overflow-x-auto w-full">
             <table className="w-full min-w-[600px] text-sm">
-
               <TableHeader>
-                <TableRow className="border-b">
-                  <TableHead className="text-left py-2 px-2">Date</TableHead>
-                  <TableHead className="text-center py-2 px-2">Present</TableHead>
-                  <TableHead className="text-center py-2 px-2">Absent</TableHead>
-                  <TableHead className="text-center py-2 px-2">Visitors</TableHead>
-                  <TableHead className="text-center py-2 px-2">Action</TableHead>
+                <TableRow className="border-b border-white/10">
+                  <TableHead className="text-left py-2 px-3 text-xs text-white/40 font-semibold tracking-wide uppercase">Date</TableHead>
+                  <TableHead className="text-center py-2 px-3 text-xs text-white/40 font-semibold tracking-wide uppercase">Present</TableHead>
+                  <TableHead className="text-center py-2 px-3 text-xs text-white/40 font-semibold tracking-wide uppercase">Absent</TableHead>
+                  <TableHead className="text-center py-2 px-3 text-xs text-white/40 font-semibold tracking-wide uppercase">Guests</TableHead>
+                  <TableHead className="text-center py-2 px-3 text-xs text-white/40 font-semibold tracking-wide uppercase">Action</TableHead>
                 </TableRow>
               </TableHeader>
-
               <tbody>
                 {sorted.map((s) => (
                   <tr
                     key={s.dateString}
-                    className="border-b hover:bg-accent cursor-pointer"
+                    className="border-b border-white/[0.06] transition-colors hover:bg-white/[0.04] cursor-pointer"
                     onClick={() => router.push(`/church/${churchId}/attendance?date=${s.dateString}`)}
                   >
-                    <td className="py-2 px-2">{s.dateString}</td>
-                    <td className="py-2 px-2 text-center">{s.membersPresent}</td>
-                    <td className="py-2 px-2 text-center">{s.membersAbsent}</td>
-                    <td className="py-2 px-2 text-center">{s.visitorCount}</td>
-
-                    <td
-                      className="py-2 px-2 text-center"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <td className="py-2.5 px-3 text-white/75 font-medium">{s.dateString}</td>
+                    <td className="py-2.5 px-3 text-center">
+                      <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-400">{s.membersPresent}</span>
+                    </td>
+                    <td className="py-2.5 px-3 text-center">
+                      <span className="rounded-full border border-red-500/15 bg-red-500/10 px-2 py-0.5 text-xs text-red-400/70">{s.membersAbsent}</span>
+                    </td>
+                    <td className="py-2.5 px-3 text-center">
+                      <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 text-xs text-sky-400">{s.visitorCount}</span>
+                    </td>
+                    <td className="py-2.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button

@@ -4,7 +4,6 @@
 import { useSearchParams, useRouter, useParams } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { format } from "date-fns";
-import { PageHeader } from "@/app/components/page-header";
 import { Fab } from "@/app/components/ui/fab";
 import { Input } from "@/app/components/ui/input";
 import { Button } from "@/app/components/ui/button";
@@ -23,8 +22,10 @@ import { useAttendance } from "@/app/hooks/useAttendance";
 import { useToast } from "@/app/hooks/use-toast";
 import { QRCodeCanvas } from "qrcode.react";
 import { AttendanceGrid } from "@/app/components/attendance/AttendanceGrid";
-import { Card, CardContent, CardHeader } from "@/app/components/ui/card";
-import { useCan } from "@/app/hooks/useCan";import { useAuth } from '@/app/hooks/useAuth';import { Separator } from "@/app/components/ui/separator";
+import { useCan } from "@/app/hooks/useCan";
+import { useAuth } from "@/app/hooks/useAuth";
+import { CalendarDays, QrCode, UserPlus, CheckCheck, UserX, Pencil, History, Users } from "lucide-react";
+import { cn } from "@/app/lib/utils";
 
 export default function AttendancePageContent() {
   const searchParams = useSearchParams();
@@ -117,21 +118,25 @@ export default function AttendancePageContent() {
   }, [visitors]);
 
   // QR GENERATOR
+    // STATS
+    const presentCount = useMemo(
+      () => [...sortedMembers, ...sortedVisitors].filter((m) => records[m.id] === true).length,
+      [sortedMembers, sortedVisitors, records]
+    );
+    const totalCount = sortedMembers.length + sortedVisitors.length;
+    const absentCount = totalCount - presentCount;
+
+    // QR GENERATOR
   async function handleGenerateQr() {
     try {
       setQrLoading(true);
 
       const today = new Date();
-      const dateString = today.toLocaleDateString("en-CA", {
-        timeZone: "America/Denver",
-      });
-
+      const dateStr = today.toLocaleDateString("en-CA", { timeZone: "America/Denver" });
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL as string;
-      const url = `${baseUrl}/check-in/${churchId}?d=${dateString}`;
-
+      const url = `${baseUrl}/check-in/${churchId}?d=${dateStr}`;
       setQrUrl(url);
       setQrOpen(true);
-
       try {
         await navigator.clipboard.writeText(url);
       } catch {
@@ -144,11 +149,7 @@ export default function AttendancePageContent() {
         document.execCommand("copy");
         document.body.removeChild(textarea);
       }
-
-      toast({
-        title: "QR Generated",
-        description: "The check‑in link has been copied to your clipboard.",
-      });
+      toast({ title: "QR Generated", description: "The check‑in link has been copied to your clipboard." });
     } catch (err) {
       console.error(err);
       toast({
@@ -167,169 +168,173 @@ export default function AttendancePageContent() {
     }
   }, [urlDate]);
 
-  // LOADING / PERMISSION STATES
-  if (loading) {
-    return (
-      <>
-        <PageHeader title="Attendance" subtitle={dateString} />
-        <p className="text-muted-foreground">Loading Attendance…</p>
-      </>
-    );
-  }
-
-  if (!authLoading && !canView) {
-    return (
-      <>
-        <PageHeader title="Attendance" subtitle={dateString} />
-        <p className="text-muted-foreground">
-          You do not have permission to view attendance.
-        </p>
-      </>
-    );
-  }
-
   function downloadQr() {
-    const canvas = document.getElementById(
-      "qr-canvas"
-    ) as HTMLCanvasElement | null;
+    const canvas = document.getElementById("qr-canvas") as HTMLCanvasElement | null;
     if (!canvas) return;
-
     const link = document.createElement("a");
     link.download = "attendance-qr.png";
     link.href = canvas.toDataURL("image/png");
     link.click();
   }
 
+  // MODE BADGE CONFIG
+  const modeBadge =
+    mode === "today"
+      ? { label: "Today", classes: "border-emerald-500/40 bg-emerald-500/15 text-emerald-300" }
+      : mode === "correction"
+      ? { label: "Correcting", classes: "border-amber-500/40 bg-amber-500/15 text-amber-300" }
+      : { label: "Past Date", classes: "border-white/20 bg-white/[0.07] text-white/50" };
+
+  if (loading) {
+    return (
+      <div className="rounded-2xl border border-white/15 bg-gradient-to-br from-black/90 via-black/75 to-black/60 backdrop-blur-xl p-8 text-center">
+        <p className="text-white/40">Loading attendance…</p>
+      </div>
+    );
+  }
+
+  if (!authLoading && !canView) {
+    return (
+      <div className="rounded-2xl border border-white/15 bg-gradient-to-br from-black/90 via-black/75 to-black/60 backdrop-blur-xl p-8 text-center">
+        <p className="text-white/40">You do not have permission to view attendance.</p>
+      </div>
+    );
+  }
+
   // MAIN RENDER
   return (
     <>
-      <PageHeader title="Attendance" subtitle={dateString} />
-
-      {/* MODE LABEL */}
-      {mode === "history" && (
-        <div className="text-white/60 text-xs mb-2">
-          Snapshot from {format(date, "MMMM d, yyyy")} — Read‑Only
-        </div>
-      )}
-
-      {mode === "correction" && (
-        <div className="text-white/60 text-xs mb-2">
-          Correcting Attendance for {format(date, "MMMM d, yyyy")}
-        </div>
-      )}
-
-      {/* DATE PICKER + TODAY + HISTORY */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 mb-4">
-        <Input
-          type="date"
-          value={format(date, "yyyy-MM-dd")}
-          onChange={(e) => {
-            const value = e.target.value
-            if (!value) return
-
-            // Avoid timezone shift — construct local date
-            const [year, month, day] = value.split("-").map(Number)
-            const newDate = new Date(year, month - 1, day)
-
-            setDate(newDate)
-            router.push(`${attendancePath}?date=${value}`)
-          }}
-          className="
-            w-full sm:w-[150px]
-            bg-black/80 text-white
-            border border-white/20
-            rounded-md px-3 py-2 text-center
-            hover:border-white/50
-            focus:outline-none focus:ring-2 focus:ring-white/40
-            cursor-pointer
-          "
+      {/* ── HERO CARD ── */}
+      <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-black/90 via-black/75 to-black/60 backdrop-blur-xl shadow-2xl mb-6">
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "radial-gradient(ellipse at 60% 0%, rgba(255,255,255,0.06) 0%, transparent 70%)" }}
         />
-        <Button
-          variant="ghost"
-          onClick={() => {
-            const today = new Date();
-            setDate(today);
-            router.push(`${attendancePath}?date=${format(today, "yyyy-MM-dd")}`);
-          }}
-          className="w-full sm:w-auto bg-black/80 border border-white/20 backdrop-blur-xl"
-        >
-          Today
-        </Button>
+        <div className="relative p-6">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span className={cn("rounded-full border px-2.5 py-0.5 text-xs font-semibold", modeBadge.classes)}>
+                  {modeBadge.label}
+                </span>
+                {mode === "correction" && (
+                  <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs text-amber-400/80">
+                    Correcting {format(date, "MMM d, yyyy")}
+                  </span>
+                )}
+                {mode === "history" && (
+                  <span className="rounded-full border border-white/15 bg-white/[0.07] px-2.5 py-0.5 text-xs text-white/50">
+                    Read‑Only Snapshot
+                  </span>
+                )}
+                {totalCount > 0 && (
+                  <>
+                    <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-0.5 text-xs text-emerald-400">
+                      {presentCount} Present
+                    </span>
+                    <span className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-0.5 text-xs text-red-400/80">
+                      {absentCount} Absent
+                    </span>
+                  </>
+                )}
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-1.5">
+                Attendance
+              </h1>
+              <div className="flex items-center gap-1.5 text-white/50 text-sm">
+                <CalendarDays size={14} />
+                <span>{format(date, "EEEE, MMMM d, yyyy")}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Input
+                type="date"
+                value={format(date, "yyyy-MM-dd")}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (!value) return;
+                  const [year, month, day] = value.split("-").map(Number);
+                  setDate(new Date(year, month - 1, day));
+                  router.push(`${attendancePath}?date=${value}`);
+                }}
+                className="w-[150px] bg-black/60 text-white border border-white/20 rounded-lg px-3 py-2 text-center hover:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/30 cursor-pointer"
+              />
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  const today = new Date();
+                  setDate(today);
+                  router.push(`${attendancePath}?date=${format(today, "yyyy-MM-dd")}`);
+                }}
+                className="bg-black/40 border border-white/15 hover:bg-white/10 text-white/70 hover:text-white"
+              >
+                Today
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => router.push(`${attendancePath}/history`)}
+                className="bg-black/40 border border-white/15 hover:bg-white/10 text-white/70 hover:text-white"
+                title="View History"
+              >
+                <History size={16} />
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* ACTION BUTTONS */}
+      {/* ── QUICK ACTIONS ── */}
       {mode !== "history" && (
-        <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
-          <CardHeader className="pb-2">
-            <h1 className="text-sm font-medium text-white/70 tracking-wide">
-              Quick Actions
-            </h1>
-          </CardHeader>
-          <Separator/>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4">
-
-            {/* GENERATE QR */}
-            <Button
+        <div className="rounded-xl border border-white/15 bg-black/55 backdrop-blur-xl p-4 mb-6">
+          <p className="text-[11px] font-semibold tracking-widest uppercase text-white/30 mb-3">
+            Quick Actions
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <button
               onClick={() => canEdit && handleGenerateQr()}
-              variant="default"
               disabled={!canEdit || qrLoading}
-              className="w-full flex flex-col items-center justify-center text-center 
-                bg-gradient-to-b from-yellow-500/70 to-yellow-600/70
-                gap-1 transition-colors"
+              className="flex flex-col items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] p-4 text-center transition-all hover:-translate-y-0.5 hover:border-amber-400/40 hover:bg-amber-950/30 hover:shadow-[0_4px_12px_rgba(251,191,36,0.12)] disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <span className="text-sm text-white/80">
-                {qrLoading ? "Generating..." : "Generate QR"}
-              </span>
-            </Button>
-
-            {/* ADD VISITOR */}
+              <QrCode size={20} className="text-amber-400" />
+              <span className="text-xs text-white/60">{qrLoading ? "Generating…" : "Generate QR"}</span>
+            </button>
             <Dialog>
               <DialogTrigger asChild>
-                <Button
-                  variant="default"
+                <button
                   disabled={!canEdit}
-                  className="w-full flex flex-col items-center justify-center text-center 
-                    bg-gradient-to-b from-cyan-500/70 to-cyan-600/70
-                    hover:from-cyan-500/90 hover:to-cyan-600/90
-                    active:scale-[0.97]
-                    gap-1 transition-colors"
+                  className="flex flex-col items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] p-4 text-center transition-all hover:-translate-y-0.5 hover:border-sky-400/40 hover:bg-sky-950/30 hover:shadow-[0_4px_12px_rgba(56,189,248,0.12)] disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  <span className="text-sm text-white/80">Add Visitor</span>
-                </Button>
+                  <UserPlus size={20} className="text-sky-400" />
+                  <span className="text-xs text-white/60">Add Visitor</span>
+                </button>
               </DialogTrigger>
-
               <DialogContent className="bg-white/10 backdrop-blur-sm border border-white/20">
                 <DialogHeader>
                   <DialogTitle>Add Visitor</DialogTitle>
                 </DialogHeader>
-
                 <Input
                   placeholder="Visitor name"
                   value={visitorName}
                   onChange={(e) => setVisitorName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && visitorName.trim()) {
+                      const id = crypto.randomUUID();
+                      setVisitors((prev) => [...prev, { id, name: visitorName.trim() }]);
+                      setRecords((prev) => ({ ...prev, [id]: true }));
+                      setVisitorName("");
+                    }
+                  }}
                   className="bg-black/80 text-white"
                   disabled={!canEdit}
                 />
-
                 <DialogFooter>
                   <Button
                     disabled={!canEdit}
                     onClick={() => {
-                      if (!canEdit) return;
-                      if (!visitorName.trim()) return;
-
-                      const id = `visitor-${Date.now()}`;
-
-                      setVisitors((prev) => [
-                        ...prev,
-                        { id, name: visitorName.trim() },
-                      ]);
-
-                      setRecords((prev) => ({
-                        ...prev,
-                        [id]: true,
-                      }));
-
+                      if (!canEdit || !visitorName.trim()) return;
+                      const id = crypto.randomUUID();
+                      setVisitors((prev) => [...prev, { id, name: visitorName.trim() }]);
+                      setRecords((prev) => ({ ...prev, [id]: true }));
                       setVisitorName("");
                     }}
                   >
@@ -338,60 +343,49 @@ export default function AttendancePageContent() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-
-            {/* MARK ALL PRESENT */}
-            <Button
+            <button
               onClick={() => canEdit && markAllPresent(effectiveMembers, visitors)}
-              variant="default"
               disabled={!canEdit}
-              className="w-full flex flex-col items-center justify-center text-center 
-                bg-gradient-to-b from-green-500/70 to-green-700/70
-                gap-1 transition-colors"
+              className="flex flex-col items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] p-4 text-center transition-all hover:-translate-y-0.5 hover:border-emerald-400/40 hover:bg-emerald-950/30 hover:shadow-[0_4px_12px_rgba(52,211,153,0.12)] disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <span className="text-sm text-white/80">Mark All Present</span>
-            </Button>
-
-            {/* MARK ALL ABSENT */}
-            <Button
+              <CheckCheck size={20} className="text-emerald-400" />
+              <span className="text-xs text-white/60">Mark All Present</span>
+            </button>
+            <button
               onClick={() => canEdit && markAllAbsent(effectiveMembers, visitors)}
-              variant="default"
               disabled={!canEdit}
-              className="w-full flex flex-col items-center justify-center text-center
-                bg-gradient-to-b from-red-500/70 to-red-700/70
-                hover:from-red-500/90 hover:to-red-700/90
-                active:scale-[0.97]
-                gap-1 transition-colors"
+              className="flex flex-col items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] p-4 text-center transition-all hover:-translate-y-0.5 hover:border-red-400/40 hover:bg-red-950/30 hover:shadow-[0_4px_12px_rgba(248,113,113,0.12)] disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <span className="text-sm text-white/80">Mark All Absent</span>
-            </Button>
-
-          </CardContent>
-        </Card>
+              <UserX size={20} className="text-red-400" />
+              <span className="text-xs text-white/60">Mark All Absent</span>
+            </button>
+          </div>
+        </div>
       )}
 
-      {/* CORRECT THIS DATE BUTTON */}
+      {/* ── CORRECT THIS DATE ── */}
       {mode === "history" && canEdit && (
-        <Button
-          onClick={() =>
-            router.push(`${attendancePath}?date=${selectedString}&correcting=true`)
-          }
-          className="w-full bg-blue-700/60 hover:bg-blue-800/60 text-white/80"
+        <button
+          onClick={() => router.push(`${attendancePath}?date=${selectedString}&correcting=true`)}
+          className="w-full flex items-center justify-center gap-2 rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 mb-6 text-sm font-medium text-amber-300 transition-all hover:bg-amber-500/15 hover:border-amber-500/40"
         >
-          Edit Attendance for This Date
-        </Button>
+          <Pencil size={14} />
+          Edit Attendance for {format(date, "MMMM d, yyyy")}
+        </button>
       )}
 
-      {/* MEMBER SECTION */}
-      <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl mt-8">
-        <CardHeader className="pb-2">
-          <h1 className="text-sm font-medium text-white/70 tracking-wide">
-            Members
-          </h1>
-        </CardHeader>
-
-        <Separator />
-
-        <CardContent className="p-4">
+      {/* ── MEMBERS & VISITORS ── */}
+      <div className="rounded-xl border border-white/15 bg-black/55 backdrop-blur-xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <Users size={14} className="text-white/40" />
+            <span className="text-sm font-semibold text-white/70 tracking-wide">Members &amp; Visitors</span>
+          </div>
+          {totalCount > 0 && (
+            <span className="text-xs text-white/35">{totalCount} total</span>
+          )}
+        </div>
+        <div className="p-4">
           <AttendanceGrid
             members={sortedMembers}
             visitors={sortedVisitors}
@@ -400,59 +394,52 @@ export default function AttendancePageContent() {
             canEdit={canEdit}
             onToggle={(id) => {
               if (!canEdit) return;
-              setRecords((prev) => ({
-                ...prev,
-                [id]: !prev[id],
-              }));
+              setRecords((prev) => ({ ...prev, [id]: !prev[id] }));
             }}
             onRemoveVisitor={(id) => {
               if (!canEdit) return;
               setVisitors((prev) => prev.filter((v) => v.id !== id));
             }}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* SAVE BUTTON */}
+      {/* ── SAVE FAB ── */}
       {mode !== "history" && (
         <Fab
           disabled={!canEdit}
           onClick={async () => {
             if (!canEdit) return;
-
-            await save();
-
-            if (mode === "correction") {
-              router.push(`${attendancePath}?date=${selectedString}`);
+            try {
+              await save();
+              if (mode === "correction") {
+                router.push(`${attendancePath}?date=${selectedString}`);
+              }
+              toast({ title: "Attendance Saved" });
+            } catch {
+              toast({
+                title: "Unable to save attendance",
+                description: "Please try again. If the problem continues, check the browser console for details.",
+                variant: "destructive",
+              });
             }
-
-            toast({ title: "Attendance Saved" });
           }}
           type="save"
         />
       )}
 
-      {/* QR MODAL */}
+      {/* ── QR MODAL ── */}
       <Dialog open={qrOpen} onOpenChange={setQrOpen}>
         <DialogContent className="bg-white/10 backdrop-blur-sm border border-white/20">
           <DialogHeader>
             <DialogTitle>Attendance QR Code</DialogTitle>
-            <DialogDescription>
-              Scan or share this code to check in.
-            </DialogDescription>
+            <DialogDescription>Scan or share this code to check in.</DialogDescription>
           </DialogHeader>
-
           {qrUrl && (
             <div className="flex flex-col items-center gap-4 py-4">
               <QRCodeCanvas value={qrUrl} size={200} id="qr-canvas" />
-
-              <Button onClick={downloadQr} className="w-full">
-                Download QR
-              </Button>
-
-              <div className="text-xs text-white/60 break-all text-center">
-                {qrUrl}
-              </div>
+              <Button onClick={downloadQr} className="w-full">Download QR</Button>
+              <div className="text-xs text-white/60 break-all text-center">{qrUrl}</div>
             </div>
           )}
         </DialogContent>

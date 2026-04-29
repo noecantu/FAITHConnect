@@ -68,11 +68,16 @@ export function useAttendance(
     const supabase = getSupabaseClient();
 
     // Delete all rows for this date, then reinsert clean state
-    await supabase
+    const { error: deleteError } = await supabase
       .from("attendance")
       .delete()
       .eq("church_id", churchId)
       .eq("date", dateString);
+
+    if (deleteError) {
+      console.error("useAttendance delete error:", deleteError);
+      throw deleteError;
+    }
 
     const rows: any[] = [];
 
@@ -99,7 +104,16 @@ export function useAttendance(
 
     if (rows.length > 0) {
       const { error } = await supabase.from("attendance").insert(rows);
-      if (error) console.error("useAttendance save error:", error);
+      if (error) {
+        console.error("useAttendance save error:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+          sampleRow: rows[0],
+        });
+        throw error;
+      }
     }
   };
 
