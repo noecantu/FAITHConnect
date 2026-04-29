@@ -91,15 +91,28 @@ export default function SongDetailPage() {
 
   const handleDelete = async () => {
     if (!churchId) return;
-  
-    await deleteSong(churchId, song.id);
-  
-    toast({
-      title: "Song deleted",
-      description: `"${song.title}" has been removed.`,
-    });
-  
-    router.push(songsBasePath);
+
+    try {
+      await deleteSong(churchId, song.id);
+
+      toast({
+        title: "Song deleted",
+        description: `"${song.title}" has been removed.`,
+      });
+
+      router.push(songsBasePath);
+    } catch (error) {
+      const description =
+        error instanceof Error && error.message
+          ? error.message
+          : "Could not delete song. Please try again.";
+
+      toast({
+        title: "Error",
+        description,
+        variant: "destructive",
+      });
+    }
   };  
   
   const handleDuplicate = async () => {

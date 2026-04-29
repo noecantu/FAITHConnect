@@ -113,13 +113,19 @@ export async function updateSong(
 }
 
 export async function deleteSong(churchId: string, songId: string): Promise<void> {
-  const { error } = await getSupabaseClient()
-    .from("songs")
-    .delete()
-    .eq("id", songId)
-    .eq("church_id", churchId);
+  const res = await fetch("/api/songs/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ churchId, songId }),
+  });
 
-  if (error) throw error;
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(
+      typeof body?.error === "string" ? body.error : `Failed to delete song (${res.status})`
+    );
+  }
 }
 
 export async function getSongById(
