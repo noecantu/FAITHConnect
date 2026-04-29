@@ -24,6 +24,7 @@ import { Button } from "@/app/components/ui/button";
 import { FileText, Loader2, Sheet, Copy } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/app/hooks/use-toast";
+import { formatCurrencyUSD } from "@/app/lib/formatters";
 
 import { usePermissions } from "@/app/hooks/usePermissions";
 
@@ -175,8 +176,8 @@ export default function ReportsPage() {
       return;
     }
 
-    if (!selectedSetListYear || !setListYearOptions.includes(selectedSetListYear)) {
-      setSelectedSetListYear(setListYearOptions[0]);
+    if (selectedSetListYear && !setListYearOptions.includes(selectedSetListYear)) {
+      setSelectedSetListYear(null);
       setSelectedSetListMonth(null);
     }
   }, [setListYearOptions, selectedSetListYear]);
@@ -198,8 +199,8 @@ export default function ReportsPage() {
       return;
     }
 
-    if (!selectedSetListId || !filteredSetLists.some((list) => list.id === selectedSetListId)) {
-      setSelectedSetListId(filteredSetLists[0].id);
+    if (selectedSetListId && !filteredSetLists.some((list) => list.id === selectedSetListId)) {
+      setSelectedSetListId(null);
     }
   }, [filteredSetLists, selectedSetListId]);
 
@@ -211,8 +212,8 @@ export default function ReportsPage() {
       return;
     }
 
-    if (!selectedServicePlanYear || !servicePlanYearOptions.includes(selectedServicePlanYear)) {
-      setSelectedServicePlanYear(servicePlanYearOptions[0]);
+    if (selectedServicePlanYear && !servicePlanYearOptions.includes(selectedServicePlanYear)) {
+      setSelectedServicePlanYear(null);
       setSelectedServicePlanMonth(null);
     }
   }, [servicePlanYearOptions, selectedServicePlanYear]);
@@ -234,8 +235,8 @@ export default function ReportsPage() {
       return;
     }
 
-    if (!selectedServicePlanId || !filteredServicePlans.some((plan) => plan.id === selectedServicePlanId)) {
-      setSelectedServicePlanId(filteredServicePlans[0].id);
+    if (selectedServicePlanId && !filteredServicePlans.some((plan) => plan.id === selectedServicePlanId)) {
+      setSelectedServicePlanId(null);
     }
   }, [filteredServicePlans, selectedServicePlanId]);
 
@@ -388,9 +389,27 @@ export default function ReportsPage() {
     // selectedWeek,
   });
 
+  // Require an explicit selection before showing report data.
+  const hasMembersSelection = selectedMembers.length > 0 || selectedStatus.length > 0;
+  const hasContributionsSelection =
+    timeFrame === "month"
+      ? selectedYear !== null && selectedMonth !== null
+      : selectedYear !== null;
+  const hasAttendanceSelection =
+    selectedYear !== null ||
+    selectedMonth !== null ||
+    selectedMembers.length > 0;
+  const hasSetListSelection = selectedSetListYear !== null && !!selectedSetListId;
+  const hasServicePlanSelection = selectedServicePlanYear !== null && !!selectedServicePlanId;
+
+  const effectiveFilteredMembers = hasMembersSelection ? filteredMembers : [];
+  const effectiveFilteredContributions = hasContributionsSelection ? filteredContributions : [];
+  const effectiveContributionBreakdownRows = hasContributionsSelection ? contributionBreakdownRows : [];
+  const effectiveFilteredAttendance = hasAttendanceSelection ? filteredAttendance : [];
+
   const contributionTotalAmount = useMemo(() => {
-    return filteredContributions.reduce((sum, contribution) => sum + contribution.amount, 0);
-  }, [filteredContributions]);
+    return effectiveFilteredContributions.reduce((sum, contribution) => sum + contribution.amount, 0);
+  }, [effectiveFilteredContributions]);
 
   const monthLabelForYearMonth = (year: string, month: string) =>
     new Date(Number(year), Number(month) - 1, 1).toLocaleString("default", {
@@ -590,9 +609,9 @@ export default function ReportsPage() {
   // -------------------------------------------------------
   const { exportPDF, exportExcel } = useReportExports({
     reportType,
-    filteredMembers,
-    filteredContributions,
-    filteredAttendance,
+    filteredMembers: effectiveFilteredMembers,
+    filteredContributions: effectiveFilteredContributions,
+    filteredAttendance: effectiveFilteredAttendance,
     selectedFields,
     members,
     selectedSetList,
@@ -600,7 +619,7 @@ export default function ReportsPage() {
     servicePlanSongs,
     contributionExportContext,
     contributionUseGroupedView: scopedContributionOnly,
-    contributionBreakdownRows,
+    contributionBreakdownRows: effectiveContributionBreakdownRows,
     contributionBreakdown,
   });
 
@@ -659,6 +678,12 @@ export default function ReportsPage() {
     setTimeFrame("year");
     setSelectedYear(null);
     setSelectedMonth(null);
+    setSelectedSetListYear(null);
+    setSelectedSetListMonth(null);
+    setSelectedSetListId(null);
+    setSelectedServicePlanYear(null);
+    setSelectedServicePlanMonth(null);
+    setSelectedServicePlanId(null);
   };
 
   // -------------------------------------------------------
@@ -681,11 +706,11 @@ export default function ReportsPage() {
   // 8. EXPORT BUTTON VISIBILITY
   // -------------------------------------------------------
   const canExport =
-    (reportType === "members" && canReadMembersReports) ||
-    (reportType === "contributions" && canReadContributionsReports) ||
-    (reportType === "attendance" && canReadAttendanceReports) ||
-    (reportType === "setlists" && canAccessSetListReport && !!selectedSetList) ||
-    (reportType === "serviceplans" && canAccessServicePlanReport && !!selectedServicePlan);
+    (reportType === "members" && canReadMembersReports && hasMembersSelection) ||
+    (reportType === "contributions" && canReadContributionsReports && hasContributionsSelection) ||
+    (reportType === "attendance" && canReadAttendanceReports && hasAttendanceSelection) ||
+    (reportType === "setlists" && canAccessSetListReport && hasSetListSelection && !!selectedSetList) ||
+    (reportType === "serviceplans" && canAccessServicePlanReport && hasServicePlanSelection && !!selectedServicePlan);
 
   const canCopyPlan =
     (reportType === "setlists" && canAccessSetListReport && !!selectedSetList) ||
@@ -862,7 +887,7 @@ export default function ReportsPage() {
             </div>
           )}
 
-          {reportType === "contributions" && scopedContributionOnly && canReadContributionsReports && (
+          {reportType === "contributions" && scopedContributionOnly && canReadContributionsReports && hasContributionsSelection && (
             <div className="rounded-md border border-white/20 bg-black/50 p-4 text-sm text-white/90 backdrop-blur-xl">
               <div className="font-semibold mb-2">Report Scope Summary</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-white/80">
@@ -879,58 +904,94 @@ export default function ReportsPage() {
                   Members: {selectedMemberLabels.length > 0 ? selectedMemberLabels.length : "All"}
                 </div>
                 <div>
-                  Rows: {contributionBreakdownRows.length}
+                  Rows: {effectiveContributionBreakdownRows.length}
                 </div>
                 <div>
-                  Total: ${contributionTotalAmount.toFixed(2)}
+                  Total: {formatCurrencyUSD(contributionTotalAmount)}
                 </div>
               </div>
             </div>
           )}
 
-          {reportType === "attendance" && !scopedContributionOnly && canReadAttendanceReports && (
+          {reportType === "attendance" && !scopedContributionOnly && canReadAttendanceReports && hasAttendanceSelection && (
             <AttendancePreviewTable
-              attendance={filteredAttendance}
+              attendance={effectiveFilteredAttendance}
               members={members}
             />
           )}
 
-          {reportType === "contributions" && canReadContributionsReports && (
+          {reportType === "attendance" && !scopedContributionOnly && canReadAttendanceReports && !hasAttendanceSelection && (
+            <div className="rounded-md border border-white/20 bg-black/30 p-4 text-sm text-muted-foreground">
+              Select at least one filter (Year, Month, or Member) to view attendance data.
+            </div>
+          )}
+
+          {reportType === "contributions" && canReadContributionsReports && hasContributionsSelection && (
             <>
-              {filteredContributions.length === 0 && (
+              {effectiveFilteredContributions.length === 0 && (
                 <div className="rounded-md border border-white/20 bg-black/30 p-4 text-sm text-muted-foreground">
                   No contribution records match the current filters. Try widening Churches, Members, or Date filters.
                 </div>
               )}
 
               <ContributionPreviewTable
-                contributions={filteredContributions}
+                contributions={effectiveFilteredContributions}
                 members={members}
                 selectedFields={[]}
                 breakdown={contributionBreakdown}
-                breakdownRows={contributionBreakdownRows}
+                breakdownRows={effectiveContributionBreakdownRows}
                 useGroupedView={scopedContributionOnly}
               />
             </>
           )}
 
-          {reportType === "members" && !scopedContributionOnly && canReadMembersReports && (
+          {reportType === "contributions" && canReadContributionsReports && !hasContributionsSelection && (
+            <div className="rounded-md border border-white/20 bg-black/30 p-4 text-sm text-muted-foreground">
+              {timeFrame === "month"
+                ? "Select both Year and Month to view contribution data."
+                : "Select a Year to view contribution data."}
+            </div>
+          )}
+
+          {reportType === "members" && !scopedContributionOnly && canReadMembersReports && hasMembersSelection && (
             <MemberPreviewTable
-              members={filteredMembers}
+              members={effectiveFilteredMembers}
               selectedFields={selectedFields}
             />
           )}
 
-          {reportType === "setlists" && canAccessSetListReport && (
+          {reportType === "members" && !scopedContributionOnly && canReadMembersReports && !hasMembersSelection && (
+            <div className="rounded-md border border-white/20 bg-black/30 p-4 text-sm text-muted-foreground">
+              Select at least one filter (Member or Status) to view member data.
+            </div>
+          )}
+
+          {reportType === "setlists" && canAccessSetListReport && hasSetListSelection && (
             <SetListPreviewReport setList={selectedSetList} />
           )}
 
-          {reportType === "serviceplans" && canAccessServicePlanReport && (
+          {reportType === "setlists" && canAccessSetListReport && !hasSetListSelection && (
+            <div className="rounded-md border border-white/20 bg-black/30 p-4 text-sm text-muted-foreground">
+              {!selectedSetListYear
+                ? "Select a Set List Year first, then choose a set list to view report data."
+                : "Select a set list to view report data."}
+            </div>
+          )}
+
+          {reportType === "serviceplans" && canAccessServicePlanReport && hasServicePlanSelection && (
             <ServicePlanPreviewReport
               plan={selectedServicePlan}
               members={members}
               songs={servicePlanSongs}
             />
+          )}
+
+          {reportType === "serviceplans" && canAccessServicePlanReport && !hasServicePlanSelection && (
+            <div className="rounded-md border border-white/20 bg-black/30 p-4 text-sm text-muted-foreground">
+              {!selectedServicePlanYear
+                ? "Select a Service Plan Year first, then choose a service plan to view report data."
+                : "Select a service plan to view report data."}
+            </div>
           )}
         </div>
       </div>

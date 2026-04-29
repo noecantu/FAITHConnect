@@ -5,7 +5,7 @@ import type { Member, AttendanceRecord, SetList, ServicePlan, Song } from './typ
 import { format } from 'date-fns';
 import { FieldValue } from '../lib/report-types';
 import { Address } from '../lib/types';
-import { formatPhone } from "@/app/lib/formatters";
+import { formatCurrencyUSD, formatPhone } from "@/app/lib/formatters";
 
 function formatField(value: FieldValue): string {
   if (value == null) return "—";
@@ -306,7 +306,7 @@ export function generateContributionsPDF(
       }
 
       if (field === "amount" || field === "totalAmount" || field === "averageAmount") {
-        return `$${toNumber(value).toFixed(2)}`;
+        return formatCurrencyUSD(toNumber(value));
       }
 
       if (field === "contributionCount") {
@@ -329,7 +329,7 @@ export function generateContributionsPDF(
     }, 0);
 
     const totalRow = selectedFields.map((field, index) => {
-      if (field === totalField) return `$${totalAmount.toFixed(2)}`;
+      if (field === totalField) return formatCurrencyUSD(totalAmount);
       if (field === "memberName" || field === "group") return "TOTAL";
       if (index === 0 && !selectedFields.includes("memberName") && !selectedFields.includes("group")) {
         return "TOTAL";
@@ -440,7 +440,7 @@ export function generateContributionsExcel(
       if (field === "date" && value) {
         excelRow[label] = format(new Date(value), "MM/dd/yyyy");
       } else if (field === "amount" || field === "totalAmount" || field === "averageAmount") {
-        excelRow[label] = `$${toNumber(value).toFixed(2)}`;
+        excelRow[label] = formatCurrencyUSD(toNumber(value));
       } else if (field === "contributionCount") {
         excelRow[label] = String(toNumber(value));
       } else {
@@ -470,7 +470,7 @@ export function generateContributionsExcel(
       totalRow[label] = "";
 
       if (field === totalField) {
-        totalRow[label] = `$${totalAmount.toFixed(2)}`;
+        totalRow[label] = formatCurrencyUSD(totalAmount);
       }
 
       if (field === "memberName" || field === "group") {

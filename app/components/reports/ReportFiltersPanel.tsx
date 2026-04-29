@@ -292,6 +292,7 @@ export function ReportFiltersPanel({
               "
               value={selectedServicePlanId ?? ""}
               onChange={(e) => setSelectedServicePlanId(e.target.value || null)}
+              disabled={!selectedServicePlanYear}
             >
               <option value="">Select a service plan</option>
               {servicePlanOptions.map((option) => (
@@ -376,6 +377,7 @@ export function ReportFiltersPanel({
               "
               value={selectedSetListId ?? ""}
               onChange={(e) => setSelectedSetListId(e.target.value || null)}
+              disabled={!selectedSetListYear}
             >
               <option value="">Select a set list</option>
               {setListOptions.map((option) => (

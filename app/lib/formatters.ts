@@ -11,4 +11,21 @@ export function formatPhone(num?: string): string {
   
     return `(${area}) ${prefix}-${line}`;
   }
+
+const numberFormatter = new Intl.NumberFormat("en-US");
+
+const usdCurrencyFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+export function formatNumber(value: number): string {
+  return numberFormatter.format(value);
+}
+
+export function formatCurrencyUSD(value: number): string {
+  return usdCurrencyFormatter.format(value);
+}
   

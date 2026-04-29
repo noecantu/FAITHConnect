@@ -4,6 +4,7 @@ import { Member, Contribution } from "@/app/lib/types";
 import { usePreviewPagination } from "@/app/hooks/usePreviewPagination";
 import { PreviewPaginationFooter } from "@/app/components/layout/PreviewPaginationFooter";
 import { ReportContainer } from "@/app/components/reports/ReportContainer";
+import { formatCurrencyUSD } from "@/app/lib/formatters";
 import type {
   ContributionBreakdown,
   ContributionBreakdownRow,
@@ -109,9 +110,9 @@ export function ContributionPreviewTable({
                     className="border-b border-white/20 hover:bg-white/5 transition-colors"
                   >
                     <td className="p-3 text-white/90">{row.label}</td>
-                    <td className="p-3 text-white/90">${row.totalAmount.toFixed(2)}</td>
+                    <td className="p-3 text-white/90">{formatCurrencyUSD(row.totalAmount)}</td>
                     <td className="p-3 text-white/90">{row.contributionCount}</td>
-                    <td className="p-3 text-white/90">${row.averageAmount.toFixed(2)}</td>
+                    <td className="p-3 text-white/90">{formatCurrencyUSD(row.averageAmount)}</td>
                   </tr>
                 ))
               : (visible as Contribution[]).map((contribution) => {
@@ -126,7 +127,7 @@ export function ContributionPreviewTable({
                       className="border-b border-white/20 hover:bg-white/5 transition-colors"
                     >
                       <td className="p-3 text-white/90">{memberName}</td>
-                      <td className="p-3 text-white/90">${contribution.amount.toFixed(2)}</td>
+                        <td className="p-3 text-white/90">{formatCurrencyUSD(contribution.amount)}</td>
                       <td className="p-3 text-white/90">
                         {new Date(contribution.date).toLocaleDateString()}
                       </td>
@@ -142,14 +143,14 @@ export function ContributionPreviewTable({
             {useGroupedView ? (
               <tr className="border-t border-white/40 bg-white/5">
                 <td className="p-3 font-semibold text-white">TOTAL</td>
-                <td className="p-3 font-semibold text-white">${totalAmount.toFixed(2)}</td>
+                <td className="p-3 font-semibold text-white">{formatCurrencyUSD(totalAmount)}</td>
                 <td className="p-3" />
                 <td className="p-3" />
               </tr>
             ) : (
               <tr className="border-t border-white/40 bg-white/5">
                 <td className="p-3 font-semibold text-white">TOTAL</td>
-                <td className="p-3 font-semibold text-white">${totalAmount.toFixed(2)}</td>
+                <td className="p-3 font-semibold text-white">{formatCurrencyUSD(totalAmount)}</td>
                 <td className="p-3" />
                 <td className="p-3" />
                 <td className="p-3" />
