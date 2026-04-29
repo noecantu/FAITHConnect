@@ -157,4 +157,5 @@ export {
   SelectTrigger,
   SelectContent,
   SelectItem,
+  SelectSeparator,
 }

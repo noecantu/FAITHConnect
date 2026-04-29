@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/app/lib/supabase/admin";
 import { getServerUser } from "@/app/lib/supabase/server";
 import { can } from "@/app/lib/auth/permissions";
+import { normalizeGroupName, type MinistryGroup } from "@/app/lib/auth/groups";
 import type { Role } from "@/app/lib/auth/roles";
 import type { Permission } from "@/app/lib/auth/permissions";
 
 export const runtime = "nodejs";
 
-type DashboardMessageVisibility = "all" | "staff" | "leaders" | "admins";
+type DashboardMessageVisibility = "all" | "admin" | "groups";
 
 type DashboardMessagePayload = {
   id: string;
@@ -17,10 +18,23 @@ type DashboardMessagePayload = {
   message: string;
   reference: string;
   visibility: DashboardMessageVisibility;
+  groups: MinistryGroup[];
   startAt: string | null;
   endAt: string | null;
   updatedAt: string;
 };
+
+function normalizeMessageGroups(raw: unknown): MinistryGroup[] {
+  if (!Array.isArray(raw)) return [];
+
+  const seen = new Set<MinistryGroup>();
+  raw.forEach((entry) => {
+    const normalized = normalizeGroupName(String(entry ?? ""));
+    if (normalized) seen.add(normalized);
+  });
+
+  return [...seen];
+}
 
 function normalizeMessage(raw: unknown): DashboardMessagePayload | null {
   if (!raw || typeof raw !== "object") return null;
@@ -32,6 +46,8 @@ function normalizeMessage(raw: unknown): DashboardMessagePayload | null {
   const message = String(data.message ?? "").trim();
   const reference = String(data.reference ?? "").trim();
   const visibility = String(data.visibility ?? "all").trim().toLowerCase();
+  const groups = normalizeMessageGroups(data.groups);
+  const legacyGroup = normalizeGroupName(visibility);
   const hasAnyContent = Boolean(title || message || reference);
   const enabled = typeof data.enabled === "boolean" ? data.enabled : hasAnyContent;
 
@@ -54,9 +70,14 @@ function normalizeMessage(raw: unknown): DashboardMessagePayload | null {
     message,
     reference,
     visibility:
-      visibility === "staff" || visibility === "leaders" || visibility === "admins"
-        ? visibility
+      visibility === "all" || visibility === "public"
+        ? "all"
+        : visibility === "admin" || visibility === "admins" || visibility === "administrator" || visibility === "administrators"
+        ? "admin"
+        : groups.length > 0 || legacyGroup
+        ? "groups"
         : "all",
+    groups: groups.length > 0 ? groups : legacyGroup ? [legacyGroup] : [],
     startAt,
     endAt,
     updatedAt: new Date().toISOString(),

@@ -7,12 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Button } from '@/app/components/ui/button';
+import { MultiSelect } from '@/app/components/ui/multi-select';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { useToast } from '@/app/hooks/use-toast';
+import { GROUP_LABELS, MINISTRY_GROUPS, normalizeGroupName, type MinistryGroup } from '@/app/lib/auth/groups';
 import { BookOpenText, BellRing, Quote, MessageCircle, TriangleAlert, Loader2, Check, Plus, Trash2 } from 'lucide-react';
 
-type Visibility = 'all' | 'staff' | 'leaders' | 'admins';
+type Visibility = 'all' | 'admin' | 'groups';
 type MessageType = 'quote' | 'verse' | 'reminder' | 'general' | 'alert';
 
 type DashboardMessage = {
@@ -23,10 +25,72 @@ type DashboardMessage = {
   message: string;
   reference: string;
   visibility: Visibility;
+  groups: MinistryGroup[];
   startAt: string;
   endAt: string;
   updatedAt?: string;
 };
+
+const groupVisibilityOptions: Array<{ value: MinistryGroup; label: string }> = [...MINISTRY_GROUPS]
+  .sort((left, right) => GROUP_LABELS[left].localeCompare(GROUP_LABELS[right]))
+  .map((group) => ({ value: group, label: GROUP_LABELS[group] }));
+
+function normalizeMessageGroups(raw: unknown): MinistryGroup[] {
+  if (!Array.isArray(raw)) return [];
+
+  const seen = new Set<MinistryGroup>();
+  raw.forEach((entry) => {
+    const normalized = normalizeGroupName(String(entry ?? ''));
+    if (normalized) seen.add(normalized);
+  });
+
+  return [...seen].sort((left, right) => GROUP_LABELS[left].localeCompare(GROUP_LABELS[right]));
+}
+
+function normalizeAudience(visibilityValue: unknown, groupsValue: unknown): Pick<DashboardMessage, 'visibility' | 'groups'> {
+  const visibility = String(visibilityValue ?? '').trim().toLowerCase();
+  const groups = normalizeMessageGroups(groupsValue);
+
+  if (groups.length > 0) {
+    return { visibility: 'groups', groups };
+  }
+
+  if (
+    visibility === 'admin' ||
+    visibility === 'admins' ||
+    visibility === 'administrator' ||
+    visibility === 'administrators'
+  ) {
+    return { visibility: 'admin', groups: [] };
+  }
+
+  const legacyGroup = normalizeGroupName(visibility);
+  if (legacyGroup) {
+    return { visibility: 'groups', groups: [legacyGroup] };
+  }
+
+  return { visibility: 'all', groups: [] };
+}
+
+function formatGroupLabels(groups: MinistryGroup[]): string {
+  const labels = groups.map((group) => GROUP_LABELS[group]);
+
+  if (labels.length <= 2) {
+    return labels.join(', ');
+  }
+
+  return `${labels.slice(0, 2).join(', ')} +${labels.length - 2}`;
+}
+
+function formatVisibilityLabel(
+  message: Pick<DashboardMessage, 'visibility'> & { groups?: MinistryGroup[] | null }
+): string {
+  const groups = normalizeMessageGroups(message.groups);
+
+  if (message.visibility === 'all') return 'Public';
+  if (message.visibility === 'admin') return 'Admin';
+  return groups.length ? formatGroupLabels(groups) : 'Specific Groups';
+}
 
 function createEmptyMessage(): DashboardMessage {
   return {
@@ -37,6 +101,7 @@ function createEmptyMessage(): DashboardMessage {
     message: '',
     reference: '',
     visibility: 'all',
+    groups: [],
     startAt: '',
     endAt: '',
   };
@@ -54,6 +119,7 @@ function normalizeMessage(raw: unknown): DashboardMessage | null {
   if (!raw || typeof raw !== 'object') return null;
 
   const data = raw as Record<string, unknown>;
+  const audience = normalizeAudience(data.visibility, data.groups);
 
   return {
     id: typeof data.id === 'string' && data.id.trim() ? data.id : crypto.randomUUID(),
@@ -65,10 +131,8 @@ function normalizeMessage(raw: unknown): DashboardMessage | null {
     title: String(data.title ?? ''),
     message: String(data.message ?? ''),
     reference: String(data.reference ?? ''),
-    visibility:
-      data.visibility === 'staff' || data.visibility === 'leaders' || data.visibility === 'admins'
-        ? data.visibility
-        : 'all',
+    visibility: audience.visibility,
+    groups: audience.groups,
     startAt: toLocalDateInput(typeof data.startAt === 'string' ? data.startAt : null),
     endAt: toLocalDateInput(typeof data.endAt === 'string' ? data.endAt : null),
     updatedAt: typeof data.updatedAt === 'string' ? data.updatedAt : undefined,
@@ -281,6 +345,9 @@ export default function MessagesModulePage() {
     : null;
 
   const hasAnyInvalidSchedule = messages.some((entry) => hasInvalidSchedule(entry));
+  const hasAnyInvalidAudience = messages.some(
+    (entry) => entry.visibility === 'groups' && normalizeMessageGroups(entry.groups).length === 0
+  );
 
   function updateMessage(id: string, patch: Partial<DashboardMessage>) {
     setMessages((current) => current.map((entry) => (entry.id === id ? { ...entry, ...patch } : entry)));
@@ -309,7 +376,7 @@ export default function MessagesModulePage() {
   }
 
   async function handleSave() {
-    if (!churchId || !canManageMessages || !isDirty || hasAnyInvalidSchedule) return;
+    if (!churchId || !canManageMessages || !isDirty || hasAnyInvalidSchedule || hasAnyInvalidAudience) return;
     const activeChurchId = churchId;
 
     setSaving(true);
@@ -327,6 +394,7 @@ export default function MessagesModulePage() {
             message: entry.message.trim(),
             reference: entry.reference.trim(),
             visibility: entry.visibility,
+            groups: normalizeMessageGroups(entry.groups),
             startAt: entry.startAt,
             endAt: entry.endAt,
           })),
@@ -447,7 +515,7 @@ export default function MessagesModulePage() {
                         <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wider ${entryTheme.badge}`}>
                           {label}
                         </span>
-                        <span>{entry.visibility}</span>
+                                <span>{formatVisibilityLabel(entry)}</span>
                         <span>{entry.enabled ? 'Published' : 'Hidden'}</span>
                       </div>
                     </div>
@@ -492,7 +560,7 @@ export default function MessagesModulePage() {
               {previewLabel}
             </span>
             <span className="rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-xs text-white/70">
-              Audience: {selectedMessage.visibility}
+              Audience: {formatVisibilityLabel(selectedMessage)}
             </span>
             {updatedLabel && (
               <span className="rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-xs text-white/60">
@@ -539,7 +607,7 @@ export default function MessagesModulePage() {
                 className={`
                   p-2 rounded-md border bg-muted/20 transition
                   focus:outline-none focus:ring-2 focus:ring-primary
-                  ${(saving || !isDirty || hasAnyInvalidSchedule || !selectedHasMessageText)
+                  ${(saving || !isDirty || hasAnyInvalidSchedule || hasAnyInvalidAudience || !selectedHasMessageText)
                     ? 'opacity-40 cursor-not-allowed'
                     : 'hover:bg-muted'}
                 `}
@@ -608,12 +676,16 @@ export default function MessagesModulePage() {
 
             <div className="flex min-h-[112px] flex-col justify-between rounded-lg border border-white/10 bg-black/35 p-4">
               <div className="space-y-1">
-                <p className="text-sm font-medium">Visibility</p>
-                <p className="text-xs text-white/65">Set who can view this message.</p>
+                <p className="text-sm font-medium">Audience</p>
+                <p className="text-xs text-white/65">Choose public, admins only, or specific groups.</p>
               </div>
               <Select
                 value={selectedMessage.visibility}
-                onValueChange={(value) => updateMessage(selectedMessage.id, { visibility: value as Visibility })}
+                onValueChange={(value) =>
+                  updateMessage(selectedMessage.id, {
+                    visibility: value as Visibility,
+                    groups: value === 'groups' ? normalizeMessageGroups(selectedMessage.groups) : [],
+                  })}
                 disabled={!canManageMessages}
               >
                 <SelectTrigger className="mt-2 border-white/20 bg-black/40">
@@ -621,13 +693,30 @@ export default function MessagesModulePage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Public</SelectItem>
-                  <SelectItem value="staff">Staff</SelectItem>
-                  <SelectItem value="leaders">Leadership</SelectItem>
-                  <SelectItem value="admins">Administrators</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="groups">Specific Groups</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
+
+          {selectedMessage.visibility === 'groups' && (
+            <div className="rounded-lg border border-white/10 bg-black/25 p-4">
+              <div className="space-y-1.5">
+                <p className="text-sm font-medium">Visible to Groups</p>
+                <p className="text-xs text-white/65">Members in any selected group will see this message.</p>
+              </div>
+              <div className="mt-3">
+                <MultiSelect
+                  options={groupVisibilityOptions}
+                  value={normalizeMessageGroups(selectedMessage.groups)}
+                  onChange={(value) =>
+                    updateMessage(selectedMessage.id, { groups: normalizeMessageGroups(value) })}
+                  placeholder="Select groups"
+                />
+              </div>
+            </div>
+          )}
 
           <div className="space-y-4 rounded-lg border border-white/10 bg-black/25 p-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -700,6 +789,12 @@ export default function MessagesModulePage() {
               </div>
             </div>
           </div>
+
+          {hasAnyInvalidAudience && (
+            <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-200">
+              One or more messages target specific groups but no groups are selected.
+            </div>
+          )}
 
           {hasAnyInvalidSchedule && (
             <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-200">

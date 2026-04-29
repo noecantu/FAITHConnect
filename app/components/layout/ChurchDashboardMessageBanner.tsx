@@ -6,6 +6,8 @@ import { Quote, BookOpenText, BellRing, MessageCircle, TriangleAlert } from "luc
 import { useChurchId } from "@/app/hooks/useChurchId";
 import { useSettings } from "@/app/hooks/use-settings";
 import { useAuth } from "@/app/hooks/useAuth";
+import { getGroupsForRoles, normalizeGroupName, type MinistryGroup } from "@/app/lib/auth/groups";
+import type { Role } from "@/app/lib/auth/roles";
 
 type DashboardMessage = {
   id?: string;
@@ -16,9 +18,22 @@ type DashboardMessage = {
   reference?: string;
   updatedAt?: string;
   visibility?: string;
+  groups?: string[] | null;
   startAt?: string | null;
   endAt?: string | null;
 };
+
+function normalizeMessageGroups(raw: unknown): MinistryGroup[] {
+  if (!Array.isArray(raw)) return [];
+
+  const seen = new Set<MinistryGroup>();
+  raw.forEach((entry) => {
+    const normalized = normalizeGroupName(String(entry ?? ""));
+    if (normalized) seen.add(normalized);
+  });
+
+  return [...seen];
+}
 
 function normalizeType(type?: string): "quote" | "verse" | "reminder" | "general" | "alert" {
   if (type === "quote" || type === "verse" || type === "general" || type === "alert") return type;
@@ -123,6 +138,7 @@ export function ChurchDashboardMessageBanner() {
   const normalizedPermissions = permissions.map((permission) =>
     String(permission).trim().toLowerCase()
   );
+  const userGroups = getGroupsForRoles(roles as Role[]);
   const hasRole = (...targets: string[]) =>
     targets.some((target) => normalizedRoles.includes(target.toLowerCase()));
   const hasPermission = (...targets: string[]) =>
@@ -137,8 +153,6 @@ export function ChurchDashboardMessageBanner() {
     "ChurchAdmin",
     "Church Administrator"
   ) || hasPermission("church.manage", "messages.manage", "system.manage");
-  const isLeader = isAdmin || hasRole("Pastor", "Minister", "Deacon");
-  const isStaff = isLeader || normalizedRoles.length > 0 || normalizedPermissions.length > 0;
 
   const visibleMessages = dashboardMessages.filter((dashboardMessage) => {
     const title = String(dashboardMessage.title ?? "").trim();
@@ -149,6 +163,9 @@ export function ChurchDashboardMessageBanner() {
         ? dashboardMessage.enabled
         : Boolean(title || message || reference);
     const visibility = String(dashboardMessage.visibility ?? "all").trim().toLowerCase();
+    const groups = normalizeMessageGroups(dashboardMessage.groups);
+    const legacyGroup = normalizeGroupName(visibility);
+    const effectiveGroups = legacyGroup && !groups.includes(legacyGroup) ? [...groups, legacyGroup] : groups;
     const startAt = dashboardMessage.startAt ? new Date(dashboardMessage.startAt) : null;
     const endAt = dashboardMessage.endAt ? new Date(dashboardMessage.endAt) : null;
     const startsInFuture = Boolean(startAt && !Number.isNaN(startAt.getTime()) && now < startAt);
@@ -156,10 +173,8 @@ export function ChurchDashboardMessageBanner() {
     const visibilityAllowed =
       visibility === "admins" || visibility === "admin" || visibility === "administrators"
         ? isAdmin
-        : visibility === "leaders"
-        ? isLeader
-        : visibility === "staff"
-        ? isStaff
+        : visibility === "groups" || effectiveGroups.length > 0
+        ? effectiveGroups.some((group) => userGroups.includes(group))
         : true;
 
     return enabled && Boolean(message) && !startsInFuture && !endedInPast && visibilityAllowed;
