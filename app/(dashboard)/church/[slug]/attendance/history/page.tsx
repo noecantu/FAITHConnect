@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { CalendarDays, BarChart2 } from 'lucide-react';
@@ -315,6 +316,11 @@ export default function AttendanceHistoryPage() {
 
                 {/* Controls */}
                 <div className="flex flex-col gap-3 shrink-0">
+                  {churchId && (
+                    <Button asChild variant="outline" className="shrink-0 self-end bg-black/60 border-white/20 text-white/75 hover:bg-white/5 hover:text-white/90">
+                      <Link href={`/church/${churchId}/attendance`}>Back to Attendance</Link>
+                    </Button>
+                  )}
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="text-xs font-medium text-white/40">Breakdown:</span>
                     <RadioGroup
@@ -330,7 +336,7 @@ export default function AttendanceHistoryPage() {
                       ))}
                     </RadioGroup>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-end gap-2">
                     <Select value={selectedYear ? String(selectedYear) : ""} onValueChange={(v) => setYearPersisted(Number(v))}>
                       <SelectTrigger className="h-8 w-[110px] bg-black/60 border border-white/20 text-white/80 text-xs hover:bg-white/5 transition">
                         <SelectValue placeholder="Year" />
