@@ -63,16 +63,26 @@ export function DeleteServicePlanDialog({
             <Button
               variant="destructive"
               onClick={async () => {
-                await deleteServicePlan(churchId, plan.id);
+                try {
+                  await deleteServicePlan(churchId, plan.id);
 
-                toast({
-                  title: 'Service Plan Deleted',
-                  description: `“${plan.title}” has been removed.`,
-                  // variant: 'destructive',
-                });
+                  toast({
+                    title: 'Service Plan Deleted',
+                    description: `“${plan.title}” has been removed.`,
+                  });
 
-                onOpenChange(false);
-                router.push(`/church/${churchId}/service-plan`);
+                  onOpenChange(false);
+                  router.push(`/church/${churchId}/service-plan`);
+                } catch (error) {
+                  toast({
+                    title: 'Error',
+                    description:
+                      error instanceof Error && error.message
+                        ? error.message
+                        : 'Could not delete service plan.',
+                    variant: 'destructive',
+                  });
+                }
               }}
             >
               Delete

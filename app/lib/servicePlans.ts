@@ -137,14 +137,21 @@ export async function updateServicePlan(
 }
 
 export async function deleteServicePlan(churchId: string, id: string): Promise<void> {
-  const supabase = getSupabaseClient();
-  const { error } = await supabase
-    .from("service_plans")
-    .delete()
-    .eq("id", id)
-    .eq("church_id", churchId);
+  const res = await fetch("/api/service-plans/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ churchId, planId: id }),
+  });
 
-  if (error) throw error;
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(
+      typeof body?.error === "string"
+        ? body.error
+        : `Failed to delete service plan (${res.status})`
+    );
+  }
 }
 
 export async function duplicateServicePlan(

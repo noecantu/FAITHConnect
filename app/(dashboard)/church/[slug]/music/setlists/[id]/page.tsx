@@ -19,7 +19,7 @@ import { getSectionColor } from '@/app/lib/sectionColors';
 import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dialog';
 import { Button } from '@/app/components/ui/button';
 import { duplicateSetList } from '@/app/lib/duplicateSetList';
-// import { useToast } from '@/app/hooks/use-toast';
+import { useToast } from '@/app/hooks/use-toast';
 // import { useAuth } from '@/app/hooks/useAuth';
 import { useSongs } from '@/app/hooks/useSongs';
 
@@ -31,7 +31,7 @@ export default function SetListDetailPage() {
 
   const canView = canReadMusic;
   const canEdit = canManageMusic;
-  // const { toast } = useToast();
+  const { toast } = useToast();
   // const { user } = useAuth();
 
   const [setList, setSetList] = useState<SetList | null>(null);
@@ -338,7 +338,23 @@ export default function SetListDetailPage() {
                       variant="destructive"
                       onClick={async () => {
                         if (!churchId) return;
-                        await deleteSetList(churchId, setList.id, router);
+                        try {
+                          await deleteSetList(churchId, setList.id);
+                          toast({
+                            title: 'Set List Deleted',
+                            description: `"${setList.title}" has been removed.`,
+                          });
+                          router.push(`/church/${churchId}/music/setlists`);
+                        } catch (error) {
+                          toast({
+                            title: 'Error',
+                            description:
+                              error instanceof Error && error.message
+                                ? error.message
+                                : 'Could not delete set list.',
+                            variant: 'destructive',
+                          });
+                        }
                       }}
                     >
                       Delete

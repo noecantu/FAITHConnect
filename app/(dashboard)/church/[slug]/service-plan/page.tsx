@@ -263,8 +263,12 @@ export default function ServicePlanPage() {
                     }}
                     style={{
                       animationDelay: `${index * 50}ms`,
+                      backgroundImage:
+                        index % 2 === 0
+                          ? 'linear-gradient(90deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 42%, rgba(255,255,255,0.00) 100%)'
+                          : 'linear-gradient(270deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 42%, rgba(255,255,255,0.00) 100%)',
                     }}
-                    className="group border border-white/12 rounded-lg p-4 flex items-start justify-between cursor-pointer bg-black/45 transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-sky-950/40 hover:shadow-[0_8px_20px_rgba(56,189,248,0.20)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 animate-in fade-in slide-in-from-bottom-2 duration-500"
+                    className="group border border-white/15 rounded-lg p-4 flex items-start justify-between cursor-pointer bg-white/[0.04] transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-sky-950/40 hover:shadow-[0_8px_20px_rgba(56,189,248,0.20)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 animate-in fade-in slide-in-from-bottom-2 duration-500"
                   >
                     <div className="space-y-2">
                       <div className="font-semibold tracking-tight text-white/90 group-hover:text-white transition-colors">{plan.title}</div>

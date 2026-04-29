@@ -185,19 +185,27 @@ export async function updateSetList(
 
 export async function deleteSetList(
   churchId: string | null,
-  setListId: string,
-  router: { push: (path: string) => void }
+  setListId: string
 ): Promise<void> {
-  if (!churchId) return;
+  if (!churchId) {
+    throw new Error("churchId is required");
+  }
 
-  const { error } = await getSupabaseClient()
-    .from("setlists")
-    .delete()
-    .eq("id", setListId)
-    .eq("church_id", churchId);
+  const res = await fetch("/api/setlists/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ churchId, setListId }),
+  });
 
-  if (error) throw error;
-  router.push("/music/setlists");
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(
+      typeof body?.error === "string"
+        ? body.error
+        : `Failed to delete set list (${res.status})`
+    );
+  }
 }
 
 export async function getSetListById(
