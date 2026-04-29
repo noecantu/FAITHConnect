@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '@/app/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { Switch } from '@/app/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
@@ -32,7 +31,7 @@ type DashboardMessage = {
 function createEmptyMessage(): DashboardMessage {
   return {
     id: crypto.randomUUID(),
-    enabled: true,
+    enabled: false,
     type: 'reminder',
     title: '',
     message: '',
@@ -564,12 +563,23 @@ export default function MessagesModulePage() {
                 <p className="text-sm font-medium">Publish Message</p>
                 <p className="text-xs text-white/65">Control if this appears for users.</p>
               </div>
-              <div className="flex justify-end pt-2">
-                <Switch
-                  checked={selectedMessage.enabled}
-                  onCheckedChange={(checked) => updateMessage(selectedMessage.id, { enabled: checked })}
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => updateMessage(selectedMessage.id, { enabled: false })}
                   disabled={!canManageMessages}
-                />
+                  className={`flex-1 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${!selectedMessage.enabled ? 'border-white/30 bg-white/15 text-white' : 'border-white/10 bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/80'} disabled:cursor-not-allowed disabled:opacity-50`}
+                >
+                  Hidden
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateMessage(selectedMessage.id, { enabled: true })}
+                  disabled={!canManageMessages}
+                  className={`flex-1 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${selectedMessage.enabled ? 'border-emerald-500/40 bg-emerald-500/20 text-emerald-300' : 'border-white/10 bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/80'} disabled:cursor-not-allowed disabled:opacity-50`}
+                >
+                  Published
+                </button>
               </div>
             </div>
 
