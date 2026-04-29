@@ -10,6 +10,7 @@ export const runtime = "nodejs";
 type DashboardMessageVisibility = "all" | "staff" | "leaders" | "admins";
 
 type DashboardMessagePayload = {
+  id: string;
   enabled: boolean;
   type: "quote" | "verse" | "reminder";
   title: string;
@@ -25,6 +26,7 @@ function normalizeMessage(raw: unknown): DashboardMessagePayload | null {
   if (!raw || typeof raw !== "object") return null;
 
   const data = raw as Record<string, unknown>;
+  const id = String(data.id ?? "").trim();
   const type = String(data.type ?? "reminder").trim().toLowerCase();
   const title = String(data.title ?? "").trim();
   const message = String(data.message ?? "").trim();
@@ -45,6 +47,7 @@ function normalizeMessage(raw: unknown): DashboardMessagePayload | null {
   const endAt = toIsoOrNull(data.endAt);
 
   const normalizedMessage: DashboardMessagePayload = {
+    id: id || crypto.randomUUID(),
     enabled,
     type: type === "quote" || type === "verse" ? type : "reminder",
     title,
@@ -64,6 +67,17 @@ function normalizeMessage(raw: unknown): DashboardMessagePayload | null {
   }
 
   return normalizedMessage;
+}
+
+function normalizeMessages(raw: unknown): DashboardMessagePayload[] {
+  if (Array.isArray(raw)) {
+    return raw
+      .map((entry) => normalizeMessage(entry))
+      .filter((entry): entry is DashboardMessagePayload => entry !== null);
+  }
+
+  const single = normalizeMessage(raw);
+  return single ? [single] : [];
 }
 
 type UserRoleContextResult =
@@ -137,9 +151,16 @@ export async function GET(
     ? (church.settings as Record<string, unknown>)
     : {};
 
-  const dashboardMessage = normalizeMessage(settings.dashboardMessage);
+  const dashboardMessages =
+    Array.isArray(settings.dashboardMessages) || settings.dashboardMessages
+      ? normalizeMessages(settings.dashboardMessages)
+      : normalizeMessages(settings.dashboardMessage);
 
-  return NextResponse.json({ dashboardMessage, canManage: canManageSystem || canManageMessages });
+  return NextResponse.json({
+    dashboardMessages,
+    dashboardMessage: dashboardMessages[0] ?? null,
+    canManage: canManageSystem || canManageMessages,
+  });
 }
 
 export async function PATCH(
@@ -174,8 +195,12 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const incoming = (body as Record<string, unknown>).dashboardMessage;
-  const normalizedMessage = normalizeMessage(incoming);
+  const record = body as Record<string, unknown>;
+  const incomingMessages =
+    Array.isArray(record.dashboardMessages) || record.dashboardMessages
+      ? record.dashboardMessages
+      : record.dashboardMessage;
+  const normalizedMessages = normalizeMessages(incomingMessages);
 
   const { data: church, error: readError } = await adminDb
     .from("churches")
@@ -195,7 +220,8 @@ export async function PATCH(
   const updates = {
     settings: {
       ...currentSettings,
-      dashboardMessage: normalizedMessage,
+      dashboardMessages: normalizedMessages,
+      dashboardMessage: normalizedMessages[0] ?? null,
     },
     updated_at: new Date().toISOString(),
   };
@@ -209,5 +235,9 @@ export async function PATCH(
     return NextResponse.json({ error: updateError.message }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true, dashboardMessage: normalizedMessage });
+  return NextResponse.json({
+    success: true,
+    dashboardMessages: normalizedMessages,
+    dashboardMessage: normalizedMessages[0] ?? null,
+  });
 }
