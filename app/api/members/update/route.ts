@@ -78,6 +78,16 @@ function parseRelationships(raw: unknown): Array<{ memberIds: [string, string]; 
     .filter((v): v is { memberIds: [string, string]; type: string; anniversary?: string } => Boolean(v));
 }
 
+function getCounterpartId(
+  relationship: { memberIds: [string, string] },
+  memberId: string
+): string | null {
+  const [left, right] = relationship.memberIds;
+  if (left === memberId) return right;
+  if (right === memberId) return left;
+  return null;
+}
+
 export async function POST(req: Request) {
   try {
     const authUser = await getServerUser();
@@ -167,8 +177,12 @@ export async function POST(req: Request) {
       .single();
 
     const oldRels = parseRelationships(currentRow?.relationships);
-    const oldIds = oldRels.map((r) => r.memberIds[1]);
-    const newIds = newRels.map((r) => r.memberIds[1]);
+    const oldIds = oldRels
+      .map((r) => getCounterpartId(r, memberId))
+      .filter((id): id is string => Boolean(id));
+    const newIds = newRels
+      .map((r) => getCounterpartId(r, memberId))
+      .filter((id): id is string => Boolean(id));
     const allRelatedIds = Array.from(new Set([...oldIds, ...newIds])).filter(Boolean);
 
     // Update main member
@@ -195,27 +209,52 @@ export async function POST(req: Request) {
         if (!relatedRow) return;
 
         let relatedRels = parseRelationships(relatedRow.relationships);
-        const oldRel = oldRels.find((r) => r.memberIds[1] === relatedId);
-        const newRel = newRels.find((r) => r.memberIds[1] === relatedId);
+        const oldRel = oldRels.find((r) => getCounterpartId(r, memberId) === relatedId);
+        const newRel = newRels.find((r) => getCounterpartId(r, memberId) === relatedId);
+        const reciprocalExists = relatedRels.some(
+          (r) => getCounterpartId(r, relatedId) === memberId
+        );
         let changed = false;
 
         if (newRel && !oldRel) {
+          const existingIndex = relatedRels.findIndex(
+            (r) => getCounterpartId(r, relatedId) === memberId
+          );
+
           const reciprocal: { memberIds: [string, string]; type: string; anniversary?: string } = {
             memberIds: [relatedId, memberId],
             type: getReciprocalType(newRel.type),
           };
           if (newRel.anniversary) reciprocal.anniversary = newRel.anniversary;
-          relatedRels.push(reciprocal);
+
+          if (existingIndex >= 0) {
+            relatedRels[existingIndex] = reciprocal;
+          } else {
+            relatedRels.push(reciprocal);
+          }
           changed = true;
         } else if (!newRel && oldRel) {
           const len = relatedRels.length;
-          relatedRels = relatedRels.filter((r) => r.memberIds[1] !== memberId);
+          relatedRels = relatedRels.filter(
+            (r) => getCounterpartId(r, relatedId) !== memberId
+          );
           if (relatedRels.length !== len) changed = true;
         } else if (newRel && oldRel) {
+          if (!reciprocalExists) {
+            const reciprocal: { memberIds: [string, string]; type: string; anniversary?: string } = {
+              memberIds: [relatedId, memberId],
+              type: getReciprocalType(newRel.type),
+            };
+
+            if (newRel.anniversary) reciprocal.anniversary = newRel.anniversary;
+            relatedRels.push(reciprocal);
+            changed = true;
+          }
+
           if (newRel.type !== oldRel.type || newRel.anniversary !== oldRel.anniversary) {
             const newType = getReciprocalType(newRel.type);
             relatedRels = relatedRels.map((r) => {
-              if (r.memberIds[1] === memberId) {
+              if (getCounterpartId(r, relatedId) === memberId) {
                 const updated = { ...r, type: newType };
                 if (newRel.anniversary) updated.anniversary = newRel.anniversary;
                 else delete updated.anniversary;

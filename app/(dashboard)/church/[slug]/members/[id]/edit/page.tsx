@@ -7,6 +7,28 @@ import { useChurchId } from "@/app/hooks/useChurchId";
 import MemberForm from "@/app/components/members/MemberForm";
 import type { Member } from "@/app/lib/types";
 
+function normalizeRelationship(rel: unknown): { memberIds: [string, string]; type?: string; anniversary?: string } | null {
+  if (!rel || typeof rel !== "object") return null;
+
+  const row = rel as Record<string, unknown>;
+  const ids = Array.isArray(row.memberIds)
+    ? row.memberIds
+    : Array.isArray(row.member_ids)
+    ? row.member_ids
+    : [];
+
+  if (ids.length < 2 || !ids[0] || !ids[1]) {
+    return null;
+  }
+
+  const normalized: { memberIds: [string, string]; type?: string; anniversary?: string } = {
+    ...row,
+    memberIds: [String(ids[0]), String(ids[1])],
+  };
+
+  return normalized;
+}
+
 export default function EditMemberPage() {
   const supabase = getSupabaseClient();
   const router = useRouter();
@@ -52,11 +74,8 @@ export default function EditMemberPage() {
           notes: data.notes ?? "",
           relationships: Array.isArray(data.relationships)
             ? data.relationships
-                .map((rel: any) => ({
-                  ...rel,
-                  memberIds: [...(rel.memberIds ?? [])].filter(Boolean).sort(),
-                }))
-                .filter((rel: any) => rel.memberIds.length === 2)
+                .map((rel: unknown) => normalizeRelationship(rel))
+                .filter((rel): rel is { memberIds: [string, string]; type?: string; anniversary?: string } => Boolean(rel))
             : [],
         } as Member);
       } else {

@@ -80,6 +80,16 @@ function parseRelationships(raw: unknown): Array<{ memberIds: [string, string]; 
     .filter((value): value is { memberIds: [string, string]; type: string; anniversary?: string } => Boolean(value));
 }
 
+function getCounterpartId(
+  relationship: { memberIds: [string, string] },
+  memberId: string
+): string | null {
+  const [left, right] = relationship.memberIds;
+  if (left === memberId) return right;
+  if (right === memberId) return left;
+  return null;
+}
+
 export async function POST(req: Request) {
   try {
     const authUser = await getServerUser();
@@ -178,15 +188,11 @@ export async function POST(req: Request) {
           ? relatedRow.relationships
           : [];
 
-        const alreadyExists = existingRels.some((r) => {
-          const row = r as { memberIds?: [string, string] | string[]; member_ids?: [string, string] | string[] };
-          const ids = Array.isArray(row.memberIds)
-            ? row.memberIds
-            : Array.isArray(row.member_ids)
-            ? row.member_ids
-            : [];
+        const parsedExisting = parseRelationships(existingRels);
 
-          return Array.isArray(ids) && ids[1] === memberId;
+        const alreadyExists = parsedExisting.some((rel) => {
+          const counterpartId = getCounterpartId(rel, relatedId);
+          return counterpartId === memberId;
         });
 
         if (alreadyExists) return;

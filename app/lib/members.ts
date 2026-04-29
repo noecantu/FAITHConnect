@@ -38,6 +38,13 @@ function normalizeRelationship(rel: Record<string, unknown>) {
   };
 }
 
+function getCounterpartId(relationship: Relationship, memberId: string): string | null {
+  const [left, right] = relationship.memberIds;
+  if (left === memberId) return right;
+  if (right === memberId) return left;
+  return null;
+}
+
 export async function addMember(
   churchId: string,
   data: Partial<Omit<Member, "id">> & { id: string }
@@ -103,7 +110,9 @@ export async function deleteMember(churchId: string, memberId: string) {
     .single();
 
   const relationships: Relationship[] = memberRow?.relationships ?? [];
-  const relatedIds = relationships.map((r) => r.memberIds[1]).filter(Boolean);
+  const relatedIds = relationships
+    .map((r) => getCounterpartId(r, memberId))
+    .filter((id): id is string => Boolean(id));
 
   // Remove reciprocals
   await Promise.all(
@@ -118,7 +127,7 @@ export async function deleteMember(churchId: string, memberId: string) {
       if (!relatedRow) return;
 
       const existing: Relationship[] = relatedRow.relationships ?? [];
-      const updated = existing.filter((r) => r.memberIds[1] !== memberId);
+      const updated = existing.filter((r) => getCounterpartId(r, relatedId) !== memberId);
       if (updated.length === existing.length) return;
 
       await supabase
