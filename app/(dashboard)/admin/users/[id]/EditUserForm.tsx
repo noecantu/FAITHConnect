@@ -28,7 +28,7 @@ import {
   SelectItem,
 } from "@/app/components/ui/select";
 
-import { SYSTEM_ROLES, ROLE_LABELS, type Role, SystemRole } from "@/app/lib/auth/roles";
+import { NON_CHURCH_ROLES, ROLE_LABELS, type Role, type NonChurchRole } from "@/app/lib/auth/roles";
 import type { AppUser } from "@/app/lib/types";
 import RoleSelector from "@/app/components/settings/RoleSelector";
 import { getSupabaseClient } from "@/app/lib/supabase/client";
@@ -81,19 +81,19 @@ export default function EditUserForm({
   const userRoles = user.roles ?? [];
 
   const isSystemUser = userRoles.some((r) =>
-    SYSTEM_ROLES.includes(r as SystemRole)
+    NON_CHURCH_ROLES.includes(r as NonChurchRole)
   );
 
   const [first_name, setFirstName] = useState(user.first_name ?? "");
   const [last_name, setLastName] = useState(user.last_name ?? "");
   const [email, setEmail] = useState(user.email ?? "");
 
-  const [systemRole, setSystemRole] = useState<SystemRole>(
-    userRoles.find((r) => SYSTEM_ROLES.includes(r as SystemRole)) as SystemRole
+  const [systemRole, setSystemRole] = useState<NonChurchRole>(
+    userRoles.find((r) => NON_CHURCH_ROLES.includes(r as NonChurchRole)) as NonChurchRole
   );
 
   const [roles, setRoles] = useState<Role[]>(
-    userRoles.filter((r) => !SYSTEM_ROLES.includes(r as SystemRole)) as Role[]
+    userRoles.filter((r) => !NON_CHURCH_ROLES.includes(r as NonChurchRole)) as Role[]
   );
 
   const [church_id, setChurchId] = useState(
@@ -303,13 +303,13 @@ export default function EditUserForm({
             <Label>System Role</Label>
             <Select
               value={systemRole}
-              onValueChange={(val) => setSystemRole(val as SystemRole)}
+              onValueChange={(val) => setSystemRole(val as NonChurchRole)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a system role" />
               </SelectTrigger>
               <SelectContent>
-                {SYSTEM_ROLES.map((role) => (
+                {NON_CHURCH_ROLES.map((role) => (
                   <SelectItem key={role} value={role}>
                     {ROLE_LABELS[role]}
                   </SelectItem>

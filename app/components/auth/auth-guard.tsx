@@ -7,7 +7,7 @@ import { getDashboardRoute } from "@/app/lib/auth/dashboardRoute";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { SystemRole, SYSTEM_ROLES } from "@/app/lib/auth/roles";
+import { NON_CHURCH_ROLE_LIST } from "@/app/lib/auth/roles";
 
 const PUBLIC_ROUTES = ["/login"];
 const ONBOARDING_ROUTES = ["/select-church", "/onboarding/create-church"];
@@ -25,12 +25,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const isPublic = PUBLIC_ROUTES.includes(pathname);
   const isOnboardingRoute = ONBOARDING_ROUTES.includes(pathname);
 
-  const isSystemUser =
-    user?.roles?.some((r) => SYSTEM_ROLES.includes(r as SystemRole)) ?? false;
+  const isNonChurchAdmin =
+    user?.roles?.some((r) => NON_CHURCH_ROLE_LIST.includes(r)) ?? false;
 
   useEffect(() => {
     if (authLoading) return;
-    if (!isSystemUser && churchLoading) return;
+    if (!isNonChurchAdmin && churchLoading) return;
     if (hasRedirected.current) return;
 
     const targetRoute = user
@@ -78,7 +78,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }
 
     // 4. Church users without church → onboarding
-    if (user && !isSystemUser && !churchId) {
+    if (user && !isNonChurchAdmin && !churchId) {
       if (!isOnboardingRoute) {
         hasRedirected.current = true;
         setRedirecting(true);
@@ -96,7 +96,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     churchLoading,
     pathname,
     isPublic,
-    isSystemUser,
+    isNonChurchAdmin,
     isOnboardingRoute,
     router,
   ]);
@@ -110,7 +110,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (!user && isPublic) return <>{children}</>;
-  if (user && isSystemUser) return <>{children}</>;
+  if (user && isNonChurchAdmin) return <>{children}</>;
   if (user && churchId) return <>{children}</>;
 
   return null;

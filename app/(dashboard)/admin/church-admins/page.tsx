@@ -4,9 +4,9 @@ export const dynamic = "force-dynamic";
 import { adminDb } from "@/app/lib/supabase/admin";
 import { getCurrentUser } from "@/app/lib/auth/server/getCurrentUser";
 import { NON_CHURCH_ROLE_LIST, type Role } from "@/app/lib/auth/roles";
-import AllUsersClient, { type NonSystemUserRecord } from "./AllUsersClient";
+import AllUsersClient, { type NonSystemUserRecord } from "../all-users/AllUsersClient";
 
-export default async function AllUsersPage() {
+export default async function ChurchAdminsPage() {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) redirect("/login");
@@ -22,12 +22,12 @@ export default async function AllUsersPage() {
     churchNameById.set(church.id, church.name ?? church.id);
   }
 
-  const nonSystemUsers: NonSystemUserRecord[] = (usersData ?? [])
+  const churchAdmins: NonSystemUserRecord[] = (usersData ?? [])
     .filter((u) => {
       const roles = (u.roles ?? []) as Role[];
       return (
         !roles.some((r) => NON_CHURCH_ROLE_LIST.includes(r)) &&
-        !roles.includes("Admin")
+        roles.includes("Admin")
       );
     })
     .map((u) => ({
@@ -41,5 +41,12 @@ export default async function AllUsersPage() {
       createdAt: u.created_at ?? null,
     }));
 
-  return <AllUsersClient users={nonSystemUsers} />;
+  return (
+    <AllUsersClient
+      users={churchAdmins}
+      title="Church Admins"
+      subtitle="Root Admin management for all Church Administrator accounts."
+      cardTitle="Church Administrators"
+    />
+  );
 }

@@ -19,6 +19,11 @@ import {
   CalendarCheck,
   Activity,
   MessageSquare,
+  Map,
+  MapPin,
+  ShieldCheck,
+  UserCog,
+  ShieldHalf,
 } from "lucide-react";
 import { useState } from "react";
 import { getSupabaseClient } from "@/app/lib/supabase/client";
@@ -126,8 +131,12 @@ export function NavMenu() {
   const rootAdminMenu = [
     { href: "/admin", label: "Dashboard", icon: Home, exact: true },
     { href: "/admin/churches", label: "Churches", icon: Users },
+    { href: "/admin/districts", label: "Districts", icon: MapPin },
+    { href: "/admin/regions", label: "Regions", icon: Map },
     { href: "/admin/all-users", label: "All Users", icon: Users },
-    { href: "/admin/users", label: "System Users", icon: Users },
+    { href: "/admin/church-admins", label: "Church Admins", icon: ShieldHalf },
+    { href: "/admin/district-regional-admins", label: "District & Regional Admins", icon: UserCog },
+    { href: "/admin/users", label: "System Users", icon: ShieldCheck },
     { href: "/admin/logs", label: "Activity Logs", icon: FileText },
     { href: "/admin/settings/health", label: "Platform Health", icon: CalendarHeart },
     { href: "/admin/subscription-audit", label: "Subscription Audit", icon: CreditCard },

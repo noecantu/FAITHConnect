@@ -2,7 +2,7 @@
 
 import { adminDb } from "@/app/lib/supabase/admin";
 import { logSystemEvent } from "@/app/lib/system/logging";
-import { Role, SystemRole, ALL_ROLES, SYSTEM_ROLE_LIST } from "@/app/lib/auth/roles";
+import { Role, ALL_ROLES, NON_CHURCH_ROLE_LIST } from "@/app/lib/auth/roles";
 import { can } from "@/app/lib/auth/permissions";
 import { nanoid } from "nanoid";
 
@@ -11,7 +11,7 @@ export interface UpdateUserInput {
   first_name?: string;
   last_name?: string;
   email?: string;
-  roles?: Role[] | SystemRole[];
+  roles?: Role[];
   church_id?: string | null;
   regionName?: string | null;
   region_id?: string | null;
@@ -59,8 +59,8 @@ export async function updateUserAction(input: UpdateUserInput) {
   let isChurchRoleUpdate = false;
 
   if (newRoles) {
-    isSystemRoleUpdate = newRoles.every((r) => SYSTEM_ROLE_LIST.includes(r as Role));
-    isChurchRoleUpdate = newRoles.every((r) => ALL_ROLES.includes(r as Role) && !SYSTEM_ROLE_LIST.includes(r as Role));
+    isSystemRoleUpdate = newRoles.every((r) => NON_CHURCH_ROLE_LIST.includes(r as Role));
+    isChurchRoleUpdate = newRoles.every((r) => ALL_ROLES.includes(r as Role) && !NON_CHURCH_ROLE_LIST.includes(r as Role));
     if (!isSystemRoleUpdate && !isChurchRoleUpdate) throw new Error("Invalid role assignment.");
   }
 

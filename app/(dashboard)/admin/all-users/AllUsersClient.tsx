@@ -46,11 +46,14 @@ export type NonSystemUserRecord = {
 
 type AllUsersClientProps = {
   users: NonSystemUserRecord[];
+  title?: string;
+  subtitle?: string;
+  cardTitle?: string;
 };
 
 type SortOption = "created-desc" | "created-asc" | "name-asc" | "name-desc" | "church-asc" | "church-desc";
 
-export default function AllUsersClient({ users }: AllUsersClientProps) {
+export default function AllUsersClient({ users, title = "All Users", subtitle = "Root Admin management for all non-system user accounts.", cardTitle = "Non-System Users" }: AllUsersClientProps) {
   const router = useRouter();
   const { user: currentUser } = useAuth();
   const { toast } = useToast();
@@ -366,13 +369,13 @@ export default function AllUsersClient({ users }: AllUsersClientProps) {
   return (
     <>
       <PageHeader
-        title="All Users"
-        subtitle="Root Admin management for all non-system user accounts."
+        title={title}
+        subtitle={subtitle}
       />
 
       <Card>
         <CardHeader>
-          <CardTitle>Non-System Users</CardTitle>
+          <CardTitle>{cardTitle}</CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-4">

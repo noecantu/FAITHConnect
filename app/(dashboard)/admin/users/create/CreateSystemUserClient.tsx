@@ -34,8 +34,6 @@ const US_STATES = [
 const ACCOUNT_TYPES = [
   { value: "RootAdmin", label: "Root Administrator" },
   { value: "SystemAdmin", label: "System Administrator" },
-  { value: "DistrictAdmin", label: "District Administrator" },
-  { value: "RegionalAdmin", label: "Regional Administrator" },
   { value: "Support", label: "Support Staff" },
   { value: "Auditor", label: "Auditor (Read-Only)" },
 ];
@@ -70,7 +68,7 @@ export default function CreateSystemUserClient() {
       if (!accountType) {
         toast({
           title: "Missing Account Type",
-          description: "Please select an account type for this system user.",
+          description: "Please select an account type for this platform admin user.",
         });
         return;
       }
@@ -162,8 +160,8 @@ export default function CreateSystemUserClient() {
 
       if (result.success) {
         toast({
-          title: "System User Created",
-          description: "The new system-level user has been added.",
+          title: "Platform Admin User Created",
+          description: "The new platform admin user has been added.",
         });
 
         router.push("/admin/users");
@@ -192,8 +190,8 @@ export default function CreateSystemUserClient() {
   return (
     <>
       <PageHeader
-        title="Create System-Level User"
-        subtitle="Add a new system administrator or support account."
+        title="Create Platform Admin User"
+        subtitle="Add a new non-church administrative account."
       />
 
       <Card>

@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { redirect } from "next/navigation";
 import { adminDb } from "@/app/lib/supabase/admin";
 import { getCurrentUser } from "@/app/lib/auth/server/getCurrentUser";
-import { SYSTEM_ROLE_LIST, type Role } from "@/app/lib/auth/roles";
+import { NON_CHURCH_ROLE_LIST, type Role } from "@/app/lib/auth/roles";
 import EditAllUserForm, { type EditableNonSystemUser } from "./EditAllUserForm";
 
 export default async function AllUserProfilePage({
@@ -28,7 +28,7 @@ export default async function AllUserProfilePage({
   }
 
   const roles = (userData.roles ?? []) as Role[];
-  const isSystemUser = roles.some((r) => SYSTEM_ROLE_LIST.includes(r));
+  const isSystemUser = roles.some((r) => NON_CHURCH_ROLE_LIST.includes(r));
 
   if (isSystemUser) redirect("/admin/users");
 

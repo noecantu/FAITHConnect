@@ -14,6 +14,7 @@ import {
   Map,
   MapPinned,
   ShieldCheck,
+  ShieldHalf,
   CalendarDays,
   ClipboardCheck,
   Music2,
@@ -154,11 +155,11 @@ export default function AdminHomeClient({
 
       <Separator />
 
-      {/* Management Tools */}
+      {/* Church & Organizational Management */}
       <section className="space-y-4">
         <div>
           <h2 className="text-base font-semibold uppercase tracking-wider text-muted-foreground">
-            Management Tools
+            Church &amp; Organizations
           </h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -184,12 +185,36 @@ export default function AdminHomeClient({
             href="/admin/all-users"
             icon={<Users className="h-5 w-5" />}
             title="All Users"
-            description="Manage all non-system users across churches."
-          />          <ToolCard
+            description="Manage all church users across the platform."
+          />
+          <ToolCard
+            href="/admin/church-admins"
+            icon={<ShieldHalf className="h-5 w-5" />}
+            title="Church Admins"
+            description="View and manage Church Administrator accounts."
+          />
+          <ToolCard
+            href="/admin/district-regional-admins"
+            icon={<UserCog className="h-5 w-5" />}
+            title="District & Regional Admins"
+            description="View and manage District and Regional administrator accounts."
+          />
+        </div>
+      </section>
+
+      {/* Platform Administration */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold uppercase tracking-wider text-muted-foreground">
+            Platform Administration
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <ToolCard
             href="/admin/users"
-            icon={<Users className="h-5 w-5" />}
+            icon={<ShieldCheck className="h-5 w-5" />}
             title="System Users"
-            description="View and manage system-level users."
+            description="View and manage system-level administrator accounts."
           />
           <ToolCard
             href="/admin/logs"

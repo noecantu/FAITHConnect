@@ -3,7 +3,7 @@
 import { Checkbox } from '@/app/components/ui/checkbox';
 import {
   Role,
-  SYSTEM_ROLES,
+  NON_CHURCH_ROLES,
   ROLE_LABELS,
 } from '@/app/lib/auth/roles';
 import { can } from '@/app/lib/auth/permissions';
@@ -102,14 +102,14 @@ export default function RoleSelector({
         ))}
       </div>
 
-      {/* System Roles (Root Admin only) */}
+      {/* Non-church admin roles (Root Admin only) */}
       {isRootAdmin && (
         <div className="border border-white/10 rounded-md px-3 py-2.5 space-y-2">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-            System Roles
+            Platform Roles
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 gap-x-4">
-            {SYSTEM_ROLES.map((role) => (
+            {NON_CHURCH_ROLES.map((role) => (
               <RoleCheckbox
                 key={role}
                 role={role as Role}

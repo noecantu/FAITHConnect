@@ -30,16 +30,11 @@ import {
   AlertDialogTrigger,
 } from "@/app/components/ui/alert-dialog";
 
-import {
-  SYSTEM_ROLES,
-  SYSTEM_ROLE_LIST,
-  ROLE_LABELS,
-  type Role,
-} from "@/app/lib/auth/roles";
+import { ROLE_LABELS, type Role } from "@/app/lib/auth/roles";
 
-// -----------------------------
-// Types
-// -----------------------------
+const OVERSIGHT_ROLES = ["DistrictAdmin", "RegionalAdmin"] as const;
+type OversightRole = (typeof OVERSIGHT_ROLES)[number];
+
 export type UserRecord = {
   uid: string;
   email: string;
@@ -50,14 +45,11 @@ export type UserRecord = {
   createdAt?: string | number | Date | null;
 };
 
-type UsersClientProps = {
+type Props = {
   users: UserRecord[];
 };
 
-// -----------------------------
-// Component
-// -----------------------------
-export default function UsersClient({ users }: UsersClientProps) {
+export default function DistrictRegionalAdminsClient({ users }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
@@ -74,10 +66,10 @@ export default function UsersClient({ users }: UsersClientProps) {
       body: JSON.stringify({ uid }),
     });
 
-    const data = await res.json().catch(() => ({ error: "Failed to delete platform admin user." }));
+    const data = await res.json().catch(() => ({ error: "Failed to delete user." }));
 
     if (!res.ok) {
-      throw new Error(data.error || "Failed to delete platform admin user.");
+      throw new Error(data.error || "Failed to delete user.");
     }
 
     return data;
@@ -91,16 +83,14 @@ export default function UsersClient({ users }: UsersClientProps) {
 
       toast({
         title: "User Deleted",
-        description: "The system user has been removed.",
+        description: "The admin user has been removed.",
       });
 
       router.refresh();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to delete system user.";
-
       toast({
         title: "Delete Failed",
-        description: message,
+        description: error instanceof Error ? error.message : "Failed to delete user.",
       });
     } finally {
       setDeletingUid(null);
@@ -133,44 +123,43 @@ export default function UsersClient({ users }: UsersClientProps) {
     }
   }
 
-  // True platform/system admin users only
-  const systemUsers = useMemo(
-    () => users.filter((u) => u.roles.some((r) => SYSTEM_ROLE_LIST.includes(r))),
+  const oversightUsers = useMemo(
+    () =>
+      users.filter((u) =>
+        u.roles.some((r) => (OVERSIGHT_ROLES as readonly string[]).includes(r))
+      ),
     [users]
   );
 
-  // Filter users
   const filteredUsers = useMemo(() => {
-    return systemUsers.filter((u) => {
+    return oversightUsers.filter((u) => {
       const fullName = `${u.firstName ?? ""} ${u.lastName ?? ""}`.toLowerCase();
       const email = (u.email ?? "").toLowerCase();
       const term = search.toLowerCase().trim();
 
       if (term && !fullName.includes(term) && !email.includes(term)) return false;
-      if (selectedRole !== "all" && !u.roles.includes(selectedRole as Role))
-        return false;
+      if (selectedRole !== "all" && !u.roles.includes(selectedRole as Role)) return false;
 
       return true;
     });
-  }, [systemUsers, search, selectedRole]);
+  }, [oversightUsers, search, selectedRole]);
 
   return (
     <>
       <PageHeader
-        title="System Users"
-        subtitle="Manage users with system-level access to FAITH Connect."
+        title="District & Regional Admins"
+        subtitle="Manage users with district or regional administrative access."
       />
 
       <Card>
         <CardHeader>
-          <CardTitle>System Users</CardTitle>
+          <CardTitle>District & Regional Admins</CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-4">
           {/* Filters */}
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="flex flex-col md:flex-row gap-4 md:items-end">
-              {/* Search */}
               <div className="space-y-2">
                 <Label>Search</Label>
                 <Input
@@ -181,37 +170,29 @@ export default function UsersClient({ users }: UsersClientProps) {
                 />
               </div>
 
-              {/* Role Filter */}
               <div className="space-y-2">
                 <Label>Role</Label>
-                <Select
-                  value={selectedRole}
-                  onValueChange={(val) => setSelectedRole(val)}
-                >
+                <Select value={selectedRole} onValueChange={(val) => setSelectedRole(val)}>
                   <SelectTrigger className="w-full md:w-56">
                     <SelectValue placeholder="All roles" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All roles</SelectItem>
-                    {SYSTEM_ROLES.map((role) => (
+                    {OVERSIGHT_ROLES.map((role) => (
                       <SelectItem key={role} value={role}>
-                        {ROLE_LABELS[role]}
+                        {ROLE_LABELS[role as OversightRole]}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-
-            <Button onClick={() => router.push("/admin/users/create")}>
-              Create User
-            </Button>
           </div>
 
           {/* Table */}
           {filteredUsers.length === 0 ? (
             <div className="py-8 text-sm text-muted-foreground">
-              No platform admin users found.
+              No district or regional admins found.
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -242,9 +223,7 @@ export default function UsersClient({ users }: UsersClientProps) {
                         {u.roles.map((r) => ROLE_LABELS[r]).join(", ")}
                       </td>
                       <td className="py-2 px-2">
-                        {u.createdAt
-                          ? new Date(u.createdAt).toLocaleDateString()
-                          : "—"}
+                        {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}
                       </td>
                       <td className="py-2 px-2" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-2">
@@ -253,7 +232,9 @@ export default function UsersClient({ users }: UsersClientProps) {
                             variant="outline"
                             size="sm"
                             className="gap-2"
-                            disabled={currentUser?.uid === u.uid || impersonatingUid === u.uid}
+                            disabled={
+                              currentUser?.uid === u.uid || impersonatingUid === u.uid
+                            }
                             onClick={() => void handleImpersonate(u.uid)}
                           >
                             <LogIn className="h-4 w-4" />
@@ -269,7 +250,9 @@ export default function UsersClient({ users }: UsersClientProps) {
                               <Button
                                 variant="destructive"
                                 size="sm"
-                                disabled={deletingUid === u.uid || currentUser?.uid === u.uid}
+                                disabled={
+                                  deletingUid === u.uid || currentUser?.uid === u.uid
+                                }
                               >
                                 {currentUser?.uid === u.uid
                                   ? "Current User"
@@ -280,9 +263,10 @@ export default function UsersClient({ users }: UsersClientProps) {
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Delete this platform admin user?</AlertDialogTitle>
+                                <AlertDialogTitle>Delete this admin user?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  This permanently deletes the login for {u.email}. Regional or district leaders with assigned entities must be reassigned first.
+                                  This permanently deletes the login for {u.email}. Any
+                                  districts or regions they oversee must be reassigned first.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>

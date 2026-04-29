@@ -9,7 +9,7 @@ import { Label } from "@/app/components/ui/label";
 import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { useToast } from "@/app/hooks/use-toast";
-import { ROLE_LABELS, ALL_ROLES, SYSTEM_ROLE_LIST } from "@/app/lib/auth/roles";
+import { ROLE_LABELS, ALL_ROLES, NON_CHURCH_ROLE_LIST } from "@/app/lib/auth/roles";
 
 export default function AddUserPage() {
   const params = useParams();
@@ -18,7 +18,7 @@ export default function AddUserPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const churchRolesOnly = ALL_ROLES.filter((role) => !SYSTEM_ROLE_LIST.includes(role));
+  const churchRolesOnly = ALL_ROLES.filter((role) => !NON_CHURCH_ROLE_LIST.includes(role));
 
   const [first_name, setFirstName] = useState("");
   const [last_name, setLastName] = useState("");

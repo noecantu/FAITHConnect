@@ -3,7 +3,7 @@
 
 import { adminDb } from "@/app/lib/supabase/admin";
 import { SystemUser } from "@/app/lib/types";
-import { ALL_ROLES, CHURCH_ROLES, SYSTEM_ROLES } from "@/app/lib/auth/roles";
+import { ALL_ROLES, CHURCH_ROLES, NON_CHURCH_ROLE_LIST } from "@/app/lib/auth/roles";
 import { getCurrentUser } from "@/app/lib/auth/server/getCurrentUser";
 import { can } from "@/app/lib/auth/permissions";
 import { logSystemEvent } from "@/app/lib/system/logging";
@@ -50,7 +50,7 @@ export async function scanForStrayUsers() {
 
   return (usersData ?? []).filter((u) => {
     const roles: string[] = u.roles || [];
-    if (roles.some((r) => SYSTEM_ROLES.includes(r as any))) return false;
+    if (roles.some((r) => NON_CHURCH_ROLE_LIST.includes(r as any))) return false;
     const hasChurchRoles = roles.some((r) => CHURCH_ROLES.includes(r as any));
     if (hasChurchRoles) return !u.church_id || !churchIds.has(u.church_id);
     return true;

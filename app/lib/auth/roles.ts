@@ -2,10 +2,15 @@
 export const SYSTEM_ROLES = [
   "RootAdmin",
   "SystemAdmin",
-  "DistrictAdmin",
-  "RegionalAdmin",
   "Support",
   "Auditor",
+] as const;
+
+// NON-CHURCH ADMIN ROLES — includes oversight leaders and true system roles
+export const NON_CHURCH_ROLES = [
+  ...SYSTEM_ROLES,
+  "DistrictAdmin",
+  "RegionalAdmin",
 ] as const;
 
 // CHURCH ROLES — literal tuple
@@ -43,7 +48,7 @@ export const CHURCH_ROLES = [
 ] as const;
 
 // Combined tuple
-export const ROLES = [...SYSTEM_ROLES, ...CHURCH_ROLES] as const;
+export const ROLES = [...NON_CHURCH_ROLES, ...CHURCH_ROLES] as const;
 
 // Role type
 export type Role = (typeof ROLES)[number];
@@ -51,11 +56,17 @@ export type Role = (typeof ROLES)[number];
 // SystemRole type
 export type SystemRole = typeof SYSTEM_ROLES[number];
 
+// NonChurchRole type
+export type NonChurchRole = typeof NON_CHURCH_ROLES[number];
+
 // ALL_ROLES (must come AFTER Role exists)
 export const ALL_ROLES: Role[] = [...ROLES];
 
 // SYSTEM_ROLE_LIST (must come AFTER Role exists)
 export const SYSTEM_ROLE_LIST: Role[] = [...SYSTEM_ROLES];
+
+// NON_CHURCH_ROLE_LIST (must come AFTER Role exists)
+export const NON_CHURCH_ROLE_LIST: Role[] = [...NON_CHURCH_ROLES];
 
 // Labels
 export const ROLE_LABELS: Record<Role, string> = {

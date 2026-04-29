@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { getServerUser } from "@/app/lib/supabase/server";
 import { adminDb, getAdminClient } from "@/app/lib/supabase/admin";
 import { can } from "@/app/lib/auth/permissions";
-import { SYSTEM_ROLE_LIST, type Role } from "@/app/lib/auth/roles";
+import { NON_CHURCH_ROLE_LIST, type Role } from "@/app/lib/auth/roles";
 
 function readEntityName(row: Record<string, unknown> | null, fallback: string) {
   if (!row) return fallback;
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     }
 
     const targetRoles = (Array.isArray(userData.roles) ? userData.roles : []) as Role[];
-    const isSystemUser = targetRoles.some((role) => SYSTEM_ROLE_LIST.includes(role));
+    const isSystemUser = targetRoles.some((role) => NON_CHURCH_ROLE_LIST.includes(role));
 
     if (!isSystemUser) {
       return NextResponse.json({ error: "This endpoint only deletes system users." }, { status: 400 });
