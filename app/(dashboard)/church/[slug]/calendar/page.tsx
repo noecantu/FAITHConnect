@@ -26,6 +26,7 @@ import { canUserSeeEvent } from "@/app/lib/canUserSeeEvent";
 import { cn } from "@/app/lib/utils";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { addDays, format, isToday, isTomorrow } from "date-fns";
+import { getGroupColor } from "@/app/lib/groupColors";
 
 type CalendarItem =
   | (Event & { type: "event" })
@@ -288,29 +289,30 @@ export default function CalendarPage() {
             </CardHeader>
 
             <CardContent className="space-y-4">
-              <div className="flex items-center gap-2 rounded-md border border-white/15 bg-black/50 p-2">
-                <Button
-                  type="button"
-                  variant={density === 'comfortable' ? 'default' : 'outline'}
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => {
-                    void setDensityAndPersist("comfortable");
-                  }}
-                >
-                  Comfortable
-                </Button>
-                <Button
-                  type="button"
-                  variant={density === 'compact' ? 'default' : 'outline'}
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => {
-                    void setDensityAndPersist("compact");
-                  }}
-                >
-                  Compact
-                </Button>
+              <div className="flex items-center gap-3 justify-end">
+                <span className="text-xs text-white/50">Calendar View:</span>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="density"
+                    value="comfortable"
+                    checked={density === 'comfortable'}
+                    onChange={() => void setDensityAndPersist("comfortable")}
+                    className="accent-sky-400 h-3 w-3"
+                  />
+                  <span className={cn("text-xs", density === 'comfortable' ? "text-white" : "text-white/50")}>Comfy</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="density"
+                    value="compact"
+                    checked={density === 'compact'}
+                    onChange={() => void setDensityAndPersist("compact")}
+                    className="accent-sky-400 h-3 w-3"
+                  />
+                  <span className={cn("text-xs", density === 'compact' ? "text-white" : "text-white/50")}>Compact</span>
+                </label>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -325,16 +327,7 @@ export default function CalendarPage() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/40 px-2.5 py-1 text-xs text-white/80">
-                  <span className="h-2 w-2 rounded-full bg-cyan-400" />
-                  Service Plan
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/40 px-2.5 py-1 text-xs text-white/80">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                  Event
-                </span>
-              </div>
+
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -371,7 +364,7 @@ export default function CalendarPage() {
                         className="w-full rounded-md border border-white/15 bg-black/50 p-3 text-left transition-colors hover:bg-white/5"
                         style={{
                           borderLeftWidth: '4px',
-                          borderLeftColor: item.type === 'service' ? '#22d3ee' : '#34d399',
+                          borderLeftColor: getGroupColor(item.groups ?? []),
                         }}
                       >
                         <p className="text-sm font-medium text-white/90 truncate">{item.title}</p>
@@ -403,7 +396,7 @@ export default function CalendarPage() {
                         className="w-full rounded-md border border-white/15 bg-black/50 p-3 text-left transition-colors hover:bg-white/5"
                         style={{
                           borderLeftWidth: '4px',
-                          borderLeftColor: item.type === 'service' ? '#22d3ee' : '#34d399',
+                          borderLeftColor: getGroupColor(item.groups ?? []),
                         }}
                       >
                         <p className="text-sm font-medium text-white/90 truncate">{item.title}</p>
