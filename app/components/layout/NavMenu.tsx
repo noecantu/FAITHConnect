@@ -166,6 +166,7 @@ export function NavMenu() {
 
   const userMenu = [
     { href: `/church/${churchId}/user`, label: "Dashboard", icon: Home, exact: true },
+    { href: `/church/${churchId}/attendance`, label: "Attendance", icon: CalendarCheck, permission: canSeeAttendance, isSubmenu: true },
     { href: `/church/${churchId}/calendar`, label: "Calendar", icon: Calendar },
     { href: `/church/${churchId}/contributions`, label: "Contributions", icon: HandCoins, permission: canSeeContributions },
     { href: `/church/${churchId}/members`, label: "Members", icon: Users, permission: canSeeMembers },

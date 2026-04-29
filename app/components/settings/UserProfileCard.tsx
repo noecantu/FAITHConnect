@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
 import { Input } from "@/app/components/ui/input";
@@ -16,16 +15,28 @@ export default function UserProfileCard({
   onDirtyChange?: (dirty: boolean) => void;
   registerSave?: (fn: () => Promise<void>) => void;
 }) {
-  const supabase = getSupabaseClient();
-  const [first_name, setFirstName] = useState(user.first_name ?? "");
-  const [last_name, setLastName] = useState(user.last_name ?? "");
+  const [first_name, setFirstName] = useState(user.first_name ?? user.firstName ?? "");
+  const [last_name, setLastName] = useState(user.last_name ?? user.lastName ?? "");
   const [email, setEmail] = useState(user.email ?? "");
 
   const [initial, setInitial] = useState({
-    first_name: user.first_name ?? "",
-    last_name: user.last_name ?? "",
+    first_name: user.first_name ?? user.firstName ?? "",
+    last_name: user.last_name ?? user.lastName ?? "",
     email: user.email ?? "",
   });
+
+  useEffect(() => {
+    const nextState = {
+      first_name: user.first_name ?? user.firstName ?? "",
+      last_name: user.last_name ?? user.lastName ?? "",
+      email: user.email ?? "",
+    };
+
+    setFirstName(nextState.first_name);
+    setLastName(nextState.last_name);
+    setEmail(nextState.email);
+    setInitial(nextState);
+  }, [user.first_name, user.firstName, user.last_name, user.lastName, user.email]);
 
   // Dirty tracking
   useEffect(() => {
@@ -41,16 +52,20 @@ export default function UserProfileCard({
 
   // Save function for FAB
   async function save() {
-    const { error } = await supabase
-      .from("users")
-      .update({
-        first_name,
-        last_name,
-        email,
-      })
-      .eq("id", user.id);
+    const res = await fetch("/api/users/update-profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName: first_name,
+        lastName: last_name,
+      }),
+    });
 
-    if (error) throw error;
+    const data = await res.json().catch(() => ({ error: "Failed to update profile." }));
+    if (!res.ok) {
+      throw new Error(data.error || "Failed to update profile.");
+    }
+
     setInitial({ first_name, last_name, email });
   }
 

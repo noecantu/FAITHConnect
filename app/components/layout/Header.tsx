@@ -97,9 +97,6 @@ export default function Header() {
                     <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-200/85">
                       Support Mode
                     </span>
-                    <span className="max-w-[220px] truncate text-xs text-sky-50/90">
-                      Root Admin: {user?.impersonationActorEmail ?? 'Unknown'}
-                    </span>
                   </span>
                   <Badge className="hidden border-sky-200/30 bg-sky-300/15 text-sky-100 md:inline-flex">
                     Active
@@ -109,7 +106,7 @@ export default function Header() {
               <PopoverContent align="end" sideOffset={10} className="w-80 border-sky-300/40 bg-[linear-gradient(180deg,rgba(14,116,144,0.98),rgba(8,47,73,0.98))] text-slate-50 backdrop-blur-xl shadow-[0_18px_40px_rgba(2,132,199,0.35)]">
                 <div className="space-y-3">
                   <div>
-                    <p className="text-sm font-semibold text-sky-200">Impersonation Active</p>
+                    <p className="text-sm font-semibold text-red-500">Impersonation Active</p>
                     <p className="mt-1 text-sm text-slate-200">
                       You are viewing the app as {user?.email ?? 'user'}.
                     </p>

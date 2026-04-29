@@ -1,20 +1,29 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from "react";
-;
-import { getSupabaseClient } from "@/app/lib/supabase/client";
 import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 
 import { PageHeader } from "@/app/components/page-header";
 import UserProfileCard from "@/app/components/settings/UserProfileCard";
 import { ChangePasswordCard } from "@/app/components/settings/ChangePasswordCard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
 
 import { Fab } from "@/app/components/ui/fab";
 import { Loader2, Check } from "lucide-react";
 import { ProfilePhotoCard } from "@/app/components/settings/ProfilePhotoCard";
+import type { AppUser } from "@/app/lib/types";
+
+function toSettingsUser(user: AppUser): AppUser {
+  return {
+    ...user,
+    id: user.id ?? user.uid,
+    first_name: user.first_name ?? user.firstName ?? null,
+    last_name: user.last_name ?? user.lastName ?? null,
+    profile_photo_url: user.profile_photo_url ?? user.profilePhotoUrl ?? null,
+  };
+}
 
 export default function UserSettingsPage() {
-  const supabase = getSupabaseClient();
   //
   // 1. ALL HOOKS MUST BE HERE — NO RETURNS ABOVE THIS LINE
   //
@@ -105,19 +114,10 @@ export default function UserSettingsPage() {
   useEffect(() => {
     if (authLoading || !authUser) return;
 
-    const userId = authUser.id || authUser.uid;
-
     async function load() {
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from("users")
-          .select("*")
-          .eq("id", userId)
-          .single();
-
-        if (error) throw error;
-        setFullUser(data);
+        setFullUser(toSettingsUser(authUser));
       } catch (err) {
         console.error("Failed to load user:", err);
       } finally {
@@ -126,7 +126,7 @@ export default function UserSettingsPage() {
     }
 
     load();
-  }, [authUser, authLoading, supabase]);
+  }, [authUser, authLoading]);
 
   //
   // 3. NOW — AND ONLY NOW — YOU MAY RETURN CONDITIONALLY
@@ -170,6 +170,8 @@ export default function UserSettingsPage() {
   //
   // 4. FINAL RENDER
   //
+  const isImpersonating = authUser?.isImpersonating === true;
+
   return (
     <>
       <PageHeader
@@ -190,10 +192,21 @@ export default function UserSettingsPage() {
           registerSave={registerPhotoSave}
         />
 
-        <ChangePasswordCard
-          onDirtyChange={handlePasswordDirty}
-          registerSave={registerPasswordSave}
-        />
+        {isImpersonating ? (
+          <Card className="relative bg-black/80 border-white/20 backdrop-blur-xl">
+            <CardHeader>
+              <CardTitle>Password</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-slate-300">
+              Password changes are unavailable during impersonation. Stop impersonation to manage this account password directly.
+            </CardContent>
+          </Card>
+        ) : (
+          <ChangePasswordCard
+            onDirtyChange={handlePasswordDirty}
+            registerSave={registerPasswordSave}
+          />
+        )}
       </div>
 
       <Fab

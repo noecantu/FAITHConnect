@@ -48,6 +48,8 @@ type AllUsersClientProps = {
   users: NonSystemUserRecord[];
 };
 
+type SortOption = "created-desc" | "created-asc" | "name-asc" | "name-desc" | "church-asc" | "church-desc";
+
 export default function AllUsersClient({ users }: AllUsersClientProps) {
   const router = useRouter();
   const { user: currentUser } = useAuth();
@@ -55,6 +57,7 @@ export default function AllUsersClient({ users }: AllUsersClientProps) {
 
   const [search, setSearch] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
+  const [sortBy, setSortBy] = useState<SortOption>("created-desc");
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [bulkRole, setBulkRole] = useState<string>("none");
   const [isApplyingRole, setIsApplyingRole] = useState(false);
@@ -68,7 +71,7 @@ export default function AllUsersClient({ users }: AllUsersClientProps) {
   );
 
   const filteredUsers = useMemo(() => {
-    return users.filter((u) => {
+    const filtered = users.filter((u) => {
       const fullName = `${u.firstName ?? ""} ${u.lastName ?? ""}`.toLowerCase();
       const email = (u.email ?? "").toLowerCase();
       const churchName = (u.churchName ?? "").toLowerCase();
@@ -84,7 +87,41 @@ export default function AllUsersClient({ users }: AllUsersClientProps) {
 
       return true;
     });
-  }, [users, search, selectedRole]);
+
+    const collator = new Intl.Collator(undefined, { sensitivity: "base" });
+    const getDisplayName = (user: NonSystemUserRecord) =>
+      `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || user.email || user.uid;
+    const getChurchLabel = (user: NonSystemUserRecord) => user.churchName ?? user.churchId ?? "";
+    const getCreatedTime = (user: NonSystemUserRecord) => {
+      if (!user.createdAt) return 0;
+      const timestamp = new Date(user.createdAt).getTime();
+      return Number.isNaN(timestamp) ? 0 : timestamp;
+    };
+
+    return [...filtered].sort((left, right) => {
+      if (sortBy === "name-asc") {
+        return collator.compare(getDisplayName(left), getDisplayName(right));
+      }
+
+      if (sortBy === "name-desc") {
+        return collator.compare(getDisplayName(right), getDisplayName(left));
+      }
+
+      if (sortBy === "church-asc") {
+        return collator.compare(getChurchLabel(left), getChurchLabel(right));
+      }
+
+      if (sortBy === "church-desc") {
+        return collator.compare(getChurchLabel(right), getChurchLabel(left));
+      }
+
+      if (sortBy === "created-asc") {
+        return getCreatedTime(left) - getCreatedTime(right);
+      }
+
+      return getCreatedTime(right) - getCreatedTime(left);
+    });
+  }, [users, search, selectedRole, sortBy]);
 
   const selectedCount = selectedUserIds.length;
   const visibleIds = filteredUsers.map((u) => u.uid);
@@ -363,6 +400,23 @@ export default function AllUsersClient({ users }: AllUsersClientProps) {
                       {ROLE_LABELS[role]}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Sort By</Label>
+              <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+                <SelectTrigger className="w-full md:w-64">
+                  <SelectValue placeholder="Newest first" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="created-desc">Created: Newest first</SelectItem>
+                  <SelectItem value="created-asc">Created: Oldest first</SelectItem>
+                  <SelectItem value="name-asc">Name: A to Z</SelectItem>
+                  <SelectItem value="name-desc">Name: Z to A</SelectItem>
+                  <SelectItem value="church-asc">Church: A to Z</SelectItem>
+                  <SelectItem value="church-desc">Church: Z to A</SelectItem>
                 </SelectContent>
               </Select>
             </div>
