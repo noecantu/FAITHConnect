@@ -35,6 +35,7 @@ import { usePermissions } from "@/app/hooks/usePermissions";
 import { formatPhone } from "@/app/lib/formatters";
 import { ChurchDisabledNotice } from "@/app/components/layout/ChurchDisabledNotice";
 import { BillingLapsedNotice } from "@/app/components/layout/BillingLapsedNotice";
+import { ChurchDashboardMessageBanner } from "@/app/components/layout/ChurchDashboardMessageBanner";
 
 export default function ChurchAdminDashboard() {
   const params = useParams();
@@ -290,6 +291,8 @@ export default function ChurchAdminDashboard() {
               : "Manage your church’s members, events, and ministries."
           }
         />
+
+        <ChurchDashboardMessageBanner />
 
         {/* Identity Header */}
         <Card className="relative overflow-hidden border border-white/15 bg-gradient-to-br from-black/70 via-black/55 to-black/35 backdrop-blur-xl shadow-[0_14px_40px_rgba(0,0,0,0.28)]">

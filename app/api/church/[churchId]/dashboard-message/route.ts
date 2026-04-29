@@ -12,7 +12,7 @@ type DashboardMessageVisibility = "all" | "staff" | "leaders" | "admins";
 type DashboardMessagePayload = {
   id: string;
   enabled: boolean;
-  type: "quote" | "verse" | "reminder";
+  type: "quote" | "verse" | "reminder" | "general" | "alert";
   title: string;
   message: string;
   reference: string;
@@ -49,7 +49,7 @@ function normalizeMessage(raw: unknown): DashboardMessagePayload | null {
   const normalizedMessage: DashboardMessagePayload = {
     id: id || crypto.randomUUID(),
     enabled,
-    type: type === "quote" || type === "verse" ? type : "reminder",
+    type: type === "quote" || type === "verse" || type === "general" || type === "alert" ? type : "reminder",
     title,
     message,
     reference,

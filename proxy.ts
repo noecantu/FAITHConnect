@@ -32,8 +32,6 @@ export async function proxy(req: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser();
-
   // Ignore prefetch and internal Next.js router requests
   if (
     req.headers.get("purpose") === "prefetch" ||
@@ -51,6 +49,8 @@ export async function proxy(req: NextRequest) {
   // ---------------------------------------
   // PUBLIC ROUTES
   // ---------------------------------------
+  // These routes don't need a session refresh — skip the Supabase getUser()
+  // round-trip entirely. API routes manage their own auth server-side.
   const publicPatterns = [
     /^\/$/,                     // homepage
     /^\/marketing(\/.*)?$/,     // marketing pages
@@ -63,6 +63,9 @@ export async function proxy(req: NextRequest) {
   if (publicPatterns.some((pattern) => pattern.test(pathname))) {
     return proxyResponse;
   }
+
+  // Only refresh the Supabase session for authenticated dashboard routes.
+  await supabase.auth.getUser();
 
   return proxyResponse;
 }

@@ -12,10 +12,10 @@ import { Button } from '@/app/components/ui/button';
 import { useChurchId } from '@/app/hooks/useChurchId';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { useToast } from '@/app/hooks/use-toast';
-import { BookOpenText, BellRing, Quote, Loader2, Check, Plus, Trash2 } from 'lucide-react';
+import { BookOpenText, BellRing, Quote, MessageCircle, TriangleAlert, Loader2, Check, Plus, Trash2 } from 'lucide-react';
 
 type Visibility = 'all' | 'staff' | 'leaders' | 'admins';
-type MessageType = 'quote' | 'verse' | 'reminder';
+type MessageType = 'quote' | 'verse' | 'reminder' | 'general' | 'alert';
 
 type DashboardMessage = {
   id: string;
@@ -60,7 +60,10 @@ function normalizeMessage(raw: unknown): DashboardMessage | null {
   return {
     id: typeof data.id === 'string' && data.id.trim() ? data.id : crypto.randomUUID(),
     enabled: Boolean(data.enabled),
-    type: data.type === 'quote' || data.type === 'verse' ? data.type : 'reminder',
+    type:
+      data.type === 'quote' || data.type === 'verse' || data.type === 'general' || data.type === 'alert'
+        ? data.type
+        : 'reminder',
     title: String(data.title ?? ''),
     message: String(data.message ?? ''),
     reference: String(data.reference ?? ''),
@@ -94,6 +97,38 @@ function hasInvalidSchedule(message: DashboardMessage): boolean {
 }
 
 function getThemeClasses(type: MessageType) {
+  if (type === 'alert') {
+    return {
+      card:
+        'border-red-600/35 bg-gradient-to-br from-red-950/44 via-black/56 to-black/45 shadow-[0_8px_18px_rgba(220,38,38,0.14),inset_0_1px_0_rgba(220,38,38,0.1)]',
+      listSelected: 'border-red-500/55 bg-red-900/24 shadow-[0_0_0_1px_rgba(248,113,113,0.2)]',
+      listIdle: 'border-red-600/22 bg-black/30 hover:border-red-500/38 hover:bg-black/40',
+      focusRing: 'focus-visible:ring-red-500/60',
+      glow: 'bg-[radial-gradient(circle_at_top_right,rgba(220,38,38,0.15),transparent_60%)]',
+      shimmer:
+        'bg-[linear-gradient(90deg,transparent,rgba(220,38,38,0.12),transparent)]',
+      icon: 'border-red-600/35 bg-red-700/16 text-red-200/90 shadow-[0_0_8px_rgba(220,38,38,0.16)]',
+      badge: 'border-red-600/32 bg-red-700/14 text-red-200/90',
+      reference: 'text-red-200/95',
+    };
+  }
+
+  if (type === 'general') {
+    return {
+      card:
+        'border-slate-500/35 bg-gradient-to-br from-slate-900/44 via-black/56 to-black/45 shadow-[0_8px_18px_rgba(100,116,139,0.14),inset_0_1px_0_rgba(100,116,139,0.1)]',
+      listSelected: 'border-slate-400/55 bg-slate-800/30 shadow-[0_0_0_1px_rgba(148,163,184,0.2)]',
+      listIdle: 'border-slate-600/22 bg-black/30 hover:border-slate-500/38 hover:bg-black/40',
+      focusRing: 'focus-visible:ring-slate-400/60',
+      glow: 'bg-[radial-gradient(circle_at_top_right,rgba(100,116,139,0.15),transparent_60%)]',
+      shimmer:
+        'bg-[linear-gradient(90deg,transparent,rgba(100,116,139,0.12),transparent)]',
+      icon: 'border-slate-500/35 bg-slate-700/16 text-slate-200/90 shadow-[0_0_8px_rgba(100,116,139,0.16)]',
+      badge: 'border-slate-500/32 bg-slate-700/14 text-slate-200/90',
+      reference: 'text-slate-200/95',
+    };
+  }
+
   if (type === 'quote') {
     return {
       card:
@@ -222,18 +257,18 @@ export default function MessagesModulePage() {
   );
 
   const previewIcon =
-    selectedMessage?.type === 'quote'
-      ? Quote
-      : selectedMessage?.type === 'verse'
-      ? BookOpenText
-      : BellRing;
+    selectedMessage?.type === 'quote' ? Quote
+    : selectedMessage?.type === 'verse' ? BookOpenText
+    : selectedMessage?.type === 'alert' ? TriangleAlert
+    : selectedMessage?.type === 'general' ? MessageCircle
+    : BellRing;
 
   const previewLabel =
-    selectedMessage?.type === 'quote'
-      ? 'Quote'
-      : selectedMessage?.type === 'verse'
-      ? 'Scripture'
-      : 'Reminder';
+    selectedMessage?.type === 'quote' ? 'Quote'
+    : selectedMessage?.type === 'verse' ? 'Scripture'
+    : selectedMessage?.type === 'alert' ? 'Alert'
+    : selectedMessage?.type === 'general' ? 'General'
+    : 'Reminder';
   const previewTheme = getThemeClasses(selectedMessage?.type ?? 'reminder');
 
   const selectedHasContent = Boolean(
@@ -380,7 +415,11 @@ export default function MessagesModulePage() {
             {messages.map((entry, index) => {
               const isSelected = entry.id === selectedMessage.id;
               const label =
-                entry.type === 'quote' ? 'Quote' : entry.type === 'verse' ? 'Scripture' : 'Reminder';
+                entry.type === 'quote' ? 'Quote'
+                : entry.type === 'verse' ? 'Scripture'
+                : entry.type === 'alert' ? 'Alert'
+                : entry.type === 'general' ? 'General'
+                : 'Reminder';
               const summary = entry.message.trim() || 'No content yet.';
               const entryTheme = getThemeClasses(entry.type);
 
@@ -437,9 +476,9 @@ export default function MessagesModulePage() {
       </Card>
 
       <Card className={`relative mb-6 overflow-hidden border-2 backdrop-blur-xl ${previewTheme.card}`}>
-        <div className={`pointer-events-none absolute inset-0 ${previewTheme.glow}`} />
+        <div className={`pointer-events-none absolute inset-0 opacity-40 ${previewTheme.glow}`} />
         <div
-          className={`pointer-events-none absolute -inset-x-12 -top-20 h-40 rotate-6 blur-xl animate-pulse ${previewTheme.shimmer}`}
+          className={`pointer-events-none absolute -inset-x-12 -top-20 h-40 rotate-6 blur-xl opacity-25 ${previewTheme.shimmer}`}
         />
         <CardHeader className="relative">
           <CardTitle>Live Preview</CardTitle>
@@ -521,9 +560,11 @@ export default function MessagesModulePage() {
                   <SelectValue placeholder="Choose type" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="alert">Alert</SelectItem>
+                  <SelectItem value="general">General</SelectItem>
                   <SelectItem value="quote">Quote</SelectItem>
-                  <SelectItem value="verse">Scripture</SelectItem>
                   <SelectItem value="reminder">Reminder</SelectItem>
+                  <SelectItem value="verse">Scripture</SelectItem>
                 </SelectContent>
               </Select>
             </div>
