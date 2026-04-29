@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { LogIn } from "lucide-react";
 
 import { PageHeader } from "@/app/components/page-header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
@@ -59,6 +60,7 @@ export default function AllUsersClient({ users }: AllUsersClientProps) {
   const [isApplyingRole, setIsApplyingRole] = useState(false);
   const [isRemovingRole, setIsRemovingRole] = useState(false);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [impersonatingUid, setImpersonatingUid] = useState<string | null>(null);
 
   const usersById = useMemo(
     () => new Map(users.map((u) => [u.uid, u])),
@@ -298,6 +300,32 @@ export default function AllUsersClient({ users }: AllUsersClientProps) {
     }
   }
 
+  async function handleImpersonate(targetUid: string) {
+    setImpersonatingUid(targetUid);
+
+    try {
+      const res = await fetch("/api/admin/impersonation/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ targetUid }),
+      });
+
+      const data = await res.json().catch(() => ({ error: "Failed to start impersonation." }));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to start impersonation.");
+      }
+
+      window.location.assign("/auth-router");
+    } catch (error) {
+      setImpersonatingUid(null);
+      toast({
+        title: "Impersonation failed",
+        description: error instanceof Error ? error.message : "Failed to start impersonation.",
+      });
+    }
+  }
+
   return (
     <>
       <PageHeader
@@ -421,6 +449,7 @@ export default function AllUsersClient({ users }: AllUsersClientProps) {
                     <th className="text-left py-2 px-2">Church</th>
                     <th className="text-left py-2 px-2">Roles</th>
                     <th className="text-left py-2 px-2">Created</th>
+                    <th className="text-left py-2 px-2 w-36">Support</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -451,6 +480,19 @@ export default function AllUsersClient({ users }: AllUsersClientProps) {
                       </td>
                       <td className="py-2 px-2">
                         {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "-"}
+                      </td>
+                      <td className="py-2 px-2" onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="gap-2"
+                          disabled={impersonatingUid === u.uid}
+                          onClick={() => void handleImpersonate(u.uid)}
+                        >
+                          <LogIn className="h-4 w-4" />
+                          {impersonatingUid === u.uid ? "Starting..." : "Impersonate"}
+                        </Button>
                       </td>
                     </tr>
                   ))}

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { LogIn } from "lucide-react";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useToast } from "@/app/hooks/use-toast";
 
@@ -64,6 +65,7 @@ export default function UsersClient({ users }: UsersClientProps) {
   const [search, setSearch] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
   const [deletingUid, setDeletingUid] = useState<string | null>(null);
+  const [impersonatingUid, setImpersonatingUid] = useState<string | null>(null);
 
   async function deleteUser(uid: string) {
     const res = await fetch("/api/system-users/delete", {
@@ -102,6 +104,32 @@ export default function UsersClient({ users }: UsersClientProps) {
       });
     } finally {
       setDeletingUid(null);
+    }
+  }
+
+  async function handleImpersonate(uid: string) {
+    setImpersonatingUid(uid);
+
+    try {
+      const res = await fetch("/api/admin/impersonation/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ targetUid: uid }),
+      });
+
+      const data = await res.json().catch(() => ({ error: "Failed to start impersonation." }));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to start impersonation.");
+      }
+
+      window.location.assign("/auth-router");
+    } catch (error) {
+      setImpersonatingUid(null);
+      toast({
+        title: "Impersonation failed",
+        description: error instanceof Error ? error.message : "Failed to start impersonation.",
+      });
     }
   }
 
@@ -219,35 +247,53 @@ export default function UsersClient({ users }: UsersClientProps) {
                           : "—"}
                       </td>
                       <td className="py-2 px-2" onClick={(e) => e.stopPropagation()}>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              disabled={deletingUid === u.uid || currentUser?.uid === u.uid}
-                            >
-                              {currentUser?.uid === u.uid
-                                ? "Current User"
-                                : deletingUid === u.uid
-                                ? "Deleting..."
-                                : "Delete"}
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete this system user?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This permanently deletes the login for {u.email}. Regional or district leaders with assigned entities must be reassigned first.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(u.uid)}>
-                                Confirm Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                            disabled={currentUser?.uid === u.uid || impersonatingUid === u.uid}
+                            onClick={() => void handleImpersonate(u.uid)}
+                          >
+                            <LogIn className="h-4 w-4" />
+                            {currentUser?.uid === u.uid
+                              ? "Current User"
+                              : impersonatingUid === u.uid
+                              ? "Starting..."
+                              : "Impersonate"}
+                          </Button>
+
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                disabled={deletingUid === u.uid || currentUser?.uid === u.uid}
+                              >
+                                {currentUser?.uid === u.uid
+                                  ? "Current User"
+                                  : deletingUid === u.uid
+                                  ? "Deleting..."
+                                  : "Delete"}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete this system user?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This permanently deletes the login for {u.email}. Regional or district leaders with assigned entities must be reassigned first.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(u.uid)}>
+                                  Confirm Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </td>
                     </tr>
                   ))}

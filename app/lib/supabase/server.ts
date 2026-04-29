@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabasePublicEnv } from "@/app/lib/supabase/env";
+import { getActingServerUser } from "@/app/lib/auth/impersonation";
 
 /**
  * Creates a Supabase server client for use in API routes and Server Components.
@@ -34,12 +35,7 @@ export async function createSupabaseServerClient(): Promise<SupabaseClient> {
   );
 }
 
-/**
- * Returns the authenticated Supabase user from the current server request,
- * or null if unauthenticated. Use this in API routes instead of
- * adminAuth.verifySessionCookie().
- */
-export async function getServerUser() {
+export async function getAuthenticatedServerUser() {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -48,4 +44,14 @@ export async function getServerUser() {
 
   if (error || !user) return null;
   return user;
+}
+
+/**
+ * Returns the authenticated Supabase user from the current server request,
+ * or null if unauthenticated. Use this in API routes instead of
+ * adminAuth.verifySessionCookie().
+ */
+export async function getServerUser() {
+  const authenticatedUser = await getAuthenticatedServerUser();
+  return getActingServerUser(authenticatedUser);
 }

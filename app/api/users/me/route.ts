@@ -2,10 +2,11 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { getServerUser } from "@/app/lib/supabase/server";
+import { getAuthenticatedServerUser, getServerUser } from "@/app/lib/supabase/server";
 import { adminDb } from "@/app/lib/supabase/admin";
 import { ROLE_PERMISSIONS, can } from "@/app/lib/auth/permissions";
 import { ROLES, type Role } from "@/app/lib/auth/roles";
+import { getImpersonationContext } from "@/app/lib/auth/impersonation";
 
 const ROOT_ADMIN_EMAIL = (
   process.env.ROOT_ADMIN_EMAIL ??
@@ -113,7 +114,9 @@ function applyRootBootstrapRoles(email: string | null | undefined, roles: Role[]
 
 export async function GET() {
   try {
+    const authenticatedUser = await getAuthenticatedServerUser();
     const authUser = await getServerUser();
+    const impersonation = await getImpersonationContext(authenticatedUser);
 
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -212,6 +215,10 @@ export async function GET() {
         onboardingComplete: isSystemUser,
         isSystemUser,
         isRootAdmin,
+        isImpersonating: Boolean(impersonation),
+        impersonationActorUid: impersonation?.actorUser.id ?? null,
+        impersonationActorEmail: impersonation?.actorUser.email ?? null,
+        impersonationStartedAt: impersonation?.payload.startedAt ?? null,
       });
     }
 
@@ -296,6 +303,10 @@ export async function GET() {
       onboardingComplete,
       isSystemUser,
       isRootAdmin,
+      isImpersonating: Boolean(impersonation),
+      impersonationActorUid: impersonation?.actorUser.id ?? null,
+      impersonationActorEmail: impersonation?.actorUser.email ?? null,
+      impersonationStartedAt: impersonation?.payload.startedAt ?? null,
     });
   } catch (err) {
     console.error("Error in /api/users/me:", err);

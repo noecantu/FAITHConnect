@@ -1,8 +1,9 @@
 // This is a compatibility shim that wraps the new Supabase-based getServerUser
-import { getServerUser } from "@/app/lib/supabase/server";
+import { getAuthenticatedServerUser, getServerUser } from "@/app/lib/supabase/server";
 import { adminDb } from "@/app/lib/supabase/admin";
 import type { AppUser } from "@/app/lib/types";
 import { ROLES, type Role } from "@/app/lib/auth/roles";
+import { getImpersonationContext } from "@/app/lib/auth/impersonation";
 
 const ROOT_ADMIN_EMAIL = (
   process.env.ROOT_ADMIN_EMAIL ??
@@ -90,7 +91,9 @@ function applyRootBootstrapRoles(email: string | null | undefined, roles: Role[]
 }
 
 export async function getCurrentUser(): Promise<AppUser | null> {
+  const authenticatedUser = await getAuthenticatedServerUser();
   const user = await getServerUser();
+  const impersonation = await getImpersonationContext(authenticatedUser);
   if (!user) return null;
 
   const { data } = await adminDb
@@ -130,6 +133,10 @@ export async function getCurrentUser(): Promise<AppUser | null> {
         (appMetadata as Record<string, unknown>).role
       )),
       settings: {},
+      isImpersonating: Boolean(impersonation),
+      impersonationActorUid: impersonation?.actorUser.id ?? null,
+      impersonationActorEmail: impersonation?.actorUser.email ?? null,
+      impersonationStartedAt: impersonation?.payload.startedAt ?? null,
     };
   }
 
@@ -155,5 +162,9 @@ export async function getCurrentUser(): Promise<AppUser | null> {
       (appMetadata as Record<string, unknown>).role
     )),
     settings: data.settings ?? {},
+    isImpersonating: Boolean(impersonation),
+    impersonationActorUid: impersonation?.actorUser.id ?? null,
+    impersonationActorEmail: impersonation?.actorUser.email ?? null,
+    impersonationStartedAt: impersonation?.payload.startedAt ?? null,
   };
 }

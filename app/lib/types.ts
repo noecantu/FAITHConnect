@@ -365,6 +365,10 @@ export interface AppUser {
   profile_photo_url?: string;
   onboardingComplete?: boolean;
   onboardingStep?: string | null;
+  isImpersonating?: boolean;
+  impersonationActorUid?: string | null;
+  impersonationActorEmail?: string | null;
+  impersonationStartedAt?: string | null;
   settings?: {
     attendanceView?: "cards" | "list";
     calendarView?: "calendar" | "list";
