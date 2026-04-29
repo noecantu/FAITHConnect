@@ -23,6 +23,7 @@ export type ImpersonationCookiePayload = {
   actorUid: string;
   targetUid: string;
   startedAt: string;
+  returnTo?: string;
 };
 
 export type ImpersonationContext = {
@@ -120,6 +121,7 @@ export function parseImpersonationCookieValue(cookieValue: string | undefined | 
       actorUid: parsed.actorUid,
       targetUid: parsed.targetUid,
       startedAt: parsed.startedAt,
+      returnTo: typeof parsed.returnTo === "string" ? parsed.returnTo : undefined,
     };
   } catch {
     return null;

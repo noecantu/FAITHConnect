@@ -348,7 +348,7 @@ export default function AllUsersClient({ users, title = "All Users", subtitle = 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ targetUid }),
+        body: JSON.stringify({ targetUid, returnTo: window.location.pathname }),
       });
 
       const data = await res.json().catch(() => ({ error: "Failed to start impersonation." }));

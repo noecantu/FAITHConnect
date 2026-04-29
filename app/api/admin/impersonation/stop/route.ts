@@ -16,7 +16,8 @@ export async function POST() {
   }
 
   const impersonation = await getImpersonationContext(actor);
-  const response = NextResponse.json({ ok: true, stopped: Boolean(impersonation) });
+  const returnTo = impersonation?.payload.returnTo ?? "/admin";
+  const response = NextResponse.json({ ok: true, stopped: Boolean(impersonation), returnTo });
 
   response.cookies.set(IMPERSONATION_COOKIE_NAME, "", {
     httpOnly: true,

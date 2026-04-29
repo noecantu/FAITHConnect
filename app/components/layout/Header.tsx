@@ -63,7 +63,7 @@ export default function Header() {
         throw new Error(body.error || 'Failed to stop impersonation.');
       }
 
-      window.location.assign('/admin/all-users');
+      window.location.assign(typeof body.returnTo === 'string' ? body.returnTo : '/admin');
     } catch (error) {
       setIsStoppingImpersonation(false);
       toast({

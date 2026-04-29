@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => null);
   const targetUid = typeof body?.targetUid === "string" ? body.targetUid.trim() : "";
+  const returnTo = typeof body?.returnTo === "string" ? body.returnTo.trim() : undefined;
 
   if (!targetUid) {
     return NextResponse.json({ error: "Target user is required." }, { status: 400 });
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest) {
     actorUid: actor.id,
     targetUid,
     startedAt,
+    returnTo,
   }), {
     httpOnly: true,
     sameSite: "lax",

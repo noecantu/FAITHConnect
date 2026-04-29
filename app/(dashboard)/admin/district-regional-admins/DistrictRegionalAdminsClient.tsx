@@ -105,7 +105,7 @@ export default function DistrictRegionalAdminsClient({ users }: Props) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ targetUid: uid }),
+        body: JSON.stringify({ targetUid: uid, returnTo: window.location.pathname }),
       });
 
       const data = await res.json().catch(() => ({ error: "Failed to start impersonation." }));
