@@ -26,7 +26,7 @@ import { canUserSeeEvent } from "@/app/lib/canUserSeeEvent";
 import { cn } from "@/app/lib/utils";
 import { usePermissions } from "@/app/hooks/usePermissions";
 import { addDays, format, isToday, isTomorrow } from "date-fns";
-import { getGroupColor } from "@/app/lib/groupColors";
+import { getCalendarItemColor } from "@/app/lib/groupColors";
 
 type CalendarItem =
   | (Event & { type: "event" })
@@ -270,7 +270,7 @@ export default function CalendarPage() {
               onEdit={(event) => {
                 if (!canManage) return;
 
-                if ("timeString" in event) {
+                if ("sections" in event) {
                   router.push(`/church/${routeSlug}/service-plan/${event.id}`);
                   return;
                 }
@@ -298,7 +298,7 @@ export default function CalendarPage() {
                     value="comfortable"
                     checked={density === 'comfortable'}
                     onChange={() => void setDensityAndPersist("comfortable")}
-                    className="accent-sky-400 h-3 w-3"
+                    className="accent-sky-500 h-3 w-3"
                   />
                   <span className={cn("text-xs", density === 'comfortable' ? "text-white" : "text-white/50")}>Comfy</span>
                 </label>
@@ -364,7 +364,7 @@ export default function CalendarPage() {
                         className="w-full rounded-md border border-white/15 bg-black/50 p-3 text-left transition-colors hover:bg-white/5"
                         style={{
                           borderLeftWidth: '4px',
-                          borderLeftColor: getGroupColor(item.groups ?? []),
+                          borderLeftColor: getCalendarItemColor(item.groups ?? [], item.type === 'service'),
                         }}
                       >
                         <p className="text-sm font-medium text-white/90 truncate">{item.title}</p>
@@ -396,7 +396,7 @@ export default function CalendarPage() {
                         className="w-full rounded-md border border-white/15 bg-black/50 p-3 text-left transition-colors hover:bg-white/5"
                         style={{
                           borderLeftWidth: '4px',
-                          borderLeftColor: getGroupColor(item.groups ?? []),
+                          borderLeftColor: getCalendarItemColor(item.groups ?? [], item.type === 'service'),
                         }}
                       >
                         <p className="text-sm font-medium text-white/90 truncate">{item.title}</p>

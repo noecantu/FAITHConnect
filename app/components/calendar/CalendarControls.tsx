@@ -29,8 +29,8 @@ interface FilterControls {
   setSearch: (v: string) => void;
   filter: 'all' | 'future' | 'past';
   setFilter: (v: 'all' | 'future' | 'past') => void;
-  sort: 'newest' | 'oldest';
-  setSort: (v: 'newest' | 'oldest') => void;
+  sort: 'newest' | 'oldest' | 'title';
+  setSort: (v: 'newest' | 'oldest' | 'title') => void;
 }
 
 interface CalendarControlsProps {
@@ -146,10 +146,10 @@ export function CalendarControls({
         <div className="flex flex-col gap-4 w-full">
 
           {/* Search + Filters */}
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-4 w-full">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center w-full">
 
             {/* Search */}
-            <div className="w-full md:flex-1">
+            <div className="flex-1 min-w-0">
               <SearchBar
                 value={filters.search}
                 onChange={filters.setSearch}
@@ -158,7 +158,7 @@ export function CalendarControls({
             </div>
 
             {/* Filter + Sort */}
-            <div className="flex flex-col min-[360px]:flex-row gap-3 min-[360px]:gap-4 md:justify-end w-full">
+            <div className="flex flex-col min-[360px]:flex-row gap-3 md:flex-row md:shrink-0 md:w-auto">
 
               <Select
                 value={filters.filter}

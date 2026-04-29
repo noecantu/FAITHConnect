@@ -68,6 +68,7 @@ export function CalendarViewSwitcher({
           density={density}
           onPrevMonth={onPrevMonth}
           onNextMonth={onNextMonth}
+          onEdit={canManage ? (event) => handleEdit(event as CalendarItem) : undefined}
         />
       );
     }

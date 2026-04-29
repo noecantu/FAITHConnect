@@ -8,7 +8,7 @@ import { usePreviewPagination } from "@/app/hooks/usePreviewPagination";
 import { PreviewPaginationFooter } from "@/app/components/layout/PreviewPaginationFooter";
 import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 import { can } from "@/app/lib/auth/permissions";
-import { getGroupColor } from "@/app/lib/groupColors";
+import { getCalendarItemColor } from "@/app/lib/groupColors";
 
 type CalendarItem =
   | (Event & { type: "event" })
@@ -130,7 +130,7 @@ export function ListView({
                       hover:bg-muted/40 transition-colors
                     "
                     style={{
-                      borderLeft: `24px solid ${getGroupColor("groups" in e ? e.groups : [])}`,
+                      borderLeft: `24px solid ${getCalendarItemColor(e.groups ?? [], e.type === "service")}`,
                     }}
                   >
                     <div>

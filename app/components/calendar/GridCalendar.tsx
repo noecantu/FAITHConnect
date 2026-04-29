@@ -16,7 +16,7 @@ import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Event, ServicePlan } from '@/app/lib/types';
 import { dateKey } from '@/app/lib/calendar/utils';
-import { getGroupColor } from "@/app/lib/groupColors";
+import { getGroupColor, getCalendarItemColor } from "@/app/lib/groupColors";
 
 interface GridCalendarProps {
   month: Date;
@@ -37,6 +37,7 @@ export function GridCalendar({
   events,
   selectedDate,
   density = 'comfortable',
+  onEdit,
 }: GridCalendarProps) {  
   const isCompact = density === 'compact';
 
@@ -153,10 +154,13 @@ export function GridCalendar({
             ].join(" ");
 
             return (
-              <button
+              <div
                 key={day.toString()}
+                role="button"
+                tabIndex={0}
                 className={dayClass}
                 onClick={() => onSelectDate(day)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelectDate(day); }}
               >
                 <span className={isCompact ? 'text-[11px] font-medium leading-none' : 'text-sm font-medium'}>{format(day, 'd')}</span>
 
@@ -176,20 +180,26 @@ export function GridCalendar({
                   <div className={isCompact ? 'hidden md:flex flex-col items-start w-full mt-1 space-y-1' : 'hidden md:flex flex-col items-start w-full mt-1 space-y-2'}>
                     {(isCompact ? dayEvents.slice(0, 1) : dayEvents.slice(0, 2)).map((event) => {
                       const groups = "groups" in event ? event.groups : [];
-                      const color = getGroupColor(groups);
+                      const isService = "sections" in event;
+                      const color = getCalendarItemColor(groups, isService);
 
                       return (
-                        <div
+                        <button
                           key={`${event.id}-${event.dateString}-${"timeString" in event ? "service" : "event"}`}
-                          className={isCompact ? "text-[10px] text-white/90 rounded-sm px-1.5 py-px truncate w-full text-left border border-white/15 leading-tight" : "text-xs text-white rounded-sm px-2 py-0.5 truncate w-full text-left shadow-sm border border-white/20"}
+                          type="button"
+                          className={isCompact ? "text-[10px] text-white/90 rounded-sm px-1.5 py-px truncate w-full text-left border border-white/15 leading-tight hover:brightness-110 transition-[filter]" : "text-xs text-white rounded-sm px-2 py-0.5 truncate w-full text-left shadow-sm border border-white/20 hover:brightness-110 transition-[filter]"}
                           style={{ backgroundColor: color }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit?.(event);
+                          }}
                         >
                           {"timeString" in event
                             ? isCompact
                               ? `${format(new Date(`${event.dateString}T${event.timeString}`), "h:mma")} ${event.title}`
                               : `${format(new Date(`${event.dateString}T${event.timeString}`), "h:mm a")} - ${event.title}`
                             : `${format(event.date, "h:mm a")} - ${event.title}`}
-                        </div>
+                        </button>
                       );
                     })}
 
@@ -200,7 +210,7 @@ export function GridCalendar({
                     )}
                   </div>
                 )}
-              </button>
+              </div>
             );
           })}
         </div>

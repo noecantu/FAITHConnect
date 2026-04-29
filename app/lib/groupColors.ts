@@ -17,3 +17,13 @@ export function getGroupColor(groups: string[]): string {
   const group = groups[0].toLowerCase();
   return GROUP_COLOR_MAP[group] ?? "rgba(255, 99, 71, 00.50)";
 }
+
+/**
+ * Returns the display color for a calendar item.
+ * Uses group color when groups are assigned; falls back to
+ * violet for service plans and sky for events.
+ */
+export function getCalendarItemColor(groups: string[], isService: boolean): string {
+  if (groups && groups.length > 0) return getGroupColor(groups);
+  return isService ? "rgba(139, 92, 246, 0.6)" : "rgba(14, 165, 233, 0.6)";
+}
