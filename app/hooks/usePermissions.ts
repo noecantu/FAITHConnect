@@ -34,6 +34,8 @@ export function usePermissions() {
 
     // Permissions
     canManageChurch: can(roles, "church.manage", grants),
+    canManageMessages: can(roles, "messages.manage", grants),
+    canReadMessages: can(roles, "messages.read", grants),
     canManageMembers: can(roles, "members.manage", grants),
     canReadMembers: can(roles, "members.read", grants),
     canManageContributions: can(roles, "contributions.manage", grants),

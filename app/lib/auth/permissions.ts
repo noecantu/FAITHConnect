@@ -2,6 +2,8 @@
 
 export type Permission =
   | "church.manage"
+  | "messages.read"
+  | "messages.manage"
   | "members.read"
   | "members.manage"
   | "contributions.read"
@@ -32,6 +34,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "system.manage",
     "region.manage",
     "church.manage",
+    "messages.manage",
     "roles.assign",
     "members.manage",
     "contributions.manage",
@@ -45,6 +48,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   SystemAdmin: [
     "system.manage",
     "church.manage",
+    "messages.manage",
     "roles.assign",
     "members.manage",
     "contributions.manage",
@@ -58,6 +62,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   RegionalAdmin: [
     "region.manage",
     "roles.assign",
+    "messages.read",
     "members.read",
     "contributions.read",
     "events.read",
@@ -71,6 +76,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "district.manage",
     "region.manage",
     "roles.assign",
+    "messages.read",
     "members.read",
     "contributions.read",
     "events.read",
@@ -98,6 +104,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
 
   Admin: [
     "church.manage",
+    "messages.manage",
     "roles.assign",
     "members.manage",
     "contributions.manage",

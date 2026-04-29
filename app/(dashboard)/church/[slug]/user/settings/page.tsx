@@ -10,7 +10,7 @@ import UserProfileCard from "@/app/components/settings/UserProfileCard";
 import { ChangePasswordCard } from "@/app/components/settings/ChangePasswordCard";
 
 import { Fab } from "@/app/components/ui/fab";
-import { Save, Loader2, Check } from "lucide-react";
+import { Loader2, Check } from "lucide-react";
 import { ProfilePhotoCard } from "@/app/components/settings/ProfilePhotoCard";
 
 export default function UserSettingsPage() {
@@ -209,7 +209,7 @@ export default function UserSettingsPage() {
         {!isSaving && showCheck && (
           <Check className="h-7 w-7 animate-pulse" />
         )}
-        {!isSaving && !showCheck && <Save className="h-6 w-6" />}
+        {!isSaving && !showCheck && <Check className="h-6 w-6" />}
       </Fab>
     </>
   );

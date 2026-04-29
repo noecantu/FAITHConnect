@@ -18,6 +18,7 @@ import {
   Home,
   CalendarCheck,
   Activity,
+  MessageSquare,
 } from "lucide-react";
 import { useState } from "react";
 import { getSupabaseClient } from "@/app/lib/supabase/client";
@@ -73,6 +74,7 @@ export function NavMenu() {
     canReadMembers,
     canManageMembers,
     canReadContributions,
+    canReadMessages,
     canReadMusic,
     canReadServicePlans,
     canReadAttendance,
@@ -91,6 +93,7 @@ export function NavMenu() {
   const isChurchDisabled = church?.status === "disabled";
 
   const canSeeContributions = canReadContributions;
+  const canSeeMessages = canReadMessages;
   const canAccessMusic = canReadMusic;
   const canAccessServicePlan = canReadServicePlans;
   const canSeeAttendance = canReadAttendance;
@@ -111,6 +114,7 @@ export function NavMenu() {
     if (href.includes('/members') || href.includes('/users') || href.includes('/churches')) return 'text-blue-500';
     if (href.includes('/music')) return 'text-gray-500';
     if (href.includes('/service-plan')) return 'text-violet-500';
+    if (href.includes('/messages')) return 'text-yellow-500';
     if (href.includes('/reports') || href.includes('/logs')) return 'text-orange-500';
     if (href.includes('/settings')) return 'text-cyan-500';
     if (href.includes('/health')) return 'text-red-500';
@@ -153,6 +157,7 @@ export function NavMenu() {
     { href: `/church/${churchId}/calendar`, label: "Calendar", icon: Calendar },
     { href: `/church/${churchId}/contributions`, label: "Contributions", icon: HandCoins, permission: canSeeContributions },
     { href: `/church/${churchId}/members`, label: "Members", icon: Users },
+    { href: `/church/${churchId}/messages`, label: "Messages", icon: MessageSquare, permission: canSeeMessages },
     { href: `/church/${churchId}/music`, label: "Music", icon: Music2, permission: canAccessMusic, isSubmenu: true },
     { href: `/church/${churchId}/service-plan`, label: "Service Plans", icon: CalendarHeart, permission: canAccessServicePlan },
     { href: `/church/${churchId}/reports`, label: "Reports", icon: FileText, permission: canSeeReports },
@@ -164,6 +169,7 @@ export function NavMenu() {
     { href: `/church/${churchId}/calendar`, label: "Calendar", icon: Calendar },
     { href: `/church/${churchId}/contributions`, label: "Contributions", icon: HandCoins, permission: canSeeContributions },
     { href: `/church/${churchId}/members`, label: "Members", icon: Users, permission: canSeeMembers },
+    { href: `/church/${churchId}/messages`, label: "Messages", icon: MessageSquare, permission: canSeeMessages },
     { href: `/church/${churchId}/music`, label: "Music", icon: Music2, permission: canAccessMusic, isSubmenu: true },
     { href: `/church/${churchId}/reports`, label: "Reports", icon: FileText, permission: canSeeReports },
     { href: `/church/${churchId}/user/settings`, label: "Settings", icon: Settings },

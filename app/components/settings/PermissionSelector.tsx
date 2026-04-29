@@ -13,6 +13,7 @@ import {
   BarChart2,
   ListMusic,
   CalendarHeart,
+  MessageSquare,
 } from 'lucide-react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -36,6 +37,7 @@ interface ReportConfig {
 // ── Data ──────────────────────────────────────────────────────────────────────
 
 const MODULES: ModuleConfig[] = [
+  { label: 'Messages',      icon: MessageSquare, viewPermission: 'messages.read',      editPermission: 'messages.manage'      },
   { label: 'Attendance',    icon: CheckSquare2,  viewPermission: 'attendance.read',    editPermission: 'attendance.manage'    },
   { label: 'Calendar',      icon: CalendarDays,  viewPermission: 'events.read',        editPermission: 'events.manage'        },
   { label: 'Contributions', icon: DollarSign,    viewPermission: 'contributions.read', editPermission: 'contributions.manage' },

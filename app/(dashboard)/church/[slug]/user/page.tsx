@@ -18,6 +18,7 @@ import { PageHeader } from "@/app/components/page-header";
 import { formatPhone } from "@/app/lib/formatters";
 import { ChurchDisabledNotice } from "@/app/components/layout/ChurchDisabledNotice";
 import { BillingLapsedNotice } from "@/app/components/layout/BillingLapsedNotice";
+import { ChurchDashboardMessageBanner } from "@/app/components/layout/ChurchDashboardMessageBanner";
 
 export default function UserDashboardPage({
   params,
@@ -95,6 +96,8 @@ export default function UserDashboardPage({
           subtitle="Your upcoming events and schedule."
         />
         <div className="flex-1 py-6 space-y-6">
+
+          <ChurchDashboardMessageBanner />
 
           {/* Identity Header — Two Cards Side-by-Side */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
