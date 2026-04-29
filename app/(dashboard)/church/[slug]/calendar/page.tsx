@@ -270,7 +270,7 @@ export default function CalendarPage() {
               onEdit={(event) => {
                 if (!canManage) return;
 
-                if ("sections" in event) {
+                if (event.type === "service") {
                   router.push(`/church/${routeSlug}/service-plan/${event.id}`);
                   return;
                 }
@@ -426,7 +426,7 @@ export default function CalendarPage() {
           onEdit={(event) => {
             if (!canManage) return;
 
-            if ("timeString" in event) {
+            if (event.type === "service") {
               router.push(`/church/${routeSlug}/service-plan/${event.id}`);
               return;
             }

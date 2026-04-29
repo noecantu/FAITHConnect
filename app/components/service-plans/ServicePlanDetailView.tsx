@@ -11,15 +11,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/app/components/ui/dropdown-menu';
-import { CalendarDays, ChevronRight, Copy, Layers3, Pencil, Trash, UserRound } from 'lucide-react';
-import type { ServicePlan, Member, Song } from '@/app/lib/types';
+import { CalendarDays, Copy, Layers3, Pencil, Trash, UserRound } from 'lucide-react';
+import type { ServicePlan, Member } from '@/app/lib/types';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { getSectionColor } from '@/app/lib/sectionColors';
 
 export interface ServicePlanDetailViewProps {
   plan: ServicePlan;
   members: Member[];
-  songs: Song[];
   formattedDate: string;
   canEdit: boolean;
   onDuplicate: () => void;
@@ -31,7 +30,6 @@ export interface ServicePlanDetailViewProps {
 export function ServicePlanDetailView({
   plan,
   members,
-  songs,
   formattedDate,
   canEdit,
   onDuplicate,
@@ -40,7 +38,6 @@ export function ServicePlanDetailView({
   churchId
 }: ServicePlanDetailViewProps) {
     const hasServiceNotes = plan.notes.trim().length > 0;
-    const totalSongs = plan.sections.reduce((acc, section) => acc + section.songIds.length, 0);
 
     return (
       <div className="space-y-6">
@@ -52,10 +49,6 @@ export function ServicePlanDetailView({
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-xs text-white/65">
                   <Layers3 className="h-3 w-3" />
                   {plan.sections.length} {plan.sections.length === 1 ? 'section' : 'sections'}
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-xs text-white/65">
-                  <ChevronRight className="h-3 w-3" />
-                  {totalSongs} {totalSongs === 1 ? 'song' : 'songs'}
                 </span>
               </div>
 
@@ -94,7 +87,6 @@ export function ServicePlanDetailView({
             const member = members.find((m) => m.id === section.personId);
             const sectionColor = section.color ?? getSectionColor(section.title);
             const hasPerson = !!section.personId;
-            const hasSongs = section.songIds.length > 0;
             const hasNotes = section.notes.trim().length > 0;
 
           return (
@@ -114,9 +106,6 @@ export function ServicePlanDetailView({
                 <h2 className="text-sm font-semibold tracking-wide text-white/90 uppercase">
                   {section.title}
                 </h2>
-                <span className="rounded-full border border-white/20 bg-black/30 px-2.5 py-0.5 text-xs text-white/65">
-                  {section.songIds.length} {section.songIds.length === 1 ? 'song' : 'songs'}
-                </span>
               </div>
 
               <div className="space-y-3 px-4 py-4">
@@ -132,29 +121,6 @@ export function ServicePlanDetailView({
                   </div>
                 )}
 
-                {hasSongs && (
-                  <div className="overflow-hidden rounded-md border border-white/10 bg-black/45">
-                    <div className="divide-y divide-white/[0.06]">
-                      {section.songIds.map((songId, songIndex) => {
-                        const song = songs.find((s) => s.id === songId);
-                        return (
-                          <div
-                            key={songId}
-                            className="group flex items-center gap-3 px-3 py-2.5 transition-all hover:bg-sky-950/40 hover:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.5)]"
-                          >
-                            <span className="w-5 shrink-0 text-center text-xs font-mono text-white/30 tabular-nums">
-                              {songIndex + 1}
-                            </span>
-                            <p className="min-w-0 flex-1 truncate font-medium text-white/85 group-hover:text-white">
-                              {song ? song.title : 'Unknown Song'}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
                 {hasNotes && (
                   <div className="space-y-2 rounded-md border border-white/15 bg-black/50 p-3 backdrop-blur-xl">
                     <p className="text-xs font-semibold uppercase tracking-wider text-white/45">Notes</p>
@@ -164,7 +130,7 @@ export function ServicePlanDetailView({
                   </div>
                 )}
 
-                {!hasPerson && !hasSongs && !hasNotes && (
+                {!hasPerson && !hasNotes && (
                   <p className="text-sm text-white/35 italic">
                     No details for this section.
                   </p>

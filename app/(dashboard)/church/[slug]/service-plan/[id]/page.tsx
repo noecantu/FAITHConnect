@@ -16,7 +16,6 @@ export default function ServicePlanDetailPage() {
     churchId,
     plan,
     members,
-    songs,
     canView,
     canEdit,
     loading,
@@ -54,7 +53,6 @@ export default function ServicePlanDetailPage() {
       <ServicePlanDetailView
         plan={plan}
         members={members}
-        songs={songs}
         formattedDate={formattedDate}
         canEdit={canEdit}
         onDuplicate={() => setDuplicateOpen(true)}
