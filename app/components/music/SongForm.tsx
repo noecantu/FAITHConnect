@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Card } from '../ui/card';
@@ -21,9 +21,10 @@ interface SongFormProps {
   }) => Promise<void>;  
   saving: boolean;
   onTitleChange?: (title: string) => void;
+  focusSection?: 'lyrics' | 'chords';
 }
 
-export function SongForm({ initialData, onSave, onTitleChange }: SongFormProps) {
+export function SongForm({ initialData, onSave, onTitleChange, focusSection }: SongFormProps) {
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
   const [key, setKey] = useState('');
@@ -33,6 +34,8 @@ export function SongForm({ initialData, onSave, onTitleChange }: SongFormProps) 
   const [chords, setChords] = useState('');
   const [tags, setTags] = useState('');
   const COMMON_TIME_SIGNATURES = ["1/2", "2/4", "3/4", "4/4", "6/8"];
+  const lyricsRef = useRef<HTMLTextAreaElement>(null);
+  const chordsRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (initialData) {
@@ -50,6 +53,17 @@ export function SongForm({ initialData, onSave, onTitleChange }: SongFormProps) 
   useEffect(() => {
     onTitleChange?.(title);
   }, [onTitleChange, title]);
+
+  useEffect(() => {
+    if (!focusSection) return;
+    const ref = focusSection === 'lyrics' ? lyricsRef : chordsRef;
+    if (!ref.current) return;
+    const timer = setTimeout(() => {
+      ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      ref.current?.focus();
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [focusSection]);
 
   const handleSubmit = async () => {
     if (!title.trim()) return;
@@ -141,13 +155,13 @@ export function SongForm({ initialData, onSave, onTitleChange }: SongFormProps) 
       {/* Lyrics */}
       <div>
         <label className="block text-sm font-medium mb-1">Lyrics</label>
-        <Textarea value={lyrics} onChange={(e) => setLyrics(e.target.value)} />
+        <Textarea ref={lyricsRef} value={lyrics} onChange={(e) => setLyrics(e.target.value)} />
       </div>
 
       {/* Chords */}
       <div>
         <label className="block text-sm font-medium mb-1">Chords</label>
-        <Textarea value={chords} onChange={(e) => setChords(e.target.value)} />
+        <Textarea ref={chordsRef} value={chords} onChange={(e) => setChords(e.target.value)} />
       </div>
 
       {/* Tags */}

@@ -190,12 +190,28 @@ export default function SetListDetailPage() {
                       </div>
 
                       <div className="flex items-center gap-2 ml-2">
-                        {fullSong?.lyrics && (
+                        {fullSong?.lyrics && canEdit ? (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); router.push(`/church/${churchId}/music/songs/${song.songId}/edit?section=lyrics`); }}
+                            className="rounded p-1 text-blue-500/80 transition-colors hover:bg-white/10 hover:text-blue-400"
+                            title="Edit Lyrics"
+                          >
+                            <FileText size={16} />
+                          </button>
+                        ) : fullSong?.lyrics ? (
                           <FileText size={16} className="text-blue-500/80" />
-                        )}
-                        {fullSong?.chords && (
+                        ) : null}
+                        {fullSong?.chords && canEdit ? (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); router.push(`/church/${churchId}/music/songs/${song.songId}/edit?section=chords`); }}
+                            className="rounded p-1 text-emerald-500/80 transition-colors hover:bg-white/10 hover:text-emerald-400"
+                            title="Edit Chords"
+                          >
+                            <Music2 size={16} />
+                          </button>
+                        ) : fullSong?.chords ? (
                           <Music2 size={16} className="text-emerald-500/80" />
-                        )}
+                        ) : null}
                       </div>
                     </div>
                   </Card>

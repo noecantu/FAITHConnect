@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Card } from '@/app/components/ui/card';
 import { Separator } from '@/app/components/ui/separator';
@@ -273,34 +273,49 @@ export default function SongsPage() {
                     .sort((a, b) => a.title.localeCompare(b.title))
                     .map((song) => (
                       <li key={song.id}>
-                        <Link href={`/church/${church_id}/music/songs/${song.id}`}>
-                          <Card
-                            className="group relative px-3 py-2.5 cursor-pointer bg-black/60 backdrop-blur-xl interactive-card duration-1000 ease-out interactive-card-focus hover:bg-white/[0.10]"
-                          >
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="min-w-0">
-                                <h3 className="font-medium leading-6 text-white/95 transition-colors group-hover:text-white">
-                                  <span className="block truncate py-0.5">{song.title}</span>
-                                </h3>
-                                <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-white/70">
-                                  <span className="rounded-full border border-white/20 bg-black/35 px-2 py-0.5">Key: {song.key || '—'}</span>
-                                  <span className="rounded-full border border-white/20 bg-black/35 px-2 py-0.5">{song.bpm ?? '—'} BPM</span>
-                                  <span className="rounded-full border border-white/20 bg-black/35 px-2 py-0.5">{song.timeSignature ?? '—'} Time</span>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-2 ml-2">
-                                {song.lyrics && (
-                                  <FileText size={16} className="text-blue-500/80" />
-                                )}
-                                {song.chords && (
-                                  <Music2 size={16} className="text-emerald-500/80" />
-                                )}
-                                <ChevronRight size={16} className="text-white/35 group-hover:text-white/70 transition-colors" />
+                        <Card
+                          onClick={() => router.push(`/church/${church_id}/music/songs/${song.id}`)}
+                          className="group relative px-3 py-2.5 cursor-pointer bg-black/60 backdrop-blur-xl interactive-card duration-1000 ease-out interactive-card-focus hover:bg-white/[0.10]"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <h3 className="font-medium leading-6 text-white/95 transition-colors group-hover:text-white">
+                                <span className="block truncate py-0.5">{song.title}</span>
+                              </h3>
+                              <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-white/70">
+                                <span className="rounded-full border border-white/20 bg-black/35 px-2 py-0.5">Key: {song.key || '—'}</span>
+                                <span className="rounded-full border border-white/20 bg-black/35 px-2 py-0.5">{song.bpm ?? '—'} BPM</span>
+                                <span className="rounded-full border border-white/20 bg-black/35 px-2 py-0.5">{song.timeSignature ?? '—'} Time</span>
                               </div>
                             </div>
-                          </Card>
-                        </Link>
+
+                            <div className="flex items-center gap-2 ml-2">
+                              {song.lyrics && canManage ? (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); router.push(`/church/${church_id}/music/songs/${song.id}/edit?section=lyrics`); }}
+                                  className="rounded p-1 text-blue-500/80 transition-colors hover:bg-white/10 hover:text-blue-400"
+                                  title="Edit Lyrics"
+                                >
+                                  <FileText size={16} />
+                                </button>
+                              ) : song.lyrics ? (
+                                <FileText size={16} className="text-blue-500/80" />
+                              ) : null}
+                              {song.chords && canManage ? (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); router.push(`/church/${church_id}/music/songs/${song.id}/edit?section=chords`); }}
+                                  className="rounded p-1 text-emerald-500/80 transition-colors hover:bg-white/10 hover:text-emerald-400"
+                                  title="Edit Chords"
+                                >
+                                  <Music2 size={16} />
+                                </button>
+                              ) : song.chords ? (
+                                <Music2 size={16} className="text-emerald-500/80" />
+                              ) : null}
+                              <ChevronRight size={16} className="text-white/35 group-hover:text-white/70 transition-colors" />
+                            </div>
+                          </div>
+                        </Card>
                       </li>
                     ))}
                 </ul>

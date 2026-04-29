@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { PageHeader } from '@/app/components/page-header';
 import { SongForm } from '@/app/components/music/SongForm';
 import { useChurchId } from '@/app/hooks/useChurchId';
@@ -24,6 +24,7 @@ function getErrorMessage(error: unknown) {
 export default function EditSongPage() {
   const { id } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { churchId } = useChurchId();
 
   // UPDATED ROLES
@@ -121,6 +122,7 @@ export default function EditSongPage() {
         onSave={handleUpdate}
         saving={saving}
         onTitleChange={setTitle}
+        focusSection={(searchParams.get('section') ?? undefined) as 'lyrics' | 'chords' | undefined}
       />
 
       <Fab
