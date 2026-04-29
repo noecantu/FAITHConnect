@@ -190,7 +190,7 @@ export default function SubscriptionAuditClient({
                   return (
                     <tr
                       key={`${r.church_id ?? "no-church"}:${r.uid}`}
-                      className={`border-b border-white/5 transition hover:bg-white/[0.03] ${
+                      className={`border-b border-white/5 transition-all hover:bg-sky-950/40 hover:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.5)] ${
                         isProblem ? "bg-rose-500/[0.04]" : ""
                       }`}
                     >

@@ -427,7 +427,7 @@ export default function AllUsersClient({ users }: AllUsersClientProps) {
                   {filteredUsers.map((u) => (
                     <tr
                       key={u.uid}
-                      className="border-b hover:bg-muted/40 cursor-pointer"
+                      className="border-b border-white/10 cursor-pointer transition-all hover:bg-sky-950/40 hover:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.5)]"
                       onClick={() => router.push(`/admin/all-users/${u.uid}`)}
                     >
                       <td className="py-2 px-2" onClick={(e) => e.stopPropagation()}>

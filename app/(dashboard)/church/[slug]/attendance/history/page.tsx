@@ -432,7 +432,7 @@ export default function AttendanceHistoryPage() {
                 {sorted.map((s) => (
                   <tr
                     key={s.dateString}
-                    className="border-b border-white/[0.06] transition-colors hover:bg-white/[0.04] cursor-pointer"
+                    className="border-b border-white/[0.06] cursor-pointer transition-all hover:bg-sky-950/40 hover:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.5)]"
                     onClick={() => router.push(`/church/${churchId}/attendance?date=${s.dateString}`)}
                   >
                     <td className="py-2.5 px-3 text-white/75 font-medium">{s.dateString}</td>

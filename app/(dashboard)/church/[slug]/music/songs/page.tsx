@@ -275,7 +275,7 @@ export default function SongsPage() {
                       <li key={song.id}>
                         <Card
                           onClick={() => router.push(`/church/${church_id}/music/songs/${song.id}`)}
-                          className="group relative px-3 py-2.5 cursor-pointer bg-black/60 backdrop-blur-xl interactive-card duration-1000 ease-out interactive-card-focus hover:bg-white/[0.10]"
+                          className="group relative px-3 py-2.5 cursor-pointer bg-black/60 backdrop-blur-xl interactive-card duration-1000 ease-out interactive-card-focus transition-all hover:bg-sky-950/40 hover:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.5)]"
                         >
                           <div className="flex items-center justify-between gap-3">
                             <div className="min-w-0">

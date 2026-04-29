@@ -140,7 +140,7 @@ export function ServicePlanDetailView({
                         return (
                           <div
                             key={songId}
-                            className="group flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-white/[0.05]"
+                            className="group flex items-center gap-3 px-3 py-2.5 transition-all hover:bg-sky-950/40 hover:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.5)]"
                           >
                             <span className="w-5 shrink-0 text-center text-xs font-mono text-white/30 tabular-nums">
                               {songIndex + 1}

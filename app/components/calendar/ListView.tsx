@@ -127,7 +127,7 @@ export function ListView({
                     }}
                     className="
                       border rounded-md p-3 flex items-start justify-between cursor-pointer 
-                      hover:bg-muted/40 transition-colors
+                      transition-all hover:bg-sky-950/40 hover:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.5)]
                     "
                     style={{
                       borderLeft: `24px solid ${getCalendarItemColor(e.groups ?? [], e.type === "service")}`,

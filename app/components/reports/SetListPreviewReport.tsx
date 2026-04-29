@@ -77,7 +77,7 @@ export function SetListPreviewReport({ setList }: Props) {
               </thead>
               <tbody>
                 {rows.map((row, index) => (
-                  <tr key={`${row.section || "row"}-${row.song}-${index}`} className="border-b border-white/20 hover:bg-white/5 transition-colors">
+                  <tr key={`${row.section || "row"}-${row.song}-${index}`} className="border-b border-white/20 transition-all hover:bg-sky-950/40 hover:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.5)]">
                     <td className="p-3 align-top text-white/90">{row.section}</td>
                     <td className="p-3 align-top text-white/90">{row.song}</td>
                     <td className="p-3 align-top text-white/90">{row.key}</td>

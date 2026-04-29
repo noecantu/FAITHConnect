@@ -361,7 +361,7 @@ export default function CalendarPage() {
                           }
                           router.push(`/church/${routeSlug}/calendar/${item.id}`);
                         }}
-                        className="w-full rounded-md border border-white/15 bg-black/50 p-3 text-left transition-colors hover:bg-white/5"
+                        className="w-full rounded-md border border-white/15 bg-black/50 p-3 text-left transition-all hover:bg-sky-950/40 hover:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.5)]"
                         style={{
                           borderLeftWidth: '4px',
                           borderLeftColor: getCalendarItemColor(item.groups ?? [], item.type === 'service'),
@@ -393,7 +393,7 @@ export default function CalendarPage() {
 
                           router.push(`/church/${routeSlug}/calendar/${item.id}`);
                         }}
-                        className="w-full rounded-md border border-white/15 bg-black/50 p-3 text-left transition-colors hover:bg-white/5"
+                        className="w-full rounded-md border border-white/15 bg-black/50 p-3 text-left transition-all hover:bg-sky-950/40 hover:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.5)]"
                         style={{
                           borderLeftWidth: '4px',
                           borderLeftColor: getCalendarItemColor(item.groups ?? [], item.type === 'service'),

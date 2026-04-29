@@ -107,7 +107,7 @@ export function ContributionPreviewTable({
               ? (visible as ContributionBreakdownRow[]).map((row) => (
                   <tr
                     key={row.key}
-                    className="border-b border-white/20 hover:bg-white/5 transition-colors"
+                      className="border-b border-white/20 transition-all hover:bg-sky-950/40 hover:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.5)]"
                   >
                     <td className="p-3 text-white/90">{row.label}</td>
                     <td className="p-3 text-white/90">{formatCurrencyUSD(row.totalAmount)}</td>
@@ -124,7 +124,7 @@ export function ContributionPreviewTable({
                   return (
                     <tr
                       key={contribution.id}
-                      className="border-b border-white/20 hover:bg-white/5 transition-colors"
+                      className="border-b border-white/20 transition-all hover:bg-sky-950/40 hover:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.5)]"
                     >
                       <td className="p-3 text-white/90">{memberName}</td>
                         <td className="p-3 text-white/90">{formatCurrencyUSD(contribution.amount)}</td>

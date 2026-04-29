@@ -57,7 +57,7 @@ export default function ActivityLogTable({ logs }: { logs: LogEntry[] }) {
 
             <tbody>
               {filtered.map((log) => (
-                <tr key={log.id} className="border-b">
+                <tr key={log.id} className="border-b border-white/10 transition-all hover:bg-sky-950/40 hover:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.5)]">
                   <td className="p-2 font-medium">{log.type}</td>
                   <td className="p-2">{log.message}</td>
                   <td className="p-2">{log.actorName || log.actorUid || "Unknown"}</td>

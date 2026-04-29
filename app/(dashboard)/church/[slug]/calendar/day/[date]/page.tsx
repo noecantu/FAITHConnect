@@ -84,7 +84,7 @@ export default function CalendarDayPage() {
                 key={event.id}
                 type="button"
                 onClick={() => canManage && router.push(`/church/${routeSlug}/calendar/${event.id}`)}
-                className="w-full rounded-md border border-white/15 bg-black/30 p-3 text-left transition hover:bg-white/5"
+                className="w-full rounded-md border border-white/15 bg-black/30 p-3 text-left transition-all hover:bg-sky-950/40 hover:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.5)]"
                 disabled={!canManage}
               >
                 <p className="font-medium">{event.title}</p>
@@ -108,7 +108,7 @@ export default function CalendarDayPage() {
                 key={service.id}
                 type="button"
                 onClick={() => canManage && router.push(`/church/${routeSlug}/service-plan/${service.id}`)}
-                className="w-full rounded-md border border-white/15 bg-black/30 p-3 text-left transition hover:bg-white/5"
+                className="w-full rounded-md border border-white/15 bg-black/30 p-3 text-left transition-all hover:bg-sky-950/40 hover:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.5)]"
                 disabled={!canManage}
               >
                 <p className="font-medium">{service.title}</p>

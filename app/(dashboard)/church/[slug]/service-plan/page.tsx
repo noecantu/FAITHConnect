@@ -264,7 +264,7 @@ export default function ServicePlanPage() {
                     style={{
                       animationDelay: `${index * 50}ms`,
                     }}
-                    className="group border border-white/12 rounded-lg p-4 flex items-start justify-between cursor-pointer bg-black/45 transition-all hover:-translate-y-0.5 hover:border-sky-500/30 hover:bg-sky-900/20 hover:shadow-[0_10px_24px_rgba(14,165,233,0.15)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 animate-in fade-in slide-in-from-bottom-2 duration-500"
+                    className="group border border-white/12 rounded-lg p-4 flex items-start justify-between cursor-pointer bg-black/45 transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-sky-950/40 hover:shadow-[0_8px_20px_rgba(56,189,248,0.20)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 animate-in fade-in slide-in-from-bottom-2 duration-500"
                   >
                     <div className="space-y-2">
                       <div className="font-semibold tracking-tight text-white/90 group-hover:text-white transition-colors">{plan.title}</div>

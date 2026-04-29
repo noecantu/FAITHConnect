@@ -69,7 +69,7 @@ export function AttendancePreviewTable({ attendance }: Props) {
             {visibleRows.map((row) => (
               <tr
                 key={row.id}
-                className="border-b border-white/20 hover:bg-white/5 transition-colors"
+                className="border-b border-white/20 transition-all hover:bg-sky-950/40 hover:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.5)]"
               >
                 <td className="px-4 py-3 text-white/90">{row.date}</td>
                 <td className="px-4 py-3 text-white/90">{getName(row)}</td>
