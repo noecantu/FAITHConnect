@@ -172,6 +172,7 @@ export function NavMenu() {
     { href: `/church/${churchId}/members`, label: "Members", icon: Users, permission: canSeeMembers },
     { href: `/church/${churchId}/messages`, label: "Messages", icon: MessageSquare, permission: canSeeMessages },
     { href: `/church/${churchId}/music`, label: "Music", icon: Music2, permission: canAccessMusic, isSubmenu: true },
+    { href: `/church/${churchId}/service-plan`, label: "Service Plans", icon: CalendarHeart, permission: canAccessServicePlan },
     { href: `/church/${churchId}/reports`, label: "Reports", icon: FileText, permission: canSeeReports },
     { href: `/church/${churchId}/user/settings`, label: "Settings", icon: Settings },
   ];
