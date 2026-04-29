@@ -141,74 +141,68 @@ export default function ServicePlanPage() {
   // RENDER
   return (
     <>
-      <PageHeader
-        title="Service Plans"
-        subtitle={`Total: ${plans.length}`}
-      />
+      <Card className="relative overflow-hidden border-white/20 bg-gradient-to-br from-black/90 via-black/75 to-black/60 p-6 shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_40%)]" />
+        <div className="relative space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-xs text-white/65">
+                  <Layers3 className="h-3 w-3" />
+                  {plans.length} {plans.length === 1 ? 'plan' : 'plans'}
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-xs text-white/65">
+                  <CalendarDays className="h-3 w-3" />
+                  {filter === 'all' ? 'All dates' : filter === 'future' ? 'Upcoming' : 'Past'}
+                </span>
+              </div>
 
-      {/* Toolbar */}
-      <div className="top-16 z-10">
-        <div className="flex flex-wrap items-center gap-3 w-full">
-
-          {/* Search bar */}
-          <div className="w-full sm:flex-1 flex items-center gap-3">
-            <SearchBar
-              value={search}
-              onChange={setSearch}
-              placeholder="Search Service Plans..."
-            />
+              <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Service Plans</h1>
+              <p className="text-sm text-white/55">Browse, search, and launch each service plan with the same workflow styling as detail pages.</p>
+            </div>
           </div>
 
-          {/* Controls */}
-          <div className="grid grid-cols-2 gap-3 w-full sm:flex sm:w-auto sm:ml-auto">
+          <div className="flex flex-wrap items-center gap-3 w-full">
+            <div className="w-full sm:flex-1 flex items-center gap-3">
+              <SearchBar
+                value={search}
+                onChange={setSearch}
+                placeholder="Search Service Plans..."
+              />
+            </div>
 
-            <Select value={filter} onValueChange={handleFilterChange}>
-              <SelectTrigger
-                className="
-                  w-full h-9
-                  bg-black/80 border border-white/20 backdrop-blur-xl
-                  text-white/80
-                  hover:bg-white/5 hover:border-white/20
-                  transition
-                "
-              >
-                <SelectValue placeholder="Filter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="future">Future</SelectItem>
-                <SelectItem value="past">Past</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-2 gap-3 w-full sm:flex sm:w-auto sm:ml-auto">
+              <Select value={filter} onValueChange={handleFilterChange}>
+                <SelectTrigger className="w-full h-9 bg-black/75 border border-white/20 backdrop-blur-xl text-white/80 hover:bg-white/5 hover:border-white/20 transition">
+                  <SelectValue placeholder="Filter" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="future">Future</SelectItem>
+                  <SelectItem value="past">Past</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select value={sort} onValueChange={handleSortChange}>
-              <SelectTrigger
-                className="
-                  w-full h-9
-                  bg-black/80 border border-white/20 backdrop-blur-xl
-                  text-white/80
-                  hover:bg-white/5 hover:border-white/20
-                  transition
-                "
-              >
-                <SelectValue placeholder="Sort" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="date-desc">Newest</SelectItem>
-                <SelectItem value="date-asc">Oldest</SelectItem>
-                <SelectItem value="title-asc">Title A–Z</SelectItem>
-              </SelectContent>
-            </Select>
-
+              <Select value={sort} onValueChange={handleSortChange}>
+                <SelectTrigger className="w-full h-9 bg-black/75 border border-white/20 backdrop-blur-xl text-white/80 hover:bg-white/5 hover:border-white/20 transition">
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="date-desc">Newest</SelectItem>
+                  <SelectItem value="date-asc">Oldest</SelectItem>
+                  <SelectItem value="title-asc">Title A-Z</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* ⭐ Card wrapper for list */}
-      <Card className="relative overflow-hidden bg-gradient-to-b from-black/85 to-black/70 border-white/20 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
+      <Card className="relative overflow-hidden rounded-xl border border-white/15 bg-black/55 backdrop-blur-xl shadow-[0_8px_28px_rgba(0,0,0,0.26)] animate-in fade-in slide-in-from-bottom-2 duration-500 [animation-delay:60ms]">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_35%)]" />
         <CardHeader className="relative">
-          <CardTitle className="text-xl tracking-tight">All Service Plans</CardTitle>
+          <CardTitle className="text-xl tracking-tight text-white/95">All Service Plans</CardTitle>
         </CardHeader>
 
         <CardContent className="relative space-y-6">
@@ -269,26 +263,22 @@ export default function ServicePlanPage() {
                     }}
                     style={{
                       animationDelay: `${index * 50}ms`,
-                      backgroundImage:
-                        index % 2 === 0
-                          ? 'linear-gradient(90deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 42%, rgba(255,255,255,0.00) 100%)'
-                          : 'linear-gradient(270deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 42%, rgba(255,255,255,0.00) 100%)',
                     }}
-                    className="group border border-white/15 rounded-lg p-4 flex items-start justify-between cursor-pointer bg-white/[0.04] transition-all hover:-translate-y-0.5 hover:bg-white/[0.09] hover:shadow-[0_10px_24px_rgba(0,0,0,0.28)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 animate-in fade-in slide-in-from-bottom-2 duration-500"
+                    className="group border border-white/12 rounded-lg p-4 flex items-start justify-between cursor-pointer bg-black/45 transition-all hover:-translate-y-0.5 hover:border-sky-500/30 hover:bg-sky-900/20 hover:shadow-[0_10px_24px_rgba(14,165,233,0.15)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 animate-in fade-in slide-in-from-bottom-2 duration-500"
                   >
                     <div className="space-y-2">
-                      <div className="font-semibold tracking-tight group-hover:text-white transition-colors">{plan.title}</div>
+                      <div className="font-semibold tracking-tight text-white/90 group-hover:text-white transition-colors">{plan.title}</div>
                       <div className="flex items-center gap-2 text-xs">
-                        <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/40 px-2.5 py-1 text-white/80">
-                          <Layers3 className="h-3.5 w-3.5 text-gray-500" />
-                          {totalSections} {totalSections === 1 ? 'Section' : 'Sections'}
+                        <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-white/70">
+                          <Layers3 className="h-3.5 w-3.5 text-white/50" />
+                          {totalSections} {totalSections === 1 ? 'section' : 'sections'}
                         </span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <div className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/40 px-3 py-1.5 text-xs text-white/80">
-                        <CalendarDays className="h-3.5 w-3.5 text-sky-500" />
+                      <div className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-3 py-1.5 text-xs text-white/70">
+                        <CalendarDays className="h-3.5 w-3.5 text-white/55" />
                         {format(plan.dateTime, "M/d/yy, h:mm a")}
                       </div>
                       <ChevronRight className="h-4 w-4 text-white/35 transition-colors group-hover:text-white/75" />

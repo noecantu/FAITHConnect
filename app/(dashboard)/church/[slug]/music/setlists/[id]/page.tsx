@@ -13,7 +13,7 @@ import { format } from 'date-fns';
 import { Fab } from '@/app/components/ui/fab';
 import { useRouter } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu';
-import { Copy, FileText, Music2, Pencil, Trash } from 'lucide-react';
+import { CalendarDays, ChevronRight, Copy, FileText, Music2, Pencil, Trash } from 'lucide-react';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/app/components/ui/alert-dialog';
 import { getSectionColor } from '@/app/lib/sectionColors';
 import { AlertDialogAction, AlertDialogCancel } from '@radix-ui/react-alert-dialog';
@@ -22,7 +22,6 @@ import { duplicateSetList } from '@/app/lib/duplicateSetList';
 // import { useToast } from '@/app/hooks/use-toast';
 // import { useAuth } from '@/app/hooks/useAuth';
 import { useSongs } from '@/app/hooks/useSongs';
-import { Separator } from '@/app/components/ui/separator';
 
 export default function SetListDetailPage() {
   const { id } = useParams();
@@ -85,147 +84,170 @@ export default function SetListDetailPage() {
     );
   }
 
-  const formattedDate = format(setList.dateTime, "M/d/yy, h:mm a");
+  const formattedDate = format(setList.dateTime, "EEEE, MMMM d, yyyy · h:mm a");
+  const totalSongs = setList.sections.reduce((acc, s) => acc + s.songs.length, 0);
 
   return (
     <>
-      <div className="flex items-center justify-between">
-        <PageHeader title={setList.title} subtitle={formattedDate} />
+      {/* Hero card */}
+      <Card className="relative overflow-hidden border-white/20 bg-gradient-to-br from-black/90 via-black/75 to-black/60 p-6 shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_40%)]" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              {setList.serviceType && (
+                <span className="inline-flex items-center rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-xs text-white/65 tracking-wide">
+                  {setList.serviceType}
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-xs text-white/65">
+                <Music2 className="h-3 w-3" />
+                {totalSongs} {totalSongs === 1 ? "song" : "songs"}
+              </span>
+            </div>
+            <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+              {setList.title}
+            </h1>
+            <p className="flex items-center gap-1.5 text-sm text-white/55">
+              <CalendarDays className="h-3.5 w-3.5" />
+              {formattedDate}
+            </p>
+          </div>
+          <Button asChild variant="outline" className="shrink-0 bg-black/60 border-white/20 text-white/75 hover:bg-white/5 hover:text-white/90">
+            <Link href={`/church/${churchId}/music/setlists`}>Back to Set Lists</Link>
+          </Button>
+        </div>
+      </Card>
 
-        <Button asChild variant="outline" className="bg-black/80 border-white/20 text-white/80 hover:bg-white/5">
-          <Link href={`/church/${churchId}/music/setlists`}>Back to Set Lists</Link>
-        </Button>
-      </div>
-
-      {(setList.serviceType ||
-        setList.serviceNotes?.theme ||
+      {/* Service notes */}
+      {(setList.serviceNotes?.theme ||
         setList.serviceNotes?.scripture ||
         setList.serviceNotes?.notes) && (
-        <Card className="p-4 space-y-2 bg-black border-white/25">
-          <h2 className="text-lg font-semibold">Overview</h2>
-
-          {setList.serviceType && (
-            <p className="text-sm text-muted-foreground">
-              <span className="font-medium">Service Type:</span>{" "}
-              {setList.serviceType}
-            </p>
-          )}
-
-          {setList.serviceNotes?.theme && (
-            <p className="text-sm text-muted-foreground">
-              <span className="font-medium">Theme:</span>{" "}
-              {setList.serviceNotes.theme}
-            </p>
-          )}
-
-          {setList.serviceNotes?.scripture && (
-            <p className="text-sm text-muted-foreground">
-              <span className="font-medium">Scripture:</span>{" "}
-              {setList.serviceNotes.scripture}
-            </p>
-          )}
-
-          {setList.serviceNotes?.notes && (
-            <div className="space-y-1 rounded-md border border-white/15 bg-black/60 p-3 backdrop-blur-xl">
-              <p className="text-sm font-medium text-foreground">Notes</p>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {setList.serviceNotes.notes}
-              </p>
-            </div>
-          )}
+        <Card className="relative overflow-hidden border-white/20 bg-gradient-to-br from-black/80 to-black/60 p-5 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.24)] animate-in fade-in slide-in-from-bottom-2 duration-500 [animation-delay:60ms]">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent_55%)]" />
+          <div className="relative space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-widest text-white/40">Service Notes</p>
+            {setList.serviceNotes?.theme && (
+              <div className="flex items-start gap-3 text-sm">
+                <span className="mt-0.5 w-20 shrink-0 text-xs uppercase tracking-wider text-white/40">Theme</span>
+                <span className="text-white/80">{setList.serviceNotes.theme}</span>
+              </div>
+            )}
+            {setList.serviceNotes?.scripture && (
+              <div className="flex items-start gap-3 text-sm">
+                <span className="mt-0.5 w-20 shrink-0 text-xs uppercase tracking-wider text-white/40">Scripture</span>
+                <span className="text-white/80">{setList.serviceNotes.scripture}</span>
+              </div>
+            )}
+            {setList.serviceNotes?.notes && (
+              <div className="flex items-start gap-3 text-sm">
+                <span className="mt-0.5 w-20 shrink-0 text-xs uppercase tracking-wider text-white/40">Notes</span>
+                <p className="whitespace-pre-wrap leading-6 text-white/70">{setList.serviceNotes.notes}</p>
+              </div>
+            )}
+          </div>
         </Card>
       )}
 
-      <div className="space-y-6">
-        {setList.sections.map((section) => (
-          <Card
-            key={section.id}
-            className="p-4 space-y-4"
-            style={{
-              backgroundColor: section.color ?? getSectionColor(section.title),
-            }}
-          >
-            <h2 className="text-lg font-semibold">
-              {section.title}{" "}
-              <span className="text-muted-foreground text-sm">
-                ({section.songs.length}{" "}
-                {section.songs.length === 1 ? "Song" : "Songs"})
-              </span>
-            </h2>
+      {/* Sections */}
+      <div className="space-y-5">
+        {setList.sections.map((section, sectionIndex) => {
+          const sectionColor = section.color ?? getSectionColor(section.title);
+          return (
+            <div
+              key={section.id}
+              className="relative overflow-hidden rounded-xl border border-white/15 bg-black/55 backdrop-blur-xl shadow-[0_8px_28px_rgba(0,0,0,0.26)] animate-in fade-in slide-in-from-bottom-2 duration-500"
+              style={{
+                animationDelay: `${80 + sectionIndex * 50}ms`,
+                borderLeftColor: sectionColor,
+                borderLeftWidth: "3px",
+              }}
+            >
+              {/* Section header */}
+              <div
+                className="flex items-center justify-between px-4 py-3"
+                style={{ backgroundColor: sectionColor }}
+              >
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-white/90">
+                  {section.title}
+                </h2>
+                <span className="rounded-full border border-white/20 bg-black/30 px-2.5 py-0.5 text-xs text-white/65">
+                  {section.songs.length} {section.songs.length === 1 ? "song" : "songs"}
+                </span>
+              </div>
 
-            <Separator className="my-2 bg-white/30" />
-
-            <div className="space-y-3">
-              {section.songs.map((song) => {
-                const fullSong = songMap[song.songId];
-
-                return (
-                  <Card
-                    key={song.songId}
-                    className="relative p-4 cursor-pointer 
-                      bg-black/80 backdrop-blur-xl interactive-card 
-                      hover:bg-black/50"
-                    onClick={() =>
-                      router.push(
-                        `/church/${churchId}/music/songs/${song.songId}/view?setlist=${setList.id}`
-                      )
-                    }
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">{song.title}</h3>
-
-                        <p className="text-sm text-muted-foreground">
-                          Key: {song.key || "—"} • {song.bpm ?? "—"} BPM • {song.timeSignature ?? "—"} Time
-                        </p>
-
-                        {song.notes && (
-                          <div className="mt-2 space-y-1 rounded-md border border-white/15 bg-black/60 p-3 backdrop-blur-xl">
-                            <p className="text-xs font-medium text-foreground">Notes</p>
-                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              {/* Song rows */}
+              <div className="divide-y divide-white/[0.06]">
+                {section.songs.length === 0 ? (
+                  <p className="px-4 py-4 text-sm italic text-white/35">No songs in this section.</p>
+                ) : (
+                  section.songs.map((song, songIndex) => {
+                    const fullSong = songMap[song.songId];
+                    return (
+                      <div
+                        key={song.songId}
+                        className="group flex cursor-pointer items-center gap-3 px-4 py-3 rounded-lg transition-all hover:-translate-y-0.5 hover:bg-sky-950/40 hover:shadow-[0_4px_12px_rgba(56,189,248,0.18)] hover:[border-color:rgba(56,189,248,0.5)] border border-transparent"
+                        onClick={() =>
+                          router.push(`/church/${churchId}/music/songs/${song.songId}/view?setlist=${setList.id}`)
+                        }
+                      >
+                        <span className="w-5 shrink-0 text-center text-xs font-mono text-white/30 tabular-nums">
+                          {songIndex + 1}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium text-white/90 transition-colors group-hover:text-white">
+                            {song.title}
+                          </p>
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <span className="rounded-full border border-white/15 bg-black/35 px-2 py-0.5 text-[11px] text-white/50">
+                              Key: {song.key || "—"}
+                            </span>
+                            <span className="rounded-full border border-white/15 bg-black/35 px-2 py-0.5 text-[11px] text-white/50">
+                              {song.bpm ?? "—"} BPM
+                            </span>
+                            <span className="rounded-full border border-white/15 bg-black/35 px-2 py-0.5 text-[11px] text-white/50">
+                              {song.timeSignature ?? "—"} Time
+                            </span>
+                          </div>
+                          {song.notes && (
+                            <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-white/40">
                               {song.notes}
                             </p>
-                          </div>
-                        )}
+                          )}
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1">
+                          {fullSong?.lyrics && canEdit ? (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); router.push(`/church/${churchId}/music/songs/${song.songId}/edit?section=lyrics`); }}
+                              className="rounded p-1 text-blue-500/70 transition-colors hover:bg-white/10 hover:text-blue-400"
+                              title="Edit Lyrics"
+                            >
+                              <FileText size={14} />
+                            </button>
+                          ) : fullSong?.lyrics ? (
+                            <FileText size={14} className="text-blue-500/60" />
+                          ) : null}
+                          {fullSong?.chords && canEdit ? (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); router.push(`/church/${churchId}/music/songs/${song.songId}/edit?section=chords`); }}
+                              className="rounded p-1 text-emerald-500/70 transition-colors hover:bg-white/10 hover:text-emerald-400"
+                              title="Edit Chords"
+                            >
+                              <Music2 size={14} />
+                            </button>
+                          ) : fullSong?.chords ? (
+                            <Music2 size={14} className="text-emerald-500/60" />
+                          ) : null}
+                          <ChevronRight size={14} className="ml-1 text-white/25 transition-colors group-hover:text-white/60" />
+                        </div>
                       </div>
-
-                      <div className="flex items-center gap-2 ml-2">
-                        {fullSong?.lyrics && canEdit ? (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); router.push(`/church/${churchId}/music/songs/${song.songId}/edit?section=lyrics`); }}
-                            className="rounded p-1 text-blue-500/80 transition-colors hover:bg-white/10 hover:text-blue-400"
-                            title="Edit Lyrics"
-                          >
-                            <FileText size={16} />
-                          </button>
-                        ) : fullSong?.lyrics ? (
-                          <FileText size={16} className="text-blue-500/80" />
-                        ) : null}
-                        {fullSong?.chords && canEdit ? (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); router.push(`/church/${churchId}/music/songs/${song.songId}/edit?section=chords`); }}
-                            className="rounded p-1 text-emerald-500/80 transition-colors hover:bg-white/10 hover:text-emerald-400"
-                            title="Edit Chords"
-                          >
-                            <Music2 size={16} />
-                          </button>
-                        ) : fullSong?.chords ? (
-                          <Music2 size={16} className="text-emerald-500/80" />
-                        ) : null}
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-
-              {section.songs.length === 0 && (
-                <p className="text-sm text-muted-foreground italic">
-                  No songs in this section.
-                </p>
-              )}
+                    );
+                  })
+                )}
+              </div>
             </div>
-          </Card>
-        ))}
+          );
+        })}
       </div>
 
       {canEdit && (
