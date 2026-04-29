@@ -26,6 +26,7 @@ interface ModuleConfig {
   icon: LucideIcon;
   viewPermission: Permission;
   editPermission: Permission;
+  levels?: { value: ModuleLevel; label: string }[];
 }
 
 interface ReportConfig {
@@ -37,10 +38,19 @@ interface ReportConfig {
 // ── Data ──────────────────────────────────────────────────────────────────────
 
 const MODULES: ModuleConfig[] = [
-  { label: 'Messages',      icon: MessageSquare, viewPermission: 'messages.read',      editPermission: 'messages.manage'      },
   { label: 'Attendance',    icon: CheckSquare2,  viewPermission: 'attendance.read',    editPermission: 'attendance.manage'    },
   { label: 'Calendar',      icon: CalendarDays,  viewPermission: 'events.read',        editPermission: 'events.manage'        },
   { label: 'Contributions', icon: DollarSign,    viewPermission: 'contributions.read', editPermission: 'contributions.manage' },
+  {
+    label: 'Messages',
+    icon: MessageSquare,
+    viewPermission: 'messages.read',
+    editPermission: 'messages.manage',
+    levels: [
+      { value: 'none', label: 'None' },
+      { value: 'edit', label: 'Edit' },
+    ],
+  },
   { label: 'Members',       icon: Users,         viewPermission: 'members.read',       editPermission: 'members.manage'       },
   { label: 'Music',         icon: Music2,        viewPermission: 'music.read',         editPermission: 'music.manage'         },
   { label: 'Service Plans', icon: ClipboardList, viewPermission: 'servicePlans.read',  editPermission: 'servicePlans.manage'  },
@@ -172,6 +182,7 @@ export default function PermissionSelector({ selectedPermissions, onChange, disa
         {/* Rows */}
         {MODULES.map((mod, i) => {
           const level = getModuleLevel(selectedPermissions, mod);
+          const levelOptions = mod.levels ?? MODULE_LEVELS;
           const Icon = mod.icon;
           return (
             <div
@@ -187,7 +198,7 @@ export default function PermissionSelector({ selectedPermissions, onChange, disa
                 <span className="text-sm">{mod.label}</span>
               </div>
               <SegmentedToggle
-                options={MODULE_LEVELS}
+                options={levelOptions}
                 value={level}
                 onChange={(v) => handleModuleLevel(mod, v)}
                 disabled={disabled}

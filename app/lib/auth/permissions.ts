@@ -115,17 +115,27 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "reports.read",
   ],
 
-  // Church-member roles are organizational titles only.
-  // Actual module access is granted explicitly per user via the permissions column.
+  // Church roles with communication responsibility get message edit access by default.
+  // Additional access can still be granted explicitly per user via the permissions column.
   Finance: [],
-  EventManager: [],
+  EventManager: [
+    "messages.manage",
+  ],
   AttendanceManager: [],
   MemberManager: [],
-  ServiceManager: [],
+  ServiceManager: [
+    "messages.manage",
+  ],
 
-  Pastor: [],
-  Minister: [],
-  Deacon: [],
+  Pastor: [
+    "messages.manage",
+  ],
+  Minister: [
+    "messages.manage",
+  ],
+  Deacon: [
+    "messages.manage",
+  ],
 
   MusicManager: [],
   MusicMember: [],
