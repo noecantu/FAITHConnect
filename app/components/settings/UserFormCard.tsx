@@ -305,7 +305,7 @@ export default function UserFormCard({
                 onClick={onDelete}
                 className="text-red-400 hover:text-red-300 hover:bg-red-500/10 px-3"
               >
-                Delete Account
+                Delete
               </Button>
             )}
           </div>
@@ -338,7 +338,7 @@ export default function UserFormCard({
               </Button>
             ) : (
               <Button size="sm" onClick={onSave} disabled={isSaving}>
-                {isSaving ? 'Saving…' : 'Save Changes'}
+                {isSaving ? 'Saving…' : 'Save'}
               </Button>
             )}
           </div>
