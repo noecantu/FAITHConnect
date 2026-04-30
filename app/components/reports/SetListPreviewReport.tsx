@@ -50,13 +50,20 @@ export function SetListPreviewReport({ setList }: Props) {
         {(setList.serviceType ||
           setList.serviceNotes?.theme ||
           setList.serviceNotes?.scripture ||
+          setList.serviceNotes?.scriptureText ||
           setList.serviceNotes?.notes) && (
           <section className="rounded-md border border-white/20 bg-black/40 p-4">
             <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/80">Overview</h3>
             <div className="grid gap-1 text-sm text-white/85">
               {setList.serviceType && <p><span className="font-medium text-white">Service Type:</span> {setList.serviceType}</p>}
               {setList.serviceNotes?.theme && <p><span className="font-medium text-white">Theme:</span> {setList.serviceNotes.theme}</p>}
-              {setList.serviceNotes?.scripture && <p><span className="font-medium text-white">Scripture:</span> {setList.serviceNotes.scripture}</p>}
+              {setList.serviceNotes?.scripture && (
+                <p>
+                  <span className="font-medium text-white">Scripture:</span> {setList.serviceNotes.scripture}
+                  {setList.serviceNotes?.scriptureTranslation ? ` (${setList.serviceNotes.scriptureTranslation})` : ""}
+                </p>
+              )}
+              {setList.serviceNotes?.scriptureText && <p className="whitespace-pre-wrap"><span className="font-medium text-white">Verse:</span> {setList.serviceNotes.scriptureText}</p>}
               {setList.serviceNotes?.notes && <p className="whitespace-pre-wrap"><span className="font-medium text-white">Notes:</span> {setList.serviceNotes.notes}</p>}
             </div>
           </section>

@@ -30,6 +30,7 @@ import { usePermissions } from '@/app/hooks/usePermissions';
 import { useMembers } from '@/app/hooks/useMembers';
 import { updateServicePlan } from '@/app/lib/servicePlans';
 import { SectionEditor } from '@/app/components/service-plans/SectionEditor';
+import { ScriptureLookupPanel } from '@/app/components/service-plans/ScriptureLookupPanel';
 import SectionNameDialog from '@/app/components/music/SectionNameSelectionDialog';
 import { EVENT_GROUP_OPTIONS } from '@/app/lib/groupOptions';
 
@@ -51,6 +52,8 @@ const formSchema = z.object({
   timeString: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time'),
   theme: z.string().optional(),
   scripture: z.string().optional(),
+  scriptureText: z.string().optional(),
+  scriptureTranslation: z.string().optional(),
   notes: z.string().optional(),
   isPublic: z.boolean().default(true),
   groups: z.array(z.string()).default([]),
@@ -83,6 +86,10 @@ export default function EditServicePlanPage() {
       title: '',
       dateString: '',
       timeString: '',
+      theme: '',
+      scripture: '',
+      scriptureText: '',
+      scriptureTranslation: 'web',
       notes: '',
       isPublic: true,
       groups: [],
@@ -99,6 +106,8 @@ export default function EditServicePlanPage() {
       timeString: plan.timeString ?? '',
       theme: plan.theme ?? '',
       scripture: plan.scripture ?? '',
+      scriptureText: plan.scriptureText ?? '',
+      scriptureTranslation: plan.scriptureTranslation ?? 'web',
       notes: plan.notes ?? '',
       isPublic: plan.isPublic ?? true,
       groups: plan.groups ?? [],
@@ -193,6 +202,8 @@ export default function EditServicePlanPage() {
         timeString: values.timeString,
         theme: values.theme?.trim() ?? '',
         scripture: values.scripture?.trim() ?? '',
+        scriptureText: values.scriptureText?.trim() ?? '',
+        scriptureTranslation: values.scriptureTranslation?.trim() ?? '',
         notes: values.notes?.trim() ?? '',
         isPublic: values.isPublic,
         groups: values.isPublic ? [] : values.groups,
@@ -281,27 +292,25 @@ export default function EditServicePlanPage() {
                   <FormItem>
                     <FormLabel>Theme</FormLabel>
                     <FormControl>
-                      <Input placeholder="Kingdom Stewardship, Hope, etc." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="scripture"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Scripture</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John 3:16, Psalm 23, etc." {...field} />
+                      <Input placeholder="Kingdom Stewardship, Hope, etc." {...field} value={field.value ?? ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
+
+            <FormItem>
+              <FormLabel>Scripture</FormLabel>
+              <ScriptureLookupPanel
+                scripture={form.watch('scripture') ?? ''}
+                scriptureTranslation={form.watch('scriptureTranslation') ?? ''}
+                scriptureText={form.watch('scriptureText') ?? ''}
+                onScriptureChange={(value) => form.setValue('scripture', value, { shouldDirty: true })}
+                onScriptureTranslationChange={(value) => form.setValue('scriptureTranslation', value, { shouldDirty: true })}
+                onScriptureTextChange={(value) => form.setValue('scriptureText', value, { shouldDirty: true })}
+              />
+            </FormItem>
 
             <FormField
               control={form.control}

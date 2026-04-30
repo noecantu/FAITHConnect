@@ -194,6 +194,8 @@ export type ServicePlanFirestore = {
   timeString: string;
   theme?: string | null;
   scripture?: string | null;
+  scriptureText?: string | null;
+  scriptureTranslation?: string | null;
   notes: string;
   isPublic: boolean;
   groups: string[];
@@ -231,6 +233,8 @@ export interface SetList {
   serviceNotes?: {
     theme?: string | null;
     scripture?: string | null;
+    scriptureText?: string | null;
+    scriptureTranslation?: string | null;
     notes?: string | null;
   } | null;
 }
@@ -247,6 +251,8 @@ export interface SetListFirestore {
   serviceNotes?: {
     theme?: string | null;
     scripture?: string | null;
+    scriptureText?: string | null;
+    scriptureTranslation?: string | null;
     notes?: string | null;
   } | null;
   churchId: string;

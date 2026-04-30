@@ -103,7 +103,7 @@ export default function ServicePlanPage() {
     return (
       <>
         <PageHeader title="Service Plans" />
-        <p className="text-muted-foreground">Loading service plans…</p>
+        <p className="text-muted-foreground">Loading Service Plans…</p>
       </>
     );
   }

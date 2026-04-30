@@ -78,6 +78,8 @@ export async function POST(req: Request) {
         time_string: body.timeString,
         theme: typeof body.theme === "string" && body.theme.trim().length > 0 ? body.theme.trim() : null,
         scripture: typeof body.scripture === "string" && body.scripture.trim().length > 0 ? body.scripture.trim() : null,
+        scripture_text: typeof body.scriptureText === "string" && body.scriptureText.trim().length > 0 ? body.scriptureText.trim() : null,
+        scripture_translation: typeof body.scriptureTranslation === "string" && body.scriptureTranslation.trim().length > 0 ? body.scriptureTranslation.trim() : null,
         notes: body.notes ?? "",
         sections: body.sections ?? [],
         is_public: isPublic,

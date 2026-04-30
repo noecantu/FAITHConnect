@@ -21,6 +21,8 @@ function rowToServicePlan(row: Record<string, unknown>): ServicePlan {
     timeString,
     theme: (row.theme as string | null) ?? null,
     scripture: (row.scripture as string | null) ?? null,
+    scriptureText: (row.scripture_text as string | null) ?? null,
+    scriptureTranslation: (row.scripture_translation as string | null) ?? null,
     notes: (row.notes as string) ?? "",
     isPublic,
     groups: (row.groups as string[]) ?? [],
@@ -70,6 +72,8 @@ export async function createServicePlan(
     timeString: string;
     theme?: string | null;
     scripture?: string | null;
+    scriptureText?: string | null;
+    scriptureTranslation?: string | null;
     notes: string;
     isPublic: boolean;
     groups: string[];
@@ -88,6 +92,8 @@ export async function createServicePlan(
       timeString: data.timeString,
       theme: data.theme,
       scripture: data.scripture,
+      scriptureText: data.scriptureText,
+      scriptureTranslation: data.scriptureTranslation,
       notes: data.notes,
       isPublic: data.isPublic,
       groups: data.groups,
@@ -117,6 +123,8 @@ export async function updateServicePlan(
     timeString: string;
     theme: string;
     scripture: string;
+    scriptureText: string;
+    scriptureTranslation: string;
     notes: string;
     isPublic: boolean;
     groups: string[];
@@ -184,6 +192,8 @@ export async function duplicateServicePlan(
     timeString: plan.timeString,
     theme: plan.theme ?? null,
     scripture: plan.scripture ?? null,
+    scriptureText: plan.scriptureText ?? null,
+    scriptureTranslation: plan.scriptureTranslation ?? null,
     notes: plan.notes,
     isPublic: plan.isPublic,
     groups: plan.groups,

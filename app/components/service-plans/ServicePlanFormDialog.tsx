@@ -35,6 +35,7 @@ import { EVENT_GROUP_OPTIONS } from '@/app/lib/groupOptions';
 
 import dayjs from 'dayjs';
 import { SectionEditor } from './SectionEditor';
+import { ScriptureLookupPanel } from './ScriptureLookupPanel';
 import { useState } from 'react';
 import SectionNameDialog from '@/app/components/music/SectionNameSelectionDialog';
 
@@ -60,6 +61,8 @@ const formSchema = z.object({
 
   theme: z.string().optional(),
   scripture: z.string().optional(),
+  scriptureText: z.string().optional(),
+  scriptureTranslation: z.string().optional(),
   notes: z.string().optional(),
   isPublic: z.boolean().default(true),
   groups: z.array(z.string()).default([]),
@@ -105,6 +108,8 @@ async function handleServicePlanSubmit(
     timeString: values.timeString,
     theme: values.theme?.trim() ?? '',
     scripture: values.scripture?.trim() ?? '',
+    scriptureText: values.scriptureText?.trim() ?? '',
+    scriptureTranslation: values.scriptureTranslation?.trim() ?? '',
     notes: values.notes?.trim() ?? '',
     sections: normalizedSections,
     isPublic: values.isPublic,
@@ -159,6 +164,8 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
 
       theme: plan?.theme ?? '',
       scripture: plan?.scripture ?? '',
+      scriptureText: plan?.scriptureText ?? '',
+      scriptureTranslation: plan?.scriptureTranslation ?? 'web',
       notes: plan?.notes ?? '',
       isPublic: plan?.isPublic ?? true,
       groups: plan?.groups ?? [],
@@ -297,21 +304,19 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                     </FormItem>
                   )}
                 />
-
-                <FormField
-                  control={form.control}
-                  name="scripture"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Scripture</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John 3:16, Psalm 23, etc." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
+
+              <FormItem>
+                <FormLabel>Scripture</FormLabel>
+                <ScriptureLookupPanel
+                  scripture={form.watch('scripture') ?? ''}
+                  scriptureTranslation={form.watch('scriptureTranslation') ?? ''}
+                  scriptureText={form.watch('scriptureText') ?? ''}
+                  onScriptureChange={(value) => form.setValue('scripture', value, { shouldDirty: true })}
+                  onScriptureTranslationChange={(value) => form.setValue('scriptureTranslation', value, { shouldDirty: true })}
+                  onScriptureTextChange={(value) => form.setValue('scriptureText', value, { shouldDirty: true })}
+                />
+              </FormItem>
 
               {/* Notes */}
               <FormField

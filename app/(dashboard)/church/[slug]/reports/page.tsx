@@ -527,7 +527,14 @@ export default function ReportsPage() {
       lines.push(`Theme: ${selectedSetList.serviceNotes.theme}`);
     }
     if (selectedSetList.serviceNotes?.scripture) {
-      lines.push(`Scripture: ${selectedSetList.serviceNotes.scripture}`);
+      lines.push(
+        selectedSetList.serviceNotes?.scriptureTranslation
+          ? `Scripture: ${selectedSetList.serviceNotes.scripture} (${selectedSetList.serviceNotes.scriptureTranslation})`
+          : `Scripture: ${selectedSetList.serviceNotes.scripture}`
+      );
+    }
+    if (selectedSetList.serviceNotes?.scriptureText) {
+      lines.push(`Verse: ${selectedSetList.serviceNotes.scriptureText}`);
     }
 
     lines.push("");

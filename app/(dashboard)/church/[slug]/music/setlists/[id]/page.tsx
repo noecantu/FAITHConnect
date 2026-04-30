@@ -122,6 +122,7 @@ export default function SetListDetailPage() {
       {/* Service notes */}
       {(setList.serviceNotes?.theme ||
         setList.serviceNotes?.scripture ||
+        setList.serviceNotes?.scriptureText ||
         setList.serviceNotes?.notes) && (
         <Card className="relative overflow-hidden border-white/20 bg-gradient-to-br from-black/80 to-black/60 p-5 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.24)] animate-in fade-in slide-in-from-bottom-2 duration-500 [animation-delay:60ms]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent_55%)]" />
@@ -136,7 +137,17 @@ export default function SetListDetailPage() {
             {setList.serviceNotes?.scripture && (
               <div className="flex items-start gap-3 text-sm">
                 <span className="mt-0.5 w-20 shrink-0 text-xs uppercase tracking-wider text-white/40">Scripture</span>
-                <span className="text-white/80">{setList.serviceNotes.scripture}</span>
+                <div className="space-y-1">
+                  <span className="text-white/80">
+                    {setList.serviceNotes.scripture}
+                    {setList.serviceNotes.scriptureTranslation ? ` (${setList.serviceNotes.scriptureTranslation})` : ''}
+                  </span>
+                  {setList.serviceNotes.scriptureText && (
+                    <p className="whitespace-pre-wrap leading-6 text-white/70">
+                      {setList.serviceNotes.scriptureText}
+                    </p>
+                  )}
+                </div>
               </div>
             )}
             {setList.serviceNotes?.notes && (

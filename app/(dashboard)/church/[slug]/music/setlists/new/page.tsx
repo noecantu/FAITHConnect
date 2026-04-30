@@ -64,6 +64,8 @@ export default function NewSetListPage() {
     serviceNotes: {
       theme: string | null;
       scripture: string | null;
+      scriptureText?: string | null;
+      scriptureTranslation?: string | null;
       notes: string | null;
     };
   }) => {
@@ -79,6 +81,8 @@ export default function NewSetListPage() {
       serviceNotes: {
         theme: data.serviceNotes.theme,
         scripture: data.serviceNotes.scripture,
+        scriptureText: data.serviceNotes.scriptureText,
+        scriptureTranslation: data.serviceNotes.scriptureTranslation,
         notes: data.serviceNotes.notes,
       },
     };

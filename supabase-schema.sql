@@ -239,6 +239,8 @@ create table if not exists public.service_plans (
   time_string     text not null,   -- HH:MM (24h)
   theme           text,
   scripture       text,
+  scripture_text  text,
+  scripture_translation text,
   notes           text not null default '',
   is_public       boolean not null default true,
   groups          text[] not null default '{}',
@@ -253,6 +255,15 @@ create table if not exists public.service_plans (
 
 create index if not exists service_plans_church_id_idx  on public.service_plans (church_id);
 create index if not exists service_plans_date_idx       on public.service_plans (church_id, date_string desc);
+
+-- Optional cache for bible-api.com scripture lookups
+create table if not exists public.scripture_cache (
+  cache_key     text primary key,
+  reference     text not null,
+  translation   text not null,
+  verse_text    text not null,
+  updated_at    timestamptz not null default now()
+);
 
 -- ============================================================
 -- CONTRIBUTIONS
@@ -462,6 +473,7 @@ alter table public.service_plans  enable row level security;
 alter table public.contributions  enable row level security;
 alter table public.songs          enable row level security;
 alter table public.setlists       enable row level security;
+alter table public.scripture_cache enable row level security;
 alter table public.attendance     enable row level security;
 alter table public.logs           enable row level security;
 alter table public.districts      enable row level security;
@@ -477,6 +489,34 @@ drop policy if exists "users: insert own" on public.users;
 create policy "users: read own"   on public.users for select using (auth.uid() = id);
 create policy "users: update own" on public.users for update using (auth.uid() = id);
 create policy "users: insert own" on public.users for insert with check (auth.uid() = id);
+
+-- ----------------------------------------------------------------
+-- scripture_cache: server-side lookup cache only (no direct client access).
+-- Service role can still access via API routes.
+-- ----------------------------------------------------------------
+revoke all on table public.scripture_cache from anon;
+revoke all on table public.scripture_cache from authenticated;
+
+drop policy if exists "scripture_cache_no_client_select" on public.scripture_cache;
+create policy "scripture_cache_no_client_select" on public.scripture_cache for select
+  to authenticated, anon
+  using (false);
+
+drop policy if exists "scripture_cache_no_client_insert" on public.scripture_cache;
+create policy "scripture_cache_no_client_insert" on public.scripture_cache for insert
+  to authenticated, anon
+  with check (false);
+
+drop policy if exists "scripture_cache_no_client_update" on public.scripture_cache;
+create policy "scripture_cache_no_client_update" on public.scripture_cache for update
+  to authenticated, anon
+  using (false)
+  with check (false);
+
+drop policy if exists "scripture_cache_no_client_delete" on public.scripture_cache;
+create policy "scripture_cache_no_client_delete" on public.scripture_cache for delete
+  to authenticated, anon
+  using (false);
 
 -- ----------------------------------------------------------------
 -- churches: member of that church can read; Admin role can write.
@@ -829,3 +869,18 @@ alter table public.users add column if not exists permissions text[] not null de
 -- ----------------------------------------------------------------
 alter table public.events add column if not exists member_ids text[] not null default '{}';
 alter table public.events add column if not exists time_string text not null default '00:00';
+
+-- ----------------------------------------------------------------
+-- Migration: add scripture detail columns + scripture cache for existing deployments.
+-- Safe to run multiple times (IF NOT EXISTS guard).
+-- ----------------------------------------------------------------
+alter table public.service_plans add column if not exists scripture_text text;
+alter table public.service_plans add column if not exists scripture_translation text;
+
+create table if not exists public.scripture_cache (
+  cache_key     text primary key,
+  reference     text not null,
+  translation   text not null,
+  verse_text    text not null,
+  updated_at    timestamptz not null default now()
+);

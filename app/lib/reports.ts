@@ -618,7 +618,13 @@ export function generateSetListPDF(setList: SetList, logoBase64?: string) {
   const overviewLines: string[] = [];
   if (setList.serviceType) overviewLines.push(`Service Type: ${setList.serviceType}`);
   if (setList.serviceNotes?.theme) overviewLines.push(`Theme: ${setList.serviceNotes.theme}`);
-  if (setList.serviceNotes?.scripture) overviewLines.push(`Scripture: ${setList.serviceNotes.scripture}`);
+  if (setList.serviceNotes?.scripture) {
+    const scriptureLine = setList.serviceNotes?.scriptureTranslation
+      ? `Scripture: ${setList.serviceNotes.scripture} (${setList.serviceNotes.scriptureTranslation})`
+      : `Scripture: ${setList.serviceNotes.scripture}`;
+    overviewLines.push(scriptureLine);
+  }
+  if (setList.serviceNotes?.scriptureText) overviewLines.push(`Verse: ${setList.serviceNotes.scriptureText}`);
   if (setList.serviceNotes?.notes) overviewLines.push(`Notes: ${setList.serviceNotes.notes}`);
 
   if (overviewLines.length > 0) {
@@ -691,6 +697,8 @@ export function generateSetListExcel(setList: SetList) {
     { Field: "Service Type", Value: setList.serviceType ?? "" },
     { Field: "Theme", Value: setList.serviceNotes?.theme ?? "" },
     { Field: "Scripture", Value: setList.serviceNotes?.scripture ?? "" },
+    { Field: "Scripture Translation", Value: setList.serviceNotes?.scriptureTranslation ?? "" },
+    { Field: "Scripture Text", Value: setList.serviceNotes?.scriptureText ?? "" },
     { Field: "Notes", Value: setList.serviceNotes?.notes ?? "" },
   ];
 
@@ -754,6 +762,8 @@ export function generateServicePlanPDF(
 
   const hasTheme = typeof servicePlan.theme === "string" && servicePlan.theme.trim().length > 0;
   const hasScripture = typeof servicePlan.scripture === "string" && servicePlan.scripture.trim().length > 0;
+  const hasScriptureTranslation = typeof servicePlan.scriptureTranslation === "string" && servicePlan.scriptureTranslation.trim().length > 0;
+  const hasScriptureText = typeof servicePlan.scriptureText === "string" && servicePlan.scriptureText.trim().length > 0;
   const hasNotes = servicePlan.notes.trim().length > 0;
   let metadataY = 126;
   if (hasTheme) {
@@ -761,8 +771,17 @@ export function generateServicePlanPDF(
     metadataY += 12;
   }
   if (hasScripture) {
-    doc.text(`Scripture: ${servicePlan.scripture}`, 40, metadataY);
+    const scriptureLabel = hasScriptureTranslation
+      ? `Scripture: ${servicePlan.scripture} (${servicePlan.scriptureTranslation})`
+      : `Scripture: ${servicePlan.scripture}`;
+    doc.text(scriptureLabel, 40, metadataY);
     metadataY += 12;
+  }
+
+  if (hasScriptureText) {
+    const wrappedScripture = doc.splitTextToSize(`Verse: ${servicePlan.scriptureText}`, pageWidth - 80);
+    doc.text(wrappedScripture, 40, metadataY);
+    metadataY += wrappedScripture.length * 12 + 4;
   }
 
   let tableStartY = metadataY + 4;
@@ -849,6 +868,8 @@ export function generateServicePlanExcel(
     { Field: "Service Date", Value: format(servicePlan.dateTime, "MM/dd/yyyy h:mm a") },
     { Field: "Theme", Value: servicePlan.theme ?? "" },
     { Field: "Scripture", Value: servicePlan.scripture ?? "" },
+    { Field: "Scripture Translation", Value: servicePlan.scriptureTranslation ?? "" },
+    { Field: "Scripture Text", Value: servicePlan.scriptureText ?? "" },
     { Field: "Service Notes", Value: servicePlan.notes ?? "" },
   ];
 

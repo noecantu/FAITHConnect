@@ -39,6 +39,8 @@ export function ServicePlanDetailView({
 }: ServicePlanDetailViewProps) {
   const hasTheme = typeof plan.theme === 'string' && plan.theme.trim().length > 0;
   const hasScripture = typeof plan.scripture === 'string' && plan.scripture.trim().length > 0;
+  const hasScriptureTranslation = typeof plan.scriptureTranslation === 'string' && plan.scriptureTranslation.trim().length > 0;
+  const hasScriptureText = typeof plan.scriptureText === 'string' && plan.scriptureText.trim().length > 0;
   const hasServiceNotes = plan.notes.trim().length > 0;
 
     return (
@@ -97,6 +99,12 @@ export function ServicePlanDetailView({
               {hasScripture && (
                 <p className="text-sm leading-6 text-white/75">
                   <span className="font-semibold text-white/85">Scripture:</span> {plan.scripture}
+                  {hasScriptureTranslation ? ` (${plan.scriptureTranslation})` : ''}
+                </p>
+              )}
+              {hasScriptureText && (
+                <p className="whitespace-pre-wrap text-sm leading-6 text-white/70">
+                  {plan.scriptureText}
                 </p>
               )}
             </div>

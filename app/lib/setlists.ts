@@ -113,6 +113,8 @@ export async function createSetList(
     serviceNotes?: {
       theme?: string | null;
       scripture?: string | null;
+      scriptureText?: string | null;
+      scriptureTranslation?: string | null;
       notes?: string | null;
     } | null;
   }
@@ -156,6 +158,8 @@ export async function updateSetList(
     serviceNotes?: {
       theme?: string | null;
       scripture?: string | null;
+      scriptureText?: string | null;
+      scriptureTranslation?: string | null;
       notes?: string | null;
     } | null;
   }

@@ -66,6 +66,8 @@ export async function POST(req: Request) {
     if (body.timeString !== undefined) payload.time_string = body.timeString;
     if (body.theme !== undefined) payload.theme = typeof body.theme === "string" && body.theme.trim().length > 0 ? body.theme.trim() : null;
     if (body.scripture !== undefined) payload.scripture = typeof body.scripture === "string" && body.scripture.trim().length > 0 ? body.scripture.trim() : null;
+    if (body.scriptureText !== undefined) payload.scripture_text = typeof body.scriptureText === "string" && body.scriptureText.trim().length > 0 ? body.scriptureText.trim() : null;
+    if (body.scriptureTranslation !== undefined) payload.scripture_translation = typeof body.scriptureTranslation === "string" && body.scriptureTranslation.trim().length > 0 ? body.scriptureTranslation.trim() : null;
     if (body.notes !== undefined) payload.notes = body.notes;
     if (body.sections !== undefined) payload.sections = body.sections;
 

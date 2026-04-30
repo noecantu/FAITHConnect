@@ -22,6 +22,8 @@ export function ServicePlanPreviewReport({ plan, members, songs }: Props) {
   const hasServiceNotes = plan.notes.trim().length > 0;
   const hasTheme = typeof plan.theme === "string" && plan.theme.trim().length > 0;
   const hasScripture = typeof plan.scripture === "string" && plan.scripture.trim().length > 0;
+  const hasScriptureTranslation = typeof plan.scriptureTranslation === "string" && plan.scriptureTranslation.trim().length > 0;
+  const hasScriptureText = typeof plan.scriptureText === "string" && plan.scriptureText.trim().length > 0;
   const rows = plan.sections.flatMap((section) => {
     const member = members.find((m) => m.id === section.personId);
     const personName = section.personName?.trim()
@@ -68,7 +70,8 @@ export function ServicePlanPreviewReport({ plan, members, songs }: Props) {
           <p className="font-semibold text-white">{plan.title}</p>
           <p className="text-white/70">Service Date: {format(plan.dateTime, "MM/dd/yyyy h:mm a")}</p>
           {hasTheme && <p className="text-white/70">Theme: {plan.theme}</p>}
-          {hasScripture && <p className="text-white/70">Scripture: {plan.scripture}</p>}
+          {hasScripture && <p className="text-white/70">Scripture: {plan.scripture}{hasScriptureTranslation ? ` (${plan.scriptureTranslation})` : ""}</p>}
+          {hasScriptureText && <p className="whitespace-pre-wrap text-white/70">Verse: {plan.scriptureText}</p>}
         </div>
 
         {hasServiceNotes && (

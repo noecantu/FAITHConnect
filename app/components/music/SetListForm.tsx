@@ -7,6 +7,7 @@ import { Textarea } from '@/app/components/ui/textarea';
 import { Label } from '@/app/components/ui/label';
 import { SetList, SetListSection } from '@/app/lib/types';
 import { SetListSectionEditor } from '@/app/components/music/SetListSectionEditor';
+import { ScriptureLookupPanel } from '@/app/components/service-plans/ScriptureLookupPanel';
 
 interface SetListFormProps {
   mode: 'create' | 'edit';
@@ -21,6 +22,8 @@ interface SetListFormProps {
     serviceNotes: {
       theme: string | null;
       scripture: string | null;
+      scriptureText?: string | null;
+      scriptureTranslation?: string | null;
       notes: string | null;
     };
   }) => void;
@@ -39,6 +42,8 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady, onValidityCh
   const [serviceType, setServiceType] = useState(initial?.serviceType ?? '');
   const [theme, setTheme] = useState(initial?.serviceNotes?.theme ?? '');
   const [scripture, setScripture] = useState(initial?.serviceNotes?.scripture ?? '');
+  const [scriptureText, setScriptureText] = useState(initial?.serviceNotes?.scriptureText ?? '');
+  const [scriptureTranslation, setScriptureTranslation] = useState(initial?.serviceNotes?.scriptureTranslation ?? 'web');
   const [notes, setNotes] = useState(initial?.serviceNotes?.notes ?? '');
   const onReadyRef = useRef(onReady);
   const onValidityChangeRef = useRef(onValidityChange);
@@ -51,6 +56,8 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady, onValidityCh
     serviceType: initial?.serviceType ?? '',
     theme: initial?.serviceNotes?.theme ?? '',
     scripture: initial?.serviceNotes?.scripture ?? '',
+    scriptureText: initial?.serviceNotes?.scriptureText ?? '',
+    scriptureTranslation: initial?.serviceNotes?.scriptureTranslation ?? 'web',
     notes: initial?.serviceNotes?.notes ?? '',
   });
 
@@ -81,9 +88,11 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady, onValidityCh
       serviceType,
       theme,
       scripture,
+      scriptureText,
+      scriptureTranslation,
       notes,
     };
-  }, [title, dateString, timeString, sections, serviceType, theme, scripture, notes]);
+  }, [title, dateString, timeString, sections, serviceType, theme, scripture, scriptureText, scriptureTranslation, notes]);
 
   const handleSubmit = useCallback(() => {
     const current = valuesRef.current;
@@ -104,6 +113,8 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady, onValidityCh
       serviceNotes: {
         theme: current.theme.trim() || null,
         scripture: current.scripture.trim() || null,
+        scriptureText: current.scriptureText.trim() || null,
+        scriptureTranslation: current.scriptureTranslation.trim() || null,
         notes: current.notes.trim() || null,
       },
     });
@@ -174,10 +185,13 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady, onValidityCh
 
         <div className="space-y-2">
           <Label>Scripture</Label>
-          <Input
-            value={scripture}
-            onChange={(e) => setScripture(e.target.value)}
-            placeholder="Optional scripture reference"
+          <ScriptureLookupPanel
+            scripture={scripture}
+            scriptureTranslation={scriptureTranslation}
+            scriptureText={scriptureText}
+            onScriptureChange={setScripture}
+            onScriptureTranslationChange={setScriptureTranslation}
+            onScriptureTextChange={setScriptureText}
           />
         </div>
       </div>
