@@ -12,6 +12,10 @@ export type Permission =
   | "events.manage"
   | "music.read"
   | "music.manage"
+  | "setlists.read"
+  | "setlists.manage"
+  | "songs.read"
+  | "songs.manage"
   | "servicePlans.read"
   | "servicePlans.manage"
   | "attendance.read"
@@ -191,6 +195,18 @@ export function can(roles: Role[], permission: Permission, grants?: Permission[]
     ) {
       if (grants.includes("reports.read")) return true;
     }
+
+    // music.manage/read umbrella satisfies granular setlists/songs permissions
+    if (
+      permission === "setlists.read" || permission === "setlists.manage" ||
+      permission === "songs.read" || permission === "songs.manage"
+    ) {
+      if (grants.includes("music.manage")) return true;
+      if (
+        (permission === "setlists.read" || permission === "songs.read") &&
+        grants.includes("music.read")
+      ) return true;
+    }
   }
 
   // 2. Fall back to role-based permissions
@@ -215,6 +231,18 @@ export function can(roles: Role[], permission: Permission, grants?: Permission[]
       permission === "reports.serviceplans"
     ) {
       return perms.includes("reports.read");
+    }
+
+    // music.manage/read umbrella satisfies granular setlists/songs permissions
+    if (
+      permission === "setlists.read" || permission === "setlists.manage" ||
+      permission === "songs.read" || permission === "songs.manage"
+    ) {
+      if (perms.includes("music.manage")) return true;
+      if (
+        (permission === "setlists.read" || permission === "songs.read") &&
+        perms.includes("music.read")
+      ) return true;
     }
 
     return false;

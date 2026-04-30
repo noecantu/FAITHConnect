@@ -18,8 +18,8 @@ export default function NewSetListPage() {
   const slug = typeof params?.slug === 'string' ? params.slug : '';
   const { churchId } = useChurchId();
   const { songs: allSongs } = useSongs(churchId);
-  const { canManageMusic, loading: permissionsLoading } = usePermissions();
-  const canCreate = canManageMusic;
+  const { canManageSetlists, loading: permissionsLoading } = usePermissions();
+  const canCreate = canManageSetlists;
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);

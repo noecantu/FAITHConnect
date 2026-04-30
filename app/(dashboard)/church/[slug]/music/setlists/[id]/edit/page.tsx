@@ -17,8 +17,8 @@ export default function EditSetListPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
   const { songs: allSongs } = useSongs(churchId);
-  const { canManageMusic, loading: permissionsLoading } = usePermissions();
-  const canEdit = canManageMusic;
+  const { canManageSetlists, loading: permissionsLoading } = usePermissions();
+  const canEdit = canManageSetlists;
 
   const [setList, setSetList] = useState<SetList | null>(null);
   const [loading, setLoading] = useState(true);

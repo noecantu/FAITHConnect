@@ -33,8 +33,8 @@ export default function SongDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { churchId } = useChurchId();
-  const { canManageMusic } = usePermissions();
-  const canEdit = canManageMusic;
+  const { canManageSongs } = usePermissions();
+  const canEdit = canManageSongs;
 
   const routeSlug = String(routeParams?.slug ?? '');
   const setlistId = searchParams.get('setlist');

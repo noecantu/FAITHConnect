@@ -17,8 +17,9 @@ const ACCESS_BADGES: { label: string; viewPerm: Permission; editPerm: Permission
   { label: 'Calendar',      viewPerm: 'events.read',        editPerm: 'events.manage'        },
   { label: 'Contributions', viewPerm: 'contributions.read', editPerm: 'contributions.manage' },
   { label: 'Members',       viewPerm: 'members.read',       editPerm: 'members.manage'       },
-  { label: 'Music',         viewPerm: 'music.read',         editPerm: 'music.manage'         },
   { label: 'Service Plans', viewPerm: 'servicePlans.read',  editPerm: 'servicePlans.manage'  },
+  { label: 'Set Lists',     viewPerm: 'setlists.read',      editPerm: 'setlists.manage'      },
+  { label: 'Songs',         viewPerm: 'songs.read',         editPerm: 'songs.manage'         },
 ];
 
 export default function UserListItem({ user, onClick, isBillingOwner = false }: Props) {

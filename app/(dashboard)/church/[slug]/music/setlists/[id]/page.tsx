@@ -27,10 +27,10 @@ export default function SetListDetailPage() {
   const { id } = useParams();
   const { churchId } = useChurchId();
   const router = useRouter();
-  const { canReadMusic, canManageMusic, loading: rolesLoading } = usePermissions();
+  const { canReadSetlists, canManageSetlists, loading: rolesLoading } = usePermissions();
 
-  const canView = canReadMusic;
-  const canEdit = canManageMusic;
+  const canView = canReadSetlists;
+  const canEdit = canManageSetlists;
   const { toast } = useToast();
   // const { user } = useAuth();
 

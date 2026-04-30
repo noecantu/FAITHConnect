@@ -41,6 +41,7 @@ const MODULES: ModuleConfig[] = [
   { label: 'Attendance',    icon: CheckSquare2,  viewPermission: 'attendance.read',    editPermission: 'attendance.manage'    },
   { label: 'Calendar',      icon: CalendarDays,  viewPermission: 'events.read',        editPermission: 'events.manage'        },
   { label: 'Contributions', icon: DollarSign,    viewPermission: 'contributions.read', editPermission: 'contributions.manage' },
+  { label: 'Members',       icon: Users,         viewPermission: 'members.read',       editPermission: 'members.manage'       },
   {
     label: 'Messages',
     icon: MessageSquare,
@@ -51,9 +52,9 @@ const MODULES: ModuleConfig[] = [
       { value: 'edit', label: 'Edit' },
     ],
   },
-  { label: 'Members',       icon: Users,         viewPermission: 'members.read',       editPermission: 'members.manage'       },
-  { label: 'Music',         icon: Music2,        viewPermission: 'music.read',         editPermission: 'music.manage'         },
   { label: 'Service Plans', icon: ClipboardList, viewPermission: 'servicePlans.read',  editPermission: 'servicePlans.manage'  },
+  { label: 'Set Lists',     icon: ListMusic,     viewPermission: 'setlists.read',      editPermission: 'setlists.manage'      },
+  { label: 'Songs',         icon: Music2,        viewPermission: 'songs.read',         editPermission: 'songs.manage'         },
 ];
 
 const REPORTS: ReportConfig[] = [

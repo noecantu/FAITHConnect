@@ -23,9 +23,9 @@ export default function SongsPage() {
   const supabase = getSupabaseClient();
   const { churchId: church_id } = useChurchId();
   const { songs, loading } = useSongs(church_id);
-  const { canManageMusic, canReadMusic, loading: rolesLoading } = usePermissions();
-  const canManage = canManageMusic;
-  const canView = canReadMusic;
+  const { canManageSongs, canReadSongs, loading: rolesLoading } = usePermissions();
+  const canManage = canManageSongs;
+  const canView = canReadSongs;
   const { user } = useAuth();
   const { settings } = useSettings(church_id ?? undefined);
   const savedSort = settings?.songSort ?? "title";

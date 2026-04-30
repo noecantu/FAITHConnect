@@ -24,10 +24,10 @@ export default function SetListsPage() {
   const { churchId } = useChurchId();
   const { lists, loading } = useSetLists(churchId);
 
-  const { canManageMusic, canReadMusic, loading: rolesLoading } = usePermissions();
+  const { canManageSetlists, canReadSetlists, loading: rolesLoading } = usePermissions();
 
-  const canManage = canManageMusic;
-  const canView = canReadMusic;
+  const canManage = canManageSetlists;
+  const canView = canReadSetlists;
 
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortType>('date-asc');

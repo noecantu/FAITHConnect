@@ -24,8 +24,8 @@ function getErrorMessage(error: unknown) {
 export default function NewSongPage() {
   const router = useRouter();
   const { churchId } = useChurchId();
-  const { canManageMusic, loading: permissionsLoading } = usePermissions();
-  const canEdit = canManageMusic;
+  const { canManageSongs, loading: permissionsLoading } = usePermissions();
+  const canEdit = canManageSongs;
   const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState('');
 

@@ -82,6 +82,8 @@ export function NavMenu() {
     canReadContributions,
     canReadMessages,
     canReadMusic,
+    canReadSetlists,
+    canReadSongs,
     canReadServicePlans,
     canReadAttendance,
   } = usePermissions();
@@ -100,7 +102,7 @@ export function NavMenu() {
 
   const canSeeContributions = canReadContributions;
   const canSeeMessages = canReadMessages;
-  const canAccessMusic = canReadMusic;
+  const canAccessMusic = canReadMusic || canReadSetlists || canReadSongs;
   const canAccessServicePlan = canReadServicePlans;
   const canSeeAttendance = canReadAttendance;
   const canSeeMembers = canReadMembers || canManageMembers;
@@ -117,7 +119,11 @@ export function NavMenu() {
     if (href.includes('/attendance')) return 'text-amber-500';
     if (href.includes('/contributions')) return 'text-emerald-500';
     if (href.includes('/calendar')) return 'text-sky-500';
-    if (href.includes('/members') || href.includes('/users') || href.includes('/churches')) return 'text-blue-500';
+    if (href.includes('/members') || href.includes('/churches')) return 'text-blue-500';
+    if (href === '/admin/users' || href === '/admin/users/create') return 'text-fuchsia-500';
+    if (href.includes('/all-users') || href.includes('/church-admins')) return 'text-blue-500';
+    if (href.includes('/district-regional-admins')) return 'text-cyan-400';
+    if (href.includes('/create-user')) return 'text-teal-500';
     if (href.includes('/music')) return 'text-gray-500';
     if (href.includes('/service-plan')) return 'text-violet-500';
     if (href.includes('/messages')) return 'text-yellow-500';
@@ -131,15 +137,15 @@ export function NavMenu() {
   // --- MENU CONFIGS ---
   const rootAdminMenu = [
     { href: "/admin", label: "Dashboard", icon: Home, exact: true },
-    { href: "/admin/users/create-user", label: "Create User", icon: UserPlus },
-    { href: "/admin/users/create", label: "Create System User", icon: UserPlus },
+    { href: "/admin/users/create-user", label: "Create User", icon: UserPlus, exact: true },
+    { href: "/admin/users/create", label: "Create System User", icon: UserPlus, exact: true },
     { href: "/admin/churches", label: "Churches", icon: Users },
     { href: "/admin/districts", label: "Districts", icon: MapPin },
     { href: "/admin/regions", label: "Regions", icon: Map },
     { href: "/admin/all-users", label: "All Users", icon: Users },
     { href: "/admin/church-admins", label: "Church Admins", icon: ShieldHalf },
     { href: "/admin/district-regional-admins", label: "District & Regional Admins", icon: UserCog },
-    { href: "/admin/users", label: "System Users", icon: ShieldCheck },
+    { href: "/admin/users", label: "System Users", icon: ShieldCheck, exact: true },
     { href: "/admin/logs", label: "Activity Logs", icon: FileText },
     { href: "/admin/settings/health", label: "Platform Health", icon: CalendarHeart },
     { href: "/admin/subscription-audit", label: "Subscription Audit", icon: CreditCard },

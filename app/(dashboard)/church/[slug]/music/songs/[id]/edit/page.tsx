@@ -28,8 +28,8 @@ export default function EditSongPage() {
   const { churchId } = useChurchId();
 
   // UPDATED ROLES
-  const { canManageMusic, loading: permissionsLoading } = usePermissions();
-  const canEdit = canManageMusic;
+  const { canManageSongs, loading: permissionsLoading } = usePermissions();
+  const canEdit = canManageSongs;
 
   const [song, setSong] = useState<Song | null>(null);
   const [loading, setLoading] = useState(true);
