@@ -141,7 +141,7 @@ export default function ServicePlanPage() {
   // RENDER
   return (
     <>
-      <Card className="relative overflow-hidden border-white/20 bg-gradient-to-br from-black/90 via-black/75 to-black/60 p-6 shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <Card className="relative overflow-hidden border-white/20 bg-gradient-to-br from-black/90 via-black/75 to-black/60 p-4 shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-500 sm:p-6">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_40%)]" />
         <div className="relative space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -268,11 +268,11 @@ export default function ServicePlanPage() {
                           ? 'linear-gradient(90deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 42%, rgba(255,255,255,0.00) 100%)'
                           : 'linear-gradient(270deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 42%, rgba(255,255,255,0.00) 100%)',
                     }}
-                    className="group border border-white/15 rounded-lg p-4 flex items-start justify-between cursor-pointer bg-white/[0.04] transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-sky-950/40 hover:shadow-[0_8px_20px_rgba(56,189,248,0.20)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 animate-in fade-in slide-in-from-bottom-2 duration-500"
+                    className="group flex cursor-pointer flex-col gap-4 rounded-lg border border-white/15 bg-white/[0.04] p-4 transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-sky-950/40 hover:shadow-[0_8px_20px_rgba(56,189,248,0.20)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 animate-in fade-in slide-in-from-bottom-2 duration-500 sm:flex-row sm:items-start sm:justify-between"
                   >
-                    <div className="space-y-2">
-                      <div className="text-2xl font-semibold tracking-tight text-white/90 group-hover:text-white transition-colors">{plan.title}</div>
-                      <div className="flex items-center gap-2 text-xs">
+                    <div className="min-w-0 space-y-2">
+                      <div className="text-xl font-semibold tracking-tight text-white/90 transition-colors group-hover:text-white sm:text-2xl">{plan.title}</div>
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
                         <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-white/70">
                           <Layers3 className="h-3.5 w-3.5 text-white/50" />
                           {totalSections} {totalSections === 1 ? 'section' : 'sections'}
@@ -280,8 +280,8 @@ export default function ServicePlanPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <div className="inline-flex min-w-[11.5rem] items-center justify-center gap-2 rounded-md border border-white/20 bg-black/35 px-4 py-2 text-sm font-medium text-white/80 sm:min-w-[13rem] sm:text-base">
+                    <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end">
+                      <div className="inline-flex min-w-0 flex-1 items-center gap-2 rounded-md border border-white/20 bg-black/35 px-3 py-2 text-sm font-medium text-white/80 sm:min-w-[13rem] sm:flex-none sm:justify-center sm:px-4 sm:text-base">
                         <CalendarDays className="h-4 w-4 text-sky-500 sm:h-5 sm:w-5" />
                         {format(plan.dateTime, "M/d/yy, h:mm a")}
                       </div>
