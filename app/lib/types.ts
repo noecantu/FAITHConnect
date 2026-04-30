@@ -205,6 +205,7 @@ export interface ServicePlanSection {
   id: string;
   title: string;
   personId: string | null;
+  personName?: string | null;
   songIds: string[];
   notes: string;
   color?: string;

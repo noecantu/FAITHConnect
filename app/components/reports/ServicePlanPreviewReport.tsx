@@ -22,11 +22,13 @@ export function ServicePlanPreviewReport({ plan, members, songs }: Props) {
   const hasServiceNotes = plan.notes.trim().length > 0;
   const rows = plan.sections.flatMap((section) => {
     const member = members.find((m) => m.id === section.personId);
-    const personName = section.personId
-      ? member
-        ? `${member.firstName} ${member.lastName}`
-        : "Unknown Member"
-      : "";
+    const personName = section.personName?.trim()
+      ? section.personName.trim()
+      : section.personId
+        ? member
+          ? `${member.firstName} ${member.lastName}`
+          : "Unknown Member"
+        : "";
 
     if (section.songIds.length === 0) {
       return [

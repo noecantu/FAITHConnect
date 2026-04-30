@@ -271,7 +271,7 @@ export default function ChurchAdminDashboard() {
     { href: `/church/${churchId}/contributions`, label: "Contributions", icon: <HandCoins className="h-5 w-5 text-emerald-500" /> },
     { href: `/church/${churchId}/calendar`, label: "Events", icon: <Calendar className="h-5 w-5 text-sky-500" /> },
     { href: `/church/${churchId}/members`, label: "Members", icon: <UserPlus className="h-5 w-5 text-blue-500" /> },
-    { href: `/church/${churchId}/messages`, label: "Messages", icon: <MessageSquare className="h-5 w-5 text-pink-500" /> },
+    { href: `/church/${churchId}/messages`, label: "Messages", icon: <MessageSquare className="h-5 w-5" /> },
     { href: `/church/${churchId}/reports`, label: "Reports", icon: <FileText className="h-5 w-5 text-orange-500" /> },
     { href: `/church/${churchId}/service-plan`, label: "Service Plans", icon: <CalendarHeart className="h-5 w-5 text-violet-500" /> },
     { href: `/church/${churchId}/music/setlists`, label: "Set Lists", icon: <ListMusic className="h-5 w-5 text-emerald-500" /> },

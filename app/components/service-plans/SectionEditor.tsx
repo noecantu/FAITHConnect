@@ -2,6 +2,7 @@ import { useFormContext } from "react-hook-form";
 import { useState } from "react";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import {
   Select,
@@ -10,6 +11,7 @@ import {
   SelectContent,
   SelectItem,
 } from "../ui/select";
+import { Separator } from "../ui/separator";
 import {
   FormField,
   FormItem,
@@ -53,6 +55,8 @@ export function SectionEditor({
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
 
   const title = watch(`sections.${index}.title`);
+  const personId: string | null = watch(`sections.${index}.personId`);
+  const personName: string = watch(`sections.${index}.personName`) ?? "";
   const sectionColorOverride: string | undefined = watch(`sections.${index}.color`);
   const sectionColor = sectionColorOverride ?? getSectionColor(title);
 
@@ -191,13 +195,48 @@ export function SectionEditor({
         render={({ field }) => (
           <FormItem>
             <FormLabel>Person</FormLabel>
-            <Select value={field.value ?? ""} onValueChange={field.onChange}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a person" />
-                </SelectTrigger>
-              </FormControl>
+            <Select
+              value={field.value ?? undefined}
+              onValueChange={(value) => {
+                field.onChange(value);
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <FormControl>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a person" />
+                  </SelectTrigger>
+                </FormControl>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-14 shrink-0"
+                  aria-label="Clear Person"
+                  title="Clear"
+                  onClick={() => {
+                    field.onChange(null);
+                    setValue(`sections.${index}.personName`, "");
+                  }}
+                  disabled={!personId && personName.trim().length === 0}
+                >
+                  Clear
+                </Button>
+              </div>
               <SelectContent>
+                <div
+                  className="px-2 py-2 space-y-2"
+                  onPointerDownCapture={(e) => e.stopPropagation()}
+                  onKeyDownCapture={(e) => e.stopPropagation()}
+                >
+                  <p className="text-xs text-muted-foreground">Custom entry</p>
+                  <Input
+                    placeholder="Type a custom name"
+                    value={personName}
+                    onChange={(e) => setValue(`sections.${index}.personName`, e.target.value)}
+                  />
+                </div>
+                <Separator className="my-1" />
                 {members.map((m) => (
                   <SelectItem key={m.id} value={m.id}>
                     {m.firstName} {m.lastName}

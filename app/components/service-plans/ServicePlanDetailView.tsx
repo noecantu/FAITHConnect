@@ -85,8 +85,15 @@ export function ServicePlanDetailView({
         <div className="space-y-5">
           {plan.sections.map((section, sectionIndex) => {
             const member = members.find((m) => m.id === section.personId);
+            const personLabel = section.personName?.trim()
+              ? section.personName.trim()
+              : section.personId
+                ? member
+                  ? `${member.firstName} ${member.lastName}`
+                  : 'Unknown Member'
+                : '';
             const sectionColor = section.color ?? getSectionColor(section.title);
-            const hasPerson = !!section.personId;
+            const hasPerson = personLabel.length > 0;
             const hasNotes = section.notes.trim().length > 0;
 
           return (
@@ -114,9 +121,7 @@ export function ServicePlanDetailView({
                     <p className="text-xs font-semibold uppercase tracking-wider text-white/45">Person</p>
                     <p className="flex items-center gap-2 text-white/80">
                       <UserRound className="h-4 w-4 text-white/50" />
-                      {member
-                        ? `${member.firstName} ${member.lastName}`
-                        : 'Unknown Member'}
+                      {personLabel}
                     </p>
                   </div>
                 )}

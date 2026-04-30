@@ -282,7 +282,7 @@ export default function ServicePlanPage() {
 
                     <div className="flex items-center gap-2">
                       <div className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-3 py-1.5 text-xs text-white/70">
-                        <CalendarDays className="h-3.5 w-3.5 text-white/55" />
+                        <CalendarDays className="h-3.5 w-3.5 text-sky-500" />
                         {format(plan.dateTime, "M/d/yy, h:mm a")}
                       </div>
                       <ChevronRight className="h-4 w-4 text-white/35 transition-colors group-hover:text-white/75" />

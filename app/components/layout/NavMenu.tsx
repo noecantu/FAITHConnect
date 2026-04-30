@@ -126,7 +126,7 @@ export function NavMenu() {
     if (href.includes('/create-user')) return 'text-teal-500';
     if (href.includes('/music')) return 'text-gray-500';
     if (href.includes('/service-plan')) return 'text-violet-500';
-    if (href.includes('/messages')) return 'text-yellow-500';
+    if (href.includes('/messages')) return 'text';
     if (href.includes('/reports') || href.includes('/logs')) return 'text-orange-500';
     if (href.includes('/settings')) return 'text-cyan-500';
     if (href.includes('/health')) return 'text-red-500';

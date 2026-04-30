@@ -36,6 +36,7 @@ const sectionSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(1, 'Section title is required'),
   personId: z.string().nullable(),
+  personName: z.string().optional(),
   songIds: z.array(z.string()).default([]),
   notes: z.string().optional(),
   color: z.string().optional(),
@@ -156,6 +157,7 @@ export default function NewServicePlanPage() {
           id: s.id ?? crypto.randomUUID(),
           title: s.title,
           personId: s.personId ?? null,
+          personName: s.personName?.trim() ? s.personName.trim() : null,
           notes: s.notes ?? '',
           songIds: Array.isArray(s.songIds) ? s.songIds : [],
           color: s.color,
@@ -332,8 +334,10 @@ export default function NewServicePlanPage() {
                   append({
                     title: selectedTitle,
                     personId: null,
+                    personName: '',
                     songIds: [],
                     notes: '',
+                    color: undefined,
                   });
                 }}
               />

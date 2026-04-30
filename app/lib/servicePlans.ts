@@ -162,6 +162,7 @@ export async function duplicateServicePlan(
     id: crypto.randomUUID(),
     title: s.title,
     personId: s.personId,
+    personName: s.personName ?? null,
     songIds: [...s.songIds],
     notes: s.notes,
     color: s.color,

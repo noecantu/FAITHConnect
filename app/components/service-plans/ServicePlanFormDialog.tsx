@@ -43,8 +43,10 @@ const sectionSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(1, 'Section title is required'),
   personId: z.string().nullable(),
+  personName: z.string().optional(),
   songIds: z.array(z.string()).default([]),
   notes: z.string().optional(),
+  color: z.string().optional(),
 });
 
 const formSchema = z.object({
@@ -83,8 +85,10 @@ async function handleServicePlanSubmit(
     id: s.id ?? crypto.randomUUID(),
     title: s.title,
     personId: s.personId ?? null,
+    personName: s.personName?.trim() ? s.personName.trim() : null,
     notes: s.notes ?? '',
     songIds: Array.isArray(s.songIds) ? s.songIds : [],
+    color: s.color,
   }));
 
   const payload = {
@@ -151,8 +155,10 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
           id: s.id,
           title: s.title,
           personId: s.personId ?? null,
+          personName: s.personName ?? '',
           songIds: s.songIds ?? [],
           notes: s.notes ?? '',
+          color: s.color,
         })) ?? [],
     },
   });
@@ -378,8 +384,10 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
                     append({
                       title: selectedTitle,
                       personId: null,
+                      personName: '',
                       songIds: [],
                       notes: '',
+                      color: undefined,
                     });
                   }}
                 />

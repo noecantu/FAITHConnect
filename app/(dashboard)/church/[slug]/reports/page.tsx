@@ -581,9 +581,17 @@ export default function ReportsPage() {
     selectedServicePlan.sections.forEach((section) => {
       lines.push(`- ${section.title}`);
 
-      if (section.personId) {
-        const member = members.find((m) => m.id === section.personId);
-        lines.push(`  Person: ${member ? `${member.firstName} ${member.lastName}` : "Unknown Member"}`);
+      const member = members.find((m) => m.id === section.personId);
+      const personName = section.personName?.trim()
+        ? section.personName.trim()
+        : section.personId
+          ? member
+            ? `${member.firstName} ${member.lastName}`
+            : "Unknown Member"
+          : "";
+
+      if (personName) {
+        lines.push(`  Person: ${personName}`);
       }
 
       if (section.songIds.length === 0) {
