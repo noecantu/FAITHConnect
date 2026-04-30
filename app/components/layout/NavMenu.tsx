@@ -131,6 +131,7 @@ export function NavMenu() {
   // --- MENU CONFIGS ---
   const rootAdminMenu = [
     { href: "/admin", label: "Dashboard", icon: Home, exact: true },
+    { href: "/admin/users/create-user", label: "Create User", icon: UserPlus },
     { href: "/admin/users/create", label: "Create System User", icon: UserPlus },
     { href: "/admin/churches", label: "Churches", icon: Users },
     { href: "/admin/districts", label: "Districts", icon: MapPin },

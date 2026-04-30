@@ -183,6 +183,12 @@ export default function AdminHomeClient({
             description="Create and manage all districts."
           />
           <ToolCard
+            href="/admin/users/create-user"
+            icon={<UserPlus className="h-5 w-5" />}
+            title="Create User"
+            description="Create church users, church admins, and district/regional admins."
+          />
+          <ToolCard
             href="/admin/all-users"
             icon={<Users className="h-5 w-5" />}
             title="All Users"
