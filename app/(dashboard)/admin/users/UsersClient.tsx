@@ -168,7 +168,7 @@ export default function UsersClient({ users }: UsersClientProps) {
 
         <CardContent className="space-y-4">
           {/* Filters */}
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end">
             <div className="flex flex-col md:flex-row gap-4 md:items-end">
               {/* Search */}
               <div className="space-y-2">
@@ -202,10 +202,6 @@ export default function UsersClient({ users }: UsersClientProps) {
                 </Select>
               </div>
             </div>
-
-            <Button onClick={() => router.push("/admin/users/create")}>
-              Create User
-            </Button>
           </div>
 
           {/* Table */}

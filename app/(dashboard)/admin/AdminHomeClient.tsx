@@ -20,6 +20,7 @@ import {
   Music2,
   ListMusic,
   UserCog,
+  UserPlus,
   DollarSign,
   ChevronRight,
   ScrollText,
@@ -210,6 +211,12 @@ export default function AdminHomeClient({
           </h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <ToolCard
+            href="/admin/users/create"
+            icon={<UserPlus className="h-5 w-5" />}
+            title="Create System User"
+            description="Create a new system-level administrator account."
+          />
           <ToolCard
             href="/admin/users"
             icon={<ShieldCheck className="h-5 w-5" />}

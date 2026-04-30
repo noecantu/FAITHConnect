@@ -24,6 +24,7 @@ import {
   ShieldCheck,
   UserCog,
   ShieldHalf,
+  UserPlus,
 } from "lucide-react";
 import { useState } from "react";
 import { getSupabaseClient } from "@/app/lib/supabase/client";
@@ -130,6 +131,7 @@ export function NavMenu() {
   // --- MENU CONFIGS ---
   const rootAdminMenu = [
     { href: "/admin", label: "Dashboard", icon: Home, exact: true },
+    { href: "/admin/users/create", label: "Create System User", icon: UserPlus },
     { href: "/admin/churches", label: "Churches", icon: Users },
     { href: "/admin/districts", label: "Districts", icon: MapPin },
     { href: "/admin/regions", label: "Regions", icon: Map },
