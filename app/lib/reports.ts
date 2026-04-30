@@ -82,26 +82,28 @@ export async function generateMembersPDF(
   // -----------------------------
   const qrImages: Record<string, string | null> = {};
 
-  for (const m of members) {
-    const qrUrl = m.qrCode ?? m.profilePhotoUrl ?? null; // adjust as needed
+  if (selectedFields.includes("qrCode")) {
+    for (const m of members) {
+      const qrUrl = m.qrCode ?? null;
 
-    if (!qrUrl) {
-      qrImages[m.id] = null;
-      continue;
-    }
+      if (!qrUrl) {
+        qrImages[m.id] = null;
+        continue;
+      }
 
-    try {
-      const res = await fetch(qrUrl);
-      const blob = await res.blob();
-      const reader = await new Promise<string>((resolve) => {
-        const fr = new FileReader();
-        fr.onloadend = () => resolve(fr.result as string);
-        fr.readAsDataURL(blob);
-      });
+      try {
+        const res = await fetch(qrUrl);
+        const blob = await res.blob();
+        const reader = await new Promise<string>((resolve) => {
+          const fr = new FileReader();
+          fr.onloadend = () => resolve(fr.result as string);
+          fr.readAsDataURL(blob);
+        });
 
-      qrImages[m.id] = reader;
-    } catch {
-      qrImages[m.id] = null;
+        qrImages[m.id] = reader;
+      } catch {
+        qrImages[m.id] = null;
+      }
     }
   }
 
@@ -114,8 +116,6 @@ export async function generateMembersPDF(
     } else {
       doc.addImage(logoBase64, "PNG", 40, 20, 100, 0);
     }
-
-    doc.addImage(logoBase64, "PNG", 40, 20, 100, 0);
   }
 
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -162,6 +162,7 @@ export async function generateMembersPDF(
 
     didDrawCell: (data) => {
       if (data.section !== "body") return;
+      if (!selectedFields.includes("qrCode")) return;
       const qrColIndex = selectedFields.indexOf("qrCode") + 1;
       if (data.column.index !== qrColIndex) return;
 
