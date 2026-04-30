@@ -43,14 +43,28 @@ export default function RootAdminSettingsPage({ initialSettings }: { initialSett
   }
   return (
     <>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <SectionIdentity settings={settings} updateSettings={updateSettings} />
-        <SectionSecurity settings={settings} updateSettings={updateSettings} />
-        <SectionDeveloperTools settings={settings} updateSettings={updateSettings} />
-        <SectionFeatureFlags settings={settings} updateSettings={updateSettings} />
-        <SectionMaintenance settings={settings} updateSettings={updateSettings} />
-        <SectionIntegrityTools />
-        <SectionMonitoring />
+      <div className="columns-1 md:columns-2 gap-6">
+        <div className="mb-6 break-inside-avoid">
+          <SectionIdentity settings={settings} updateSettings={updateSettings} />
+        </div>
+        <div className="mb-6 break-inside-avoid">
+          <SectionSecurity settings={settings} updateSettings={updateSettings} />
+        </div>
+        <div className="mb-6 break-inside-avoid">
+          <SectionDeveloperTools settings={settings} updateSettings={updateSettings} />
+        </div>
+        <div className="mb-6 break-inside-avoid">
+          <SectionFeatureFlags settings={settings} updateSettings={updateSettings} />
+        </div>
+        <div className="mb-6 break-inside-avoid">
+          <SectionMaintenance settings={settings} updateSettings={updateSettings} />
+        </div>
+        <div className="mb-6 break-inside-avoid">
+          <SectionIntegrityTools />
+        </div>
+        <div className="mb-6 break-inside-avoid">
+          <SectionMonitoring />
+        </div>
       </div>
 
       {dirty && (
