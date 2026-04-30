@@ -165,7 +165,7 @@ export function ServicePlanFormDialog({ isOpen, onClose, churchId, plan }: Props
       theme: plan?.theme ?? '',
       scripture: plan?.scripture ?? '',
       scriptureText: plan?.scriptureText ?? '',
-      scriptureTranslation: plan?.scriptureTranslation ?? 'web',
+      scriptureTranslation: plan?.scriptureTranslation ?? 'kjv',
       notes: plan?.notes ?? '',
       isPublic: plan?.isPublic ?? true,
       groups: plan?.groups ?? [],

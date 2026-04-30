@@ -38,7 +38,7 @@ export function ScriptureLookupPanel({
   onScriptureTextChange,
 }: Props) {
   const [lookupReference, setLookupReference] = useState(scripture);
-  const [lookupTranslation, setLookupTranslation] = useState(scriptureTranslation || "web");
+  const [lookupTranslation, setLookupTranslation] = useState(scriptureTranslation || "kjv");
   const [loading, setLoading] = useState(false);
   const [translationsLoading, setTranslationsLoading] = useState(true);
   const [translations, setTranslations] = useState<ScriptureTranslationOption[]>([]);
@@ -58,9 +58,9 @@ export function ScriptureLookupPanel({
 
         const current = (scriptureTranslation || "").trim().toLowerCase();
         const hasCurrent = options.some((opt) => opt.id === current);
-        const defaultTranslation = options.some((opt) => opt.id === "web")
-          ? "web"
-          : options[0]?.id ?? "web";
+        const defaultTranslation = options.some((opt) => opt.id === "kjv")
+          ? "kjv"
+          : options[0]?.id ?? "kjv";
 
         if (!current || !hasCurrent) {
           setLookupTranslation(defaultTranslation);
@@ -69,10 +69,10 @@ export function ScriptureLookupPanel({
       } catch (error) {
         if (!mounted) return;
         setLookupError(error instanceof Error ? error.message : "Failed to load translations");
-        setTranslations([{ id: "web", name: "World English Bible", language: "English" }]);
+        setTranslations([{ id: "kjv", name: "King James Version", language: "English" }]);
         if (!scriptureTranslation.trim()) {
-          setLookupTranslation("web");
-          onScriptureTranslationChange("web");
+          setLookupTranslation("kjv");
+          onScriptureTranslationChange("kjv");
         }
       } finally {
         if (mounted) {
@@ -99,7 +99,7 @@ export function ScriptureLookupPanel({
 
   const translationOptions = translations.length > 0
     ? translations
-    : [{ id: "web", name: "World English Bible", language: "English" }];
+    : [{ id: "kjv", name: "King James Version", language: "English" }];
 
   const groupedTranslations = translationOptions.reduce<Record<string, ScriptureTranslationOption[]>>(
     (acc, t) => {
@@ -115,7 +115,7 @@ export function ScriptureLookupPanel({
 
   const handleLookup = async () => {
     const reference = lookupReference.trim();
-    const translation = lookupTranslation.trim() || "web";
+    const translation = lookupTranslation.trim() || "kjv";
 
     if (!reference) {
       setLookupError("Enter a scripture reference first.");

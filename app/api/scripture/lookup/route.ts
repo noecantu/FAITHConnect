@@ -40,10 +40,10 @@ function parseReference(value: unknown): string | null {
 }
 
 function parseTranslation(value: unknown): string {
-  if (typeof value !== "string") return "web";
+  if (typeof value !== "string") return "kjv";
   const trimmed = value.trim().toLowerCase();
-  if (!trimmed) return "web";
-  if (trimmed.length > 20) return "web";
+  if (!trimmed) return "kjv";
+  if (trimmed.length > 20) return "kjv";
   return trimmed;
 }
 

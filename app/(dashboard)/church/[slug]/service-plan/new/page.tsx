@@ -87,7 +87,7 @@ export default function NewServicePlanPage() {
       theme: '',
       scripture: '',
       scriptureText: '',
-      scriptureTranslation: 'web',
+      scriptureTranslation: 'kjv',
       notes: '',
       isPublic: true,
       groups: [],

@@ -43,7 +43,7 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady, onValidityCh
   const [theme, setTheme] = useState(initial?.serviceNotes?.theme ?? '');
   const [scripture, setScripture] = useState(initial?.serviceNotes?.scripture ?? '');
   const [scriptureText, setScriptureText] = useState(initial?.serviceNotes?.scriptureText ?? '');
-  const [scriptureTranslation, setScriptureTranslation] = useState(initial?.serviceNotes?.scriptureTranslation ?? 'web');
+  const [scriptureTranslation, setScriptureTranslation] = useState(initial?.serviceNotes?.scriptureTranslation ?? 'kjv');
   const [notes, setNotes] = useState(initial?.serviceNotes?.notes ?? '');
   const onReadyRef = useRef(onReady);
   const onValidityChangeRef = useRef(onValidityChange);
@@ -57,7 +57,7 @@ export function SetListForm({ initial, allSongs, onSubmit, onReady, onValidityCh
     theme: initial?.serviceNotes?.theme ?? '',
     scripture: initial?.serviceNotes?.scripture ?? '',
     scriptureText: initial?.serviceNotes?.scriptureText ?? '',
-    scriptureTranslation: initial?.serviceNotes?.scriptureTranslation ?? 'web',
+    scriptureTranslation: initial?.serviceNotes?.scriptureTranslation ?? 'kjv',
     notes: initial?.serviceNotes?.notes ?? '',
   });
 
