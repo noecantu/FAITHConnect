@@ -249,6 +249,46 @@ export function SectionEditor({
         )}
       />
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <FormField
+          control={control}
+          name={`sections.${index}.startTime`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Start Time</FormLabel>
+              <FormControl>
+                <Input type="time" {...field} value={field.value ?? ""} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name={`sections.${index}.durationMinutes`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Duration (min)</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min={1}
+                  step={1}
+                  placeholder="e.g. 15"
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    field.onChange(raw === "" ? undefined : Number(raw));
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
       {/* Notes */}
       <FormField
         control={control}

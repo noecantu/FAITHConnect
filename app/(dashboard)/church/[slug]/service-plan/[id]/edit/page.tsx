@@ -38,6 +38,8 @@ const sectionSchema = z.object({
   title: z.string().min(1, 'Section title is required'),
   personId: z.string().nullable(),
   personName: z.string().optional(),
+  startTime: z.string().optional(),
+  durationMinutes: z.coerce.number().int().positive().optional(),
   songIds: z.array(z.string()).default([]),
   notes: z.string().optional(),
   color: z.string().optional(),
@@ -47,6 +49,8 @@ const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   dateString: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date'),
   timeString: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time'),
+  theme: z.string().optional(),
+  scripture: z.string().optional(),
   notes: z.string().optional(),
   isPublic: z.boolean().default(true),
   groups: z.array(z.string()).default([]),
@@ -93,6 +97,8 @@ export default function EditServicePlanPage() {
       title: plan.title ?? '',
       dateString: plan.dateString ?? '',
       timeString: plan.timeString ?? '',
+      theme: plan.theme ?? '',
+      scripture: plan.scripture ?? '',
       notes: plan.notes ?? '',
       isPublic: plan.isPublic ?? true,
       groups: plan.groups ?? [],
@@ -101,6 +107,8 @@ export default function EditServicePlanPage() {
         title: section.title,
         personId: section.personId ?? null,
         personName: section.personName ?? '',
+        startTime: section.startTime ?? '',
+        durationMinutes: section.durationMinutes ?? undefined,
         songIds: section.songIds ?? [],
         notes: section.notes ?? '',
         color: section.color,
@@ -183,6 +191,8 @@ export default function EditServicePlanPage() {
         title: values.title.trim(),
         dateString: values.dateString,
         timeString: values.timeString,
+        theme: values.theme?.trim() ?? '',
+        scripture: values.scripture?.trim() ?? '',
         notes: values.notes?.trim() ?? '',
         isPublic: values.isPublic,
         groups: values.isPublic ? [] : values.groups,
@@ -191,6 +201,10 @@ export default function EditServicePlanPage() {
           title: section.title,
           personId: section.personId ?? null,
           personName: section.personName?.trim() ? section.personName.trim() : null,
+          startTime: section.startTime?.trim() ? section.startTime : null,
+          durationMinutes: typeof section.durationMinutes === 'number' && Number.isFinite(section.durationMinutes)
+            ? section.durationMinutes
+            : null,
           notes: section.notes ?? '',
           songIds: Array.isArray(section.songIds) ? section.songIds : [],
           color: section.color,
@@ -258,6 +272,36 @@ export default function EditServicePlanPage() {
                 </FormItem>
               )}
             />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="theme"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Theme</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Kingdom Stewardship, Hope, etc." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="scripture"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Scripture</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John 3:16, Psalm 23, etc." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
@@ -373,6 +417,8 @@ export default function EditServicePlanPage() {
                     title: selectedTitle,
                     personId: null,
                     personName: '',
+                    startTime: '',
+                    durationMinutes: undefined,
                     songIds: [],
                     notes: '',
                     color: undefined,

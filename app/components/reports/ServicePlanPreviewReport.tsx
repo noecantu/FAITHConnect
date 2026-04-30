@@ -20,6 +20,8 @@ export function ServicePlanPreviewReport({ plan, members, songs }: Props) {
   }
 
   const hasServiceNotes = plan.notes.trim().length > 0;
+  const hasTheme = typeof plan.theme === "string" && plan.theme.trim().length > 0;
+  const hasScripture = typeof plan.scripture === "string" && plan.scripture.trim().length > 0;
   const rows = plan.sections.flatMap((section) => {
     const member = members.find((m) => m.id === section.personId);
     const personName = section.personName?.trim()
@@ -30,11 +32,17 @@ export function ServicePlanPreviewReport({ plan, members, songs }: Props) {
           : "Unknown Member"
         : "";
 
+    const timing = [
+      section.startTime?.trim() ? section.startTime.trim() : null,
+      typeof section.durationMinutes === "number" ? `${section.durationMinutes} min` : null,
+    ].filter((part): part is string => Boolean(part)).join(" | ");
+
     if (section.songIds.length === 0) {
       return [
         {
           section: section.title,
           person: personName,
+          timing,
           music: "No songs",
           notes: section.notes?.trim() || "",
         },
@@ -46,6 +54,7 @@ export function ServicePlanPreviewReport({ plan, members, songs }: Props) {
       return {
         section: index === 0 ? section.title : "",
         person: index === 0 ? personName : "",
+        timing: index === 0 ? timing : "",
         music: song ? song.title : "Unknown Song",
         notes: index === 0 ? (section.notes?.trim() || "") : "",
       };
@@ -58,6 +67,8 @@ export function ServicePlanPreviewReport({ plan, members, songs }: Props) {
         <div className="rounded-md border border-white/20 bg-black/40 p-4 text-sm text-white/85">
           <p className="font-semibold text-white">{plan.title}</p>
           <p className="text-white/70">Service Date: {format(plan.dateTime, "MM/dd/yyyy h:mm a")}</p>
+          {hasTheme && <p className="text-white/70">Theme: {plan.theme}</p>}
+          {hasScripture && <p className="text-white/70">Scripture: {plan.scripture}</p>}
         </div>
 
         {hasServiceNotes && (
@@ -77,6 +88,7 @@ export function ServicePlanPreviewReport({ plan, members, songs }: Props) {
                 <tr>
                   <th className="p-3 text-left font-medium text-white/80">Section</th>
                   <th className="p-3 text-left font-medium text-white/80">Person</th>
+                  <th className="p-3 text-left font-medium text-white/80">Timing</th>
                   <th className="p-3 text-left font-medium text-white/80">Music</th>
                   <th className="p-3 text-left font-medium text-white/80">Section Notes</th>
                 </tr>
@@ -86,6 +98,7 @@ export function ServicePlanPreviewReport({ plan, members, songs }: Props) {
                   <tr key={`${row.section || "row"}-${row.music}-${index}`} className="border-b border-white/20 transition-all hover:bg-sky-950/40 hover:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.5)]">
                     <td className="p-3 align-top text-white/90">{row.section}</td>
                     <td className="p-3 align-top text-white/90">{row.person}</td>
+                    <td className="p-3 align-top text-white/90">{row.timing}</td>
                     <td className="p-3 align-top text-white/90">{row.music}</td>
                     <td className="p-3 align-top whitespace-pre-wrap text-white/90">{row.notes}</td>
                   </tr>

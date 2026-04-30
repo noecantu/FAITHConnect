@@ -571,6 +571,13 @@ export default function ReportsPage() {
     lines.push(`Service Plan: ${selectedServicePlan.title}`);
     lines.push(`When: ${format(selectedServicePlan.dateTime, "EEEE, MMM d, yyyy h:mm a")}`);
 
+    if (selectedServicePlan.theme?.trim()) {
+      lines.push(`Theme: ${selectedServicePlan.theme}`);
+    }
+    if (selectedServicePlan.scripture?.trim()) {
+      lines.push(`Scripture: ${selectedServicePlan.scripture}`);
+    }
+
     if (selectedServicePlan.notes.trim().length > 0) {
       lines.push(`Service Notes: ${selectedServicePlan.notes}`);
     }
@@ -592,6 +599,15 @@ export default function ReportsPage() {
 
       if (personName) {
         lines.push(`  Person: ${personName}`);
+      }
+
+      const timing = [
+        section.startTime?.trim() ? section.startTime.trim() : null,
+        typeof section.durationMinutes === "number" ? `${section.durationMinutes} min` : null,
+      ].filter((part): part is string => Boolean(part)).join(" | ");
+
+      if (timing) {
+        lines.push(`  Timing: ${timing}`);
       }
 
       if (section.songIds.length === 0) {

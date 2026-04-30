@@ -64,6 +64,8 @@ export async function POST(req: Request) {
     if (body.title !== undefined) payload.title = body.title;
     if (body.dateString !== undefined) payload.date_string = body.dateString;
     if (body.timeString !== undefined) payload.time_string = body.timeString;
+    if (body.theme !== undefined) payload.theme = typeof body.theme === "string" && body.theme.trim().length > 0 ? body.theme.trim() : null;
+    if (body.scripture !== undefined) payload.scripture = typeof body.scripture === "string" && body.scripture.trim().length > 0 ? body.scripture.trim() : null;
     if (body.notes !== undefined) payload.notes = body.notes;
     if (body.sections !== undefined) payload.sections = body.sections;
 

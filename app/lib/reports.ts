@@ -752,12 +752,24 @@ export function generateServicePlanPDF(
   doc.setFontSize(10);
   doc.text(`Service Date: ${format(servicePlan.dateTime, "MM/dd/yyyy h:mm a")}`, 40, 108);
 
+  const hasTheme = typeof servicePlan.theme === "string" && servicePlan.theme.trim().length > 0;
+  const hasScripture = typeof servicePlan.scripture === "string" && servicePlan.scripture.trim().length > 0;
   const hasNotes = servicePlan.notes.trim().length > 0;
-  let tableStartY = 130;
+  let metadataY = 126;
+  if (hasTheme) {
+    doc.text(`Theme: ${servicePlan.theme}`, 40, metadataY);
+    metadataY += 12;
+  }
+  if (hasScripture) {
+    doc.text(`Scripture: ${servicePlan.scripture}`, 40, metadataY);
+    metadataY += 12;
+  }
+
+  let tableStartY = metadataY + 4;
   if (hasNotes) {
     const wrapped = doc.splitTextToSize(`Service Notes: ${servicePlan.notes}`, pageWidth - 80);
-    doc.text(wrapped, 40, 126);
-    tableStartY = 126 + wrapped.length * 12 + 12;
+    doc.text(wrapped, 40, metadataY);
+    tableStartY = metadataY + wrapped.length * 12 + 12;
   }
 
   const rows: Array<string[]> = [];
@@ -771,8 +783,13 @@ export function generateServicePlanPDF(
           : "Unknown Member"
         : "";
 
+    const timing = [
+      section.startTime?.trim() ? section.startTime.trim() : null,
+      typeof section.durationMinutes === "number" ? `${section.durationMinutes} min` : null,
+    ].filter((part): part is string => Boolean(part)).join(" | ");
+
     if (section.songIds.length === 0) {
-      rows.push([section.title, personName, "No songs", section.notes ?? ""]);
+      rows.push([section.title, personName, timing, "No songs", section.notes ?? ""]);
       return;
     }
 
@@ -781,6 +798,7 @@ export function generateServicePlanPDF(
       rows.push([
         index === 0 ? section.title : "",
         index === 0 ? personName : "",
+        index === 0 ? timing : "",
         song ? song.title : "Unknown Song",
         index === 0 ? (section.notes ?? "") : "",
       ]);
@@ -788,17 +806,18 @@ export function generateServicePlanPDF(
   });
 
   autoTable(doc, {
-    head: [["Section", "Person", "Music", "Section Notes"]],
+    head: [["Section", "Person", "Timing", "Music", "Section Notes"]],
     body: rows,
     startY: tableStartY,
     styles: { fontSize: 9, cellWidth: "wrap", valign: "top" },
     headStyles: { fontStyle: "bold", fillColor: [31, 41, 55] },
     alternateRowStyles: { fillColor: [245, 245, 245] },
     columnStyles: {
-      0: { cellWidth: 120 },
-      1: { cellWidth: 120 },
-      2: { cellWidth: 160 },
-      3: { cellWidth: 140 },
+      0: { cellWidth: 95 },
+      1: { cellWidth: 90 },
+      2: { cellWidth: 85 },
+      3: { cellWidth: 130 },
+      4: { cellWidth: 130 },
     },
   });
 
@@ -828,6 +847,8 @@ export function generateServicePlanExcel(
   const summaryRows = [
     { Field: "Title", Value: servicePlan.title },
     { Field: "Service Date", Value: format(servicePlan.dateTime, "MM/dd/yyyy h:mm a") },
+    { Field: "Theme", Value: servicePlan.theme ?? "" },
+    { Field: "Scripture", Value: servicePlan.scripture ?? "" },
     { Field: "Service Notes", Value: servicePlan.notes ?? "" },
   ];
 
@@ -841,10 +862,16 @@ export function generateServicePlanExcel(
           : "Unknown Member"
         : "";
 
+    const timing = [
+      section.startTime?.trim() ? section.startTime.trim() : null,
+      typeof section.durationMinutes === "number" ? `${section.durationMinutes} min` : null,
+    ].filter((part): part is string => Boolean(part)).join(" | ");
+
     if (section.songIds.length === 0) {
       return [{
         Section: section.title,
         Person: personName,
+        Timing: timing,
         Music: "No songs",
         SectionNotes: section.notes ?? "",
       }];
@@ -855,6 +882,7 @@ export function generateServicePlanExcel(
       return {
         Section: index === 0 ? section.title : "",
         Person: index === 0 ? personName : "",
+        Timing: index === 0 ? timing : "",
         Music: song ? song.title : "Unknown Song",
         SectionNotes: index === 0 ? (section.notes ?? "") : "",
       };

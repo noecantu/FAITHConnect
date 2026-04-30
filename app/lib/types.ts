@@ -192,6 +192,8 @@ export type ServicePlanFirestore = {
   title: string;
   dateString: string;
   timeString: string;
+  theme?: string | null;
+  scripture?: string | null;
   notes: string;
   isPublic: boolean;
   groups: string[];
@@ -206,6 +208,8 @@ export interface ServicePlanSection {
   title: string;
   personId: string | null;
   personName?: string | null;
+  startTime?: string | null;
+  durationMinutes?: number | null;
   songIds: string[];
   notes: string;
   color?: string;

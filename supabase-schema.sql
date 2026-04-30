@@ -237,6 +237,8 @@ create table if not exists public.service_plans (
   title           text not null,
   date_string     text not null,   -- YYYY-MM-DD
   time_string     text not null,   -- HH:MM (24h)
+  theme           text,
+  scripture       text,
   notes           text not null default '',
   is_public       boolean not null default true,
   groups          text[] not null default '{}',

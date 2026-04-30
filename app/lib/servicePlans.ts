@@ -19,6 +19,8 @@ function rowToServicePlan(row: Record<string, unknown>): ServicePlan {
     title: row.title as string,
     dateString,
     timeString,
+    theme: (row.theme as string | null) ?? null,
+    scripture: (row.scripture as string | null) ?? null,
     notes: (row.notes as string) ?? "",
     isPublic,
     groups: (row.groups as string[]) ?? [],
@@ -66,6 +68,8 @@ export async function createServicePlan(
     title: string;
     dateString: string;
     timeString: string;
+    theme?: string | null;
+    scripture?: string | null;
     notes: string;
     isPublic: boolean;
     groups: string[];
@@ -82,6 +86,8 @@ export async function createServicePlan(
       title: data.title,
       dateString: data.dateString,
       timeString: data.timeString,
+      theme: data.theme,
+      scripture: data.scripture,
       notes: data.notes,
       isPublic: data.isPublic,
       groups: data.groups,
@@ -109,6 +115,8 @@ export async function updateServicePlan(
     title: string;
     dateString: string;
     timeString: string;
+    theme: string;
+    scripture: string;
     notes: string;
     isPublic: boolean;
     groups: string[];
@@ -163,6 +171,8 @@ export async function duplicateServicePlan(
     title: s.title,
     personId: s.personId,
     personName: s.personName ?? null,
+    startTime: s.startTime ?? null,
+    durationMinutes: s.durationMinutes ?? null,
     songIds: [...s.songIds],
     notes: s.notes,
     color: s.color,
@@ -172,6 +182,8 @@ export async function duplicateServicePlan(
     title: `${plan.title} (Copy)`,
     dateString: plan.dateString,
     timeString: plan.timeString,
+    theme: plan.theme ?? null,
+    scripture: plan.scripture ?? null,
     notes: plan.notes,
     isPublic: plan.isPublic,
     groups: plan.groups,

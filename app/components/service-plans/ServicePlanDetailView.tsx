@@ -37,7 +37,9 @@ export function ServicePlanDetailView({
   router,
   churchId
 }: ServicePlanDetailViewProps) {
-    const hasServiceNotes = plan.notes.trim().length > 0;
+  const hasTheme = typeof plan.theme === 'string' && plan.theme.trim().length > 0;
+  const hasScripture = typeof plan.scripture === 'string' && plan.scripture.trim().length > 0;
+  const hasServiceNotes = plan.notes.trim().length > 0;
 
     return (
       <div className="space-y-6">
@@ -82,6 +84,25 @@ export function ServicePlanDetailView({
           </Card>
         )}
 
+        {(hasTheme || hasScripture) && (
+          <Card className="relative overflow-hidden border-white/20 bg-gradient-to-br from-black/80 to-black/60 p-5 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.24)] animate-in fade-in slide-in-from-bottom-2 duration-500 [animation-delay:70ms]">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent_55%)]" />
+            <div className="relative space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/40">Service Focus</p>
+              {hasTheme && (
+                <p className="text-sm leading-6 text-white/75">
+                  <span className="font-semibold text-white/85">Theme:</span> {plan.theme}
+                </p>
+              )}
+              {hasScripture && (
+                <p className="text-sm leading-6 text-white/75">
+                  <span className="font-semibold text-white/85">Scripture:</span> {plan.scripture}
+                </p>
+              )}
+            </div>
+          </Card>
+        )}
+
         <div className="space-y-5">
           {plan.sections.map((section, sectionIndex) => {
             const member = members.find((m) => m.id === section.personId);
@@ -94,6 +115,8 @@ export function ServicePlanDetailView({
                 : '';
             const sectionColor = section.color ?? getSectionColor(section.title);
             const hasPerson = personLabel.length > 0;
+            const hasStartTime = typeof section.startTime === 'string' && section.startTime.trim().length > 0;
+            const hasDuration = typeof section.durationMinutes === 'number' && Number.isFinite(section.durationMinutes);
             const hasNotes = section.notes.trim().length > 0;
 
           return (
@@ -126,6 +149,16 @@ export function ServicePlanDetailView({
                   </div>
                 )}
 
+                {(hasStartTime || hasDuration) && (
+                  <div className="space-y-2 rounded-md border border-white/15 bg-black/50 p-3 backdrop-blur-xl">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-white/45">Timing</p>
+                    <p className="text-sm text-white/80">
+                      {hasStartTime ? section.startTime : 'No start time'}
+                      {hasDuration ? ` • ${section.durationMinutes} min` : ''}
+                    </p>
+                  </div>
+                )}
+
                 {hasNotes && (
                   <div className="space-y-2 rounded-md border border-white/15 bg-black/50 p-3 backdrop-blur-xl">
                     <p className="text-xs font-semibold uppercase tracking-wider text-white/45">Notes</p>
@@ -135,7 +168,7 @@ export function ServicePlanDetailView({
                   </div>
                 )}
 
-                {!hasPerson && !hasNotes && (
+                {!hasPerson && !hasStartTime && !hasDuration && !hasNotes && (
                   <p className="text-sm text-white/35 italic">
                     No details for this section.
                   </p>

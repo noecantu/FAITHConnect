@@ -271,7 +271,7 @@ export default function ServicePlanPage() {
                     className="group border border-white/15 rounded-lg p-4 flex items-start justify-between cursor-pointer bg-white/[0.04] transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-sky-950/40 hover:shadow-[0_8px_20px_rgba(56,189,248,0.20)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 animate-in fade-in slide-in-from-bottom-2 duration-500"
                   >
                     <div className="space-y-2">
-                      <div className="font-semibold tracking-tight text-white/90 group-hover:text-white transition-colors">{plan.title}</div>
+                      <div className="text-2xl font-semibold tracking-tight text-white/90 group-hover:text-white transition-colors">{plan.title}</div>
                       <div className="flex items-center gap-2 text-xs">
                         <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-white/70">
                           <Layers3 className="h-3.5 w-3.5 text-white/50" />
@@ -281,8 +281,8 @@ export default function ServicePlanPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <div className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-3 py-1.5 text-xs text-white/70">
-                        <CalendarDays className="h-3.5 w-3.5 text-sky-500" />
+                      <div className="inline-flex min-w-[11.5rem] items-center justify-center gap-2 rounded-md border border-white/20 bg-black/35 px-4 py-2 text-sm font-medium text-white/80 sm:min-w-[13rem] sm:text-base">
+                        <CalendarDays className="h-4 w-4 text-sky-500 sm:h-5 sm:w-5" />
                         {format(plan.dateTime, "M/d/yy, h:mm a")}
                       </div>
                       <ChevronRight className="h-4 w-4 text-white/35 transition-colors group-hover:text-white/75" />

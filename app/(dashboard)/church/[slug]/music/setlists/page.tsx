@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import { PageHeader } from '@/app/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/app/components/ui/select';
 import { useChurchId } from '@/app/hooks/useChurchId';
@@ -21,7 +20,7 @@ type SortType = 'date-desc' | 'date-asc' | 'title-asc';
 type FilterType = 'all' | 'future' | 'past';
 
 export default function SetListsPage() {
-  const { churchId } = useChurchId();
+  const { churchId, loading: churchLoading } = useChurchId();
   const { lists, loading } = useSetLists(churchId);
 
   const { canManageSetlists, canReadSetlists, loading: rolesLoading } = usePermissions();
@@ -106,11 +105,18 @@ export default function SetListsPage() {
   } = usePreviewPagination(rows, 20);
 
   // LOADING + PERMISSIONS — SAFE NOW
-  if (!churchId || loading || rolesLoading) {
+  if (churchLoading || loading || rolesLoading) {
     return (
       <>
-        <PageHeader title="Set Lists" />
         <p className="text-muted-foreground">Loading set lists…</p>
+      </>
+    );
+  }
+
+  if (!churchId) {
+    return (
+      <>
+        <p className="text-muted-foreground">Unable to determine church context.</p>
       </>
     );
   }
@@ -118,7 +124,6 @@ export default function SetListsPage() {
   if (!canView) {
     return (
       <>
-        <PageHeader title="Set Lists" />
         <p className="text-muted-foreground">
           You do not have permission to view set lists.
         </p>
@@ -129,74 +134,68 @@ export default function SetListsPage() {
   // RENDER
   return (
     <>
-      <PageHeader
-        title="Set Lists"
-        subtitle={`Total: ${lists.length}`}
-      />
+      <Card className="relative overflow-hidden border-white/20 bg-gradient-to-br from-black/90 via-black/75 to-black/60 p-6 shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_40%)]" />
+        <div className="relative space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-xs text-white/65">
+                  <Layers3 className="h-3 w-3" />
+                  {lists.length} {lists.length === 1 ? 'list' : 'lists'}
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-xs text-white/65">
+                  <CalendarDays className="h-3 w-3" />
+                  {filter === 'all' ? 'All dates' : filter === 'future' ? 'Upcoming' : 'Past'}
+                </span>
+              </div>
 
-      {/* Toolbar */}
-      <div className="top-16 z-10">
-        <div className="flex flex-wrap items-center gap-3 w-full">
-
-          {/* Search bar */}
-          <div className="w-full sm:flex-1 flex items-center gap-3">
-            <SearchBar
-              value={search}
-              onChange={setSearch}
-              placeholder="Search Set Lists..."
-            />
+              <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Set Lists</h1>
+              <p className="text-sm text-white/55">Browse, search, and open each set list with the same list styling used on Service Plans.</p>
+            </div>
           </div>
 
-          {/* Controls */}
-          <div className="grid grid-cols-2 gap-3 w-full sm:flex sm:w-auto sm:ml-auto">
+          <div className="flex flex-wrap items-center gap-3 w-full">
+            <div className="w-full sm:flex-1 flex items-center gap-3">
+              <SearchBar
+                value={search}
+                onChange={setSearch}
+                placeholder="Search Set Lists..."
+              />
+            </div>
 
-            <Select value={filter} onValueChange={handleFilterChange}>
-              <SelectTrigger
-                className="
-                  w-full h-9
-                  bg-black/80 border border-white/20 backdrop-blur-xl
-                  text-white/80
-                  hover:bg-white/5 hover:border-white/20
-                  transition
-                "
-              >
-                <SelectValue placeholder="Filter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="future">Future</SelectItem>
-                <SelectItem value="past">Past</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-2 gap-3 w-full sm:flex sm:w-auto sm:ml-auto">
+              <Select value={filter} onValueChange={handleFilterChange}>
+                <SelectTrigger className="w-full h-9 bg-black/75 border border-white/20 backdrop-blur-xl text-white/80 hover:bg-white/5 hover:border-white/20 transition">
+                  <SelectValue placeholder="Filter" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="future">Future</SelectItem>
+                  <SelectItem value="past">Past</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select value={sort} onValueChange={handleSortChange}>
-              <SelectTrigger
-                className="
-                  w-full h-9
-                  bg-black/80 border border-white/20 backdrop-blur-xl
-                  text-white/80
-                  hover:bg-white/5 hover:border-white/20
-                  transition
-                "
-              >
-                <SelectValue placeholder="Sort" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="date-desc">Newest</SelectItem>
-                <SelectItem value="date-asc">Oldest</SelectItem>
-                <SelectItem value="title-asc">Title A–Z</SelectItem>
-              </SelectContent>
-            </Select>
-
+              <Select value={sort} onValueChange={handleSortChange}>
+                <SelectTrigger className="w-full h-9 bg-black/75 border border-white/20 backdrop-blur-xl text-white/80 hover:bg-white/5 hover:border-white/20 transition">
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="date-desc">Newest</SelectItem>
+                  <SelectItem value="date-asc">Oldest</SelectItem>
+                  <SelectItem value="title-asc">Title A–Z</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* ⭐ Card wrapper for list + footer */}
-      <Card className="relative overflow-hidden bg-gradient-to-b from-black/85 to-black/70 border-white/20 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
+      <Card className="relative overflow-hidden rounded-xl border border-white/15 bg-black/55 backdrop-blur-xl shadow-[0_8px_28px_rgba(0,0,0,0.26)] animate-in fade-in slide-in-from-bottom-2 duration-500 [animation-delay:60ms]">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_35%)]" />
         <CardHeader className="relative">
-          <CardTitle className="text-xl tracking-tight">All Set Lists</CardTitle>
+          <CardTitle className="text-xl tracking-tight text-white/95">All Set Lists</CardTitle>
         </CardHeader>
 
         <CardContent className="relative space-y-6">
@@ -262,22 +261,22 @@ export default function SetListsPage() {
                   className="group border border-white/15 rounded-lg p-4 flex items-start justify-between cursor-pointer bg-white/[0.04] transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-sky-950/40 hover:shadow-[0_8px_20px_rgba(56,189,248,0.20)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 animate-in fade-in slide-in-from-bottom-2 duration-500"
                 >
                   <div className="space-y-2">
-                    <div className="font-semibold tracking-tight group-hover:text-white transition-colors">{row.title}</div>
-                    <div className="flex flex-wrap items-center gap-2 text-xs">
-                      <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/40 px-2.5 py-1 text-white/80">
-                        <Layers3 className="h-3.5 w-3.5 text-gray-500" />
-                        {row.totalSets} {row.totalSets === 1 ? 'Section' : 'Sections'}
+                    <div className="text-2xl font-semibold tracking-tight text-white/90 group-hover:text-white transition-colors">{row.title}</div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-white/70">
+                        <Layers3 className="h-3.5 w-3.5 text-white/50" />
+                        {row.totalSets} {row.totalSets === 1 ? 'section' : 'sections'}
                       </span>
-                      <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/40 px-2.5 py-1 text-white/80">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-white/70">
                         <Music2 className="h-3.5 w-3.5 text-emerald-500" />
-                        {row.totalSongs} {row.totalSongs === 1 ? 'Song' : 'Songs'}
+                        {row.totalSongs} {row.totalSongs === 1 ? 'song' : 'songs'}
                       </span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <div className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/40 px-3 py-1.5 text-xs text-white/80">
-                      <CalendarDays className="h-3.5 w-3.5 text-sky-500" />
+                    <div className="inline-flex min-w-[11.5rem] items-center justify-center gap-2 rounded-md border border-white/20 bg-black/35 px-4 py-2 text-sm font-medium text-white/80 sm:min-w-[13rem] sm:text-base">
+                      <CalendarDays className="h-4 w-4 text-sky-500 sm:h-5 sm:w-5" />
                       {row.date ? format(row.date, "M/d/yy, h:mm a") : "—"}
                     </div>
                     <ChevronRight className="h-4 w-4 text-white/35 transition-colors group-hover:text-white/75" />
