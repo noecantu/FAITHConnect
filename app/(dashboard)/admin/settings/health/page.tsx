@@ -4,6 +4,12 @@ export const dynamic = "force-dynamic";
 import { adminDb } from "@/app/lib/supabase/admin";
 import { createClient } from "@supabase/supabase-js";
 import HealthDashboard from "./HealthDashboard";
+import { 
+  getStorageUsage, 
+  getEmailProviderHealth, 
+  getStripeSyncStatus,
+  getStripePricesHealth 
+} from "../monitoringActions";
 
 export default async function HealthPage() {
   // DB stats (aggregate counts)
@@ -20,6 +26,14 @@ export default async function HealthPage() {
   // Log type distribution for chart (real, uncapped)
   const logTypeCounts = await getSystemLogTypeCounts();
 
+  // Health checks
+  const [storageHealth, emailHealth, stripeSync, stripePrices] = await Promise.all([
+    getStorageUsage(),
+    getEmailProviderHealth(),
+    getStripeSyncStatus(),
+    getStripePricesHealth(),
+  ]);
+
   // Build metrics object
   const metrics = {
     firestore: {
@@ -32,12 +46,15 @@ export default async function HealthPage() {
       providers: countProviders(authUsers),
     },
     logTypeCounts,
+    storage: storageHealth,
+    email: emailHealth,
+    stripe: stripeSync,
+    stripePrices: stripePrices,
     generatedAt: new Date().toISOString(),
   };
 
   return (
     <div className="p-6 space-y-8">
-      <h1 className="text-2xl font-bold">Platform Health Dashboard</h1>
       <HealthDashboard metrics={metrics} />
     </div>
   );
@@ -78,11 +95,15 @@ async function listAllAuthUsers() {
 }
 
 async function getSystemLogTypeCounts() {
-  const { data: logs } = await adminDb.from("logs").select("type");
-  const counts: Record<string, number> = {};
+  const { data } = await adminDb
+    .from("logs")
+    .select("type")
+    .order("created_at", { ascending: false })
+    .limit(1000);
 
-  (logs ?? []).forEach((row: { type?: string }) => {
-    const type = typeof row.type === "string" && row.type.trim().length > 0 ? row.type : "unknown";
+  const counts: Record<string, number> = {};
+  (data ?? []).forEach((row: { type?: string }) => {
+    const type = row.type || "unknown";
     counts[type] = (counts[type] || 0) + 1;
   });
 
